@@ -1,0 +1,12 @@
+{
+  "host": {
+    "url": "http://localhost:8000",
+    "workspace": "work",
+    "appName": "ra-hermes",
+    "aiPeer": "n8n_manager"
+  },
+  "profile": {
+    "name": "n8n-manager",
+    "alias": "Olly"
+  }
+}

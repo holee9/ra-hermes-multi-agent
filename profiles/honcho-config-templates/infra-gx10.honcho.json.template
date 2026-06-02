@@ -1,0 +1,12 @@
+{
+  "host": {
+    "url": "http://localhost:8000",
+    "workspace": "infra",
+    "appName": "ra-hermes",
+    "aiPeer": "infra_gx10"
+  },
+  "profile": {
+    "name": "infra-gx10",
+    "alias": "Leo"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "_comment": "[IF] 브릿지 전달 조건 — 의도적 공백. 운영하며 관찰된 패턴으로 채운다.",
+  "relay_threshold": null,
+  "relay_conditions": [],
+  "_notes": {
+    "relay_threshold": "전달 최소 임계값 (예: approve_ratio >= 0.67). null = 모든 결정 전달.",
+    "relay_conditions": "전달 조건 패턴 목록. 비어 있으면 모든 결정을 업무 workspace로 전달.",
+    "example_condition": {
+      "result": "approved",
+      "min_approve_ratio": 0.67
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "host": {
+    "url": "http://localhost:8000",
+    "workspace": "infra",
+    "appName": "ra-hermes",
+    "aiPeer": "infra_rpi"
+  },
+  "profile": {
+    "name": "infra-rpi",
+    "alias": "Gus"
+  }
+}

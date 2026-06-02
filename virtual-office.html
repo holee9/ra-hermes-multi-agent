@@ -417,13 +417,14 @@ function handle(ev){
 }
 
 /* ===== 재생 제어 ===== */
+let ACTIVE_EVENTS = EVENTS; // 기본값: 목업
 let idx=0, timer=null, speed=900;
 function step(){
-  if(idx>=EVENTS.length){stop();return;}
-  handle(EVENTS[idx]); idx++;
+  if(idx>=ACTIVE_EVENTS.length){stop();return;}
+  handle(ACTIVE_EVENTS[idx]); idx++;
   timer=setTimeout(step,speed);
 }
-function play(){ if(timer)return; if(idx>=EVENTS.length)resetAll(); step(); }
+function play(){ if(timer)return; if(idx>=ACTIVE_EVENTS.length)resetAll(); step(); }
 function stop(){ clearTimeout(timer); timer=null; }
 function resetAll(){
   stop(); idx=0; logEl.innerHTML="";
@@ -435,8 +436,25 @@ document.getElementById('pause').onclick=stop;
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('speed').onchange=e=>{speed=+e.target.value; if(timer){stop();step();}};
 
-/* 자동 시작 */
-setTimeout(play,500);
+/* DATA_SOURCE: /api/config → honcho 시 /api/events에서 실데이터 로드 */
+async function initDataSource(){
+  try{
+    const cfg=await fetch('/api/config').then(r=>r.json()).catch(()=>null);
+    if(cfg?.data_source==='honcho'){
+      document.querySelector('.sub').textContent='실시간 Honcho 활동 기록 재생';
+      const evts=await fetch('/api/events').then(r=>r.json()).catch(()=>null);
+      if(evts&&evts.length>0){ ACTIVE_EVENTS=evts; }
+      // 폴링: 지정 주기마다 새 이벤트 갱신
+      const pollMs=cfg.poll_interval_ms||30000;
+      setInterval(async()=>{
+        const fresh=await fetch('/api/events').then(r=>r.json()).catch(()=>null);
+        if(fresh&&fresh.length>ACTIVE_EVENTS.length){ ACTIVE_EVENTS=fresh; }
+      },pollMs);
+    }
+  }catch(_){}
+  setTimeout(play,500);
+}
+initDataSource();
 </script>
 </body>
 </html>

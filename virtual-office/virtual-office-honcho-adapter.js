@@ -1,0 +1,184 @@
+/**
+ * Honcho Activity Log Adapter (Node.js / Express)
+ *
+ * virtual-office.html에 /api/events 엔드포인트를 제공.
+ * DATA_SOURCE=honcho 시 Honcho 활동 기록을 이벤트 배열로 변환.
+ * DATA_SOURCE=mock 시 목업 이벤트 반환.
+ *
+ * 읽기 전용 — 쓰기 API 경로 없음.
+ */
+
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
+
+const PORT = parseInt(process.env.PORT || '3000');
+const DATA_SOURCE = process.env.DATA_SOURCE || 'mock';
+const HONCHO_API_URL = process.env.HONCHO_API_URL || 'http://localhost:8000';
+const HONCHO_APP_NAME = process.env.HONCHO_APP_NAME || 'ra-hermes';
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000');
+
+// 목업 이벤트 (virtual-office.html의 EVENTS 배열과 동일)
+const MOCK_EVENTS = [
+  {type:"mail_received", actor:"system", target:"ra_us", payload:{region:"US", subject:"510(k) follow-up"}},
+  {type:"matched",       actor:"ra_us", payload:{wp:"WP-123", confidence:0.91, existing:true}},
+  {type:"comment_added", actor:"ra_us", payload:{wp:"WP-123", note:"진행현황 반영"}},
+  {type:"transition_proposed", actor:"ra_us", payload:{wp:"WP-123", to:"리뷰중"}},
+  {type:"mail_received", actor:"system", target:"ra_eu", payload:{region:"EU", subject:"MDR CER update"}},
+  {type:"matched",       actor:"ra_eu", payload:{wp:"WP-204", confidence:0.74, existing:false}},
+  {type:"comment_added", actor:"ra_eu", payload:{wp:"WP-204", note:"신규 사안 등록"}},
+  {type:"vote_opened",   actor:"infra_gx10", payload:{topic:"추론 부하 높음"}},
+  {type:"vote_cast",     actor:"infra_t3610", payload:{vote:"defer"}},
+  {type:"vote_cast",     actor:"infra_rpi", payload:{vote:"defer"}},
+  {type:"vote_result",   actor:"system", payload:{result:"업무 지연 권고"}},
+  {type:"score_given",   actor:"human", payload:{target:"Mike 매칭", score:3}}
+];
+
+// Honcho 메시지를 가상 오피스 이벤트 형식으로 변환
+function adaptHonchoMessage(msg) {
+  let record;
+  try {
+    record = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+  } catch {
+    return null;
+  }
+  if (!record || !record.type || !record.actor) return null;
+
+  // 활동 기록 계약 형식 → 가상 오피스 이벤트 형식 매핑
+  const event = {
+    ts: record.ts,
+    type: record.type,
+    actor: record.actor,
+    payload: record.payload || {}
+  };
+
+  // mail_received 이벤트에 target 필드 복원
+  if (record.type === 'mail_received' && record.payload?.target) {
+    event.target = record.payload.target;
+  }
+
+  return event;
+}
+
+async function fetchHonchoEvents() {
+  return new Promise((resolve) => {
+    const apiUrl = `${HONCHO_API_URL}/v1/apps/${HONCHO_APP_NAME}/users/system/sessions?page=1&page_size=100`;
+    const parsedUrl = new URL(apiUrl);
+    const transport = parsedUrl.protocol === 'https:' ? https : http;
+
+    const req = transport.get(apiUrl, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const body = JSON.parse(data);
+          const sessions = body.items || [];
+          const eventPromises = sessions.map(session =>
+            fetchSessionMessages(session.id)
+          );
+          Promise.all(eventPromises).then(results => {
+            const allEvents = results
+              .flat()
+              .map(adaptHonchoMessage)
+              .filter(Boolean)
+              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+            resolve(allEvents);
+          }).catch(() => resolve(MOCK_EVENTS));
+        } catch {
+          resolve(MOCK_EVENTS);
+        }
+      });
+    });
+    req.on('error', () => resolve(MOCK_EVENTS));
+    req.setTimeout(5000, () => { req.destroy(); resolve(MOCK_EVENTS); });
+  });
+}
+
+function fetchSessionMessages(sessionId) {
+  return new Promise((resolve) => {
+    const apiUrl = `${HONCHO_API_URL}/v1/apps/${HONCHO_APP_NAME}/users/system/sessions/${sessionId}/messages?page=1&page_size=200`;
+    const parsedUrl = new URL(apiUrl);
+    const transport = parsedUrl.protocol === 'https:' ? https : http;
+
+    const req = transport.get(apiUrl, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const body = JSON.parse(data);
+          resolve(body.items || []);
+        } catch {
+          resolve([]);
+        }
+      });
+    });
+    req.on('error', () => resolve([]));
+    req.setTimeout(5000, () => { req.destroy(); resolve([]); });
+  });
+}
+
+const HTML_PATH = path.join(__dirname, '..', 'virtual-office.html');
+
+const server = http.createServer(async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  // 읽기 전용 — POST/PUT/DELETE 차단
+  if (req.method !== 'GET') {
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Method not allowed. Virtual office is read-only.' }));
+    return;
+  }
+
+  if (parsedUrl.pathname === '/api/events') {
+    let events;
+    if (DATA_SOURCE === 'honcho') {
+      events = await fetchHonchoEvents();
+    } else {
+      events = MOCK_EVENTS;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(events));
+    return;
+  }
+
+  if (parsedUrl.pathname === '/api/config') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data_source: DATA_SOURCE, poll_interval_ms: POLL_INTERVAL_MS }));
+    return;
+  }
+
+  if (parsedUrl.pathname === '/' || parsedUrl.pathname === '/index.html') {
+    try {
+      const html = fs.readFileSync(HTML_PATH, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+    } catch {
+      res.writeHead(404);
+      res.end('virtual-office.html not found');
+    }
+    return;
+  }
+
+  res.writeHead(404);
+  res.end('Not found');
+});
+
+server.listen(PORT, () => {
+  console.log(`RA Virtual Office adapter running on :${PORT}`);
+  console.log(`DATA_SOURCE=${DATA_SOURCE}`);
+  if (DATA_SOURCE === 'honcho') {
+    console.log(`HONCHO_API_URL=${HONCHO_API_URL}`);
+  }
+});
