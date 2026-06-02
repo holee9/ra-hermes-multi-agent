@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA Virtual Office</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+
+  :root{
+    --bg:#1a1c2c; --floor-work:#3b5dc9; --floor-infra:#566c86;
+    --wall:#28293d; --desk:#854c30; --desk2:#a0683f;
+    --skin:#f4d29c; --ink:#1a1c2c;
+    --accent:#ffcd75; --green:#a7f070; --red:#ef7d57; --blue:#41a6f6;
+    --card:#222034; --line:#4a4e69;
+    --kanban:#29366f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    font-family:'VT323',monospace;
+    color:#e4e4ef;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:18px;
+    image-rendering:pixelated;
+  }
+  h1{
+    font-family:'Press Start 2P',monospace;
+    font-size:15px; color:var(--accent);
+    letter-spacing:1px; margin-bottom:4px;
+    text-shadow:2px 2px 0 #b13e53;
+  }
+  .sub{font-size:18px;color:#8b8ba7;margin-bottom:14px;}
+
+  .controls{
+    display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; justify-content:center;
+  }
+  button{
+    font-family:'Press Start 2P',monospace; font-size:9px;
+    background:var(--card); color:var(--accent);
+    border:2px solid var(--accent); padding:8px 12px;
+    cursor:pointer; transition:.1s;
+  }
+  button:hover{background:var(--accent);color:var(--ink);}
+  button:active{transform:translate(1px,1px);}
+  .speed{font-size:16px;color:#8b8ba7;}
+  select{font-family:'VT323';font-size:16px;background:var(--card);color:#e4e4ef;border:2px solid var(--line);padding:3px;}
+
+  .stage{
+    position:relative; width:760px; height:440px;
+    border:4px solid var(--wall);
+    background:var(--wall);
+    display:flex;
+    box-shadow:0 0 0 4px var(--bg),0 10px 30px rgba(0,0,0,.5);
+  }
+  .room{position:relative; height:100%;}
+  .work{width:62%; background:
+    repeating-linear-gradient(0deg,var(--floor-work) 0 22px,#3554b5 22px 44px),
+    repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.05) 22px 44px);
+    border-right:4px solid var(--wall);}
+  .infra{width:38%; background:
+    repeating-linear-gradient(0deg,var(--floor-infra) 0 22px,#4d6178 22px 44px);}
+  .roomlabel{
+    position:absolute; top:4px; left:6px;
+    font-family:'Press Start 2P'; font-size:8px; color:rgba(255,255,255,.5);
+  }
+
+  /* kanban */
+  .kanban{
+    position:absolute; top:24px; left:12px; right:12px; height:74px;
+    background:var(--kanban); border:2px solid #3b4886;
+    display:flex; padding:3px; gap:3px;
+  }
+  .kcol{flex:1; border-right:1px dashed #4a5699; padding:2px; position:relative;}
+  .kcol:last-child{border-right:none;}
+  .kcol .t{font-size:13px;color:#9aa5e0;text-align:center;border-bottom:1px solid #3b4886;}
+  .kcard{
+    background:var(--accent); color:var(--ink); font-size:12px;
+    margin:2px 1px; padding:1px 3px; line-height:1.1;
+    animation:pop .3s ease;
+  }
+  @keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+
+  /* character */
+  .char{
+    position:absolute; width:42px; transition:left .6s ease,top .6s ease;
+    text-align:center; z-index:5;
+  }
+  .body{
+    width:40px;height:40px;margin:0 auto;position:relative;
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .head{
+    width:16px;height:16px;background:var(--skin);
+    margin:0 auto; border:2px solid var(--ink); border-radius:2px;
+    position:relative;
+  }
+  .head::after{ /* eyes */
+    content:""; position:absolute; top:6px; left:3px; right:3px; height:2px;
+    background:var(--ink); box-shadow:0 0 0 transparent;
+  }
+  .torso{
+    width:22px;height:14px; margin:-1px auto 0; border:2px solid var(--ink);
+    border-radius:2px 2px 0 0;
+  }
+  .namep{
+    font-size:13px; line-height:1; margin-top:1px;
+    background:var(--ink); color:#fff; padding:0 2px; display:inline-block;
+    white-space:nowrap;
+  }
+  .role{font-size:10px;color:rgba(255,255,255,.45);display:block;}
+  .desk{
+    width:30px;height:8px;background:var(--desk);border:2px solid #5a3520;
+    margin:1px auto 0;
+  }
+  /* states */
+  .active .body{animation:bounce .4s ease infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  .glow{filter:drop-shadow(0 0 6px var(--accent));}
+
+  .bubble{
+    position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    background:#fff; color:var(--ink); font-size:13px; padding:2px 6px;
+    border:2px solid var(--ink); white-space:nowrap; margin-bottom:2px;
+    opacity:0; transition:opacity .2s; z-index:20; pointer-events:none;
+  }
+  .bubble.show{opacity:1;}
+  .bubble::after{
+    content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    border:4px solid transparent; border-top-color:var(--ink);
+  }
+
+  /* envelope / token */
+  .float{
+    position:absolute; font-size:18px; z-index:15;
+    transition:left .6s ease,top .6s ease,opacity .3s;
+  }
+
+  /* infra meeting circle */
+  .votezone{
+    position:absolute; width:90px;height:90px; border:2px dashed var(--red);
+    border-radius:50%; left:50%; top:55%; transform:translate(-50%,-50%);
+    opacity:0; transition:opacity .3s; z-index:1;
+  }
+  .votezone.show{opacity:.7;}
+
+  /* log */
+  .log{
+    width:760px; margin-top:12px; background:var(--card); border:3px solid var(--line);
+    height:96px; overflow-y:auto; padding:6px 10px; font-size:16px; line-height:1.35;
+  }
+  .log div{color:#c0cbdc;}
+  .log .ts{color:#6b7394;}
+  .log .who{color:var(--accent);}
+  .log .new{color:#fff;}
+
+  /* score stamp */
+  .stamp{
+    position:absolute; right:8px; bottom:8px; z-index:30;
+    font-family:'Press Start 2P'; font-size:10px;
+    opacity:0; transition:opacity .3s;
+  }
+  .stamp.show{opacity:1; animation:pop .3s;}
+</style>
+</head>
+<body>
+  <h1>RA VIRTUAL OFFICE</h1>
+  <div class="sub">파일럿 대시보드 · 목업 이벤트 재생 (뼈대 무관)</div>
+
+  <div class="controls">
+    <button id="play">▶ 재생</button>
+    <button id="pause">⏸ 정지</button>
+    <button id="reset">↺ 처음</button>
+    <span class="speed">속도</span>
+    <select id="speed">
+      <option value="1500">1x</option>
+      <option value="900" selected>1.6x</option>
+      <option value="450">3x</option>
+    </select>
+  </div>
+
+  <div class="stage">
+    <div class="room work" id="work">
+      <div class="roomlabel">WORK OFFICE</div>
+      <div class="kanban" id="kanban">
+        <div class="kcol"><div class="t">오픈</div></div>
+        <div class="kcol"><div class="t">진행중</div></div>
+        <div class="kcol"><div class="t">리뷰중</div></div>
+        <div class="kcol"><div class="t">완료</div></div>
+      </div>
+    </div>
+    <div class="room infra" id="infra">
+      <div class="roomlabel">INFRA ROOM</div>
+      <div class="votezone" id="votezone"></div>
+    </div>
+    <div class="stamp" id="stamp"></div>
+  </div>
+
+  <div class="log" id="log"></div>
+
+<script>
+/* ===== 픽셀 캐릭터 데이터 (32x32, 좌우대칭 베이스 + 캐릭터별 색) =====
+   코드로 찍은 픽셀아트. canvas 렌더 → 외부 PNG 불필요.
+   더 정교한 CC0 스프라이트(예: Kenney, kenney.nl, 표기 의무 없음)를
+   쓰려면 CHARS에 sprite:"파일.png" 추가 → makeChar가 우선 적용.        */
+const HALF_WORKER = ["................",".........HHHHHHH",".......HHHHHHHHH","......HHHHHHHHHH","......Hhhhhhhhhh",".....H0SSSSSSSSS",".....0SSSSSSSSSS","....0SSSSSSSSSSS","....0SSSSSSSSeeS","....0SSSSSSSSeeS","....0SSSSSSSSSSS","....0SSSSSSSssss","....0SSSSSSmmmmm",".....0SSSSSmmmmm",".....0SSSSSSSSSS","......0SSSSSSSSS",".......00SSSSSSS","........0XXXXXXX","......00XXXXXXXX",".....0XXXXXXXXXX","....0XXXXXXXXXXX","....0XXXXXXXXXXX","....0XXXXxxxxxxx","....0XXXXxXXXXXX","....0XXXxX0XXXXX","....0XXx0XXXXXXX","....0XX0SSSS00SS","....0XX0SS0...0S",".....00.00....00","......0.........",".....00.........","................"];
+const HALF_INFRA  = ["................",".........CCCCCCC",".......CCCCCCCCC","......CCCCCCCCCC","......CCCCCCCCCC",".....C0SSSSSSSSS",".....0SSSSSSSSSS","....0SSSSSSSSSSS","....0SSSSSSSSeeS","....0SSSSSSSSeeS","....0SSSSSSSSSSS","....0SSSSSSSssss","....0SSSSSSmmmmm",".....0SSSSSmmmmm",".....0SSSSSSSSSS","......0SSSSSSSSS",".......00SSSSSSS","........0XXXXXXX","......00XXXXXXXX",".....0XXXXXXXXXX","....0XXXXXXXXXXX","....0XXXXXXXXXXX","....0XXXXxxxxxxx","....0XXXXxXXXXXX","....0XXXxX0XXXXX","....0XXx0XXXXXXX","....0XX0SSSS00SS","....0XX0SS0...0S",".....00.00....00","......0.........",".....00.........","................"];
+function mirror(half){return half.map(r=>r+r.split("").reverse().join(""));}
+const BASE = { worker: mirror(HALF_WORKER), infra: mirror(HALF_INFRA) };
+
+// 공통 색 + 캐릭터별 치환(셔츠 X/x, 머리 또는 모자색)
+const SKIN={S:"#f4d29c",s:"#d9a066",e:"#1a1c2c",m:"#c0704a","0":"#1a1c2c",".":null};
+function shade(hex,f){ // 셔츠 그림자색 자동 생성
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r=Math.round(r*f);g=Math.round(g*f);b=Math.round(b*f);
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+// 캐릭터별: base종류, 머리/모자색(H,h 또는 C), 셔츠색(X,x)
+const SKINMAP = {
+  ra_us:      {base:"worker", hair:"#3a2a1d", shirt:"#41a6f6"},
+  ra_eu:      {base:"worker", hair:"#5a4a2a", shirt:"#ffcd75"},
+  ra_kr:      {base:"worker", hair:"#2a2a2a", shirt:"#ef7d57"},
+  op_manager: {base:"worker", hair:"#4a2a1d", shirt:"#a7f070"},
+  n8n_manager:{base:"worker", hair:"#3a2a4d", shirt:"#b8b5ff"},
+  infra_t3610:{base:"infra",  hair:"#2a8a9a", shirt:"#73eff7"},
+  infra_gx10: {base:"infra",  hair:"#566c86", shirt:"#94b0c2"},
+  infra_rpi:  {base:"infra",  hair:"#8a6a3a", shirt:"#cda878"}
+};
+function spriteCanvas(id){
+  const m=SKINMAP[id]; if(!m) return null;
+  const grid=BASE[m.base];
+  const pal={...SKIN,
+    H:m.hair, h:shade(m.hair,0.7), C:m.hair,
+    X:m.shirt, x:shade(m.shirt,0.72)};
+  const cv=document.createElement('canvas'); cv.width=32; cv.height=32;
+  cv.style.width='40px'; cv.style.height='40px'; cv.style.imageRendering='pixelated';
+  const cx=cv.getContext('2d');
+  for(let r=0;r<32;r++)for(let q=0;q<32;q++){
+    const col=pal[grid[r][q]]; if(!col)continue;
+    cx.fillStyle=col; cx.fillRect(q,r,1,1);
+  }
+  return cv;
+}
+
+/* ===== 캐릭터 정의 (actor ID -> 이름/역할/위치) ===== */
+const CHARS = {
+  ra_us:     {name:"Mike",  role:"미국RA", room:"work", x:70,  y:150, color:"#41a6f6"},
+  ra_eu:     {name:"Theo",  role:"유럽RA", room:"work", x:190, y:150, color:"#ffcd75"},
+  ra_kr:     {name:"Sam",   role:"한국RA", room:"work", x:310, y:150, color:"#ef7d57"},
+  op_manager:{name:"Margot",role:"사안",   room:"work", x:130, y:300, color:"#a7f070"},
+  n8n_manager:{name:"Olly", role:"자동화", room:"work", x:280, y:300, color:"#b8b5ff"},
+  infra_t3610:{name:"Finn", role:"T3610", room:"infra",x:60, y:120, color:"#73eff7"},
+  infra_gx10:{name:"Leo",   role:"GX10",  room:"infra",x:160,y:120, color:"#94b0c2"},
+  infra_rpi: {name:"Gus",   role:"RPi",   room:"infra",x:110,y:230, color:"#f4d29c"}
+};
+const WORK_W = 760*0.62;
+
+/* ===== 목업 이벤트 (= 뼈대 출력 계약. 추후 Honcho로 교체) ===== */
+const EVENTS = [
+  {type:"mail_received", actor:"system", target:"ra_us", payload:{region:"US", subject:"510(k) follow-up"}},
+  {type:"matched",       actor:"ra_us", payload:{wp:"WP-123", confidence:0.91, existing:true}},
+  {type:"comment_added", actor:"ra_us", payload:{wp:"WP-123", note:"진행현황 반영"}},
+  {type:"transition_proposed", actor:"ra_us", payload:{wp:"WP-123", to:"리뷰중"}},
+  {type:"mail_received", actor:"system", target:"ra_eu", payload:{region:"EU", subject:"MDR CER update"}},
+  {type:"matched",       actor:"ra_eu", payload:{wp:"WP-204", confidence:0.74, existing:false}},
+  {type:"comment_added", actor:"ra_eu", payload:{wp:"WP-204", note:"신규 사안 등록"}},
+  {type:"vote_opened",   actor:"infra_gx10", payload:{topic:"추론 부하 높음"}},
+  {type:"vote_cast",     actor:"infra_t3610", payload:{vote:"defer"}},
+  {type:"vote_cast",     actor:"infra_rpi", payload:{vote:"defer"}},
+  {type:"vote_result",   actor:"system", payload:{result:"업무 지연 권고"}},
+  {type:"score_given",   actor:"human", payload:{target:"Mike 매칭", score:3}}
+];
+
+/* ===== 렌더 ===== */
+const work=document.getElementById('work'), infra=document.getElementById('infra');
+const logEl=document.getElementById('log'), kanban=document.getElementById('kanban');
+const votezone=document.getElementById('votezone'), stamp=document.getElementById('stamp');
+const els={};
+
+function roomEl(r){return r==="work"?work:infra;}
+function makeChar(id,c){
+  const d=document.createElement('div');
+  d.className='char'; d.style.left=c.x+'px'; d.style.top=c.y+'px';
+  d.innerHTML=`
+    <div class="bubble" id="bub_${id}"></div>
+    <div class="body" id="body_${id}"></div>
+    <div class="desk"></div>
+    <span class="namep">${c.name}<span class="role">${c.role}</span></span>`;
+  roomEl(c.room).appendChild(d);
+  const body=d.querySelector('.body');
+  // 1순위: PNG sprite 경로  2순위: 픽셀 canvas  3순위: 도형
+  if(c.sprite){
+    body.innerHTML=`<img src="${c.sprite}" alt="${c.name}" style="width:34px;height:34px;image-rendering:pixelated;">`;
+  }else{
+    const cv=spriteCanvas(id);
+    if(cv){ body.appendChild(cv); }
+    else{
+      body.innerHTML=`<div class="head"></div><div class="torso" style="background:${c.color}"></div>`;
+    }
+  }
+  els[id]={el:d, bub:d.querySelector('.bubble'), home:{x:c.x,y:c.y}};
+}
+Object.entries(CHARS).forEach(([id,c])=>makeChar(id,c));
+
+function bubble(id,text,ms=1400){
+  const b=els[id]?.bub; if(!b)return;
+  b.textContent=text; b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'),ms);
+}
+function activate(id,ms=1200){
+  const e=els[id]?.el; if(!e)return;
+  e.classList.add('active','glow');
+  setTimeout(()=>e.classList.remove('active','glow'),ms);
+}
+let kcount=0;
+function addKanbanCard(wp,col){
+  const cols=kanban.querySelectorAll('.kcol');
+  const idx={"오픈":0,"진행중":1,"리뷰중":2,"완료":3}[col]??0;
+  const card=document.createElement('div');
+  card.className='kcard'; card.textContent=wp; card.dataset.wp=wp;
+  cols[idx].appendChild(card);
+}
+function moveKanban(wp,col){
+  const card=kanban.querySelector(`.kcard[data-wp="${wp}"]`);
+  const cols=kanban.querySelectorAll('.kcol');
+  const idx={"오픈":0,"진행중":1,"리뷰중":2,"완료":3}[col]??0;
+  if(card) cols[idx].appendChild(card);
+}
+function floatIcon(fromRoomX,fromY,toId,icon){
+  const f=document.createElement('div'); f.className='float'; f.textContent=icon;
+  f.style.left=fromRoomX+'px'; f.style.top=fromY+'px';
+  work.appendChild(f);
+  const t=els[toId];
+  requestAnimationFrame(()=>{ f.style.left=(t.home.x)+'px'; f.style.top=(t.home.y-20)+'px'; });
+  setTimeout(()=>f.remove(),1400);
+}
+function log(ev){
+  const names={...Object.fromEntries(Object.entries(CHARS).map(([k,v])=>[k,v.name])),system:"SYS",human:"YOU"};
+  let msg="";
+  const p=ev.payload||{};
+  switch(ev.type){
+    case"mail_received":msg=`📩 메일 수신 → ${CHARS[ev.target].name} (${p.region}: ${p.subject})`;break;
+    case"matched":msg=`🔍 매칭 ${p.wp} (신뢰도 ${(p.confidence*100)|0}%, ${p.existing?"기존":"신규"})`;break;
+    case"comment_added":msg=`📝 덧글→${p.wp}: ${p.note}`;break;
+    case"transition_proposed":msg=`⏩ 전이 제안 ${p.wp} → ${p.to} (사람 승인 대기)`;break;
+    case"vote_opened":msg=`🔔 투표 소집: ${p.topic}`;break;
+    case"vote_cast":msg=`🗳 투표: ${p.vote}`;break;
+    case"vote_result":msg=`✅ 결정: ${p.result}`;break;
+    case"score_given":msg=`⭐ 평가 ${"★".repeat(p.score)}${"☆".repeat(3-p.score)} (${p.target})`;break;
+  }
+  const who=names[ev.actor]||ev.actor;
+  const div=document.createElement('div');
+  div.innerHTML=`<span class="who">[${who}]</span> <span class="new">${msg}</span>`;
+  logEl.appendChild(div);
+  logEl.scrollTop=logEl.scrollHeight;
+  setTimeout(()=>div.querySelector('.new')?.classList.remove('new'),600);
+}
+
+/* ===== 이벤트 처리 ===== */
+function handle(ev){
+  log(ev);
+  const p=ev.payload||{};
+  switch(ev.type){
+    case"mail_received":
+      activate(ev.target); bubble(ev.target,"📩 새 메일");
+      floatIcon(WORK_W/2,40,ev.target,"✉️");
+      break;
+    case"matched":
+      activate(ev.actor); bubble(ev.actor,`🔍 ${p.wp} ${(p.confidence*100)|0}%`);
+      if(!p.existing) addKanbanCard(p.wp,"오픈");
+      break;
+    case"comment_added":{
+      activate(ev.actor);
+      const a=els[ev.actor], m=els.op_manager;
+      // RA -> Margot 이동 연출
+      const ox=a.el.style.left, oy=a.el.style.top;
+      a.el.style.left=(m.home.x+30)+'px'; a.el.style.top=(m.home.y)+'px';
+      bubble("op_manager","📝 접수");
+      setTimeout(()=>{ a.el.style.left=ox; a.el.style.top=oy; },1500);
+      if(!kanban.querySelector(`.kcard[data-wp="${p.wp}"]`)) addKanbanCard(p.wp,"진행중");
+      else moveKanban(p.wp,"진행중");
+      break;}
+    case"transition_proposed":
+      moveKanban(p.wp,"진행중");
+      bubble("ra_us","⏩ "+p.to+"?");
+      break;
+    case"vote_opened":
+      votezone.classList.add('show');
+      activate(ev.actor,2500); bubble(ev.actor,"🔔 투표!");
+      ["infra_t3610","infra_gx10","infra_rpi"].forEach((id,i)=>{
+        const e=els[id]; e._home={x:e.el.style.left,y:e.el.style.top};
+        e.el.style.left=(90+i*0)+'px'; e.el.style.top=(150+i*4)+'px';
+      });
+      break;
+    case"vote_cast":
+      activate(ev.actor); bubble(ev.actor,"🗳 "+p.vote);
+      break;
+    case"vote_result":
+      bubble("infra_gx10","✅ "+p.result,2000);
+      setTimeout(()=>{
+        votezone.classList.remove('show');
+        ["infra_t3610","infra_gx10","infra_rpi"].forEach(id=>{
+          const e=els[id]; if(e._home){e.el.style.left=e._home.x;e.el.style.top=e._home.y;}
+        });
+      },1600);
+      // 브릿지: 인프라->업무 알림
+      floatIcon(WORK_W+10,200,"op_manager","⚠️");
+      break;
+    case"score_given":
+      stamp.textContent="★".repeat(p.score)+"☆".repeat(3-p.score);
+      stamp.style.color=p.score>=3?"#a7f070":p.score===2?"#ffcd75":"#ef7d57";
+      stamp.classList.add('show');
+      setTimeout(()=>stamp.classList.remove('show'),2200);
+      break;
+  }
+}
+
+/* ===== 재생 제어 ===== */
+let idx=0, timer=null, speed=900;
+function step(){
+  if(idx>=EVENTS.length){stop();return;}
+  handle(EVENTS[idx]); idx++;
+  timer=setTimeout(step,speed);
+}
+function play(){ if(timer)return; if(idx>=EVENTS.length)resetAll(); step(); }
+function stop(){ clearTimeout(timer); timer=null; }
+function resetAll(){
+  stop(); idx=0; logEl.innerHTML="";
+  kanban.querySelectorAll('.kcard').forEach(c=>c.remove());
+  votezone.classList.remove('show'); stamp.classList.remove('show');
+}
+document.getElementById('play').onclick=play;
+document.getElementById('pause').onclick=stop;
+document.getElementById('reset').onclick=resetAll;
+document.getElementById('speed').onchange=e=>{speed=+e.target.value; if(timer){stop();step();}};
+
+/* 자동 시작 */
+setTimeout(play,500);
+</script>
+</body>
+</html>

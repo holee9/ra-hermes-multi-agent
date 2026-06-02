@@ -1,51 +1,130 @@
 # CLAUDE.md
 
-이 파일은 이 저장소에서 작업할 때 Claude Code(claude.ai/code)에게 제공되는 안내 문서입니다.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 언어 규칙
+---
 
-- 설명은 반드시 한국어로 작성합니다.
-- 기술 용어(`git`, `gh`, `CLI`, `API`, `branch`, `commit`, `issue`, `PR` 등)와 명령어는 영어 그대로 사용합니다.
-- 한국어와 영어 이외의 언어는 일체 사용하지 않습니다.
+## Project Overview
 
-## Git / GitHub CLI 환경
+**RA Hermes Multi-Agent** — A learning multi-agent system for medical device regulatory affairs (RA). Automates email triage and work package management via AI agents that grow smarter through human feedback.
 
-`git`과 `gh` CLI가 모두 설치되어 있으며 별도 설치나 인증 작업이 필요하지 않습니다.
+Current status: **Design complete, pre-PoC.** No implementation code exists yet. The repo contains design documents and a standalone HTML prototype.
 
-| 도구 | 경로 | 상태 |
-|------|------|------|
-| `git` | `/usr/bin/git` | 사용 가능 |
-| `gh` | `/c/Users/drake/bin/gh` | `holee9` 계정으로 인증 완료 (`repo`, `workflow` scope) |
+---
 
-**중요**: `git`/`gh` 명령은 반드시 `Bash` 도구로 실행해야 합니다. `PowerShell` 도구는 `PATH`에 등록되지 않아 실패합니다.
+## Development Commands
 
-### 주요 명령어
+### Git / GitHub CLI (ALWAYS use the Bash tool — never PowerShell)
 
 ```bash
-# 원격 push
 git push origin main
-
-# issue 생성
-gh issue create --title "제목" --body "내용"
-
-# issue comment 등록
-gh issue comment <번호> --body "내용"
-
-# issue 수정
-gh issue edit <번호> --title "새 제목"
-
-# issue 닫기
-gh issue close <번호>
-
-# PR 생성
-gh pr create --title "제목" --body "내용"
-
-# PR 병합
-gh pr merge <번호>
+gh issue create --title "title" --body "body"
+gh issue comment <number> --body "body"
+gh pr create --title "title" --body "body"
 ```
 
-## 저장소 정보
+`git` and `gh` are not on the PowerShell PATH. Use the `Bash` tool for all git/gh operations.
+`gh` is at `/c/Users/drake/bin/gh`, authenticated as `holee9` (repo + workflow scope).
+Remote: `https://github.com/holee9/ra-hermes-multi-agent.git`
 
-- **remote**: `https://github.com/holee9/ra-hermes-multi-agent.git`
-- **기본 branch**: `main`
-- **권한 설정**: `.claude/settings.json` 참고
+### Virtual Office Prototype
+
+`virtual-office.html` is a self-contained file. Open directly in a browser — no build step required.
+
+---
+
+## Architecture
+
+### System Components
+
+```
+Business Workspace                       Infrastructure Workspace
+ ├ ra_us / ra_eu / ra_kr (Hermes)         ├ infra_t3610 / infra_gx10 / infra_rpi
+ ├ op_manager                             └ (vote-based consensus)
+ └ n8n_manager
+        │                                          │
+   [n8n: mail-triage, gate, bridge]  ←─bridge─────┘
+        │
+   OpenProject (WPs)  ·  Honcho (T3610)  ·  GX10 Qwen3 (inference)
+        │
+   Virtual Office (read-only, Honcho activity log)
+```
+
+### Hardware
+
+| Machine | Spec | Role |
+|---------|------|------|
+| T3610 | Xeon 12C/24T, 32GB, Linux | Honcho server (FastAPI + deriver + PostgreSQL/pgvector + Redis) + RA experts |
+| GX10 | Grace Blackwell ARM, Qwen3 | LLM inference backend (tool-calling required) |
+| Raspberry Pi 5+ | 16GB | OpenProject + n8n |
+
+Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G LAN.
+
+### Key Boundaries
+
+**Coded artifacts** (implementation targets in `implementation-spec.md`):
+- n8n mail-triage workflow (parsing, routing, WP operations, Honcho recording)
+- Infrastructure agent voting scaffold (interface only — rules left empty for learning)
+- n8n bridge (infra → business, unidirectional)
+- Virtual office web app (Docker single-container, read-only observer)
+
+**Hermes runtime** (NOT coded — configured and operated):
+- RA agent profiles (ra_us/ra_eu/ra_kr) and their SOUL.md personas
+- Honcho memory learning loop and 3-point evaluation feedback
+- Skill self-improvement and session persistence
+
+**Do not reimplement what Hermes already provides** (memory, sessions, skills, Kanban).
+
+### Data Contracts (Fixed)
+
+**RA analysis result JSON** (mail-triage output, frozen):
+```json
+{ "actor":"ra_us", "wp":"WP-123|null", "match":"existing|new",
+  "confidence":0.0-1.0, "region":"US|EU|KR",
+  "comment":"...", "transition_proposed":"리뷰중|null" }
+```
+
+**Activity log format** (Honcho output = Virtual Office input, frozen):
+```json
+{ "ts":"ISO8601", "type":"mail_received|matched|comment_added|...",
+  "actor":"<actor_id>", "payload":{...} }
+```
+
+Actor IDs: `ra_us`, `ra_eu`, `ra_kr`, `op_manager`, `n8n_manager`, `infra_*`, `human`, `system`
+
+### Gate Rules (Hard, Never Coded Around)
+
+| Action | Authority |
+|--------|-----------|
+| Matching + comment | Agent autonomous (Green) |
+| Status transition (except close) | Escalates to autonomous as learning matures |
+| **Close / Reopen WP** | **Human only — permanently** |
+| n8n workflow changes | Report first, then proceed |
+| Destructive infra actions | Human approval required |
+
+---
+
+## Key Documents
+
+| File | Purpose |
+|------|---------|
+| `RA-multi-agent-master-design.md` | Master design — architecture, philosophy, decisions, open items |
+| `implementation-spec.md` | Implementation spec for coding tools — what to build vs what Hermes handles |
+| `operations-guide.md` | Operations guide for humans + Hermes runtime configuration |
+| `ECOSYSTEM.md` | Ecosystem map across all related projects (injected into every repo) |
+| `virtual-office.html` | Pixel-art visualization prototype (mockup data, no build needed) |
+| `virtual-office-org-chart.md` | Character-to-agent mapping for the virtual office |
+| `pixel-character-guide.md` | Sprite swap guide (code-drawn → Kenney CC0 PNG) |
+
+---
+
+## Implementation Maturity Markers
+
+`[구현]` in spec files = ready to code at full depth.
+`[IF]` in spec files = interface only — internal rules intentionally left empty for learning. Do NOT hardcode thresholds, weights, or consensus rules. Read them from external config so operations can tune them at runtime.
+
+---
+
+## Ecosystem Position
+
+This repo is one piece of a larger RA ecosystem. Knowledge bases are separate projects (`llm-wiki`, `ra-project`, `MD-process`) — agents reference them unidirectionally; do not duplicate RAG here. The virtual office reads from this system but this system is unaware of the virtual office.
