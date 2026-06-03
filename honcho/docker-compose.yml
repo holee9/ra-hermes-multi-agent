@@ -40,6 +40,8 @@ services:
       POSTGRES_DB: "${POSTGRES_DB}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # GX10 4096차원 임베딩 초기화 — 첫 기동 시에만 실행됨
+      - ./init-vector-dim.sql:/docker-entrypoint-initdb.d/01-vector-dim.sql:ro
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
