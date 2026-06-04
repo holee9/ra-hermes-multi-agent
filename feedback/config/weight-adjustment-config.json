@@ -1,0 +1,11 @@
+{
+  "_comment": "[IF] 가중치 반영 공식 — 의도적 공백. 학습·운영이 채운다.",
+  "domains": ["us_510k", "eu_mdr", "kr_kgmp", "general"],
+  "adjustment_formula": null,
+  "neutral_on_no_score": true,
+  "_notes": {
+    "adjustment_formula": "평가 점수가 사안 영역별 가중치를 조정하는 공식. null = 조정 없음 (기록만). 학습 누적 후 운영이 정의.",
+    "neutral_on_no_score": "평가 없는 결정 = 중립 (가중치 불변). true 고정.",
+    "domains": "가중치가 적용되는 사안 영역. RA 에이전트별 전문 영역에 대응."
+  }
+}

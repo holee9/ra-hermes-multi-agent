@@ -1,0 +1,12 @@
+{
+  "host": {
+    "url": "http://localhost:8000",
+    "workspace": "work",
+    "appName": "ra-hermes",
+    "aiPeer": "ra_us"
+  },
+  "profile": {
+    "name": "ra-us",
+    "alias": "Mike"
+  }
+}

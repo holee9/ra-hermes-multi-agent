@@ -1,0 +1,13 @@
+{
+  "_comment": "[IF] 집계 규칙 — 의도적 공백. 운영·학습이 채운다. 코드에 하드코딩 금지.",
+  "quorum": null,
+  "weights": {},
+  "majority_threshold": null,
+  "fallback_method": "simple_majority",
+  "_notes": {
+    "quorum": "투표 성립 최소 인원 수. null = 제한 없음 (초기 운영은 null로 시작).",
+    "weights": "에이전트별 투표 가중치. 비어 있으면 동등 가중치. 평가 누적으로 사후 조정.",
+    "majority_threshold": "가결 임계 비율 (0.0-1.0). null = 단순 다수결(>0.5).",
+    "fallback_method": "quorum/threshold 미설정 시 사용할 fallback. 현재: simple_majority."
+  }
+}
