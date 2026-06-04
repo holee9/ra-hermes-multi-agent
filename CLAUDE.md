@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **RA Hermes Multi-Agent** — A learning multi-agent system for medical device regulatory affairs (RA). Automates email triage and work package management via AI agents that grow smarter through human feedback.
 
-Current status: **Design complete, pre-PoC.** No implementation code exists yet. The repo contains design documents and a standalone HTML prototype.
+Current status: **MVP skeleton implemented. T3610 deployment in progress.**
 
 ---
 
@@ -29,7 +29,7 @@ Remote: `https://github.com/holee9/ra-hermes-multi-agent.git`
 
 ### Virtual Office Prototype
 
-`virtual-office.html` is a self-contained file. Open directly in a browser — no build step required.
+`virtual-office/virtual-office.html` is a self-contained file. Open directly in a browser — no build step required.
 
 ---
 
@@ -62,7 +62,7 @@ Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G 
 
 ### Key Boundaries
 
-**Coded artifacts** (implementation targets in `implementation-spec.md`):
+**Coded artifacts** (implementation targets in `docs/implementation-spec.md`):
 - n8n mail-triage workflow (parsing, routing, WP operations, Honcho recording)
 - Infrastructure agent voting scaffold (interface only — rules left empty for learning)
 - n8n bridge (infra → business, unidirectional)
@@ -108,9 +108,9 @@ Actor IDs: `ra_us`, `ra_eu`, `ra_kr`, `op_manager`, `n8n_manager`, `infra_*`, `h
 
 | File | Purpose |
 |------|---------|
-| `RA-multi-agent-master-design.md` | Master design — architecture, philosophy, decisions, open items |
-| `implementation-spec.md` | Implementation spec for coding tools — what to build vs what Hermes handles |
-| `operations-guide.md` | Operations guide for humans + Hermes runtime configuration |
+| `docs/RA-multi-agent-master-design.md` | Master design — architecture, philosophy, decisions, open items |
+| `docs/implementation-spec.md` | Implementation spec for coding tools — what to build vs what Hermes handles |
+| `docs/operations-guide.md` | Operations guide for humans + Hermes runtime configuration |
 | `ECOSYSTEM.md` | Ecosystem map across all related projects (injected into every repo) |
 | `virtual-office/virtual-office.html` | Pixel-art visualization prototype (mockup data, no build needed) |
 | `virtual-office/virtual-office-org-chart.md` | Character-to-agent mapping for the virtual office |
