@@ -81,10 +81,13 @@ ra-hermes-multi-agent/
 ├── bridge/config/bridge-config.json # 브릿지 임계 조건 [IF]
 ├── feedback/config/weight-adjustment-config.json  # 가중치 설정 [IF]
 │
-├── virtual-office/                  # T3610: Docker 컨테이너
+├── virtual-office/                  # T3610: Docker 컨테이너 + 가상오피스 전체
 │   ├── Dockerfile
-│   └── virtual-office-honcho-adapter.js
-├── virtual-office.html              # 픽셀아트 프로토타입 (브라우저 직접 열기)
+│   ├── virtual-office-honcho-adapter.js
+│   ├── virtual-office.html          # 픽셀아트 프로토타입 (브라우저 직접 열기)
+│   ├── virtual-office-mvp.md        # 가상오피스 MVP 설계
+│   ├── virtual-office-org-chart.md  # actor ID ↔ 캐릭터 매핑
+│   └── pixel-character-guide.md     # 스프라이트 교체 가이드
 │
 ├── implementation-spec.md           # AI 코딩 툴용 구현 명세 ([구현]/[IF] 구분)
 ├── operations-guide.md              # 사람+Hermes 운영 전략

@@ -112,9 +112,10 @@ Actor IDs: `ra_us`, `ra_eu`, `ra_kr`, `op_manager`, `n8n_manager`, `infra_*`, `h
 | `implementation-spec.md` | Implementation spec for coding tools — what to build vs what Hermes handles |
 | `operations-guide.md` | Operations guide for humans + Hermes runtime configuration |
 | `ECOSYSTEM.md` | Ecosystem map across all related projects (injected into every repo) |
-| `virtual-office.html` | Pixel-art visualization prototype (mockup data, no build needed) |
-| `virtual-office-org-chart.md` | Character-to-agent mapping for the virtual office |
-| `pixel-character-guide.md` | Sprite swap guide (code-drawn → Kenney CC0 PNG) |
+| `virtual-office/virtual-office.html` | Pixel-art visualization prototype (mockup data, no build needed) |
+| `virtual-office/virtual-office-org-chart.md` | Character-to-agent mapping for the virtual office |
+| `virtual-office/pixel-character-guide.md` | Sprite swap guide (code-drawn → Kenney CC0 PNG) |
+| `virtual-office/virtual-office-mvp.md` | Virtual office MVP design spec |
 
 ---
 
