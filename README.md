@@ -21,6 +21,21 @@
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
+### 골격 구현 포함 항목 (배포·연결 대기 중)
+
+| 컴포넌트 | 파일 | 상태 |
+|---|---|---|
+| Honcho 서버 설정 | `honcho/docker-compose.yml`, `init-vector-dim.sql`, `init-workspaces.sh` | 설정 완료, T3610 배포 진행 중 |
+| RA 프로파일 템플릿 | `profiles/honcho-config-templates/` 8종 | 완료 — #3 완료 후 Honcho API에 생성 |
+| SOUL.md 페르소나 | `profiles/souls/` 6종 (ra-us/eu/kr, op/n8n-manager, infra) | 완료 — #4 완료 후 세션 이식 |
+| mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` (17K) | 완료 — #4 완료 후 RPi n8n import |
+| 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` (7.6K) | 완료, relay_conditions는 [IF] |
+| 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` (5.1K) | 완료, 가중치 공식은 [IF] |
+| 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
+| 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료 — Honcho 실데이터 연결 대기 |
+
+> [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
+
 ---
 
 ## 장비별 역할
