@@ -3,7 +3,7 @@
 **목표**: MVP 자동화 브릿지 3종 스크립트 구현
 **이슈**: #3(verify), #4+#6(setup — RA 3 + 인프라 3 프로파일), #11(cold-start)
 **언어**: Bash + Node.js
-**버전**: 1.1.0 (교차검증 개정 2026-06-05)
+**버전**: 1.2.0 (T3610 실측 반영 2026-06-05)
 
 ## 산출물
 
@@ -37,14 +37,21 @@ RA 분석 결과: `{actor, wp, match, confidence, region, comment, transition_pr
 활동 로그: `{ts, type, actor, payload}`
 → cold-start-verify.sh는 이 스키마로 수신 데이터를 검증
 
-## 가정 사항 (확인 필요 — 2026-06-05 실측 반영)
+## 실측 확정 사항 (2026-06-05 T3610 실측)
 
-- hermes CLI: `profile create`/`update` 서브커맨드 존재 확인됨. `--config`/`--soul` 플래그형만 `hermes profile create --help`로 최종 확인
-- Honcho workspace **생성** `POST /v1/apps/{APP}/workspaces` 확인됨(init-workspaces.sh). verify용 **조회** GET/LIST 형식만 배포 후 확인
-- GX10 URL: `http://192.168.100.1:11434` (2026-06-05 실측 확정 — hostname `gx10-d74b`, 2.5G IP `192.168.100.1`)
-- hermes 버전: v0.14.0 가정이나 PyPI는 v0.13.0일 수 있음 — 배포 환경 버전 확인
-- Qwen3 모델 ID: `qwen3:latest`/`qwen3-embedding:latest` 정확 명칭은 `${GX10_URL}/v1/models` 실응답 확인 (REQ-TOOL-205)
-- 사전조건: verify-honcho는 init-workspaces.sh 선행 필요, cold-start는 #5 mail-triage 배포 필요(미가동 시 AC-CS-06 fallback)
+- **Honcho API prefix**: `/v3/` (v1 아님). health: `GET /health`, workspace 생성: `POST /v3/workspaces`, workspace 목록: `POST /v3/workspaces/list`
+- **workspace ID = name**: `{"name":"work"}` → `{"id":"work", ...}`. work/infra 워크스페이스 생성 완료
+- **hermes CLI**: v0.15.1. `profile create` 서브커맨드 확인. `--config`/`--soul` 플래그 **없음** → 생성 후 프로파일 디렉토리에 config.yaml, SOUL.md 직접 편집 방식
+- **hermes profile 디렉토리**: `~/.hermes/` (default profile). 신규 profile은 `hermes profile create <name>` 후 별도 디렉토리 생성 (경로 확인 필요)
+- **GX10 URL**: `http://192.168.100.1:11434` (실측 확정)
+- **GX10 모델**: `gpt-oss:120b` (채팅, MXFP4 116.8B), `qwen3-embedding:latest` (임베딩, Q4_K_M 7.6B)
+- **PATH 이슈**: 스크립트에서 curl, sleep, find 등 절대경로 사용 필요 (`/usr/bin/curl`, `/bin/sleep`)
+- **사전조건**: init-workspaces.sh 실행 완료 (work/infra 생성됨). cold-start는 #5 mail-triage 배포 필요(미가동 시 AC-CS-06 fallback)
+
+## 미확정 사항 (구현 중 확인)
+
+- hermes 신규 profile 디렉토리 경로 (`hermes profile create ra-us` 후 확인)
+- deriver 헬스체크 방법 (verify-honcho.sh AC5)
 
 ## 구현 순서 (의존성)
 
