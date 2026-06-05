@@ -5,16 +5,17 @@
 set -euo pipefail
 
 HONCHO_URL="${HONCHO_URL:-http://localhost:8000}"
-APP_NAME="${HONCHO_APP_NAME:-ra-hermes}"
 
 wait_for_api() {
   echo "Waiting for Honcho API at ${HONCHO_URL}..."
-  for i in $(seq 1 30); do
-    if curl -sf "${HONCHO_URL}/health" > /dev/null 2>&1; then
+  i=0
+  while [ $i -lt 30 ]; do
+    if /usr/bin/curl -sf "${HONCHO_URL}/health" > /dev/null 2>&1; then
       echo "API ready."
       return
     fi
-    sleep 2
+    /bin/sleep 2
+    i=$((i + 1))
   done
   echo "ERROR: Honcho API not reachable after 60s" >&2
   exit 1
@@ -23,7 +24,8 @@ wait_for_api() {
 create_workspace() {
   local name="$1"
   echo "Creating workspace: ${name}"
-  curl -sf -X POST "${HONCHO_URL}/v1/apps/${APP_NAME}/workspaces" \
+  # Honcho v3 API: POST /v3/workspaces (no app concept)
+  /usr/bin/curl -sf -X POST "${HONCHO_URL}/v3/workspaces" \
     -H "Content-Type: application/json" \
     -d "{\"name\": \"${name}\"}" \
     || echo "  (workspace '${name}' may already exist — skipping)"
