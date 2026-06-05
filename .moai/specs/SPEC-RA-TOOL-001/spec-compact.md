@@ -41,7 +41,7 @@ RA 분석 결과: `{actor, wp, match, confidence, region, comment, transition_pr
 
 - hermes CLI: `profile create`/`update` 서브커맨드 존재 확인됨. `--config`/`--soul` 플래그형만 `hermes profile create --help`로 최종 확인
 - Honcho workspace **생성** `POST /v1/apps/{APP}/workspaces` 확인됨(init-workspaces.sh). verify용 **조회** GET/LIST 형식만 배포 후 확인
-- GX10 URL: `http://gx10:11434` (LAN 호스트명 확정 필요)
+- GX10 URL: `http://192.168.100.1:11434` (2026-06-05 실측 확정 — hostname `gx10-d74b`, 2.5G IP `192.168.100.1`)
 - hermes 버전: v0.14.0 가정이나 PyPI는 v0.13.0일 수 있음 — 배포 환경 버전 확인
 - Qwen3 모델 ID: `qwen3:latest`/`qwen3-embedding:latest` 정확 명칭은 `${GX10_URL}/v1/models` 실응답 확인 (REQ-TOOL-205)
 - 사전조건: verify-honcho는 init-workspaces.sh 선행 필요, cold-start는 #5 mail-triage 배포 필요(미가동 시 AC-CS-06 fallback)
