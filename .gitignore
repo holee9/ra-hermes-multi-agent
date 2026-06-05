@@ -182,6 +182,11 @@ secret-*.*
 .moai/memory/
 .moai/worktrees/
 
+# Machine-specific device context (per-physical-machine, NEVER shared via git).
+# Identifies which physical box (T3610 / GX10 / RPi / dev) this session runs on.
+CLAUDE.local.md
+.moai/device.local.yaml
+
 # ===========================================
 # Evolution Telemetry (local-only usage data)
 # Learnings and new-skills are git-tracked for team sharing.

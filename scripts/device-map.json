@@ -1,0 +1,71 @@
+{
+  "_comment": [
+    "Git-tracked device map for the RA Hermes ecosystem. SELECTION uses the LIVE hostname",
+    "(a git-untracked runtime signal) so each physical machine resolves correctly without",
+    "per-machine setup. Override with the RA_DEVICE env var. Any URL can be overridden by",
+    "the matching env var (HONCHO_URL/GX10_URL/POSTGRES_URL/OPENPROJECT_URL/N8N_URL) per the",
+    "[IF] pattern; the env value always wins over the value below.",
+    "CONFIRMED (2026-06-05 on T3610): honcho :8000 (api up after alembic migration; embedding dim 1536 needs 4096 fix — see issue #3), pgvector :5433, redis :6379.",
+    "CONFIRMED (2026-06-05): inference endpoint http://192.168.100.1:11434/v1 responds; models qwen3.6:latest (chat) + qwen3-embedding:latest (4096-dim). raspi5p=192.168.100.50 (hostname raspberrypi), n8n :5678 reachable over 2.5G; OpenProject :8085 localhost-only on raspi5p (external: plm.abyz-lab.work via Cloudflare).",
+    "CONFIRMED (2026-06-05 on GX10): hostname gx10-d74b, 2.5G enx00e04c4728ca=192.168.100.1/24. Ollama :11434 running. Docker: open-webui :8080, searxng :8888. Current models: qwen3.6, qwen3-embedding, kqwen-coder, kqwen-rag, gemma4:26b, devstral-small-2 (model swap in progress — verify with GX10_URL/v1/models at runtime, REQ-TOOL-205)."
+  ],
+  "selection_priority": ["RA_DEVICE env override", "hostname substring match", "unknown fallback"],
+  "devices": {
+    "t3610": {
+      "role": "honcho-server",
+      "description": "Honcho server (FastAPI + pgvector + Redis) + RA experts. hostname: abyz-lab-Precision-T3610, 2.5G IP: 192.168.100.200",
+      "hostname_patterns": ["t3610"],
+      "honcho_local": true,
+      "destructive_is_production": true,
+      "urls": {
+        "honcho": "http://localhost:8000",
+        "gx10": "http://192.168.100.1:11434",
+        "postgres": "postgresql://honcho:honcho@localhost:5433/honcho",
+        "openproject": "http://192.168.100.50:8085",
+        "n8n": "http://192.168.100.50:5678"
+      }
+    },
+    "gx10": {
+      "role": "inference",
+      "description": "Grace Blackwell ARM, Qwen3 inference backend (OpenAI-compatible). hostname: gx10-d74b, 2.5G enx00e04c4728ca=192.168.100.1",
+      "hostname_patterns": ["gx10"],
+      "honcho_local": false,
+      "destructive_is_production": true,
+      "urls": {
+        "honcho": "http://192.168.100.200:8000",
+        "gx10": "http://localhost:11434",
+        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "openproject": "http://192.168.100.50:8085",
+        "n8n": "http://192.168.100.50:5678"
+      }
+    },
+    "rpi": {
+      "role": "orchestration",
+      "description": "Raspberry Pi 5+: OpenProject + n8n. hostname: raspberrypi, 2.5G eth1=192.168.100.50. OpenProject external: plm.abyz-lab.work (Cloudflare tunnel).",
+      "hostname_patterns": ["rpi", "raspberrypi"],
+      "honcho_local": false,
+      "destructive_is_production": true,
+      "urls": {
+        "honcho": "http://192.168.100.200:8000",
+        "gx10": "http://192.168.100.1:11434",
+        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "openproject": "http://localhost:8085",
+        "n8n": "http://localhost:5678"
+      }
+    },
+    "unknown": {
+      "role": "dev-or-unknown",
+      "description": "Unrecognized host (dev laptop etc). Assumes remote services over 2.5G LAN; treat destructive ops as UNSAFE until confirmed. OpenProject: use plm.abyz-lab.work (Cloudflare, LAN not reachable).",
+      "hostname_patterns": [],
+      "honcho_local": false,
+      "destructive_is_production": false,
+      "urls": {
+        "honcho": "http://192.168.100.200:8000",
+        "gx10": "http://192.168.100.1:11434",
+        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "openproject": "https://plm.abyz-lab.work",
+        "n8n": "http://192.168.100.50:5678"
+      }
+    }
+  }
+}
