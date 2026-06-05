@@ -119,7 +119,11 @@ function fetchSessionMessages(sessionId) {
   });
 }
 
-const HTML_PATH = path.join(__dirname, '..', 'virtual-office.html');
+// In Docker: __dirname=/app, HTML is at /app/virtual-office.html (same dir)
+// In local dev: __dirname=virtual-office/, HTML is at virtual-office/../virtual-office.html
+const HTML_PATH = fs.existsSync(path.join(__dirname, 'virtual-office.html'))
+  ? path.join(__dirname, 'virtual-office.html')
+  : path.join(__dirname, '..', 'virtual-office.html');
 
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
