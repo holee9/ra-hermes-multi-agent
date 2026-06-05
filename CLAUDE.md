@@ -92,6 +92,19 @@ Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G 
 
 Actor IDs: `ra_us`, `ra_eu`, `ra_kr`, `op_manager`, `n8n_manager`, `infra_*`, `human`, `system`
 
+### Issue History Protocol (Hard)
+
+All implementation and deployment tasks must be tracked in GitHub issues.
+
+1. **Before work**: Confirm the related issue number (`gh issue list`). If none exists, create it first.
+2. **After key changes**: Add a comment to the related issue with before/after details and verification results.
+3. **When DoD is met**: Close the issue + update README.md status table (`🔄` → `✅`).
+4. **Partial completion**: Leave issue open, add a comment with remaining items.
+
+Format and flow: `.claude/rules/issue-history-protocol.md`
+
+---
+
 ### Gate Rules (Hard, Never Coded Around)
 
 | Action | Authority |
