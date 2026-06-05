@@ -43,7 +43,7 @@
 | 장비 | 역할 | 이 레포에서 할 일 |
 |---|---|---|
 | **T3610** | Honcho 서버 + Hermes 에이전트 | `git clone` 후 `honcho/` 기동, 프로파일 생성 |
-| **GX10** | Qwen3 LLM 추론 엔진 (`kqwen-coder:latest`) | 별도 작업 없음 (T3610이 API 호출) |
+| **GX10** | LLM 추론 엔진 (`gpt-oss:120b`, tool calling 확인) | 별도 작업 없음 (T3610이 API 호출) |
 | **Raspberry Pi 5+** | n8n + OpenProject | `n8n/workflows/*.json` 3개 import만 |
 
 ---
@@ -58,7 +58,7 @@ cd ra-hermes-multi-agent
 cp honcho/.env.example honcho/.env
 # .env 필수 편집 항목:
 #   GX10_BASE_URL=http://GX10_실제IP:11434/v1
-#   GX10_MODEL=kqwen-coder:latest
+#   GX10_MODEL=gpt-oss:120b
 #   EMBEDDING_MODEL_CONFIG__OVERRIDES__MODEL=qwen3-embedding:latest
 #   POSTGRES_PASSWORD=안전한_비밀번호
 #   SECRET_KEY=안전한_시크릿
