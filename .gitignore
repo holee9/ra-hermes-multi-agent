@@ -211,3 +211,9 @@ dist-ssr/
 .vercel/
 .netlify/
 .firebase/
+
+# ===========================================
+# Project-specific: local vendor / reference sources
+# ===========================================
+# upstream Honcho source clone (참조용 — 빌드는 plasticlabs/honcho:latest 이미지 사용)
+honcho-src/

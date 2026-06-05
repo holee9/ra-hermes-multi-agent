@@ -3,7 +3,7 @@ services:
     image: plasticlabs/honcho:latest
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000
     ports:
-      - "127.0.0.1:8000:8000"
+      - "0.0.0.0:8000:8000"
     env_file: .env
     environment:
       DB_CONNECTION_URI: "postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
@@ -43,7 +43,7 @@ services:
       # GX10 4096차원 임베딩 초기화 — 첫 기동 시에만 실행됨
       - ./init-vector-dim.sql:/docker-entrypoint-initdb.d/01-vector-dim.sql:ro
     ports:
-      - "127.0.0.1:5432:5432"
+      - "0.0.0.0:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
