@@ -7,13 +7,13 @@
 
 ## 현재 상태
 
-**MVP 골격 구현 완료 — T3610 배포 진행 중 / SPEC-RA-TOOL-001 완료** | 최종 갱신: 2026-06-05
+**MVP 골격 구현 완료 — T3610 배포 완료 / SPEC-RA-TOOL-001 완료** | 최종 갱신: 2026-06-06
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
 | 설계 | ✅ 완료 | [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) |
 | 골격 코드 구현 | ✅ 완료 | — |
-| Honcho T3610 배포 | 🔄 진행 중 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
+| Honcho T3610 배포 | ✅ 완료 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
 | MVP 자동화 스크립트 (SPEC-RA-TOOL-001) | ✅ 완료 | [#16](https://github.com/holee9/ra-hermes-multi-agent/issues/16) |
 | RA 프로파일 생성 (PROFILE-1, PROFILE-2) | ✅ 완료 | [#4](https://github.com/holee9/ra-hermes-multi-agent/issues/4), [#6](https://github.com/holee9/ra-hermes-multi-agent/issues/6) |
 | SKILL.md 심화 이식 | ✅ 완료 | [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
@@ -61,7 +61,7 @@ cp honcho/.env.example honcho/.env
 # .env 필수 편집 항목:
 #   GX10_BASE_URL=http://GX10_실제IP:11434/v1
 #   GX10_MODEL=gpt-oss:120b
-#   EMBEDDING_MODEL_CONFIG__OVERRIDES__MODEL=qwen3-embedding:latest
+#   EMBEDDING_MODEL_CONFIG__MODEL=qwen3-embedding:latest   ← __OVERRIDES__MODEL 아님
 #   POSTGRES_PASSWORD=안전한_비밀번호
 #   SECRET_KEY=안전한_시크릿
 
@@ -145,7 +145,7 @@ ra-hermes-multi-agent/
 
 | 순서 | 이슈 | 내용 | 장비 | 상태 |
 |---|---|---|---|---|
-| 1 | [#3 SETUP-1](https://github.com/holee9/ra-hermes-multi-agent/issues/3) | Honcho 서버 배포 · GX10 Qwen3 연결 검증 | T3610 | 🔄 |
+| 1 | [#3 SETUP-1](https://github.com/holee9/ra-hermes-multi-agent/issues/3) | Honcho 서버 배포 · GX10 Qwen3 연결 검증 | T3610 | ✅ |
 
 ### Phase 2 — Profiles + Knowledge (T3610, #3 완료 후)
 
