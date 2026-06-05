@@ -7,7 +7,7 @@
     "[IF] pattern; the env value always wins over the value below.",
     "CONFIRMED (2026-06-05 on T3610): honcho :8000 (api up after alembic migration; embedding dim 1536 needs 4096 fix — see issue #3), pgvector :5433, redis :6379.",
     "CONFIRMED (2026-06-05): inference endpoint http://192.168.100.1:11434/v1 responds; models qwen3.6:latest (chat) + qwen3-embedding:latest (4096-dim). raspi5p=192.168.100.50 (hostname raspberrypi), n8n :5678 reachable over 2.5G; OpenProject :8085 localhost-only on raspi5p (external: plm.abyz-lab.work via Cloudflare).",
-    "CONFIRMED (2026-06-05 on GX10): hostname gx10-d74b, 2.5G enx00e04c4728ca=192.168.100.1/24. Ollama :11434 running. Docker: open-webui :8080, searxng :8888. Current models: qwen3.6, qwen3-embedding, kqwen-coder, kqwen-rag, gemma4:26b, devstral-small-2 (model swap in progress — verify with GX10_URL/v1/models at runtime, REQ-TOOL-205)."
+    "CONFIRMED (2026-06-05 on GX10): hostname gx10-d74b, 2.5G enx00e04c4728ca=192.168.100.1/24. Ollama :11434 running. Docker: open-webui :8080, searxng :8888. Models as of 2026-06-05: gpt-oss:120b (chat, OpenAI-compat alias for Qwen3-120B), qwen3-embedding:latest (embed, 4096-dim). Prior model qwen3.6:latest has been replaced by gpt-oss:120b. GX10_CHAT_MODEL override env var recommended; verify at runtime with GX10_URL/v1/models per REQ-TOOL-205."
   ],
   "selection_priority": ["RA_DEVICE env override", "hostname substring match", "unknown fallback"],
   "devices": {
