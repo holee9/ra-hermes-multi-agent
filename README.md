@@ -7,14 +7,19 @@
 
 ## 현재 상태
 
-**MVP 골격 구현 완료 — T3610 배포 진행 중**
+**MVP 골격 구현 완료 — T3610 배포 진행 중** | 최종 갱신: 2026-06-05
 
-| 단계 | 상태 |
-|---|---|
-| 설계 | 완료 |
-| 골격 코드 구현 | 완료 |
-| T3610 배포 | 진행 중 ([이슈 트래커](https://github.com/holee9/ra-hermes-multi-agent/issues)) |
-| MVP Cold Start 검증 | 대기 |
+| 단계 | 상태 | 이슈 |
+|---|---|---|
+| 설계 | ✅ 완료 | [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) |
+| 골격 코드 구현 | ✅ 완료 | — |
+| Honcho T3610 배포 | 🔄 진행 중 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
+| RA 프로파일 생성 + SKILL 이식 | ⏸ 대기 | [#4](https://github.com/holee9/ra-hermes-multi-agent/issues/4), [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
+| 지식베이스 연결 | ⏸ 대기 | [#15](https://github.com/holee9/ra-hermes-multi-agent/issues/15) |
+| MVP Cold Start 검증 | ⏸ 대기 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
+| hermes-ra 흡수·아카이브 | ⏸ 대기 (#11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
+
+> **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
 ---
 
@@ -107,24 +112,60 @@ ra-hermes-multi-agent/
 
 ---
 
-## GitHub Issues — 작업 순서
+## 실행 순서 (이슈 번호 아님 — 의존관계 기준)
 
-https://github.com/holee9/ra-hermes-multi-agent/issues
+> GitHub 이슈 번호는 등록 순서일 뿐이다. **실제 작업 순서는 아래 표를 따른다.**
+> 이슈 목록: https://github.com/holee9/ra-hermes-multi-agent/issues
 
-| 이슈 | 내용 | 장비 |
-|---|---|---|
-| [#2 RULE](https://github.com/holee9/ra-hermes-multi-agent/issues/2) | 절대 위반 금지 규칙 — **상시 참조, 닫지 않음** | — |
-| [#3 SETUP-1](https://github.com/holee9/ra-hermes-multi-agent/issues/3) | Honcho 서버 T3610 배포 · GX10 연결 검증 | T3610 |
-| [#4 PROFILE-1](https://github.com/holee9/ra-hermes-multi-agent/issues/4) | RA 에이전트 프로파일 생성 (Hermes 운영) | T3610 |
-| [#5 WORKFLOW-1](https://github.com/holee9/ra-hermes-multi-agent/issues/5) | mail-triage n8n 배포 · E2E 검증 | RPi n8n |
-| [#6 PROFILE-2](https://github.com/holee9/ra-hermes-multi-agent/issues/6) | 인프라 에이전트 프로파일 생성 (Hermes 운영) | T3610 |
-| [#7 WORKFLOW-2](https://github.com/holee9/ra-hermes-multi-agent/issues/7) | 투표 자리 동작 확인 [IF] | T3610 |
-| [#8 WORKFLOW-3](https://github.com/holee9/ra-hermes-multi-agent/issues/8) | 브릿지 n8n 배포 · 단방향 검증 | RPi n8n |
-| [#9 WORKFLOW-4](https://github.com/holee9/ra-hermes-multi-agent/issues/9) | 3점 평가 루프 n8n 배포 | RPi n8n |
-| [#10 SETUP-2](https://github.com/holee9/ra-hermes-multi-agent/issues/10) | 가상 오피스 Docker 빌드 · 실데이터 연결 | T3610 |
-| [#11 MVP-VALIDATE](https://github.com/holee9/ra-hermes-multi-agent/issues/11) | Cold Start 한 바퀴 E2E 검증 | 전체 |
+### 상시 참조 (닫지 않음)
 
-**의존 순서**: `#3 → (#4, #6 병렬) → (#5, #7 병렬) → (#8, #9, #10 병렬) → #11`
+| 이슈 | 내용 |
+|---|---|
+| [#2 RULE](https://github.com/holee9/ra-hermes-multi-agent/issues/2) | 절대 위반 금지 규칙 — 모든 작업 전 필독 |
+| [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) | 생태계 운영 결정 기록 — 레이어 모델, 개발 주력 확정 |
+
+### Phase 1 — Foundation (T3610)
+
+| 순서 | 이슈 | 내용 | 장비 | 상태 |
+|---|---|---|---|---|
+| 1 | [#3 SETUP-1](https://github.com/holee9/ra-hermes-multi-agent/issues/3) | Honcho 서버 배포 · GX10 Qwen3 연결 검증 | T3610 | 🔄 |
+
+### Phase 2 — Profiles + Knowledge (T3610, #3 완료 후)
+
+| 순서 | 이슈 | 내용 | 장비 | 상태 |
+|---|---|---|---|---|
+| 2a | [#4 PROFILE-1](https://github.com/holee9/ra-hermes-multi-agent/issues/4) | RA 프로파일 생성 (ra-kr/ra-us/ra-eu/op-manager) | T3610 | ⏸ |
+| 2b | [#13 ABSORB-1](https://github.com/holee9/ra-hermes-multi-agent/issues/13) | hermes-ra SKILL.md → SOUL.md 3종 심화 이식 | T3610 | ⏸ |
+| 2c | [#6 PROFILE-2](https://github.com/holee9/ra-hermes-multi-agent/issues/6) | 인프라 프로파일 생성 (infra-t3610/gx10/rpi) | T3610 | ⏸ |
+| 2d | [#15 CONNECT-1](https://github.com/holee9/ra-hermes-multi-agent/issues/15) | ra-project + MD-process → Honcho 지식 연결 | T3610 | ⏸ |
+
+> 2a·2b는 병행 가능. 2a 완료 후 2b 시작 권장 (프로파일 디렉토리 확정 후 이식).
+
+### Phase 3 — Workflows (RPi, #4 완료 후)
+
+| 순서 | 이슈 | 내용 | 장비 | 상태 |
+|---|---|---|---|---|
+| 3a | [#5 WORKFLOW-1](https://github.com/holee9/ra-hermes-multi-agent/issues/5) | mail-triage n8n 배포 · E2E 검증 | RPi | ⏸ |
+| 3b | [#10 SETUP-2](https://github.com/holee9/ra-hermes-multi-agent/issues/10) | 가상오피스 Docker 빌드 · Honcho 실데이터 연결 | T3610 | ⏸ |
+
+### Phase 4 — IF 구현 (선택적, #5 완료 후)
+
+| 순서 | 이슈 | 내용 | 장비 | 상태 |
+|---|---|---|---|---|
+| 4a | [#7 WORKFLOW-2](https://github.com/holee9/ra-hermes-multi-agent/issues/7) | 투표 집계 자리 동작 확인 [IF] | T3610 | ⏸ |
+| 4b | [#8 WORKFLOW-3](https://github.com/holee9/ra-hermes-multi-agent/issues/8) | 브릿지 n8n 배포 · 단방향 검증 [IF] | RPi | ⏸ |
+| 4c | [#9 WORKFLOW-4](https://github.com/holee9/ra-hermes-multi-agent/issues/9) | 3점 평가 루프 n8n 배포 [IF] | RPi | ⏸ |
+
+### Phase 5 — Validate + Archive (전체 완료 후)
+
+| 순서 | 이슈 | 내용 | 장비 | 상태 |
+|---|---|---|---|---|
+| 5a | [#11 MVP-VALIDATE](https://github.com/holee9/ra-hermes-multi-agent/issues/11) | Cold Start E2E 검증 — **hermes-ra 종료 게이트** | 전체 | ⏸ |
+| 5b | [#14 ABSORB-2](https://github.com/holee9/ra-hermes-multi-agent/issues/14) | hermes-ra 스크립트 이전 + 아카이브 (#11 PASS 후) | T3610 | ⏸ |
+
+```
+#3 → #4 + #13(병행) + #6 + #15 → #5 + #10 → #7 + #8 + #9 → #11 → #14
+```
 
 ---
 
