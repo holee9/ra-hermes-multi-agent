@@ -7,13 +7,14 @@
 
 ## 현재 상태
 
-**MVP 골격 구현 완료 — T3610 배포 진행 중** | 최종 갱신: 2026-06-05
+**MVP 골격 구현 완료 — T3610 배포 진행 중 / SPEC-RA-TOOL-001 완료** | 최종 갱신: 2026-06-05
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
 | 설계 | ✅ 완료 | [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) |
 | 골격 코드 구현 | ✅ 완료 | — |
 | Honcho T3610 배포 | 🔄 진행 중 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
+| MVP 자동화 스크립트 (SPEC-RA-TOOL-001) | ✅ 완료 | [#16](https://github.com/holee9/ra-hermes-multi-agent/issues/16) |
 | RA 프로파일 생성 + SKILL 이식 | ⏸ 대기 | [#4](https://github.com/holee9/ra-hermes-multi-agent/issues/4), [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
 | 지식베이스 연결 | ⏸ 대기 | [#15](https://github.com/holee9/ra-hermes-multi-agent/issues/15) |
 | MVP Cold Start 검증 | ⏸ 대기 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
