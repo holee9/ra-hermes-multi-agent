@@ -4,7 +4,7 @@ WORKDIR /app
 
 # virtual-office.html과 어댑터 서버 복사
 COPY virtual-office.html ./
-COPY virtual-office/virtual-office-honcho-adapter.js ./server.js
+COPY virtual-office-honcho-adapter.js ./server.js
 
 ENV PORT=3000
 # DATA_SOURCE: mock (기본) | honcho (실데이터)
