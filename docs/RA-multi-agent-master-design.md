@@ -1,8 +1,8 @@
 # RA 멀티 에이전트 시스템 — 마스터 설계서
 
-> 전체 토의를 교차검증해 재구성한 통합 설계서. **시스템 구축 계획서이자 제안서**이며, Gitea/GitHub 등 레포로 버전 관리한다(호스팅은 미확정).
+> 전체 토의를 교차검증해 재구성한 통합 설계서. **시스템 구축 계획서이자 제안서**이며, GitHub 레포로 버전 관리한다(호스팅: GitHub 확정, 2026-06-05).
 > 표기: **확정**(합의됨) · **고정 규칙**(불변) · **체크**(구현 중 검증) · **미결**(추후 결정).
-> 사실 검증 기준일: 2026-05-28.
+> 사실 검증 기준일: 2026-06-05.
 
 ---
 
@@ -20,7 +20,7 @@
 
 ---
 
-## 1. 기술 기반 (사실 검증 완료, 기준일 2026-05-28)
+## 1. 기술 기반 (사실 검증 완료, 기준일 2026-06-05)
 
 **Hermes Agent** (NousResearch, MIT) — 현재 v0.14.0 (2026.5.16 "Foundation Release", PyPI는 v0.13.0). 자기개선 루프가 핵심: 성공한 워크플로우를 재사용 스킬로 자동 변환·정제, 세션 히스토리를 SQLite에 저장, 세션을 넘어 사용자 모델을 구축. 6개 터미널 백엔드(local/Docker/SSH/Daytona/Singularity/Modal).
 - **Kanban**(v0.13.0 정식): durable multi-agent board — heartbeat·reclaim·zombie detection·auto-block·per-task retries. 인프라 에이전트 셋의 분산 작업 추적에 활용 가능.
@@ -173,7 +173,7 @@
 
 ## 11. 체크항목 (구현 중 검증)
 
-> 표기: [검증됨]=공식 문서·도구로 가능 확인(2026-05-28), 나머지는 구현 중 실측 필요.
+> 표기: [검증됨]=공식 문서·도구로 가능 확인(2026-06-05), 나머지는 구현 중 실측 필요.
 
 **인프라**: GX10 Qwen3의 tool-calling 노출 여부(deriver 관찰 추출 성공으로 판명) · 임베딩 로컬/클라우드 결정(로컬이면 벡터 차원 정합 수정) · T3610 Honcho ↔ ra-med-bot 자원 경합(Docker limit) · GX10 부하 집중·dream 주기(약 8h) 간섭 · 라즈베리 16G 프로파일 3개 동시 구동 한계 실측.
 - [검증됨] Honcho self-host 스택(API+deriver+pgvector PG+Redis), OpenAI 호환 LLM 위임, DERIVER_WORKERS 분산 — 공식 문서·자동 설치 스크립트(elkimek/honcho-self-hosted) 존재.
@@ -193,10 +193,10 @@
 
 ## 12. 미결 항목
 
-- 레포 호스팅(Gitea/GitHub 등) 미확정 — 구현하며 결정.
+- [완료] 레포 호스팅: GitHub 확정 (2026-06-05).
 - 학습 시드: cold start vs 기존 OpenProject 이력 backfill.
 - 무평가 결정 해석: 중립 vs 약한 긍정.
-- GX10 임베딩: 로컬(온프레미스, 차원 수정 동반) vs 클라우드(차원 무관).
+- [완료] GX10 임베딩: 로컬(온프레미스) 확정 — 4096차원 (Qwen3 qwen3-embedding:latest), init-vector-dim.sql로 pgvector 스키마 초기화 적용 (2026-06-05).
 - 외부 지식 연계·Regula 연계·가상 오피스 연동: 각각 후속 연계 프로젝트(사람이 시점 판단).
 - 사람 다중화 시 방향 정렬 메커니즘.
 
@@ -211,7 +211,7 @@
 
 ---
 
-## 14. MVP 구현 가이드 (검증된 사실 기반, 2026-05-28)
+## 14. MVP 구현 가이드 (검증된 사실 기반, 2026-06-05)
 
 추상 설계와 실제 착수 사이의 공백을 메우는 구체. 모든 항목은 공식 문서·실제 도구로 검증됨.
 
@@ -225,12 +225,12 @@
 - `DB_CONNECTION_URI=postgresql+psycopg://...` (psycopg 프리픽스 필수 — sqlalchemy 요건)
 - `CACHE_URL=redis://redis:6379/0` , `CACHE_ENABLED=true`
 - LLM: 기본값은 openai gpt-5.4-mini(텍스트)/text-embedding-3-small(임베딩). **GX10 Qwen3로 위임 시** Deriver/Dialectic/Summary/Dream 섹션의 `*_MODEL_CONFIG__OVERRIDES__BASE_URL`을 GX10 엔드포인트로 지정. **모델은 tool calling 지원 필수**(Qwen3 충족).
-- 보안: 프로덕션 compose는 PG·Redis를 `127.0.0.1`에만 바인딩 → 외부 노출 차단. 멀티 장비 접근은 Tailscale 등 사설 경로로.
+- 포트 바인딩(2026-06-05 갱신): API 0.0.0.0:8000, PG 0.0.0.0:5433→5432(호스트 충돌 방지), Redis 127.0.0.1:6379(루프백 유지). T3610 내 멀티 서비스 LAN 접근 목적.
 
 **스키마**: 마이그레이션 실행 시 workspaces·peers·sessions·messages·큐 테이블 생성.
 **확장**: `DERIVER_WORKERS`(기본 1) 증가로 처리량↑. deriver를 여러 장비에 분산하면 DB 큐로 조율.
 
-**[체크] 임베딩 차원**: 기본 1536(OpenAI). GX10 로컬 임베딩(예: 768차원) 사용 시 차원 정합을 위한 스키마/설정 수정 필요 → 1차는 임베딩만 클라우드(저비용·tool-calling 무관), 텍스트·dialectic만 GX10 위임하는 혼합도 가능.
+**[확정] 임베딩 차원**: GX10 Qwen3 로컬 임베딩 확정 — 4096차원 (qwen3-embedding:latest). init-vector-dim.sql로 pgvector 스키마 초기화 적용 (2026-06-05).
 
 ### 14.2 RA 전문가 프로파일 (T3610)
 

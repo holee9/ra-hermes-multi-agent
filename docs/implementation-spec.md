@@ -3,7 +3,7 @@
 > **대상 독자: AI 코딩 툴(Claude Code CLI / Codex CLI 등) 및 구현 담당.** 툴 중립.
 > **원칙**: 인터페이스는 엄격히 고정, 내부 구현은 위임. 이 시스템은 *학습하며 성장*하므로, 평가로 수렴할 규칙(투표·가중치·임계)은 **의도적 공백**으로 둔다 — 미결이 아니라 설계다. 그 부분은 인터페이스만 만들고 내부는 운영·학습이 채운다.
 > **성숙도 표기**: `[구현]` 코딩 가능 깊이로 명세 / `[IF]` 인터페이스만 — 내부는 PoC·학습이 채움(임의 구현 금지, 비워두거나 사람에게 질의).
-> 사실 기준일 2026-05-28. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
+> 사실 기준일 2026-06-05. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
 
 ---
 
@@ -42,7 +42,7 @@
 - 환경: `DB_CONNECTION_URI=postgresql+psycopg://...`(프리픽스 필수), `CACHE_URL=redis://...`, `CACHE_ENABLED=true`.
 - LLM 위임: Deriver/Dialectic/Summary/Dream의 `*_MODEL_CONFIG__OVERRIDES__BASE_URL`을 GX10 Qwen3로. **tool calling 지원 필수.**
 - workspace 2개 생성: `work`, `infra`.
-- 보안: PG·Redis는 127.0.0.1 바인딩. 멀티 장비 접근은 사설 경로(Tailscale 등).
+- 포트 바인딩: API·PG는 LAN(0.0.0.0) 오픈 — T3610 멀티 장비 접근 목적. PG 호스트 포트는 5433(호스트 기존 5432 충돌 회피). Redis는 루프백(127.0.0.1) 유지.
 - 빠른 경로: elkimek/honcho-self-hosted 자동 스크립트 활용 가능.
 
 ### 2.2 RA 전문가 프로파일 (Hermes 운영 — 코딩 아님)
