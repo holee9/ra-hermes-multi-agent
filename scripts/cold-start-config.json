@@ -1,0 +1,26 @@
+{
+  "_comment": "Cold start verification configuration (REQ-TOOL-306). All values are defaults — override per environment.",
+  "timeout_seconds": 300,
+  "confidence_threshold": 0.7,
+  "test_prefix": "[TEST]",
+  "test_email": {
+    "subject": "[TEST] Sample RA Query — FDA 510(k) Submission",
+    "body": "From: test@example.com\nSubject: FDA 510(k) 제출 관련 문의\n\n본 메일은 cold-start-verify.sh 자동 테스트 메일입니다.\nRegion: US, Regulation: FDA 510(k)\nDevice: [TEST] Sample Medical Device\n"
+  },
+  "checks": {
+    "ac1_mail_triage": true,
+    "ac2_schema_validation": true,
+    "ac3_wp_matching": true,
+    "ac4_honcho_recording": true,
+    "ac5_deriver_reflection": false,
+    "ac6_gate1_verification": true,
+    "ac7_timeout_check": true
+  },
+  "gate1": {
+    "forbidden_paths": [
+      "/work-packages/:id/close",
+      "/work-packages/:id/reopen"
+    ],
+    "check_file": "n8n/workflows/mail-triage.json"
+  }
+}

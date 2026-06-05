@@ -20,13 +20,23 @@
 # NOTE: intentionally no `set -e`/`set -u` at top level — this file is meant to be
 # sourced, and those would leak into and disrupt the caller's shell.
 
-__dd_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+{ __dd_self="${BASH_SOURCE[0]:-$0}"; __dd_self_dir="${__dd_self%/*}"; \
+  [ "${__dd_self_dir}" = "${__dd_self}" ] && __dd_self_dir="."; \
+  __dd_script_dir="$(cd "${__dd_self_dir}" && pwd)"; }
 __dd_map="${RA_DEVICE_MAP:-${__dd_script_dir}/device-map.json}"
 
 __dd_fail() { echo "detect-device: $*" >&2; }
 
-if ! command -v jq >/dev/null 2>&1; then
-  __dd_fail "jq is required but not found on PATH"
+# Locate jq — try PATH first, then known absolute fallbacks.
+__dd_jq=""
+if command -v jq >/dev/null 2>&1; then
+  __dd_jq="$(command -v jq)"
+elif [ -x /usr/bin/jq ]; then
+  __dd_jq="/usr/bin/jq"
+elif [ -x /usr/local/bin/jq ]; then
+  __dd_jq="/usr/local/bin/jq"
+else
+  __dd_fail "jq is required but not found on PATH or /usr/bin/jq"
   return 1 2>/dev/null || exit 1
 fi
 if [ ! -f "${__dd_map}" ]; then
@@ -39,7 +49,8 @@ __dd_device=""
 if [ -n "${RA_DEVICE:-}" ]; then
   __dd_device="${RA_DEVICE}"
 else
-  __dd_host_lc="$(hostname 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+  __dd_host_raw="$(/usr/bin/hostname 2>/dev/null || /bin/cat /etc/hostname 2>/dev/null || echo "")"
+  __dd_host_lc="${__dd_host_raw,,}"
   while IFS= read -r __dd_d; do
     [ "${__dd_d}" = "unknown" ] && continue
     while IFS= read -r __dd_pat; do
@@ -47,22 +58,22 @@ else
       case "${__dd_host_lc}" in
         *"${__dd_pat}"*) __dd_device="${__dd_d}"; break ;;
       esac
-    done < <(jq -r --arg d "${__dd_d}" '.devices[$d].hostname_patterns[]?' "${__dd_map}")
+    done < <("${__dd_jq}" -r --arg d "${__dd_d}" '.devices[$d].hostname_patterns[]?' "${__dd_map}")
     [ -n "${__dd_device}" ] && break
-  done < <(jq -r '.devices | keys[]' "${__dd_map}")
+  done < <("${__dd_jq}" -r '.devices | keys[]' "${__dd_map}")
 fi
 [ -z "${__dd_device}" ] && __dd_device="unknown"
 
 # Validate the device exists in the map; otherwise fall back.
-if ! jq -e --arg d "${__dd_device}" '.devices[$d]' "${__dd_map}" >/dev/null 2>&1; then
+if ! "${__dd_jq}" -e --arg d "${__dd_device}" '.devices[$d]' "${__dd_map}" >/dev/null 2>&1; then
   __dd_fail "device '${__dd_device}' not in map; using 'unknown'"
   __dd_device="unknown"
 fi
 
-__dd_get() { jq -r --arg d "${__dd_device}" --arg k "$1" '.devices[$d].urls[$k] // empty' "${__dd_map}"; }
+__dd_get() { "${__dd_jq}" -r --arg d "${__dd_device}" --arg k "$1" '.devices[$d].urls[$k] // empty' "${__dd_map}"; }
 # Note: use an explicit null check (not `//`) — jq's `//` treats boolean false as
 # absent, which would corrupt the honcho_local / destructive_is_production flags.
-__dd_attr() { jq -r --arg d "${__dd_device}" --arg k "$1" '.devices[$d][$k] | if . == null then "" else . end' "${__dd_map}"; }
+__dd_attr() { "${__dd_jq}" -r --arg d "${__dd_device}" --arg k "$1" '.devices[$d][$k] | if . == null then "" else . end' "${__dd_map}"; }
 
 # 2) Export identity + device-aware URLs (env value wins if already set).
 export RA_DEVICE="${__dd_device}"
@@ -79,7 +90,7 @@ __dd_print() {
   cat <<EOF
 RA Hermes — Device Detection
   device    : ${RA_DEVICE}  (role: ${RA_DEVICE_ROLE})
-  hostname  : $(hostname 2>/dev/null)
+  hostname  : $(/usr/bin/hostname 2>/dev/null || /bin/cat /etc/hostname 2>/dev/null)
   honcho    : ${HONCHO_URL}   (honcho_local: ${RA_HONCHO_LOCAL})
   gx10      : ${GX10_URL}
   postgres  : ${POSTGRES_URL}
