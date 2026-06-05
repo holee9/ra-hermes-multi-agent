@@ -16,7 +16,7 @@
 | Honcho T3610 배포 | 🔄 진행 중 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
 | MVP 자동화 스크립트 (SPEC-RA-TOOL-001) | ✅ 완료 | [#16](https://github.com/holee9/ra-hermes-multi-agent/issues/16) |
 | RA 프로파일 생성 (PROFILE-1, PROFILE-2) | ✅ 완료 | [#4](https://github.com/holee9/ra-hermes-multi-agent/issues/4), [#6](https://github.com/holee9/ra-hermes-multi-agent/issues/6) |
-| SKILL.md 심화 이식 | ⏸ 대기 | [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
+| SKILL.md 심화 이식 | ✅ 완료 | [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
 | 지식베이스 연결 | ⏸ 대기 | [#15](https://github.com/holee9/ra-hermes-multi-agent/issues/15) |
 | MVP Cold Start 검증 | ⏸ 대기 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
 | hermes-ra 흡수·아카이브 | ⏸ 대기 (#11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
