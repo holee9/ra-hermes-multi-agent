@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**Phase 1+2 완료 — 배포·KB 연결 완료, Phase 3 진행 대기** | 최종 갱신: 2026-06-08
+**Phase 1+2+3 완료 — MVP Cold Start 검증 완료, #14 ABSORB-2 대기** | 최종 갱신: 2026-06-08
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -21,7 +21,7 @@
 | hermes-ra 스크립트 이전 | ✅ 완료 (아카이브는 #11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
 | n8n mail-triage 배포 (WORKFLOW-1) | ✅ 완료 | [#5](https://github.com/holee9/ra-hermes-multi-agent/issues/5) |
 | 가상오피스 Honcho v3 API 연결 | ✅ 완료 (mail-triage 데이터 대기) | [#10](https://github.com/holee9/ra-hermes-multi-agent/issues/10) |
-| MVP Cold Start 검증 | ⏸ 대기 (RPi n8n 배포 필요) | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
+| MVP Cold Start 검증 | ✅ 완료 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) (closed) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
@@ -179,8 +179,8 @@ ra-hermes-multi-agent/
 
 | 순서 | 이슈 | 내용 | 장비 | 상태 |
 |---|---|---|---|---|
-| 5a | [#11 MVP-VALIDATE](https://github.com/holee9/ra-hermes-multi-agent/issues/11) | Cold Start E2E 검증 — **hermes-ra 종료 게이트** | 전체 | ⏸ |
-| 5b | [#14 ABSORB-2](https://github.com/holee9/ra-hermes-multi-agent/issues/14) | hermes-ra 스크립트 이전 + 아카이브 (#11 PASS 후) | T3610 | ⏸ |
+| 5a | [#11 MVP-VALIDATE](https://github.com/holee9/ra-hermes-multi-agent/issues/11) | Cold Start E2E 검증 — **hermes-ra 종료 게이트** | 전체 | ✅ |
+| 5b | [#14 ABSORB-2](https://github.com/holee9/ra-hermes-multi-agent/issues/14) | hermes-ra 스크립트 이전 + 아카이브 (#11 PASS 후) | T3610 | 🔄 |
 
 ```
 #3 → #4 + #13(병행) + #6 + #15 → #5 + #10 → #7 + #8 + #9 → #11 → #14
