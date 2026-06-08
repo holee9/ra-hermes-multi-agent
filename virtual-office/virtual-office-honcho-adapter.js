@@ -17,7 +17,8 @@ const url = require('url');
 const PORT = parseInt(process.env.PORT || '3000');
 const DATA_SOURCE = process.env.DATA_SOURCE || 'mock';
 const HONCHO_API_URL = process.env.HONCHO_API_URL || 'http://localhost:8000';
-const HONCHO_APP_NAME = process.env.HONCHO_APP_NAME || 'ra-hermes';
+// @MX:NOTE: workspace 'work' contains all production agent sessions; 'ra-hermes' is empty
+const HONCHO_APP_NAME = process.env.HONCHO_APP_NAME || 'work';
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000');
 
 // 목업 이벤트 (virtual-office.html의 EVENTS 배열과 동일)
