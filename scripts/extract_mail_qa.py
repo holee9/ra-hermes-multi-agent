@@ -3,7 +3,11 @@
 메일백업 QA이력 추출 스크립트
 Parse .eml files from NAS mail backup zips → extract Q&A threads
 → save as structured .md → push to holee9/ra-project GitHub repo
-→ index to Qdrant.
+→ index to pgvector (ra_knowledge table).
+
+MIGRATION: Qdrant → pgvector (2026-06, issue #19)
+  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
 """
 
 import os
@@ -22,6 +26,8 @@ from datetime import datetime, timezone
 from collections import defaultdict
 from typing import Optional
 
+import psycopg2
+import psycopg2.extras
 import requests
 
 # ---------------------------------------------------------------------------
@@ -68,11 +74,11 @@ GITHUB_API_BASE = "https://api.github.com"
 GITHUB_REPO = "holee9/ra-project"
 GITHUB_BRANCH = "main"
 
-QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")
-QDRANT_PORT = int(os.environ.get("QDRANT_PORT", "6333"))
-QDRANT_COLLECTION = os.environ.get("QDRANT_COLLECTION", "hermes-ra-knowledge")
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
+TABLE = "ra_knowledge"
 EMBED_MODEL = "nomic-embed-text"
+EMBED_DIM = 768
 
 
 def _embed_text(text: str) -> list:
@@ -407,64 +413,73 @@ def push_to_github(repo_path: str, content_str: str, commit_message: str, token:
 
 
 # ---------------------------------------------------------------------------
-# Qdrant indexing
+# pgvector indexing
 # ---------------------------------------------------------------------------
 
-def qdrant_index(source_path: str, doc_type: str, sheet: str, content: str):
+def _ensure_table() -> None:
+    """Create pgvector table and index if they do not exist."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS {TABLE} (
+                    id BIGINT PRIMARY KEY,
+                    source_path TEXT,
+                    chunk_index INT,
+                    content TEXT,
+                    embedding vector({EMBED_DIM}),
+                    metadata JSONB,
+                    indexed_at TIMESTAMP DEFAULT now()
+                )""")
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {TABLE}_src_idx ON {TABLE} (source_path)"
+            )
+            cur.execute(
+                f"""CREATE INDEX IF NOT EXISTS {TABLE}_emb_idx ON {TABLE}
+                    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"""
+            )
+        conn.commit()
+
+
+def pgvector_index(source_path: str, doc_type: str, sheet: str, content: str) -> None:
     """
-    Index a document into Qdrant using simple HTTP REST API.
-    Splits content into ~500-char chunks and upserts as points.
-    Falls back gracefully if Qdrant is unavailable.
+    Index a document into pgvector ra_knowledge table.
+    Splits content into ~500-char chunks and upserts.
+    Falls back gracefully if pgvector is unavailable.
     """
     try:
-        # Check Qdrant availability
-        health_url = f"http://{QDRANT_HOST}:{QDRANT_PORT}/healthz"
-        try:
-            health_resp = requests.get(health_url, timeout=5)
-            if health_resp.status_code != 200:
-                logger.warning("  ⚠ Qdrant not healthy (%d) — skipping index", health_resp.status_code)
-                return
-        except Exception:
-            logger.warning("  ⚠ Qdrant unreachable at %s:%d — skipping index", QDRANT_HOST, QDRANT_PORT)
-            return
-
-        # Split into chunks
+        _ensure_table()
         chunk_size = 500
         chunks = [content[i : i + chunk_size] for i in range(0, len(content), chunk_size)]
+        if not chunks:
+            return
 
-        points = []
+        rows = []
         for idx, chunk in enumerate(chunks):
-            # Use a deterministic ID from source_path + chunk index
-            uid = int(hashlib.md5(f"{source_path}:{idx}".encode()).hexdigest(), 16) % (10**18)
-            points.append(
-                {
-                    "id": uid,
-                    "payload": {
-                        "source_path": source_path,
-                        "doc_type": doc_type,
-                        "sheet": sheet,
-                        "chunk_index": idx,
-                        "text": chunk,
-                    },
-                    "vector": _embed_text(chunk),
-                }
-            )
+            uid = int(hashlib.md5(f"{source_path}:{idx}".encode()).hexdigest()[:15], 16)
+            vec = _embed_text(chunk)
+            meta = json.dumps({"doc_type": doc_type, "sheet": sheet, "chunk_index": idx})
+            rows.append((uid, source_path, idx, chunk, json.dumps(vec), meta))
 
-        upsert_url = f"http://{QDRANT_HOST}:{QDRANT_PORT}/collections/{QDRANT_COLLECTION}/points"
-        resp = requests.put(
-            upsert_url,
-            json={"points": points},
-            headers={"Content-Type": "application/json"},
-            timeout=30,
-        )
-        if resp.status_code in (200, 201):
-            logger.info("  ✓ Qdrant indexed %d chunks for %s", len(chunks), source_path)
-        else:
-            logger.warning(
-                "  ✗ Qdrant upsert failed: HTTP %d — %s", resp.status_code, resp.text[:200]
-            )
+        with psycopg2.connect(POSTGRES_URL) as conn:
+            with conn.cursor() as cur:
+                psycopg2.extras.execute_values(
+                    cur,
+                    f"""INSERT INTO {TABLE} (id, source_path, chunk_index, content, embedding, metadata)
+                        VALUES %s
+                        ON CONFLICT (id) DO UPDATE SET
+                            source_path = EXCLUDED.source_path,
+                            content = EXCLUDED.content,
+                            embedding = EXCLUDED.embedding,
+                            metadata = EXCLUDED.metadata,
+                            indexed_at = now()""",
+                    rows,
+                    template="(%s, %s, %s, %s, %s::vector, %s::jsonb)",
+                )
+            conn.commit()
+        logger.info("  ✓ pgvector indexed %d chunks for %s", len(chunks), source_path)
     except Exception as e:
-        logger.warning("  ✗ Qdrant indexing exception: %s", e)
+        logger.warning("  ✗ pgvector indexing exception: %s", e)
 
 
 # ---------------------------------------------------------------------------
@@ -503,7 +518,7 @@ def process_zip(zip_path: str, org_name: str, org_type: str, github_token: str):
 
     # 5. Qdrant indexing
     source_path = f"github:holee9/ra-project/{repo_path}"
-    qdrant_index(
+    pgvector_index(
         source_path=source_path,
         doc_type="qa_history",
         sheet=f"{org_name} QA이력",
@@ -579,7 +594,7 @@ def _dry_run_demo(github_token: str):
         push_ok = push_to_github(repo_path, md_content, f"feat: add QA이력 {org_name} (demo)", github_token)
 
         source_path = f"github:holee9/ra-project/{repo_path}"
-        qdrant_index(
+        pgvector_index(
             source_path=source_path,
             doc_type="qa_history",
             sheet=f"{org_name} QA이력",
