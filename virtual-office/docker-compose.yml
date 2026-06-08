@@ -25,7 +25,7 @@ services:
       - DATA_SOURCE=${DATA_SOURCE:-honcho}
       # T3610 로컬: Honcho와 같은 Docker 네트워크면 서비스명으로, 아니면 IP로
       - HONCHO_API_URL=${HONCHO_API_URL:-http://172.17.0.1:8000}
-      - HONCHO_APP_NAME=${HONCHO_APP_NAME:-ra-hermes}
+      - HONCHO_APP_NAME=${HONCHO_APP_NAME:-work}
       - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-30000}
     # 읽기 전용 관찰자 — 외부 서비스로의 쓰기 경로 없음
     read_only: true
