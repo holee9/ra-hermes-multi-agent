@@ -7,19 +7,21 @@
 
 ## 현재 상태
 
-**Phase 1+2 완료 — 배포·KB 연결 완료, Phase 3 진행 대기** | 최종 갱신: 2026-06-06
+**Phase 1+2 완료 — 배포·KB 연결 완료, Phase 3 진행 대기** | 최종 갱신: 2026-06-08
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
-| 설계 | ✅ 완료 | [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) |
+| 설계 | ✅ 완료 | [#12 ADR-001](https://github.com/holee9/ra-hermes-multi-agent/issues/12) (closed) |
 | 골격 코드 구현 | ✅ 완료 | — |
 | Honcho T3610 배포 | ✅ 완료 | [#3](https://github.com/holee9/ra-hermes-multi-agent/issues/3) |
 | MVP 자동화 스크립트 (SPEC-RA-TOOL-001) | ✅ 완료 | [#16](https://github.com/holee9/ra-hermes-multi-agent/issues/16) |
 | RA 프로파일 생성 (PROFILE-1, PROFILE-2) | ✅ 완료 | [#4](https://github.com/holee9/ra-hermes-multi-agent/issues/4), [#6](https://github.com/holee9/ra-hermes-multi-agent/issues/6) |
 | SKILL.md 심화 이식 | ✅ 완료 | [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
 | 지식베이스 연결 | ✅ 완료 | [#15](https://github.com/holee9/ra-hermes-multi-agent/issues/15) |
-| MVP Cold Start 검증 | ⏸ 대기 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
-| hermes-ra 흡수·아카이브 | ⏸ 대기 (#11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
+| hermes-ra 스크립트 이전 | ✅ 완료 (아카이브는 #11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
+| n8n 워크플로우 코드 수정 (v3 API, Code node) | ✅ 완료 (RPi 배포 대기) | [#5](https://github.com/holee9/ra-hermes-multi-agent/issues/5), [#9](https://github.com/holee9/ra-hermes-multi-agent/issues/9) |
+| 가상오피스 Honcho v3 API 연결 | ✅ 완료 (mail-triage 데이터 대기) | [#10](https://github.com/holee9/ra-hermes-multi-agent/issues/10) |
+| MVP Cold Start 검증 | ⏸ 대기 (RPi n8n 배포 필요) | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
