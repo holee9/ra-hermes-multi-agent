@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
 GitHub MD Indexing Script
-Indexes all .md files from configured GitHub repos into a Qdrant collection.
+Indexes all .md files from configured GitHub repos into the ra_knowledge pgvector table.
+
+MIGRATION: Qdrant → pgvector (2026-06, issue #17)
+  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
+  Qdrant COLLECTION "hermes-ra-knowledge" maps to table "ra_knowledge"
 """
 
 import argparse
@@ -18,6 +23,8 @@ from threading import Thread
 from typing import Optional
 
 import requests
+import psycopg2
+import psycopg2.extras
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -25,10 +32,11 @@ import requests
 
 REPOS = ["holee9/MD-process", "holee9/ra-project"]
 GITHUB_TOKEN: Optional[str] = os.environ.get("GITHUB_TOKEN")
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
-COLLECTION = "hermes-ra-knowledge"
+TABLE = "ra_knowledge"
 EMBED_MODEL = "nomic-embed-text"
+EMBED_DIM = 768  # nomic-embed-text output dimension
 STATE_FILE = "/tmp/github_index_state.json"
 SERVER_PORT = 7791
 
@@ -166,7 +174,6 @@ def split_by_paragraphs(text: str, max_size: int = 800) -> list[str]:
         else:
             if current:
                 chunks.append(current)
-            # If a single paragraph exceeds max_size, hard-split it
             if len(para) > max_size:
                 for i in range(0, len(para), max_size):
                     chunk = para[i : i + max_size].strip()
@@ -189,7 +196,6 @@ def chunk_markdown(text: str, max_chunk: int = 800, min_chunk: int = 50) -> list
     """
     import re
 
-    # Split on ## or ### headings (keep the delimiter)
     parts = re.split(r"(?=^#{2,3} )", text, flags=re.MULTILINE)
 
     raw_chunks = []
@@ -206,52 +212,87 @@ def chunk_markdown(text: str, max_chunk: int = 800, min_chunk: int = 50) -> list
 
 
 # ---------------------------------------------------------------------------
-# Qdrant helpers
+# pgvector helpers
 # ---------------------------------------------------------------------------
 
-def qdrant_delete_by_source(source_path: str):
-    """Delete all points matching source_path payload field."""
-    url = f"{QDRANT_URL}/collections/{COLLECTION}/points/delete"
-    payload = {
-        "filter": {
-            "must": [
-                {
-                    "key": "source_path",
-                    "match": {"value": source_path},
-                }
-            ]
-        }
-    }
+# @MX:ANCHOR: [AUTO] ensure_table creates ra_knowledge table — shared with index_ra_knowledge
+# @MX:REASON: [AUTO] Both indexers write to the same table; schema must be created before first write
+def ensure_table() -> None:
+    """Create pgvector table and indexes if they do not exist."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS {TABLE} (
+                    id BIGINT PRIMARY KEY,
+                    source_path TEXT,
+                    chunk_index INT,
+                    content TEXT,
+                    embedding vector({EMBED_DIM}),
+                    metadata JSONB,
+                    indexed_at TIMESTAMP DEFAULT now()
+                )""")
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {TABLE}_src_idx ON {TABLE} (source_path)"
+            )
+            cur.execute(
+                f"""CREATE INDEX IF NOT EXISTS {TABLE}_emb_idx ON {TABLE}
+                    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"""
+            )
+        conn.commit()
+
+
+def pgvector_delete_by_source(source_path: str) -> None:
+    """Delete all rows matching source_path field."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"DELETE FROM {TABLE} WHERE source_path = %s", (source_path,))
+        conn.commit()
+
+
+def pgvector_upsert(points: list[dict]) -> None:
+    """Upsert a batch of points into the ra_knowledge table."""
+    if not points:
+        return
+    values = [
+        (
+            p["id"],
+            p.get("source_path", ""),
+            p.get("chunk_index", 0),
+            p["content"],
+            json.dumps(p["vector"]),
+            json.dumps(p.get("metadata", {})),
+        )
+        for p in points
+    ]
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                f"""INSERT INTO {TABLE} (id, source_path, chunk_index, content, embedding, metadata)
+                    VALUES %s
+                    ON CONFLICT (id) DO UPDATE SET
+                        source_path = EXCLUDED.source_path,
+                        chunk_index = EXCLUDED.chunk_index,
+                        content = EXCLUDED.content,
+                        embedding = EXCLUDED.embedding,
+                        metadata = EXCLUDED.metadata,
+                        indexed_at = now()""",
+                values,
+                template="(%s, %s, %s, %s, %s::vector, %s::jsonb)",
+            )
+        conn.commit()
+
+
+def pgvector_count() -> int:
+    """Return total row count in the table."""
     try:
-        resp = requests.post(url, json=payload, timeout=30)
-        if resp.status_code not in (200, 202):
-            print(f"  [warn] Qdrant delete failed for {source_path}: {resp.text[:200]}", flush=True)
-    except requests.RequestException as exc:
-        print(f"  [warn] Qdrant delete error: {exc}", flush=True)
-
-
-def qdrant_upsert(points: list[dict]):
-    """Upsert a batch of points into the collection."""
-    url = f"{QDRANT_URL}/collections/{COLLECTION}/points"
-    payload = {"points": points}
-    try:
-        resp = requests.put(url, json=payload, timeout=60)
-        if resp.status_code not in (200, 202):
-            print(f"  [warn] Qdrant upsert failed: {resp.text[:200]}", flush=True)
-    except requests.RequestException as exc:
-        print(f"  [warn] Qdrant upsert error: {exc}", flush=True)
-
-
-def qdrant_count() -> int:
-    """Return total point count in the collection."""
-    url = f"{QDRANT_URL}/collections/{COLLECTION}"
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            return resp.json().get("result", {}).get("points_count", 0)
-    except requests.RequestException:
-        pass
-    return -1
+        with psycopg2.connect(POSTGRES_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT COUNT(*) FROM {TABLE}")
+                return cur.fetchone()[0]
+    except Exception:
+        return -1
 
 
 # ---------------------------------------------------------------------------
@@ -271,12 +312,11 @@ def index_file(repo: str, path: str) -> int:
     if not chunks:
         return 0
 
-    # Delete stale points for this file before re-indexing
-    qdrant_delete_by_source(source_path)
+    pgvector_delete_by_source(source_path)
 
     indexed_at = datetime.now(timezone.utc).isoformat()
     points = []
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
         vector = embed_text(chunk)
         if vector is None:
             print(f"    [warn] Skipping chunk (embed failed): {chunk[:60]!r}", flush=True)
@@ -285,10 +325,11 @@ def index_file(repo: str, path: str) -> int:
         points.append(
             {
                 "id": point_id,
+                "source_path": source_path,
+                "chunk_index": i,
+                "content": chunk,
                 "vector": vector,
-                "payload": {
-                    "text": chunk,
-                    "source_path": source_path,
+                "metadata": {
                     "sheet": repo_short,
                     "doc_type": "regulatory_knowledge",
                     "repo": repo,
@@ -299,7 +340,7 @@ def index_file(repo: str, path: str) -> int:
         )
 
     if points:
-        qdrant_upsert(points)
+        pgvector_upsert(points)
 
     return len(points)
 
@@ -347,7 +388,6 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
         total_chunks += repo_chunks
         repos_processed.append(repo)
 
-        # Update state only if we obtained a sha
         if head_sha:
             state[repo] = head_sha
             save_state(state)
@@ -365,8 +405,7 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
 
 class SyncHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        # Suppress default access log
-        pass
+        pass  # suppress default access log
 
     def send_json(self, code: int, data: dict):
         body = json.dumps(data).encode()
@@ -378,8 +417,8 @@ class SyncHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/health":
-            kb_points = qdrant_count()
-            self.send_json(200, {"status": "ok", "kb_points": kb_points})
+            kb_rows = pgvector_count()
+            self.send_json(200, {"status": "ok", "kb_rows": kb_rows})
         else:
             self.send_json(404, {"error": "not found"})
 
@@ -389,13 +428,11 @@ class SyncHandler(BaseHTTPRequestHandler):
 
             def run():
                 result = sync_repos()
-                kb = qdrant_count()
-                print(f"[server] Sync complete: {result}, kb_points={kb}", flush=True)
+                kb = pgvector_count()
+                print(f"[server] Sync complete: {result}, kb_rows={kb}", flush=True)
 
             t = Thread(target=run, daemon=True)
             t.start()
-            # Return immediately; sync runs in background
-            result_preview = sync_repos.__doc__ or "sync started"
             self.send_json(202, {"status": "sync started"})
         else:
             self.send_json(404, {"error": "not found"})
@@ -404,7 +441,7 @@ class SyncHandler(BaseHTTPRequestHandler):
 def run_server():
     server = HTTPServer(("0.0.0.0", SERVER_PORT), SyncHandler)
     print(f"[server] Listening on port {SERVER_PORT} …", flush=True)
-    print(f"  GET  /health  → {{status, kb_points}}", flush=True)
+    print(f"  GET  /health  → {{status, kb_rows}}", flush=True)
     print(f"  POST /sync    → trigger full sync", flush=True)
     server.serve_forever()
 
@@ -415,7 +452,7 @@ def run_server():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Index .md files from GitHub repos into Qdrant."
+        description="Index .md files from GitHub repos into pgvector ra_knowledge table."
     )
     parser.add_argument(
         "--server",
@@ -432,21 +469,24 @@ def main():
     args = parser.parse_args()
 
     if args.server:
+        ensure_table()
         run_server()
         return
 
     print("=" * 60, flush=True)
-    print("GitHub MD Indexer", flush=True)
-    print(f"Repos : {args.repos}", flush=True)
-    print(f"Qdrant: {QDRANT_URL}  Collection: {COLLECTION}", flush=True)
-    print(f"Embed : {OLLAMA_URL}  Model: {EMBED_MODEL}", flush=True)
+    print("GitHub MD Indexer (pgvector)", flush=True)
+    print(f"Repos    : {args.repos}", flush=True)
+    print(f"Postgres : {POSTGRES_URL}  Table: {TABLE}", flush=True)
+    print(f"Embed    : {OLLAMA_URL}  Model: {EMBED_MODEL}", flush=True)
     print("=" * 60, flush=True)
+
+    ensure_table()
 
     t_start = time.time()
     result = sync_repos(args.repos)
     elapsed = time.time() - t_start
 
-    kb_points = qdrant_count()
+    kb_rows = pgvector_count()
     print("\n" + "=" * 60, flush=True)
     print(
         f"Finished. repos_processed={len(result['repos_processed'])}, "
@@ -454,10 +494,9 @@ def main():
         f"time={elapsed:.1f}s",
         flush=True,
     )
-    print(f"Total KB points in collection: {kb_points}", flush=True)
+    print(f"Total KB rows in table: {kb_rows}", flush=True)
     print("=" * 60, flush=True)
 
 
 if __name__ == "__main__":
     main()
-
