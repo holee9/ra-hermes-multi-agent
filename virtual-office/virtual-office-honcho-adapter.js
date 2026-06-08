@@ -62,61 +62,67 @@ function adaptHonchoMessage(msg) {
   return event;
 }
 
-async function fetchHonchoEvents() {
+function postJson(apiUrl, payload) {
   return new Promise((resolve) => {
-    const apiUrl = `${HONCHO_API_URL}/v1/apps/${HONCHO_APP_NAME}/users/system/sessions?page=1&page_size=100`;
     const parsedUrl = new URL(apiUrl);
     const transport = parsedUrl.protocol === 'https:' ? https : http;
-
-    const req = transport.get(apiUrl, (res) => {
+    const reqBody = JSON.stringify(payload);
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(reqBody)
+      }
+    };
+    const req = transport.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const body = JSON.parse(data);
-          const sessions = body.items || [];
-          const eventPromises = sessions.map(session =>
-            fetchSessionMessages(session.id)
-          );
-          Promise.all(eventPromises).then(results => {
-            const allEvents = results
-              .flat()
-              .map(adaptHonchoMessage)
-              .filter(Boolean)
-              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
-            resolve(allEvents);
-          }).catch(() => resolve(MOCK_EVENTS));
-        } catch {
-          resolve(MOCK_EVENTS);
-        }
-      });
+      res.on('end', () => resolve(data));
     });
-    req.on('error', () => resolve(MOCK_EVENTS));
-    req.setTimeout(5000, () => { req.destroy(); resolve(MOCK_EVENTS); });
+    req.on('error', () => resolve(null));
+    req.setTimeout(5000, () => { req.destroy(); resolve(null); });
+    req.write(reqBody);
+    req.end();
   });
 }
 
-function fetchSessionMessages(sessionId) {
-  return new Promise((resolve) => {
-    const apiUrl = `${HONCHO_API_URL}/v1/apps/${HONCHO_APP_NAME}/users/system/sessions/${sessionId}/messages?page=1&page_size=200`;
-    const parsedUrl = new URL(apiUrl);
-    const transport = parsedUrl.protocol === 'https:' ? https : http;
+async function fetchHonchoEvents() {
+  // Honcho v3 API: POST /v3/workspaces/{workspace}/sessions/list
+  const raw = await postJson(
+    `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/list`,
+    { page: 1, page_size: 100 }
+  );
+  if (!raw) return MOCK_EVENTS;
+  try {
+    const parsed = JSON.parse(raw);
+    const sessions = parsed.items || [];
+    const results = await Promise.all(sessions.map(s => fetchSessionMessages(s.id)));
+    return results
+      .flat()
+      .map(adaptHonchoMessage)
+      .filter(Boolean)
+      .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  } catch {
+    return MOCK_EVENTS;
+  }
+}
 
-    const req = transport.get(apiUrl, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const body = JSON.parse(data);
-          resolve(body.items || []);
-        } catch {
-          resolve([]);
-        }
-      });
-    });
-    req.on('error', () => resolve([]));
-    req.setTimeout(5000, () => { req.destroy(); resolve([]); });
-  });
+async function fetchSessionMessages(sessionId) {
+  // Honcho v3 API: POST /v3/workspaces/{workspace}/sessions/{id}/messages/list
+  const raw = await postJson(
+    `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/${sessionId}/messages/list`,
+    { page: 1, page_size: 200 }
+  );
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed.items || [];
+  } catch {
+    return [];
+  }
 }
 
 // In Docker: __dirname=/app, HTML is at /app/virtual-office.html (same dir)

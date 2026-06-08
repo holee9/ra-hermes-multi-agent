@@ -4,10 +4,16 @@
     {
       "parameters": {
         "pollTimes": {
-          "item": [{ "mode": "everyMinute" }]
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
         },
         "filters": {
-          "labelIds": ["INBOX"],
+          "labelIds": [
+            "INBOX"
+          ],
           "q": "to:ra-intake@yourcompany.com is:unread"
         },
         "options": {}
@@ -16,7 +22,10 @@
       "name": "Gmail 수신 트리거",
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -26,18 +35,26 @@
       "name": "본문 파싱 및 규제권 라우팅",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": false },
+          "options": {
+            "caseSensitive": false
+          },
           "conditions": [
             {
               "id": "cond-yellow",
               "leftValue": "={{ $json.routing_status }}",
               "rightValue": "green",
-              "operator": { "type": "string", "operation": "notEquals" }
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
             }
           ]
         }
@@ -46,7 +63,10 @@
       "name": "라우팅 게이트",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
@@ -58,7 +78,10 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -75,7 +98,10 @@
       "name": "RA 에이전트 호출",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [880, 200]
+      "position": [
+        880,
+        200
+      ]
     },
     {
       "parameters": {
@@ -85,7 +111,10 @@
       "name": "RA 응답 파싱",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1100, 200]
+      "position": [
+        1100,
+        200
+      ]
     },
     {
       "parameters": {
@@ -95,7 +124,10 @@
               "id": "cond-parse-ok",
               "leftValue": "={{ $json.parse_error }}",
               "rightValue": false,
-              "operator": { "type": "boolean", "operation": "equals" }
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -104,7 +136,10 @@
       "name": "파싱 성공 게이트",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1300, 200]
+      "position": [
+        1300,
+        200
+      ]
     },
     {
       "parameters": {
@@ -114,7 +149,10 @@
               "id": "cond-existing",
               "leftValue": "={{ $json.match }}",
               "rightValue": "existing",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -123,7 +161,10 @@
       "name": "신규 vs 기존 WP 분기",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1520, 200]
+      "position": [
+        1520,
+        200
+      ]
     },
     {
       "parameters": {
@@ -136,7 +177,10 @@
       "name": "WP 코멘트 추가",
       "type": "n8n-nodes-openproject.openProject",
       "typeVersion": 1,
-      "position": [1740, 100]
+      "position": [
+        1740,
+        100
+      ]
     },
     {
       "parameters": {
@@ -151,7 +195,10 @@
       "name": "신규 WP 생성",
       "type": "n8n-nodes-openproject.openProject",
       "typeVersion": 1,
-      "position": [1740, 300]
+      "position": [
+        1740,
+        300
+      ]
     },
     {
       "parameters": {
@@ -161,7 +208,10 @@
               "id": "cond-transition",
               "leftValue": "={{ $json.transition_proposed }}",
               "rightValue": "",
-              "operator": { "type": "string", "operation": "notEmpty" }
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
             }
           ]
         }
@@ -170,7 +220,10 @@
       "name": "전이 제안 게이트",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1960, 200]
+      "position": [
+        1960,
+        200
+      ]
     },
     {
       "parameters": {
@@ -183,7 +236,10 @@
       "name": "전이 제안 코멘트 (Yellow)",
       "type": "n8n-nodes-openproject.openProject",
       "typeVersion": 1,
-      "position": [2180, 120]
+      "position": [
+        2180,
+        120
+      ]
     },
     {
       "parameters": {
@@ -193,44 +249,44 @@
       "name": "Honcho 기록 준비",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2180, 320]
+      "position": [
+        2180,
+        320
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v1/apps/{{ $env.HONCHO_APP_NAME }}/users/{{ $json.analysis.actor }}/sessions",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "metadata", "value": "={{ JSON.stringify({ type: 'mail_triage_session' }) }}" }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ id: $now.toFormat('yyyyMMddHHmmssSSS') + '-' + $json.analysis.actor, peers: { [$json.analysis.actor]: {} }, metadata: { type: 'mail_triage_session', actor: $json.analysis.actor } }) }}"
       },
       "id": "honcho-create-session",
       "name": "Honcho 세션 생성",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [2400, 320]
+      "position": [
+        2400,
+        320
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v1/apps/{{ $env.HONCHO_APP_NAME }}/users/{{ $node['Honcho 기록 준비'].json.analysis.actor }}/sessions/{{ $json.id }}/messages",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $json.id }}/messages",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "=",
-              "value": "={{ JSON.stringify({\n  is_user: false,\n  content: JSON.stringify($node['Honcho 기록 준비'].json.activity_record),\n  metadata: { type: 'activity_log', record_type: 'matched' }\n}) }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify($node['Honcho 기록 준비'].json.activity_record), peer_id: $node['Honcho 기록 준비'].json.analysis.actor, metadata: { type: 'activity_log', record_type: 'matched' } }] }) }}"
       },
       "id": "honcho-record",
       "name": "Honcho conclusion 기록",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [2620, 320]
+      "position": [
+        2620,
+        320
+      ]
     },
     {
       "parameters": {
@@ -240,7 +296,10 @@
       "name": "Yellow 게이트 (사람 질의)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [880, 440]
+      "position": [
+        880,
+        440
+      ]
     },
     {
       "parameters": {
@@ -253,63 +312,194 @@
       "name": "Yellow 알림 발송",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1100, 440]
+      "position": [
+        1100,
+        440
+      ]
     }
   ],
   "connections": {
     "Gmail 수신 트리거": {
-      "main": [[{ "node": "본문 파싱 및 규제권 라우팅", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "본문 파싱 및 규제권 라우팅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "본문 파싱 및 규제권 라우팅": {
-      "main": [[{ "node": "라우팅 게이트", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "라우팅 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "라우팅 게이트": {
       "main": [
-        [{ "node": "Yellow 게이트 (사람 질의)", "type": "main", "index": 0 }],
-        [{ "node": "RA 에이전트 호출", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Yellow 게이트 (사람 질의)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RA 에이전트 호출",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "RA 에이전트 호출": {
-      "main": [[{ "node": "RA 응답 파싱", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "RA 응답 파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "RA 응답 파싱": {
-      "main": [[{ "node": "파싱 성공 게이트", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "파싱 성공 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "파싱 성공 게이트": {
       "main": [
-        [{ "node": "Yellow 게이트 (사람 질의)", "type": "main", "index": 0 }],
-        [{ "node": "신규 vs 기존 WP 분기", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Yellow 게이트 (사람 질의)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "신규 vs 기존 WP 분기",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "신규 vs 기존 WP 분기": {
       "main": [
-        [{ "node": "WP 코멘트 추가", "type": "main", "index": 0 }],
-        [{ "node": "신규 WP 생성", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "WP 코멘트 추가",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "신규 WP 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "WP 코멘트 추가": {
-      "main": [[{ "node": "전이 제안 게이트", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "전이 제안 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "신규 WP 생성": {
-      "main": [[{ "node": "전이 제안 게이트", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "전이 제안 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "전이 제안 게이트": {
       "main": [
-        [{ "node": "전이 제안 코멘트 (Yellow)", "type": "main", "index": 0 }],
-        [{ "node": "Honcho 기록 준비", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "전이 제안 코멘트 (Yellow)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Honcho 기록 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "전이 제안 코멘트 (Yellow)": {
-      "main": [[{ "node": "Honcho 기록 준비", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Honcho 기록 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Honcho 기록 준비": {
-      "main": [[{ "node": "Honcho 세션 생성", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Honcho 세션 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Honcho 세션 생성": {
-      "main": [[{ "node": "Honcho conclusion 기록", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Honcho conclusion 기록",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Yellow 게이트 (사람 질의)": {
-      "main": [[{ "node": "Yellow 알림 발송", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Yellow 알림 발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
