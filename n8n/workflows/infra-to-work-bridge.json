@@ -1,4 +1,5 @@
 {
+  "id": "DVldSLZ7lKwcBXML",
   "name": "infra-to-work-bridge",
   "nodes": [
     {
@@ -101,14 +102,11 @@
     },
     {
       "parameters": {
-        "operation": "send",
-        "toEmail": "={{ $env.HUMAN_ALERT_EMAIL }}",
-        "subject": "[HONCHO DOWN] 인프라 결정 전달 불가 — 직접 경보",
-        "text": "={{ 'Honcho 서버 장애로 인해 인프라 결정을 Honcho 경유로 전달할 수 없습니다.\\n\\n인프라 결정:\\n' + JSON.stringify($node['전달 조건 필터 [IF]'].json, null, 2) + '\\n\\n직접 조치가 필요합니다.' }}"
+        "jsCode": "// Honcho DOWN fallback — log to console (email alert requires SMTP credentials)\nconst decision = $('전달 조건 필터 [IF]').first().json;\nconsole.error('[HONCHO DOWN] 인프라 결정 전달 불가:', JSON.stringify(decision));\nreturn [{ json: { _honcho_down: true, ts: new Date().toISOString(), decision } }];"
       },
       "id": "honcho-down-alert",
       "name": "Honcho 장애 직접 경보",
-      "type": "n8n-nodes-base.emailSend",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1320,
@@ -117,7 +115,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 업무 workspace에 인프라 결정 기록\n// 활동 기록 계약 형식 (고정)\nconst decision = $node['전달 조건 필터 [IF]'].json;\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: 'infra_decision_relayed',\n  actor: decision.actor || 'system',\n  payload: {\n    topic: decision.topic,\n    result: decision.result,\n    method: decision.method,\n    tally: decision.tally,\n    approve_ratio: decision.approve_ratio,\n    bridge_ts: decision._bridge_ts\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord } }];"
+        "jsCode": "// 업무 workspace에 인프라 결정 기록\n// 활동 기록 계약 형식 (고정)\n// n8n v1: $('nodeName').first().json 으로 이전 노드 데이터 접근\nconst decision = $('전달 조건 필터 [IF]').first().json;\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: 'infra_decision_relayed',\n  actor: decision.actor || 'system',\n  payload: {\n    topic: decision.topic,\n    result: decision.result,\n    method: decision.method,\n    tally: decision.tally,\n    approve_ratio: decision.approve_ratio,\n    bridge_ts: decision._bridge_ts\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord } }];"
       },
       "id": "prepare-work-record",
       "name": "업무 workspace 기록 준비",
@@ -203,14 +201,14 @@
       "main": [
         [
           {
-            "node": "드롭 기록",
+            "node": "Honcho 헬스체크",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Honcho 헬스체크",
+            "node": "드롭 기록",
             "type": "main",
             "index": 0
           }
