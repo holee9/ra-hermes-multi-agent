@@ -3,15 +3,20 @@
 원본: nas_indexer.py
 개선사항:
   1. meta_extractor.py 통합 (온톨로지 기반 카테고리 분류)
-  2. 구조화된 메타데이터를 Qdrant payload에 저장
+  2. 구조화된 메타데이터를 pgvector metadata에 저장
   3. 추출 신뢰도 추적
   4. 실행 로그 및 통계 기록
+
+MIGRATION: Qdrant → pgvector (2026-06, issue #17)
+  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  Table: nas_ra_docs / nas_ra_docs_test  (dim=4096, ivfflat cosine)
+  State DB qdrant_ids column repurposed to store pgvector row IDs (no schema change needed)
 """
 # TESTING PROCEDURE:
 # 1. Run: python3 scripts/nas_indexer_v2.py --test-run
-# 2. Verify output: 3 files indexed, payload includes document_category + product_code
-# 3. Check test collection: curl http://NAS_QDRANT_URL/collections/nas_ra_docs_test/points/scroll
-# 4. If OK, update cron to use v2 and delete test collection
+# 2. Verify: psql $POSTGRES_URL -c "SELECT COUNT(*) FROM nas_ra_docs_test;"
+# 3. Check payload: psql $POSTGRES_URL -c "SELECT metadata FROM nas_ra_docs_test LIMIT 1;"
+# 4. If OK, update cron to use v2
 import os
 import sqlite3
 import json
@@ -23,6 +28,8 @@ import sys
 import time
 import signal
 import argparse
+import psycopg2
+import psycopg2.extras
 from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
@@ -69,11 +76,12 @@ except Exception as _meta_err:  # noqa: BLE001 — import-time robustness intent
 # 설정
 # =========================================================================
 
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
+# @MX:NOTE: [AUTO] POSTGRES_URL replaces QDRANT_URL — pgvector on Honcho PostgreSQL port 5433
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
 OLLAMA_EMBED_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434") + "/api/embeddings"
-COLLECTION = "nas_ra_docs"
-TEST_COLLECTION = "nas_ra_docs_test"  # --test-run isolation target (never touches prod)
-EMBED_DIM = 4096                      # qwen3-embedding:latest output dimension
+TABLE = "nas_ra_docs"
+TEST_TABLE = "nas_ra_docs_test"   # --test-run isolation target (never touches prod)
+EMBED_DIM = 4096                  # qwen3-embedding:latest output dimension
 STATE_DB = os.environ.get("STATE_DB", "/opt/hermes-ra/indexer_state.db")
 LOG_FILE = "/var/log/nas_indexer.log"
 CHUNK_CHARS = 800
@@ -124,15 +132,16 @@ def log_msg(msg: str, level: str = "info"):
     try:
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(log_line + '\n')
-    except:
+    except Exception:
         pass
 
 # =========================================================================
-# 데이터베이스
+# 데이터베이스 (SQLite 상태 추적)
 # =========================================================================
 
 def init_db():
     conn = sqlite3.connect(STATE_DB)
+    # qdrant_ids column name kept for backward compat — now stores pgvector row IDs
     conn.execute("""CREATE TABLE IF NOT EXISTS indexed_files (
         path TEXT PRIMARY KEY,
         mtime REAL,
@@ -151,10 +160,10 @@ def get_file_state(conn, path):
     ).fetchone()
     return row
 
-def save_file_state(conn, path, mtime, size, qdrant_ids, metadata):
+def save_file_state(conn, path, mtime, size, vector_ids, metadata):
     conn.execute(
         "INSERT OR REPLACE INTO indexed_files (path,mtime,size,qdrant_ids,indexed_at,metadata_json) VALUES(?,?,?,?,?,?)",
-        (path, mtime, size, json.dumps(qdrant_ids), datetime.now().isoformat(), json.dumps(metadata, ensure_ascii=False))
+        (path, mtime, size, json.dumps(vector_ids), datetime.now().isoformat(), json.dumps(metadata, ensure_ascii=False))
     )
     conn.commit()
 
@@ -233,35 +242,91 @@ def embed(text):
     with urllib.request.urlopen(req, timeout=120) as resp:
         return json.loads(resp.read())["embedding"]
 
-def qdrant_upsert(points, collection=COLLECTION):
-    """Qdrant에 저장"""
-    data = json.dumps({"points": points}).encode()
-    req = urllib.request.Request(
-        f"{QDRANT_URL}/collections/{collection}/points?wait=true",
-        data=data, headers={"Content-Type": "application/json"}, method="PUT"
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read())
+# =========================================================================
+# pgvector 헬퍼
+# =========================================================================
 
-def qdrant_delete(ids, collection=COLLECTION):
-    """Qdrant에서 삭제 — v1 payload format {"points": ids} (live Qdrant rejects points_selector form)"""
+# @MX:ANCHOR: [AUTO] pgvector table creation — called by ensure_table and test_run
+# @MX:REASON: [AUTO] All indexing paths depend on this; schema change here affects all callers
+def ensure_table(table: str = TABLE, dim: int = EMBED_DIM) -> None:
+    """Create pgvector table and indexes if they do not exist."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS {table} (
+                    id BIGINT PRIMARY KEY,
+                    source_path TEXT,
+                    chunk_index INT,
+                    content TEXT,
+                    embedding vector({dim}),
+                    metadata JSONB,
+                    indexed_at TIMESTAMP DEFAULT now()
+                )""")
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {table}_src_idx ON {table} (source_path)"
+            )
+            cur.execute(
+                f"""CREATE INDEX IF NOT EXISTS {table}_emb_idx ON {table}
+                    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"""
+            )
+        conn.commit()
+    log_msg(f"ensured table: {table} (dim={dim})", "info")
+
+
+# @MX:ANCHOR: [AUTO] Batch upsert to pgvector — called from index_file and test_run
+# @MX:REASON: [AUTO] Primary write path for all indexed chunks
+def pgvector_upsert(rows: list, table: str = TABLE) -> None:
+    """Upsert rows into pgvector table.
+
+    Each row dict: {id, source_path, chunk_index, content, vector, metadata}
+    """
+    if not rows:
+        return
+    values = [
+        (
+            r["id"],
+            r["source_path"],
+            r.get("chunk_index", 0),
+            r["content"],
+            json.dumps(r["vector"]),
+            json.dumps(r.get("metadata", {})),
+        )
+        for r in rows
+    ]
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                f"""INSERT INTO {table} (id, source_path, chunk_index, content, embedding, metadata)
+                    VALUES %s
+                    ON CONFLICT (id) DO UPDATE SET
+                        source_path = EXCLUDED.source_path,
+                        chunk_index = EXCLUDED.chunk_index,
+                        content = EXCLUDED.content,
+                        embedding = EXCLUDED.embedding,
+                        metadata = EXCLUDED.metadata,
+                        indexed_at = now()""",
+                values,
+                template="(%s, %s, %s, %s, %s::vector, %s::jsonb)",
+            )
+        conn.commit()
+
+
+def pgvector_delete(ids: list, table: str = TABLE) -> None:
+    """Delete rows by ID list from pgvector table."""
     if not ids:
         return
-    data = json.dumps({"points": ids}).encode()
-    req = urllib.request.Request(
-        f"{QDRANT_URL}/collections/{collection}/points/delete?wait=true",
-        data=data, headers={"Content-Type": "application/json"}, method="POST"
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read())
-    except Exception:
-        pass
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"DELETE FROM {table} WHERE id = ANY(%s)", (ids,))
+        conn.commit()
+
 
 def make_id(filepath, chunk_idx):
     """고유 ID 생성 — v1과 동일한 MD5 60-bit (기존 nas_ra_docs 벡터와 ID 호환 → 중복 방지)"""
     h = hashlib.md5(f"{filepath}:{chunk_idx}".encode()).hexdigest()
-    return int(h[:15], 16)  # 60-bit int, safe for Qdrant
+    return int(h[:15], 16)  # 60-bit int
 
 # =========================================================================
 # 인덱싱
@@ -274,7 +339,7 @@ def index_file(conn, filepath):
         stat = path.stat()
         mtime = stat.st_mtime
         size = stat.st_size
-    except:
+    except Exception:
         return "error"
 
     # 변경 체크
@@ -295,7 +360,7 @@ def index_file(conn, filepath):
     # 메타데이터 추출 (v2 신규)
     try:
         file_metadata = extract_file_metadata(filepath)
-    except:
+    except Exception:
         file_metadata = {
             "file_name": path.name,
             "file_extension": path.suffix.lower(),
@@ -306,7 +371,7 @@ def index_file(conn, filepath):
     # 기존 벡터 삭제
     if prev and prev[2]:
         old_ids = json.loads(prev[2])
-        qdrant_delete(old_ids)
+        pgvector_delete(old_ids)
 
     fname = path.name
     new_ids = []
@@ -322,34 +387,30 @@ def index_file(conn, filepath):
         pid = make_id(filepath, i)
         new_ids.append(pid)
 
-        # Payload 구성 (메타데이터 포함)
-        payload = {
-            "file_path": filepath,
-            "filename": fname,
-            "chunk_index": i,
-            "text": chunk,
-            "modified_at": mtime,
-            # 메타데이터 추가
-            "document_category": file_metadata.get("document_category", "unknown"),
-            "category_name": file_metadata.get("category_name", "Unknown"),
-            "category_confidence": file_metadata.get("category_confidence", 0.0),
-            "product_code": file_metadata.get("product_code"),
-            "version": file_metadata.get("version"),
-            "standard_references": file_metadata.get("standard_references", []),
-        }
-
         batch.append({
             "id": pid,
+            "source_path": filepath,
+            "chunk_index": i,
+            "content": chunk,
             "vector": vector,
-            "payload": payload
+            "metadata": {
+                "filename": fname,
+                "modified_at": mtime,
+                "document_category": file_metadata.get("document_category", "unknown"),
+                "category_name": file_metadata.get("category_name", "Unknown"),
+                "category_confidence": file_metadata.get("category_confidence", 0.0),
+                "product_code": file_metadata.get("product_code"),
+                "version": file_metadata.get("version"),
+                "standard_references": file_metadata.get("standard_references", []),
+            },
         })
 
         if len(batch) >= BATCH_SIZE:
-            qdrant_upsert(batch)
+            pgvector_upsert(batch)
             batch = []
 
     if batch:
-        qdrant_upsert(batch)
+        pgvector_upsert(batch)
 
     if new_ids:
         save_file_state(conn, filepath, mtime, size, new_ids, file_metadata)
@@ -357,33 +418,12 @@ def index_file(conn, filepath):
 
     return "empty"
 
-def ensure_collection(collection, dim=EMBED_DIM):
-    """Create the Qdrant collection if it does not exist (size=dim, distance=Cosine)."""
-    # Check existence first
-    check = urllib.request.Request(f"{QDRANT_URL}/collections/{collection}")
-    try:
-        with urllib.request.urlopen(check, timeout=10) as resp:
-            json.loads(resp.read())
-            return  # already exists
-    except urllib.error.HTTPError as e:
-        if e.code != 404:
-            raise
-    # Create (same params as production: size=4096, Cosine)
-    body = json.dumps({"vectors": {"size": dim, "distance": "Cosine"}}).encode()
-    create = urllib.request.Request(
-        f"{QDRANT_URL}/collections/{collection}",
-        data=body, headers={"Content-Type": "application/json"}, method="PUT"
-    )
-    with urllib.request.urlopen(create, timeout=30) as resp:
-        json.loads(resp.read())
-    log_msg(f"Created test collection: {collection} (size={dim}, Cosine)", "info")
-
 
 def test_run():
     """--test-run: index exactly 3 files from the first available SCAN_PATH into the
-    isolated test collection. Never touches the production collection, cron, or state DB."""
-    log_msg(f"TEST-RUN: target collection = {TEST_COLLECTION} (production untouched)", "info")
-    ensure_collection(TEST_COLLECTION)
+    isolated test table. Never touches the production table, cron, or state DB."""
+    log_msg(f"TEST-RUN: target table = {TEST_TABLE} (production untouched)", "info")
+    ensure_table(TEST_TABLE)
 
     # Pick first available SCAN_PATH
     base = next((p for p in SCAN_PATHS if os.path.exists(p)), None)
@@ -412,7 +452,7 @@ def test_run():
         sys.exit(1)
 
     indexed = 0
-    last_payload_sample = None
+    last_row_sample = None
     for fpath in targets:
         text = extract_text(fpath)
         if not text.strip():
@@ -437,38 +477,48 @@ def test_run():
             except Exception as e:
                 log_msg(f"TEST-RUN: embed error {Path(fpath).name} chunk {i}: {e}", "warn")
                 continue
-            payload = {
-                "file_path": fpath,
-                "filename": Path(fpath).name,
+            row = {
+                "id": make_id(fpath, i),
+                "source_path": fpath,
                 "chunk_index": i,
-                "text": chunk,
-                "modified_at": os.stat(fpath).st_mtime,
-                "document_category": file_metadata.get("document_category", "unknown"),
-                "category_name": file_metadata.get("category_name", "Unknown"),
-                "category_confidence": file_metadata.get("category_confidence", 0.0),
-                "product_code": file_metadata.get("product_code"),
-                "version": file_metadata.get("version"),
-                "standard_references": file_metadata.get("standard_references", []),
+                "content": chunk,
+                "vector": vector,
+                "metadata": {
+                    "filename": Path(fpath).name,
+                    "modified_at": os.stat(fpath).st_mtime,
+                    "document_category": file_metadata.get("document_category", "unknown"),
+                    "category_name": file_metadata.get("category_name", "Unknown"),
+                    "category_confidence": file_metadata.get("category_confidence", 0.0),
+                    "product_code": file_metadata.get("product_code"),
+                    "version": file_metadata.get("version"),
+                    "standard_references": file_metadata.get("standard_references", []),
+                },
             }
-            last_payload_sample = payload
-            batch.append({"id": make_id(fpath, i), "vector": vector, "payload": payload})
+            last_row_sample = row
+            batch.append(row)
         if batch:
-            qdrant_upsert(batch, collection=TEST_COLLECTION)
+            pgvector_upsert(batch, table=TEST_TABLE)
             indexed += 1
             log_msg(f"TEST-RUN: + {Path(fpath).name} ({len(batch)} chunks)", "info")
 
-    # Summary (payload sample without the full vector / long text body)
-    sample = dict(last_payload_sample) if last_payload_sample else {}
-    if "text" in sample:
-        sample["text"] = sample["text"][:80] + "..."
-    print(f"{indexed} files indexed, payload sample: {json.dumps(sample, ensure_ascii=False)}")
+    # Summary (sample without vector/full content)
+    sample = {}
+    if last_row_sample:
+        sample = {
+            "source_path": last_row_sample["source_path"],
+            "chunk_index": last_row_sample["chunk_index"],
+            "content_preview": last_row_sample["content"][:80] + "...",
+            "metadata": last_row_sample["metadata"],
+        }
+    print(f"{indexed} files indexed, row sample: {json.dumps(sample, ensure_ascii=False)}")
     log_msg("TEST-RUN: done (cron and production data untouched)", "info")
 
 
 def run():
     """메인 인덱싱 루프"""
-    log_msg("Starting NAS indexer v2", "info")
+    log_msg("Starting NAS indexer v2 (pgvector)", "info")
 
+    ensure_table()
     conn = init_db()
     stats = {"indexed": 0, "skip": 0, "empty": 0, "error": 0}
     t0 = time.time()
@@ -515,13 +565,13 @@ def run():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Hermes NAS Indexer v2 (메타데이터 통합)"
+        description="Hermes NAS Indexer v2 (메타데이터 통합, pgvector)"
     )
     parser.add_argument(
         "--test-run",
         action="store_true",
         help="Index exactly 3 files from the first available SCAN_PATH into the "
-             "isolated '%s' collection. Does NOT touch cron or production data." % TEST_COLLECTION,
+             "isolated '%s' table. Does NOT touch cron or production data." % TEST_TABLE,
     )
     args = parser.parse_args()
 
@@ -533,5 +583,3 @@ if __name__ == "__main__":
             print(json.dumps(stats, ensure_ascii=False))
     except Exception as e:
         log_msg(f"Fatal error: {e}", "error")
-        sys.exit(1)
-

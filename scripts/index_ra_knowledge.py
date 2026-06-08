@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-index_ra_knowledge_v2.py — Hermes RA Knowledge Indexer v2
-Adds: 해외 등록 대장 xlsx, RA Weekly Report pptx (latest 4 weeks)
-Fixes: merged cell handling, incremental update support
-Adds: /reindex HTTP endpoint for single-file re-indexing
+index_ra_knowledge.py — Hermes RA Knowledge Indexer
+Indexes: 인수인계서 xlsx, 해외 등록 대장 xlsx, RA Weekly Report pptx (latest 4 weeks)
+
+MIGRATION: Qdrant → pgvector (2026-06, issue #17)
+  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
+  Qdrant COLLECTION "hermes-ra-knowledge" maps to table "ra_knowledge"
 """
 
 import json
@@ -12,14 +15,17 @@ import sys
 import os
 import requests
 import openpyxl
+import psycopg2
+import psycopg2.extras
 from datetime import datetime
 from pathlib import Path
 
 # === CONFIG ===
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
-COLLECTION = "hermes-ra-knowledge"
+TABLE = "ra_knowledge"
 EMBED_MODEL = "nomic-embed-text"
+EMBED_DIM = 768  # nomic-embed-text output dimension
 NAS_BASE = "/mnt/nas-ra/공통자료/RA"
 HANDOVER_DIR = f"{NAS_BASE}/99_4. 한지민(241120~260508)"
 WEEKLY_DIR = f"{NAS_BASE}/RA Weekly Report"
@@ -46,42 +52,98 @@ def embed_text(text: str) -> list:
 
 
 def make_id(text: str) -> int:
-    """Stable int ID from text hash (Qdrant requires unsigned int or UUID)."""
+    """Stable int ID from text hash."""
     return int(hashlib.md5(text.encode()).hexdigest()[:15], 16)
 
 
+# ── pgvector helpers ─────────────────────────────────────────────────────────
+
+# @MX:ANCHOR: [AUTO] ensure_table creates ra_knowledge table — shared with index_github_repos
+# @MX:REASON: [AUTO] Both indexers write to the same table; schema must be created before first write
+def ensure_table() -> None:
+    """Create pgvector table and indexes if they do not exist."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS {TABLE} (
+                    id BIGINT PRIMARY KEY,
+                    source_path TEXT,
+                    chunk_index INT,
+                    content TEXT,
+                    embedding vector({EMBED_DIM}),
+                    metadata JSONB,
+                    indexed_at TIMESTAMP DEFAULT now()
+                )""")
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {TABLE}_src_idx ON {TABLE} (source_path)"
+            )
+            cur.execute(
+                f"""CREATE INDEX IF NOT EXISTS {TABLE}_emb_idx ON {TABLE}
+                    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"""
+            )
+        conn.commit()
+
+
 def upsert_points(points: list) -> int:
+    """Upsert a batch of point dicts into the ra_knowledge table.
+
+    Each point dict: {id, text, source_path, vector, metadata}
+    """
     if not points:
         return 0
-    payload = {"points": [
-        {"id": p["id"], "vector": p["vector"],
-         "payload": {"text": p["text"], "source_path": p.get("source_path",""), **p["metadata"]}}
+    values = [
+        (
+            p["id"],
+            p.get("source_path", ""),
+            0,
+            p["text"],
+            json.dumps(p["vector"]),
+            json.dumps(p.get("metadata", {})),
+        )
         for p in points
-    ]}
-    resp = requests.put(f"{QDRANT_URL}/collections/{COLLECTION}/points",
-        json=payload, params={"wait": "true"}, timeout=60)
-    resp.raise_for_status()
-    return len(points)
+    ]
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                f"""INSERT INTO {TABLE} (id, source_path, chunk_index, content, embedding, metadata)
+                    VALUES %s
+                    ON CONFLICT (id) DO UPDATE SET
+                        source_path = EXCLUDED.source_path,
+                        content = EXCLUDED.content,
+                        embedding = EXCLUDED.embedding,
+                        metadata = EXCLUDED.metadata,
+                        indexed_at = now()""",
+                values,
+                template="(%s, %s, %s, %s, %s::vector, %s::jsonb)",
+            )
+        conn.commit()
+    return len(values)
 
 
-def delete_by_source_path(source_path: str):
-    """Remove all points with matching source_path payload (for re-index)."""
-    body = {"filter": {"must": [{"key": "source_path", "match": {"value": source_path}}]}}
-    resp = requests.post(f"{QDRANT_URL}/collections/{COLLECTION}/points/delete",
-        json=body, params={"wait": "true"}, timeout=30)
-    resp.raise_for_status()
+def delete_by_source_path(source_path: str) -> None:
+    """Remove all rows with matching source_path (for re-index)."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"DELETE FROM {TABLE} WHERE source_path = %s", (source_path,))
+        conn.commit()
 
 
 def get_kb_count() -> int:
-    resp = requests.get(f"{QDRANT_URL}/collections/{COLLECTION}", timeout=10)
-    return resp.json()["result"]["points_count"] if resp.ok else -1
+    try:
+        with psycopg2.connect(POSTGRES_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT COUNT(*) FROM {TABLE}")
+                return cur.fetchone()[0]
+    except Exception:
+        return -1
 
 
 # ── xlsx parsing ─────────────────────────────────────────────────────────────
 
 def ffill_merged(ws):
     """Forward-fill merged cell values so every cell has its group's value."""
-    # Build a map: (row, col) -> value from the top-left of each merged range
     fill_map = {}
     for merged_range in ws.merged_cells.ranges:
         top_left = ws.cell(merged_range.min_row, merged_range.min_col)
@@ -160,14 +222,12 @@ def extract_xlsx_chunks(file_path: str, sheet_config: dict) -> list:
 def extract_registry_chunks(file_path: str) -> list:
     """해외 등록 대장: index latest sheet only."""
     wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
-    # First sheet = latest version
     sheet_name = wb.sheetnames[0]
     ws = wb[sheet_name]
     rows = list(ws.iter_rows(values_only=True))
     chunks = []
     source_path = str(Path(file_path).name)
 
-    # Find header
     header_idx = None
     headers = []
     for i, row in enumerate(rows):
@@ -181,7 +241,6 @@ def extract_registry_chunks(file_path: str) -> list:
         wb.close()
         return chunks
 
-    # Forward-fill 국가 column (col 0 = 국가, often merged vertically)
     last_country = ""
     for row in rows[header_idx + 1:]:
         row = list(row)
@@ -268,7 +327,6 @@ def embed_and_upsert(chunks: list, label: str) -> int:
 
 def index_handover_xlsx(file_path: str = None) -> dict:
     if file_path is None:
-        # Use latest
         candidates = sorted(Path(HANDOVER_DIR).glob("인수인계서_한지민*.xlsx"))
         candidates = [f for f in candidates if not f.name.startswith("~$")]
         if not candidates:
@@ -323,7 +381,7 @@ def index_single_file(file_path: str) -> dict:
     """Re-index a single file by extension."""
     p = Path(file_path)
     if not p.exists():
-        return {"error": f"file not found: file_path"}
+        return {"error": f"file not found: {file_path}"}
 
     ext = p.suffix.lower()
     name = p.name
@@ -349,8 +407,9 @@ def index_single_file(file_path: str) -> dict:
 
 
 def run_full_index():
-    print("=== Hermes RA Knowledge Indexer v2 ===")
-    print(f"KB points before: {get_kb_count()}")
+    print("=== Hermes RA Knowledge Indexer (pgvector) ===")
+    ensure_table()
+    print(f"KB rows before: {get_kb_count()}")
 
     r1 = index_handover_xlsx()
     print(f"Handover xlsx: {r1}")
@@ -361,7 +420,7 @@ def run_full_index():
     r3 = index_weekly_reports(latest_n=4)
     print(f"Weekly reports: {r3}")
 
-    print(f"\nKB points after: {get_kb_count()}")
+    print(f"\nKB rows after: {get_kb_count()}")
 
 
 # ── HTTP server mode ─────────────────────────────────────────────────────────
@@ -377,7 +436,7 @@ def run_server(port: int = 7790):
         def do_GET(self):
             if self.path == "/health":
                 count = get_kb_count()
-                body = json.dumps({"status": "ok", "kb_points": count}).encode()
+                body = json.dumps({"status": "ok", "kb_rows": count}).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -392,7 +451,8 @@ def run_server(port: int = 7790):
                 body = json.loads(self.rfile.read(length) or b"{}")
                 file_path = body.get("file_path", "")
                 if not file_path:
-                    result = run_full_index() or {"status": "full reindex triggered"}
+                    run_full_index()
+                    result = {"status": "full reindex triggered"}
                 else:
                     result = index_single_file(file_path)
                 resp = json.dumps(result).encode()
@@ -414,4 +474,3 @@ if __name__ == "__main__":
         run_server(7790)
     else:
         run_full_index()
-
