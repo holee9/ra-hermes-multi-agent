@@ -7,14 +7,13 @@
 #   3. Gmail OAuth2 자격증명 설정 (mail-triage용)
 #
 # 사용법:
-#   bash scripts/deploy-n8n-rpi.sh [RPI_HOST]
+#   bash scripts/deploy-n8n-rpi.sh [RPI_SSH_ALIAS]
 #
-# 기본값: RPI_HOST=10.20.6.187
+# 기본값: RPI_SSH=raspi5p (SSH config alias for 10.20.6.187)
 
 set -euo pipefail
 
-RPI_HOST="${1:-10.20.6.187}"
-RPI_USER="abyz-lab"
+RPI_SSH="${1:-raspi5p}"  # SSH config alias (User raspi5p, Host 10.20.6.187, IdentityFile ~/.ssh/id_ed25519)
 N8N_CONTAINER="n8n-stack-n8n-1"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORKFLOWS_DIR="${REPO_ROOT}/n8n/workflows"
@@ -23,22 +22,22 @@ log() { echo "[$(date '+%H:%M:%S')] $*"; }
 fail() { echo "[ERROR] $*" >&2; exit 1; }
 
 # ── 1. SSH 연결 확인 ─────────────────────────────────────────────────────────
-log "RPi SSH 연결 확인: ${RPI_USER}@${RPI_HOST}"
-ssh -o ConnectTimeout=10 -o BatchMode=yes "${RPI_USER}@${RPI_HOST}" "echo OK" \
+log "RPi SSH 연결 확인: ${RPI_SSH}"
+ssh -o ConnectTimeout=10 -o BatchMode=yes "${RPI_SSH}" "echo OK" \
     || fail "SSH 접근 불가. 키 등록 또는 패스워드 인증 확인 필요."
 log "SSH OK"
 
 # ── 2. n8n 컨테이너 상태 확인 ─────────────────────────────────────────────
 log "n8n 컨테이너 상태 확인"
-ssh "${RPI_USER}@${RPI_HOST}" "docker ps --filter name=${N8N_CONTAINER} --format '{{.Status}}'" \
+ssh "${RPI_SSH}" "docker ps --filter name=${N8N_CONTAINER} --format '{{.Status}}'" \
     | grep -q "Up" || fail "n8n 컨테이너(${N8N_CONTAINER})가 실행 중이 아닙니다."
 log "n8n 컨테이너 실행 중"
 
 # ── 3. Honcho 환경변수 확인 ───────────────────────────────────────────────
 log "Honcho 환경변수 확인 (HONCHO_API_URL, HONCHO_WORK_WORKSPACE)"
-HONCHO_URL=$(ssh "${RPI_USER}@${RPI_HOST}" \
+HONCHO_URL=$(ssh "${RPI_SSH}" \
     "docker exec ${N8N_CONTAINER} env 2>/dev/null | grep HONCHO_API_URL | cut -d= -f2" || echo "")
-HONCHO_WS=$(ssh "${RPI_USER}@${RPI_HOST}" \
+HONCHO_WS=$(ssh "${RPI_SSH}" \
     "docker exec ${N8N_CONTAINER} env 2>/dev/null | grep HONCHO_WORK_WORKSPACE | cut -d= -f2" || echo "")
 
 if [ -z "$HONCHO_URL" ] || [ -z "$HONCHO_WS" ]; then
@@ -56,7 +55,7 @@ log "HONCHO_API_URL=${HONCHO_URL}, HONCHO_WORK_WORKSPACE=${HONCHO_WS}"
 
 # ── 4. Honcho 연결 테스트 (RPi → T3610) ──────────────────────────────────
 log "Honcho API 연결 테스트 (RPi → T3610)"
-HONCHO_STATUS=$(ssh "${RPI_USER}@${RPI_HOST}" \
+HONCHO_STATUS=$(ssh "${RPI_SSH}" \
     "curl -sf -o /dev/null -w '%{http_code}' '${HONCHO_URL}/v3/workspaces/list'" || echo "000")
 [ "$HONCHO_STATUS" = "200" ] || [ "$HONCHO_STATUS" = "422" ] \
     || fail "Honcho 응답 없음 (${HONCHO_STATUS}). T3610 Honcho 서버 상태 확인 필요."
@@ -66,14 +65,14 @@ log "Honcho 연결 OK (HTTP ${HONCHO_STATUS})"
 WORKFLOWS=("feedback-recorder.json" "infra-to-work-bridge.json" "mail-triage.json")
 log "워크플로우 파일 전송 (${#WORKFLOWS[@]}개)"
 for wf in "${WORKFLOWS[@]}"; do
-    scp "${WORKFLOWS_DIR}/${wf}" "${RPI_USER}@${RPI_HOST}:/tmp/${wf}"
+    scp "${WORKFLOWS_DIR}/${wf}" "${RPI_SSH}:/tmp/${wf}"
     log "  전송: ${wf}"
 done
 
 # ── 6. n8n에 워크플로우 import ────────────────────────────────────────────
 log "n8n 워크플로우 import 시작"
 for wf in "${WORKFLOWS[@]}"; do
-    ssh "${RPI_USER}@${RPI_HOST}" \
+    ssh "${RPI_SSH}" \
         "docker exec ${N8N_CONTAINER} n8n import:workflow --input=/tmp/${wf}" \
         && log "  import OK: ${wf}" \
         || log "  ⚠️  import 실패 (기존 동일 ID 있을 경우 덮어씌움 시도): ${wf}"
@@ -106,7 +105,7 @@ echo ""
 echo "═══════════════════════════════════════════════"
 echo " 배포 완료 요약"
 echo "═══════════════════════════════════════════════"
-echo " ✅ SSH 연결: ${RPI_USER}@${RPI_HOST}"
+echo " ✅ SSH 연결: ${RPI_SSH}"
 echo " ✅ n8n 워크플로우 3개 import"
 echo " ✅ feedback webhook 트리거 확인"
 echo " 📊 Honcho 세션: ${SESSION_COUNT}개"

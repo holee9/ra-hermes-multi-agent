@@ -19,7 +19,7 @@
 | SKILL.md 심화 이식 | ✅ 완료 | [#13](https://github.com/holee9/ra-hermes-multi-agent/issues/13) |
 | 지식베이스 연결 | ✅ 완료 | [#15](https://github.com/holee9/ra-hermes-multi-agent/issues/15) |
 | hermes-ra 스크립트 이전 | ✅ 완료 (아카이브는 #11 게이트) | [#14](https://github.com/holee9/ra-hermes-multi-agent/issues/14) |
-| n8n 워크플로우 코드 수정 (v3 API, Code node) | ✅ 완료 (RPi 배포 대기) | [#5](https://github.com/holee9/ra-hermes-multi-agent/issues/5), [#9](https://github.com/holee9/ra-hermes-multi-agent/issues/9) |
+| n8n mail-triage 배포 (WORKFLOW-1) | ✅ 완료 | [#5](https://github.com/holee9/ra-hermes-multi-agent/issues/5) |
 | 가상오피스 Honcho v3 API 연결 | ✅ 완료 (mail-triage 데이터 대기) | [#10](https://github.com/holee9/ra-hermes-multi-agent/issues/10) |
 | MVP Cold Start 검증 | ⏸ 대기 (RPi n8n 배포 필요) | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) |
 
