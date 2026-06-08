@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3 완료 — MVP Cold Start 검증 완료, #14 ABSORB-2 대기** | 최종 갱신: 2026-06-08
+**Phase 1+2+3 완료 — #17 MIGRATE-1 완료, #18 SEED-1 스크립트 완성 (OP 토큰 갱신 대기), #14 ABSORB-2 대기** | 최종 갱신: 2026-06-09
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -22,6 +22,8 @@
 | n8n mail-triage 배포 (WORKFLOW-1) | ✅ 완료 | [#5](https://github.com/holee9/ra-hermes-multi-agent/issues/5) |
 | 가상오피스 Honcho v3 API 연결 | ✅ 완료 (mail-triage 데이터 대기) | [#10](https://github.com/holee9/ra-hermes-multi-agent/issues/10) |
 | MVP Cold Start 검증 | ✅ 완료 | [#11](https://github.com/holee9/ra-hermes-multi-agent/issues/11) (closed) |
+| 인덱싱 스크립트 Qdrant → pgvector (MIGRATE-1) | ✅ 완료 | [#17](https://github.com/holee9/ra-hermes-multi-agent/issues/17) (closed) |
+| OpenProject → Honcho backfill (SEED-1) | 🔄 스크립트 완성, OP 토큰 갱신 대기 | [#18](https://github.com/holee9/ra-hermes-multi-agent/issues/18) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
