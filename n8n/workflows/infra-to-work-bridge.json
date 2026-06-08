@@ -12,18 +12,24 @@
       "name": "인프라 투표 결과 수신",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 300],
+      "position": [
+        200,
+        300
+      ],
       "webhookId": "infra-bridge-webhook"
     },
     {
       "parameters": {
-        "jsCode": "// 전달 임계 조건 확인 [IF]\n// bridge-config.json에서 읽음. 조건 미충족 → 드롭(기록만)\n// config가 비어 있으면 모든 결정을 전달 (초기 운영)\nconst fs = require('fs');\nconst path = require('path');\n\nlet config = {};\ntry {\n  config = JSON.parse(fs.readFileSync('/data/bridge/bridge-config.json', 'utf8'));\n} catch {\n  // config 없으면 기본값: 모두 전달\n}\n\nconst input = $input.item.json;\nconst relayConditions = config.relay_conditions || [];\nconst relayThreshold = config.relay_threshold || null;\n\n// 조건이 비어 있으면 모두 전달\nlet shouldRelay = true;\nlet rejectReason = null;\n\nif (relayConditions.length > 0) {\n  // 조건 패턴 매칭 (운영이 채운 규칙)\n  const matchesSomeCondition = relayConditions.some(cond => {\n    if (cond.result && input.result !== cond.result) return false;\n    if (cond.min_approve_ratio && (input.approve_ratio || 0) < cond.min_approve_ratio) return false;\n    return true;\n  });\n  if (!matchesSomeCondition) {\n    shouldRelay = false;\n    rejectReason = 'relay_condition_not_met';\n  }\n}\n\nreturn [{\n  json: {\n    ...input,\n    _bridge_decision: shouldRelay ? 'relay' : 'drop',\n    _bridge_reject_reason: rejectReason,\n    _bridge_ts: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// 전달 임계 조건 확인 [IF]\n// relay_conditions 비어 있으면 모두 전달 (초기 운영). 운영 팀이 규칙 주입 시 동작.\n// webhook typeVersion 2: body in $json.body\nconst raw = $json;\nconst input = raw.body || raw;\n\nconst config = {};  // [IF] 외부 설정으로 주입 — 초기값 비워 둠\nconst relayConditions = config.relay_conditions || [];\nconst relayThreshold = config.relay_threshold || null;\n\nlet shouldRelay = true;\nlet rejectReason = null;\n\nif (relayConditions.length > 0) {\n  const matchesSomeCondition = relayConditions.some(cond => {\n    if (cond.result && input.result !== cond.result) return false;\n    if (cond.min_approve_ratio && (input.approve_ratio || 0) < cond.min_approve_ratio) return false;\n    return true;\n  });\n  if (!matchesSomeCondition) {\n    shouldRelay = false;\n    rejectReason = 'relay_condition_not_met';\n  }\n}\n\nreturn [{\n  json: {\n    ...input,\n    _bridge_decision: shouldRelay ? 'relay' : 'drop',\n    _bridge_reject_reason: rejectReason,\n    _bridge_ts: new Date().toISOString()\n  }\n}];"
       },
       "id": "filter-relay",
       "name": "전달 조건 필터 [IF]",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -33,7 +39,10 @@
               "id": "cond-relay",
               "leftValue": "={{ $json._bridge_decision }}",
               "rightValue": "relay",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -42,19 +51,27 @@
       "name": "전달 여부 게이트",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "GET",
         "url": "={{ $env.HONCHO_API_URL }}/health",
-        "options": { "timeout": 3000 }
+        "options": {
+          "timeout": 3000
+        }
       },
       "id": "honcho-health",
       "name": "Honcho 헬스체크",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [880, 200],
+      "position": [
+        880,
+        200
+      ],
       "continueOnFail": true
     },
     {
@@ -65,7 +82,10 @@
               "id": "cond-honcho-ok",
               "leftValue": "={{ $json.status }}",
               "rightValue": "ok",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
             }
           ]
         }
@@ -74,7 +94,10 @@
       "name": "Honcho 정상 여부",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1100, 200]
+      "position": [
+        1100,
+        200
+      ]
     },
     {
       "parameters": {
@@ -87,7 +110,10 @@
       "name": "Honcho 장애 직접 경보",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1320, 100]
+      "position": [
+        1320,
+        100
+      ]
     },
     {
       "parameters": {
@@ -97,44 +123,44 @@
       "name": "업무 workspace 기록 준비",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1320, 320]
+      "position": [
+        1320,
+        320
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v1/apps/{{ $env.HONCHO_APP_NAME }}/users/system/sessions",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "metadata", "value": "={{ JSON.stringify({ type: 'infra_bridge_session', workspace: 'work' }) }}" }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ id: $now.toFormat('yyyyMMddHHmmssSSS') + '-infra-bridge', peers: { system: {} }, metadata: { type: 'infra_bridge_session' } }) }}"
       },
       "id": "honcho-session-work",
       "name": "업무 workspace 세션 생성",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1540, 320]
+      "position": [
+        1540,
+        320
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v1/apps/{{ $env.HONCHO_APP_NAME }}/users/system/sessions/{{ $json.id }}/messages",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $json.id }}/messages",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "=",
-              "value": "={{ JSON.stringify({\n  is_user: false,\n  content: JSON.stringify($node['업무 workspace 기록 준비'].json.activity_record),\n  metadata: { type: 'activity_log', record_type: 'infra_decision_relayed', workspace: 'work' }\n}) }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify($node['업무 workspace 기록 준비'].json.activity_record), peer_id: 'system', metadata: { type: 'activity_log', record_type: 'infra_bridge' } }] }) }}"
       },
       "id": "honcho-relay-record",
       "name": "Honcho 업무 workspace 기록",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1760, 320]
+      "position": [
+        1760,
+        320
+      ]
     },
     {
       "parameters": {
@@ -144,36 +170,103 @@
       "name": "드롭 기록",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [880, 440]
+      "position": [
+        880,
+        440
+      ]
     }
   ],
   "connections": {
     "인프라 투표 결과 수신": {
-      "main": [[{ "node": "전달 조건 필터 [IF]", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "전달 조건 필터 [IF]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "전달 조건 필터 [IF]": {
-      "main": [[{ "node": "전달 여부 게이트", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "전달 여부 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "전달 여부 게이트": {
       "main": [
-        [{ "node": "드롭 기록", "type": "main", "index": 0 }],
-        [{ "node": "Honcho 헬스체크", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "드롭 기록",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Honcho 헬스체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Honcho 헬스체크": {
-      "main": [[{ "node": "Honcho 정상 여부", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Honcho 정상 여부",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Honcho 정상 여부": {
       "main": [
-        [{ "node": "Honcho 장애 직접 경보", "type": "main", "index": 0 }],
-        [{ "node": "업무 workspace 기록 준비", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Honcho 장애 직접 경보",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "업무 workspace 기록 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "업무 workspace 기록 준비": {
-      "main": [[{ "node": "업무 workspace 세션 생성", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "업무 workspace 세션 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "업무 workspace 세션 생성": {
-      "main": [[{ "node": "Honcho 업무 workspace 기록", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Honcho 업무 workspace 기록",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
