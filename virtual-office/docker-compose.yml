@@ -1,0 +1,35 @@
+# 가상 오피스 단독 컨테이너 구성
+# Honcho 서버(honcho/docker-compose.yml)와 함께 실행하거나 독립 실행 모두 가능
+#
+# 사용법:
+#   docker compose up -d
+#
+# 환경변수 (기본값으로 T3610 로컬 실행 기준):
+#   DATA_SOURCE=mock|honcho  → mock: 목업 데이터, honcho: Honcho 실데이터
+#   HONCHO_API_URL           → Honcho FastAPI 주소
+#   HONCHO_APP_NAME          → Honcho 워크스페이스 이름 (virtual-office 전용 env)
+#   PORT                     → 리스닝 포트 (기본 3000)
+
+services:
+  virtual-office:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: virtual-office:latest
+    container_name: virtual-office
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATA_SOURCE=${DATA_SOURCE:-honcho}
+      # T3610 로컬: Honcho와 같은 Docker 네트워크면 서비스명으로, 아니면 IP로
+      - HONCHO_API_URL=${HONCHO_API_URL:-http://172.17.0.1:8000}
+      - HONCHO_APP_NAME=${HONCHO_APP_NAME:-ra-hermes}
+      - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-30000}
+    # 읽기 전용 관찰자 — 외부 서비스로의 쓰기 경로 없음
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
