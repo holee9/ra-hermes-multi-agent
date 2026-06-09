@@ -15,6 +15,7 @@
 #   OPENPROJECT_URL      default: from detect-device.sh
 
 set -euo pipefail
+export PATH="/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin:${PATH}"
 SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
@@ -65,9 +66,18 @@ _skip() {
   RESULTS+=("{\"ac\":\"$2\",\"result\":\"SKIP\",\"detail\":\"$1\"}")
 }
 
+N8N_API_KEY="${N8N_API_KEY:-}"
+_n8n_curl() {
+  if [ -n "${N8N_API_KEY}" ]; then
+    curl -sf -H "X-N8N-API-KEY: ${N8N_API_KEY}" "$@" 2>/dev/null
+  else
+    curl -sf "$@" 2>/dev/null
+  fi
+}
+
 _n8n_available() {
   if [ "${SKIP_N8N}" = "1" ]; then return 1; fi
-  curl -sf "${N8N_URL}/healthz" >/dev/null 2>&1 && return 0 || return 1
+  _n8n_curl "${N8N_URL}/healthz" >/dev/null && return 0 || return 1
 }
 
 # AC1 — mail-triage workflow is active ————————————————————
@@ -77,10 +87,10 @@ _ac1() {
     return
   fi
   local wf_resp
-  wf_resp=$(curl -sf "${N8N_URL}/api/v1/workflows" 2>/dev/null) || {
-    _fail "AC1 mail-triage: n8n workflows API unreachable" "AC1"; return; }
+  wf_resp=$(_n8n_curl "${N8N_URL}/api/v1/workflows") || {
+    _fail "AC1 mail-triage: n8n workflows API unreachable (set N8N_API_KEY if auth required)" "AC1"; return; }
   local active
-  active=$(echo "${wf_resp}" | /usr/bin/jq -r '(.data // .workflows)[]? | select(.name == "mail-triage") | .active' 2>/dev/null | head -1)
+  active=$(echo "${wf_resp}" | /usr/bin/jq -r '(.data // .workflows)[]? | select(.name == "mail-triage") | .active' 2>/dev/null | /usr/bin/head -1)
   if [ "${active}" = "true" ]; then
     _pass "AC1 mail-triage workflow active" "AC1"
   else
@@ -108,7 +118,7 @@ _ac2() {
   local required_fields=("actor" "wp" "match" "confidence" "region" "comment")
   local missing=0
   for field in "${required_fields[@]}"; do
-    if ! grep -q "\"${field}\"" "${triage_path}"; then
+    if ! /usr/bin/grep -q "${field}" "${triage_path}"; then
       echo "  missing field: ${field}"
       missing=$((missing + 1))
     fi
