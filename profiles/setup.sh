@@ -141,13 +141,15 @@ _create_profile() {
   # Write/update the profile host block in honcho.json.
   # hermes reads aiPeer from hosts.<key>.aiPeer (falls back to host key if absent).
   # baseUrl is read from root level (not per-host).
+  # aiPeer uses underscore convention (ra_us, not ra-us) to match the frozen data contract.
   local honcho_json="${HERMES_HOME}/honcho.json"
   local host_key="hermes_${id}"
+  local peer_id="${id//-/_}"  # ra-us -> ra_us (data contract: underscore)
   if [ -f "${honcho_json}" ] && [ "${DRY_RUN}" != "1" ]; then
     local current_ws current_peer
     current_ws=$("${JQ}" -r --arg k "${host_key}" '.hosts[$k].workspace // ""' "${honcho_json}" 2>/dev/null)
     current_peer=$("${JQ}" -r --arg k "${host_key}" '.hosts[$k].aiPeer // ""' "${honcho_json}" 2>/dev/null)
-    if [ "${current_ws}" = "${workspace}" ] && [ "${current_peer}" = "${id}" ]; then
+    if [ "${current_ws}" = "${workspace}" ] && [ "${current_peer}" = "${peer_id}" ]; then
       echo "  [OK]   honcho host block already correct"
     else
       local tmp
@@ -155,10 +157,10 @@ _create_profile() {
       "${JQ}" \
         --arg k "${host_key}" \
         --arg ws "${workspace}" \
-        --arg peer "${id}" \
+        --arg peer "${peer_id}" \
         '.hosts[$k] = (.hosts[$k] // {}) | .hosts[$k].aiPeer = $peer | .hosts[$k].workspace = $ws | .hosts[$k].enabled = true' \
         "${honcho_json}" > "${tmp}" && /bin/mv "${tmp}" "${honcho_json}"
-      echo "  [OK]   honcho host block: aiPeer=${id}, workspace=${workspace}"
+      echo "  [OK]   honcho host block: aiPeer=${peer_id}, workspace=${workspace}"
     fi
   fi
 
