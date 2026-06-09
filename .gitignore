@@ -222,3 +222,6 @@ dist-ssr/
 # ===========================================
 # upstream Honcho source clone (참조용 — 빌드는 plasticlabs/honcho:latest 이미지 사용)
 honcho-src/
+
+# Cold-start verification run reports (runtime artifacts — not version-controlled)
+reports/*.json
