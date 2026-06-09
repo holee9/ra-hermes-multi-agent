@@ -1,13 +1,15 @@
 # RA Hermes 멀티 에이전트 시스템
 
 > 의료기기 인허가(RA) 도메인의 학습하는 멀티 에이전트 시스템.
-> Hermes Agent v0.14.0 / Honcho 기반. 사실 기준일: 2026-06-05.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-09.
+
+**[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md)
 
 ---
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 — #14 ABSORB-2, #17 MIGRATE-1, #18 SEED-1, #19 MIGRATE-2 완료** | 최종 갱신: 2026-06-09
+**Phase 1+2+3+4+5 완료 — 모든 Hermes 프로파일·Honcho 피어 등록 완료** | 최종 갱신: 2026-06-09
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -27,6 +29,21 @@
 | OpenProject → Honcho backfill (SEED-1) | ✅ 완료 (OP 토큰 갱신 + backfill 스크립트) | [#18](https://github.com/holee9/ra-hermes-multi-agent/issues/18) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
+
+### Hermes 프로파일 & Honcho 피어 현황 (2026-06-09 기준)
+
+| 프로파일 | Honcho 피어 ID | Workspace | 인물 | 상태 |
+|---------|--------------|-----------|-----|-----|
+| ra-us | `ra_us` | work | Mike (FDA) | ✅ 등록·SOUL.md 이식 완료 |
+| ra-eu | `ra_eu` | work | Theo (EU MDR) | ✅ 등록·SOUL.md 이식 완료 |
+| ra-kr | `ra_kr` | work | Sam (MFDS) | ✅ 등록·SOUL.md 이식 완료 |
+| op-manager | `op_manager` | work | Margot (WP) | ✅ 등록·SOUL.md 이식 완료 |
+| n8n-manager | `n8n_manager` | work | Olly (n8n) | ✅ 등록·SOUL.md 이식 완료 |
+| infra-t3610 | `infra_t3610` | infra | Finn (T3610) | ✅ 등록·SOUL.md 이식 완료 |
+| infra-gx10 | `infra_gx10` | infra | Leo (GX10) | ✅ 등록·SOUL.md 이식 완료 |
+| infra-rpi | `infra_rpi` | infra | Gus (RPi) | ✅ 등록·SOUL.md 이식 완료 |
+
+> `honcho.json` `aiPeer` 값은 모두 언더스코어 형식(frozen 데이터 계약 준수). `undefined` spurious 피어는 DB 직접 삭제 필요 (사용 가이드 §10 참조).
 
 ### 골격 구현 포함 항목 (배포·연결 대기 중)
 

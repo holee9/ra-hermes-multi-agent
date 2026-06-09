@@ -14,11 +14,50 @@
 
 ## 2. 프로파일·페르소나 운영
 
-### 2.1 생성 순서
+### 2.1 생성 순서 (자동화 스크립트 사용 권장)
+
+`profiles/setup.sh` 로 전체 프로파일·honcho.json을 자동 생성합니다:
+
+```bash
+bash profiles/setup.sh
+# DRY_RUN=1 bash profiles/setup.sh   # 드라이런
+```
+
+수동 생성 순서:
 1. Honcho 서버 기동(T3610), workspace `work`·`infra` 생성.
-2. 업무: `hermes profile create ra-us` → `--clone`으로 ra-eu·ra-kr → op-manager·n8n-manager.
+2. 업무: `hermes profile create ra-us` → ra-eu·ra-kr → op-manager·n8n-manager.
 3. 인프라: infra-t3610·infra-gx10·infra-rpi (workspace=infra).
 4. 각 honcho.json host 블록에 workspace·aiPeer 지정.
+
+### 2.1a Honcho 피어 ID 명명 규칙 (frozen)
+
+`aiPeer` 값은 **언더스코어 형식**을 사용합니다. 이는 n8n 워크플로우·활동 로그·피드백 레코드의 `actor` 필드와 동일한 frozen 데이터 계약입니다.
+
+| 프로파일 | aiPeer (정확한 값) | 오류 예시 (사용 금지) |
+|---------|------------------|-------------------|
+| ra-us | `ra_us` | ~~`ra-us`~~ |
+| op-manager | `op_manager` | ~~`op-manager`~~ |
+| infra-t3610 | `infra_t3610` | ~~`infra-t3610`~~ |
+
+`profiles/setup.sh` 는 프로파일 ID(하이픈)를 자동으로 언더스코어로 변환합니다.
+
+### 2.1b Honcho 피어 수동 등록
+
+Honcho v0.15.1은 에이전트 첫 연결 시 피어를 자동 생성하지만, REST API로도 사전 등록할 수 있습니다:
+
+```bash
+# work 피어 등록 (ra_us 예시)
+curl -s -X POST "http://localhost:8000/v3/workspaces/work/peers" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "ra_us"}'
+
+# infra 피어 등록 (infra_t3610 예시)
+curl -s -X POST "http://localhost:8000/v3/workspaces/infra/peers" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "infra_t3610"}'
+```
+
+> **피어 삭제 API 없음**: Honcho v0.15.1에는 피어 삭제 엔드포인트가 없습니다. spurious 피어 삭제는 DB 직접 접근 필요 (`docs/usage-guide.md` §10 참조).
 
 ### 2.2 SOUL.md (페르소나 = 지향점은 "지구 최고 전문가", 실제 실력은 학습으로)
 - **공통 바탕**: 의료기기 인허가는 실수가 환자 안전과 직결 → "확실하지 않으면 단정 말고 사람에게 올린다"는 겸손을 모든 페르소나에 박는다. 최고 전문가 = 화려한 자신감이 아니라 정확함·정직함.
