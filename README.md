@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4 완료 — #17 MIGRATE-1, #18 SEED-1, #19 MIGRATE-2 완료, #14 ABSORB-2 대기** | 최종 갱신: 2026-06-09
+**Phase 1+2+3+4+5 완료 — #14 ABSORB-2, #17 MIGRATE-1, #18 SEED-1, #19 MIGRATE-2 완료** | 최종 갱신: 2026-06-09
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -183,7 +183,7 @@ ra-hermes-multi-agent/
 | 순서 | 이슈 | 내용 | 장비 | 상태 |
 |---|---|---|---|---|
 | 5a | [#11 MVP-VALIDATE](https://github.com/holee9/ra-hermes-multi-agent/issues/11) | Cold Start E2E 검증 — **hermes-ra 종료 게이트** | 전체 | ✅ |
-| 5b | [#14 ABSORB-2](https://github.com/holee9/ra-hermes-multi-agent/issues/14) | hermes-ra 스크립트 이전 + 아카이브 (#11 PASS 후) | T3610 | 🔄 |
+| 5b | [#14 ABSORB-2](https://github.com/holee9/ra-hermes-multi-agent/issues/14) | hermes-ra 스크립트 이전 + 아카이브 (#11 PASS 후) | T3610 | ✅ |
 
 ```
 #3 → #4 + #13(병행) + #6 + #15 → #5 + #10 → #7 + #8 + #9 → #11 → #14
