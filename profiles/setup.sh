@@ -169,8 +169,13 @@ _create_profile() {
   local profile_dir="${HERMES_HOME}/profiles/${id}"
   if [ "${DRY_RUN}" = "1" ]; then
     echo "[DRY] HERMES_HOME=${profile_dir} hermes config set memory.provider honcho"
+    echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.default gpt-oss:120b"
   elif [ -d "${profile_dir}" ]; then
     HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set memory.provider honcho 2>&1 | /usr/bin/grep -v "^$" || true
+    # Model config must be set per-profile: profiles don't inherit from base ~/.hermes/config.yaml.
+    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.default "${MODEL_DEFAULT:-gpt-oss:120b}" 2>&1 | /usr/bin/grep -v "^$" || true
+    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.provider custom 2>&1 | /usr/bin/grep -v "^$" || true
+    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.base_url "${GX10_BASE_URL:-http://192.168.100.1:11434/v1}" 2>&1 | /usr/bin/grep -v "^$" || true
   fi
 
   # Copy project SOUL.md over the freshly-created profile's default SOUL.md.
