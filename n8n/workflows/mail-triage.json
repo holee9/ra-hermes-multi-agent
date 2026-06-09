@@ -87,7 +87,7 @@
         "specifyHeaders": "keypair",
         "specifyBody": "json",
         "contentType": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: $json.primary_actor,\n  messages: [{\n    role: 'user',\n    content: [\n      'You are processing a forwarded regulatory affairs email.',\n      'Original subject: ' + $json.original_subject,\n      'Original from: ' + $json.original_from,\n      'Matching key: ' + $json.matching_key,\n      'Body excerpt: ' + $json.body_excerpt,\n      '',\n      'Analyze this case and return ONLY a JSON object with these fields:',\n      '  actor: which RA agent handles this (ra_us, ra_eu, or ra_kr based on region)',\n      '  wp: work package ID if matched (e.g. WP-123), or null if new',\n      '  match: \"existing\" if wp found, \"new\" if not',\n      '  confidence: 0.0-1.0 confidence score',\n      '  region: primary region (US, EU, KR)',\n      '  comment: brief analysis comment',\n      '  transition_proposed: status transition if any, or null',\n      '',\n      'Return ONLY the JSON object, no other text.'\n    ].join('\\n')\n  }]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.primary_actor,\n  messages: [{\n    role: 'user',\n    content: [\n      'You are processing a forwarded regulatory affairs email.',\n      'Original subject: ' + $json.original_subject,\n      'Original from: ' + $json.original_from,\n      'Matching key: ' + $json.matching_key,\n      'Body excerpt: ' + $json.body_excerpt,\n      $json.warm_start_context || '',\n      '',\n      'Analyze this case and return ONLY a JSON object with these fields:',\n      '  actor: which RA agent handles this (ra_us, ra_eu, or ra_kr based on region)',\n      '  wp: work package ID if matched (e.g. WP-123), or null if new',\n      '  match: \\\"existing\\\" if wp found, \\\"new\\\" if not',\n      '  confidence: 0.0-1.0 confidence score',\n      '  region: primary region (US, EU, KR)',\n      '  comment: brief analysis comment',\n      '  transition_proposed: status transition if any, or null',\n      '',\n      'Return ONLY the JSON object, no other text.'\n    ].join('\\\\n')\n  }]\n}) }}"
       },
       "id": "call-ra-agent",
       "name": "RA 에이전트 호출",
@@ -307,6 +307,58 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "webhookId": "mail-triage-test-webhook"
+    },
+    {
+      "id": "honcho-warmstart-ctx",
+      "name": "Honcho 과거 컨텍스트 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/work/peers/{{ $json.primary_actor }}/context",
+        "authentication": "none",
+        "options": {},
+        "sendHeaders": false,
+        "sendBody": false,
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "ai"
+            },
+            {
+              "name": "search_query",
+              "value": "={{ $json.original_subject + ' ' + ($json.matching_key || '') }}"
+            },
+            {
+              "name": "search_top_k",
+              "value": "5"
+            },
+            {
+              "name": "max_conclusions",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "warmstart-inject",
+      "name": "컨텍스트 프롬프트 주입",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Merge Honcho AI peer context with routing data for warm-start\nconst routingData = $('라우팅 게이트').item.json;\nconst contextData = $input.item.json;\n\nconst peerRepresentation = contextData.representation || '';\n\nlet warmStartBlock = '';\nif (peerRepresentation && peerRepresentation.trim()) {\n  warmStartBlock = '\\n--- PAST EXPERIENCE (from memory) ---\\n' + peerRepresentation + '\\n--- END PAST EXPERIENCE ---';\n}\n\nreturn {\n  ...routingData,\n  warm_start_context: warmStartBlock,\n  has_past_context: warmStartBlock.length > 0\n};\n"
+      }
     }
   ],
   "connections": {
@@ -343,7 +395,7 @@
         ],
         [
           {
-            "node": "RA 에이전트 호출",
+            "node": "Honcho 과거 컨텍스트 조회",
             "type": "main",
             "index": 0
           }
@@ -497,6 +549,28 @@
         [
           {
             "node": "본문 파싱 및 규제권 라우팅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho 과거 컨텍스트 조회": {
+      "main": [
+        [
+          {
+            "node": "컨텍스트 프롬프트 주입",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "컨텍스트 프롬프트 주입": {
+      "main": [
+        [
+          {
+            "node": "RA 에이전트 호출",
             "type": "main",
             "index": 0
           }
