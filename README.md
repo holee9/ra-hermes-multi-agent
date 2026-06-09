@@ -27,6 +27,10 @@
 | 인덱싱 스크립트 Qdrant → pgvector (MIGRATE-1) | ✅ 완료 | [#17](https://github.com/holee9/ra-hermes-multi-agent/issues/17) (closed) |
 | extract_mail_qa.py Qdrant → pgvector (MIGRATE-2) | ✅ 완료 | [#19](https://github.com/holee9/ra-hermes-multi-agent/issues/19) (closed) |
 | OpenProject → Honcho backfill (SEED-1) | ✅ 완료 (OP 토큰 갱신 + backfill 스크립트) | [#18](https://github.com/holee9/ra-hermes-multi-agent/issues/18) |
+| warm-start 학습 루프 구축 (GROWTH-1,2) | ✅ 완료 (Honcho 컨텍스트 조회 + 프롬프트 주입 + deriver 활성화) | [#20](https://github.com/holee9/ra-hermes-multi-agent/issues/20), [#21](https://github.com/holee9/ra-hermes-multi-agent/issues/21) (closed) |
+| feedback-recorder delta 페어링 (GROWTH-3) | ✅ 완료 (agent_judgment/human_correction/dimensions 기록) | [#22](https://github.com/holee9/ra-hermes-multi-agent/issues/22) (closed) |
+| WP 종결 → case digest 자동 기록 (GROWTH-4) | ✅ 완료 (wp-close-recorder.json — OP webhook → Honcho AI peer) | [#23](https://github.com/holee9/ra-hermes-multi-agent/issues/23) (closed) |
+| 일일 성장 지표 측정 인프라 (GROWTH-5) | ✅ 완료 (growth-metrics.py 5개 지표 + systemd timer 가이드) | [#24](https://github.com/holee9/ra-hermes-multi-agent/issues/24) (closed) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
