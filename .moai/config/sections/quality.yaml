@@ -1,5 +1,5 @@
 constitution:
-    development_mode: tdd
+    development_mode: ddd
     enforce_quality: true
     test_coverage_target: 85
     ddd_settings:
