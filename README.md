@@ -1,7 +1,7 @@
 # RA Hermes 멀티 에이전트 시스템
 
-> 의료기기 인허가(RA) 도메인의 학습하는 멀티 에이전트 시스템.
-> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-09.
+> 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-11.
 
 **[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md)
 
@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 — 모든 Hermes 프로파일·Honcho 피어 등록 완료. Layer 4 실시간 지식 통합 진행 중** | 최종 갱신: 2026-06-10
+**Phase 1+2+3+4+5 완료 — 정확성·신뢰성 우선 철학 전사 이식 완료(#32). Layer 4 실시간 지식 통합 진행 중** | 최종 갱신: 2026-06-11
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -32,6 +32,7 @@
 | WP 종결 → case digest 자동 기록 (GROWTH-4) | ✅ 완료 (wp-close-recorder.json — OP webhook → Honcho AI peer) | [#23](https://github.com/holee9/ra-hermes-multi-agent/issues/23) (closed) |
 | 일일 성장 지표 측정 인프라 (GROWTH-5) | ✅ 완료 (growth-metrics.py 5개 지표 + systemd timer 가이드) | [#24](https://github.com/holee9/ra-hermes-multi-agent/issues/24) (closed) |
 | Layer 4 실시간 지식 통합 (llm-wiki/openFDA/law.go.kr) | 🔄 진행 중 (knowledge_fetch.py + hermes-api-server 통합 완료, E2E 검증 잔여) | [#30](https://github.com/holee9/ra-hermes-multi-agent/issues/30) |
+| 정확성·신뢰성 우선 철학 전사 이식 | ✅ 완료 (CLAUDE.md·마스터설계·구현명세·운영전략·ra-us SOUL 전 문서 반영, cold start Yellow 게이트 기본값 명시) | [#32](https://github.com/holee9/ra-hermes-multi-agent/issues/32) (closed) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
@@ -215,9 +216,10 @@ ra-hermes-multi-agent/
 
 ## 핵심 원칙
 
-- **학습하며 성장**: 골격 고정, 내용물(판단·기억·평가)이 성숙해지는 구조
+- **정확성·신뢰성 우선** (최우선): 의료기기 인허가에서 오류는 환자 안전 문제다. 속도는 정확성이 확보된 뒤의 부산물. 불확실하면 반드시 사람에게 올린다. Cold start 상태에서 기본값은 Yellow 게이트(사람 확인).
+- **학습하며 성장**: 골격 고정, 내용물(판단·기억·평가)이 성숙해지는 구조. 자동화 비중은 학습·성숙도 누적 후 점진적으로 확대.
 - **T자형**: 공통 지식(llm-wiki·ra-project·MD-process 단방향 참조) + 개별 전문성(Honcho 누적)
-- **사람 = 최종 결정자**: WP 완료·재오픈은 사람 전용. 에이전트는 제안만.
+- **사람 = 최종 결정자**: WP 완료·재오픈은 사람 전용(불변). 에이전트는 보조하고 제안만. 사람이 검토 루프에 있는 것은 약점이 아니라 설계.
 - **[IF] = 의도적 공백**: 투표 규칙·가중치·임계값은 운영하며 채움. 코드 하드코딩 금지.
 
 ---
