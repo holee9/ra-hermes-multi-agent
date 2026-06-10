@@ -12,6 +12,17 @@ Current status: **MVP skeleton implemented. T3610 deployment in progress.**
 
 ---
 
+## Design Philosophy [HARD]
+
+**정확성·신뢰성 우선, 사람 보조 집중** — 이 시스템은 의료기기 인허가를 다룬다. 잘못된 판단은 환자 안전 문제다.
+
+- **정확성이 속도보다 항상 우선한다.** 속도는 정확성이 확보된 뒤의 부산물이며, 둘이 상충하면 속도를 양보한다.
+- **에이전트는 사람 RA 전문가를 *보조*한다.** 대체하지 않는다. 사람의 판단 부담을 줄이되, 최종 결정권은 사람에게 있다.
+- **불확실하면 반드시 사람에게 올린다.** 추정이나 근사로 규제 판단을 대신하는 것은 금지된다.
+- **사람이 검토 루프에 있는 것은 약점이 아니라 설계다.** 자동화 비중은 학습·성숙도가 쌓인 뒤 점진적으로 확대한다.
+
+---
+
 ## Development Commands
 
 ### Git / GitHub CLI (ALWAYS use the Bash tool — never PowerShell)
