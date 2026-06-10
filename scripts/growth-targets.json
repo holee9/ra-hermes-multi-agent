@@ -3,7 +3,7 @@
   "_spec": "issue #28, growth-targets design",
 
   "phase1_static_knowledge": {
-    "_description": "Verify static knowledge layers (NAS RAG + ra-project + MD-process) work correctly",
+    "_description": "Verify static + real-time knowledge layers work correctly before E2E",
     "min_decisions": 3,
     "required_profiles": ["ra_us", "ra_eu", "ra_kr"],
     "checks": [
@@ -11,6 +11,24 @@
       "recommendation references regulatory basis (FDA/MDR/KGMP)",
       "confidence >= 0.6"
     ],
+    "layer4_health": {
+      "_description": "[IF] Layer 4 real-time sources — tune thresholds via ops",
+      "llm_wiki": {
+        "check": "Gitea diskstation:7001/api/v1/repos/DR_RnD/ra-llm-wiki returns HTTP 200",
+        "required": true,
+        "min_files": 100
+      },
+      "openfda": {
+        "check": "api.fda.gov/device/510k.json?search=product_code:MQB returns HTTP 200",
+        "required": true,
+        "min_results": 1
+      },
+      "law_go_kr": {
+        "check": "www.law.go.kr/DRF/lawSearch.do returns HTTP 200 for ra_kr profile",
+        "required": false,
+        "_note": "Optional: ra_kr only, graceful degradation if unavailable"
+      }
+    },
     "gate": "all_checks_pass"
   },
 
