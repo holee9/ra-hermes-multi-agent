@@ -1,0 +1,103 @@
+graph LR
+    subgraph Email["Email Intake"]
+        InEmail["📧 Incoming Email<br/>Gmail Webhook"]
+    end
+
+    subgraph Parse["Parse & Route<br/>n8n mail-triage"]
+        Parse["1. Parse Email Body<br/>2. Normalize Text<br/>3. Detect Regulatory<br/>Authority"]
+        RouteDecision{{"Route to<br/>Regulatory Region?"}}
+    end
+
+    subgraph RAAnalysis["RA Analysis<br/>Hermes Experts"]
+        RAUS["ra_us<br/>FDA 510k"]
+        RAEU["ra_eu<br/>MDR CE"]
+        RAKR["ra_kr<br/>KGMP/MFDS"]
+    end
+
+    subgraph Matching["Matching & Decision"]
+        Match["1. Search Honcho<br/>for existing WP<br/>2. Match Confidence"]
+        MatchDecision{{"Existing WP<br/>or New?"}}
+    end
+
+    subgraph GateCheck["Gate Rules"]
+        Green1["GATE-1<br/>Match Found<br/>Green - Autonomous"]
+        Green2["GATE-1<br/>Comment Add<br/>Green - Autonomous"]
+        Yellow1["GATE-2<br/>Status Transition<br/>Yellow - Review"]
+        Red1["GATE-3<br/>WP Close/Reopen<br/>Red - Human Only"]
+    end
+
+    subgraph Actions["Actions"]
+        WPCreate["Create WP<br/>OpenProject"]
+        WPComment["Add Comment<br/>OpenProject"]
+        WPStatus["Propose Status<br/>Transition"]
+        Honcho["Store Result<br/>Honcho<br/>Activity Log"]
+    end
+
+    subgraph Learn["Learning Cycle"]
+        Feedback["Human 3-Point<br/>Evaluation:<br/>Poor | OK | Good"]
+        Deriver["Deriver Agent<br/>Background<br/>Inference"]
+        Adjust["Adjust Weights<br/>by Domain"]
+    end
+
+    subgraph Output["Output & Monitoring"]
+        Log["Honcho Activity<br/>Log Stored"]
+        VirtualOffice["Virtual Office<br/>Display Update"]
+        InfraVote["Infra Agents<br/>Monitor via Voting"]
+    end
+
+    %% Flow
+    InEmail --> Parse
+    Parse --> RouteDecision
+
+    RouteDecision -->|FDA| RAUS
+    RouteDecision -->|MDR| RAEU
+    RouteDecision -->|KGMP| RAKR
+
+    RAUS --> Match
+    RAEU --> Match
+    RAKR --> Match
+
+    Match --> MatchDecision
+
+    MatchDecision -->|Found| Green1
+    MatchDecision -->|Found| Green2
+    MatchDecision -->|Not Found| Green1
+
+    Green1 --> WPCreate
+    Green2 --> WPComment
+    Green1 --> MatchDecision
+
+    WPCreate --> Honcho
+    WPComment --> Honcho
+
+    MatchDecision -->|Optional| Yellow1
+    Yellow1 --> WPStatus
+    WPStatus --> Honcho
+
+    Yellow1 -.->|Block| Red1
+    Honcho --> Log
+    Log --> VirtualOffice
+    Log --> Feedback
+
+    Feedback --> Deriver
+    Deriver --> Adjust
+    Adjust -.->|Next Run| Match
+
+    Log --> InfraVote
+
+    %% Styling
+    style Email fill:#e3f2fd,stroke:#1976d2
+    style Parse fill:#f3e5f5,stroke:#7b1fa2
+    style RAAnalysis fill:#fff3e0,stroke:#f57c00
+    style Matching fill:#f1f8e9,stroke:#558b2f
+    style GateCheck fill:#fce4ec,stroke:#c2185b
+    style Actions fill:#e0f2f1,stroke:#00695c
+    style Learn fill:#ede7f6,stroke:#512da8
+    style Output fill:#e8eaf6,stroke:#3949ab
+
+    style RouteDecision fill:#fff9c4,stroke:#f57f17
+    style MatchDecision fill:#fff9c4,stroke:#f57f17
+    style Green1 fill:#c8e6c9,stroke:#2e7d32
+    style Green2 fill:#c8e6c9,stroke:#2e7d32
+    style Yellow1 fill:#ffe0b2,stroke:#e65100
+    style Red1 fill:#ffcdd2,stroke:#c62828

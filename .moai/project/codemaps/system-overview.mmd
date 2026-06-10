@@ -1,0 +1,66 @@
+graph TB
+    subgraph T3610["T3610 Server (Xeon 12C/24T, 32GB)"]
+        Honcho["Honcho Stack<br/>FastAPI :8000<br/>PostgreSQL :5433<br/>Redis :6379"]
+        Deriver["Deriver Worker<br/>Background Inference"]
+        RAExperts["RA Experts<br/>ra_us | ra_eu | ra_kr"]
+    end
+
+    subgraph GX10["GX10 Server (Grace Blackwell ARM)"]
+        Qwen3["Qwen3 LLM Inference<br/>OpenAI Compatible<br/>Ollama :11434"]
+        Embedding["Embedding Model<br/>qwen3-embedding<br/>4096 dims"]
+    end
+
+    subgraph RPi["Raspberry Pi 5+ (16GB RAM)"]
+        N8N["n8n Automation<br/>mail-triage<br/>infra-to-work-bridge<br/>feedback-recorder"]
+        OpenProject["OpenProject<br/>WP Management<br/>Status Tracking"]
+    end
+
+    subgraph InfraWorkspace["Infrastructure Workspace"]
+        InfraAgents["Infra Agents<br/>infra_t3610<br/>infra_gx10<br/>infra_rpi"]
+        Voting["Vote Aggregator<br/>Consensus Engine<br/>Distributed Voting"]
+    end
+
+    subgraph BusinessWorkspace["Business Workspace"]
+        RAAgents["RA Agents<br/>ra_us (FDA)<br/>ra_eu (MDR)<br/>ra_kr (KGMP)"]
+        OpManager["op_manager<br/>WP Lifecycle"]
+        N8NManager["n8n_manager<br/>Workflow Mgmt"]
+    end
+
+    subgraph ExternalSystems["External Systems"]
+        Gmail["Gmail<br/>Email Intake"]
+        VirtualOffice["Virtual Office<br/>Visualization"]
+    end
+
+    %% Data Flow Connections
+    Gmail -->|Webhook| N8N
+    N8N -->|Route & Analyze| Honcho
+    Honcho -->|Query| Deriver
+    Deriver -->|Inference| Qwen3
+    Qwen3 -->|Vector Search| Embedding
+
+    N8N -->|API Call| RAExperts
+    RAExperts -->|Analysis Result| Honcho
+
+    N8N -->|Create/Update| OpenProject
+    OpenProject -->|Status Query| N8N
+
+    Honcho -->|Activity Log| VirtualOffice
+    OpenProject -->|WP Changes| Honcho
+
+    InfraAgents -->|Monitor/Report| Voting
+    Voting -->|Signal| N8N
+    N8N -->|Bridge| BusinessWorkspace
+
+    BusinessWorkspace -->|Status Update| Honcho
+
+    %% Network Connections
+    T3610 ---|LAN 2.5G| GX10
+    T3610 ---|LAN 2.5G| RPi
+    GX10 ---|LAN 2.5G| RPi
+
+    %% Styling
+    style T3610 fill:#e1f5ff,stroke:#0277bd,stroke-width:2px
+    style GX10 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style RPi fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style BusinessWorkspace fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style InfraWorkspace fill:#fce4ec,stroke:#c2185b,stroke-width:2px
