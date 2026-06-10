@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 — 모든 Hermes 프로파일·Honcho 피어 등록 완료** | 최종 갱신: 2026-06-09
+**Phase 1+2+3+4+5 완료 — 모든 Hermes 프로파일·Honcho 피어 등록 완료. Layer 4 실시간 지식 통합 진행 중** | 최종 갱신: 2026-06-10
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -31,6 +31,7 @@
 | feedback-recorder delta 페어링 (GROWTH-3) | ✅ 완료 (agent_judgment/human_correction/dimensions 기록) | [#22](https://github.com/holee9/ra-hermes-multi-agent/issues/22) (closed) |
 | WP 종결 → case digest 자동 기록 (GROWTH-4) | ✅ 완료 (wp-close-recorder.json — OP webhook → Honcho AI peer) | [#23](https://github.com/holee9/ra-hermes-multi-agent/issues/23) (closed) |
 | 일일 성장 지표 측정 인프라 (GROWTH-5) | ✅ 완료 (growth-metrics.py 5개 지표 + systemd timer 가이드) | [#24](https://github.com/holee9/ra-hermes-multi-agent/issues/24) (closed) |
+| Layer 4 실시간 지식 통합 (llm-wiki/openFDA/law.go.kr) | 🔄 진행 중 (knowledge_fetch.py + hermes-api-server 통합 완료, E2E 검증 잔여) | [#30](https://github.com/holee9/ra-hermes-multi-agent/issues/30) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
