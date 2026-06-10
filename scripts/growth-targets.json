@@ -1,0 +1,67 @@
+{
+  "_comment": "[IF] E2E readiness thresholds — tune via ops, never hardcode in code",
+  "_spec": "issue #28, growth-targets design",
+
+  "phase1_static_knowledge": {
+    "_description": "Verify static knowledge layers (NAS RAG + ra-project + MD-process) work correctly",
+    "min_decisions": 3,
+    "required_profiles": ["ra_us", "ra_eu", "ra_kr"],
+    "checks": [
+      "source_docs contains NAS file paths (not empty)",
+      "recommendation references regulatory basis (FDA/MDR/KGMP)",
+      "confidence >= 0.6"
+    ],
+    "gate": "all_checks_pass"
+  },
+
+  "phase2_dynamic_learning": {
+    "_description": "Verify Honcho warmstart and growth metrics show measurable signal",
+    "min_total_decisions": 20,
+    "min_feedback_coverage": 0.80,
+    "min_same_type_per_region": 3,
+    "metrics": {
+      "correction_rate": {
+        "direction": "down",
+        "target_max": 0.30,
+        "_note": "< 30% of decisions overridden by humans"
+      },
+      "warmstart_lift": {
+        "direction": "up",
+        "target_min": 0.0,
+        "_note": "> 0 means warmstart context is helping"
+      },
+      "first_pass_match_accuracy": {
+        "direction": "up",
+        "target_min": 0.70,
+        "_note": "> 70% correct on first human review"
+      },
+      "confidence_calibration": {
+        "direction": "down",
+        "target_max": 0.20,
+        "_note": "Brier score < 0.20 (lower = better calibrated)"
+      },
+      "escalation_precision": {
+        "direction": "up",
+        "target_min": 0.80,
+        "_note": "> 80% of escalations actually needed human intervention"
+      }
+    },
+    "gate": "all_metrics_in_target_range"
+  },
+
+  "e2e_test_readiness": {
+    "_description": "Minimum bar for running full E2E real-mail test",
+    "requires_phase1": true,
+    "requires_phase2": true,
+    "additional_checks": [
+      "hermes-api-server /health returns 200",
+      "all 3 profiles (ra_us, ra_eu, ra_kr) respond without error",
+      "n8n feedback-recorder webhook reachable"
+    ]
+  },
+
+  "cron_schedule": {
+    "growth_metrics": "0 9 * * *",
+    "alert_on_phase2_ready": true
+  }
+}

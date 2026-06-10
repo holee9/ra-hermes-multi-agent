@@ -20,6 +20,10 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 
+# Load local secrets if present (git-ignored, never committed).
+# shellcheck disable=SC1091
+[ -f "${SCRIPT_DIR}/.env" ] && source "${SCRIPT_DIR}/.env"
+
 # Load device-aware URLs.
 # shellcheck disable=SC1090
 source "${SCRIPT_DIR}/detect-device.sh"

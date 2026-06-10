@@ -19,6 +19,11 @@ export PATH="/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin:${PATH}"
 SCRIPT_DIR="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
+# Load local secrets if present (git-ignored, never committed).
+# Put N8N_API_KEY=<value> and any other secrets in scripts/.env
+# shellcheck disable=SC1091
+[ -f "${SCRIPT_DIR}/.env" ] && source "${SCRIPT_DIR}/.env"
+
 # REQ-TOOL-108: load device-aware URLs first.
 # shellcheck disable=SC1090
 source "${SCRIPT_DIR}/detect-device.sh"
