@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 — Layer 4d data.go.kr 3/3 서비스 통합 완료(#33). 전 레이어 구현 완료** | 최종 갱신: 2026-06-11
+**Phase 1+2+3+4+5 완료 · hermes-api-server.py 버전관리 편입 · Gitea 인덱싱 코드 추가 · Phase 2~5 로드맵 문서화** | 최종 갱신: 2026-06-11
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -35,6 +35,11 @@
 | Layer 4d data.go.kr MFDS DB 통합 (제조수입업허가/추적관리) | ✅ 완료 (DATA_GO_KR_API_KEY 통일, 2/3 서비스 E2E 검증) | [#31](https://github.com/holee9/ra-hermes-multi-agent/issues/31) (closed) |
 | Layer 4d data.go.kr 품목허가(15057456) 3/3 서비스 완성 | ✅ 완료 (MdlpPrdlstPrmisnInfoService05, nested item 처리, 6건 E2E 검증) | [#33](https://github.com/holee9/ra-hermes-multi-agent/issues/33) (closed) |
 | 정확성·신뢰성 우선 철학 전사 이식 | ✅ 완료 (CLAUDE.md·마스터설계·구현명세·운영전략·ra-us SOUL 전 문서 반영, cold start Yellow 게이트 기본값 명시) | [#32](https://github.com/holee9/ra-hermes-multi-agent/issues/32) (closed) |
+| SaMD/SiMD 분류 보정 (ra-us/eu/kr SOUL.md) | ✅ 완료 (HnVUE=SaMD, Retrofit=SiMD 명시, SOUL.md 3종 테이블 갱신) | — |
+| Phase 2~5 로드맵 문서화 | ✅ 완료 (master-design §12-§13, implementation-spec P2-P4, operations-guide §5 갱신) | [#34](https://github.com/holee9/ra-hermes-multi-agent/issues/34)~[#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
+| Gitea API 인덱싱 지원 추가 (DR_RnD/ra-llm-wiki) | 🔄 진행 중 (index_github_repos.py Gitea REST API 코드 완료, Tailscale 연결·실 인덱싱 미완료) | [#35](https://github.com/holee9/ra-hermes-multi-agent/issues/35) |
+| hermes-api-server.py 버전 관리 편입 + deploy-local.sh | ✅ 완료 (Layer 4 API 서버 git 편입, /opt/hermes-ra/ 동기화 스크립트, .env.example GITEA_URL 등 추가) | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) (연관) |
+| virtual-office Playwright E2E 테스트 추가 | ✅ 완료 (4 Suite 13 테스트 케이스 — 초기로드·재생컨트롤·이벤트재생·속도변경) | — |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
@@ -144,6 +149,15 @@ ra-hermes-multi-agent/
 ├── feedback/
 │   └── config/weight-adjustment-config.json  # 가중치 설정 [IF]
 │
+├── scripts/                         # T3610 운영 스크립트
+│   ├── hermes-api-server.py         # Layer 4 규제 API 서버 (openFDA/law.go.kr/data.go.kr) — 버전 관리 편입
+│   ├── deploy-local.sh              # git scripts/ → /opt/hermes-ra/ 동기화 (--dry-run 지원)
+│   ├── index_github_repos.py        # GitHub + Gitea 레포 → pgvector 인덱싱 (DR_RnD/ra-llm-wiki 포함)
+│   └── ...                          # 기타 자동화 17종
+│
+├── e2e/                             # Playwright E2E 테스트 (virtual-office)
+│   └── virtual-office.spec.js       # 4 Suite 13 테스트 케이스
+│
 ├── virtual-office/                  # 가상오피스 (자기완결)
 │   ├── Dockerfile                   # Docker 단일 컨테이너 빌드
 │   ├── virtual-office-honcho-adapter.js  # Honcho 실데이터 연결 어댑터
@@ -192,8 +206,8 @@ ra-hermes-multi-agent/
 
 | 순서 | 이슈 | 내용 | 장비 | 상태 |
 |---|---|---|---|---|
-| 3a | [#5 WORKFLOW-1](https://github.com/holee9/ra-hermes-multi-agent/issues/5) | mail-triage n8n 배포 · E2E 검증 | RPi | ⏸ |
-| 3b | [#10 SETUP-2](https://github.com/holee9/ra-hermes-multi-agent/issues/10) | 가상오피스 Docker 빌드 · Honcho 실데이터 연결 | T3610 | ⏸ |
+| 3a | [#5 WORKFLOW-1](https://github.com/holee9/ra-hermes-multi-agent/issues/5) | mail-triage n8n 배포 · E2E 검증 | RPi | ✅ |
+| 3b | [#10 SETUP-2](https://github.com/holee9/ra-hermes-multi-agent/issues/10) | 가상오피스 Docker 빌드 · Honcho 실데이터 연결 | T3610 | ✅ |
 
 ### Phase 4 — IF 구현 (선택적, #5 완료 후)
 
@@ -201,7 +215,7 @@ ra-hermes-multi-agent/
 |---|---|---|---|---|
 | 4a | [#7 WORKFLOW-2](https://github.com/holee9/ra-hermes-multi-agent/issues/7) | 투표 집계 자리 동작 확인 [IF] | T3610 | ✅ |
 | 4b | [#8 WORKFLOW-3](https://github.com/holee9/ra-hermes-multi-agent/issues/8) | 브릿지 n8n 배포 · 단방향 검증 [IF] | RPi | ✅ |
-| 4c | [#9 WORKFLOW-4](https://github.com/holee9/ra-hermes-multi-agent/issues/9) | 3점 평가 루프 n8n 배포 [IF] | RPi | ⏸ |
+| 4c | [#9 WORKFLOW-4](https://github.com/holee9/ra-hermes-multi-agent/issues/9) | 3점 평가 루프 n8n 배포 [IF] | RPi | ✅ |
 
 ### Phase 5 — Validate + Archive (전체 완료 후)
 
