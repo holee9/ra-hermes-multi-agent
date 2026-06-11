@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 — Layer 4d data.go.kr 통합 완료(#31). 전 레이어 구현 완료** | 최종 갱신: 2026-06-11
+**Phase 1+2+3+4+5 완료 — Layer 4d data.go.kr 3/3 서비스 통합 완료(#33). 전 레이어 구현 완료** | 최종 갱신: 2026-06-11
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -33,6 +33,7 @@
 | 일일 성장 지표 측정 인프라 (GROWTH-5) | ✅ 완료 (growth-metrics.py 5개 지표 + systemd timer 가이드) | [#24](https://github.com/holee9/ra-hermes-multi-agent/issues/24) (closed) |
 | Layer 4 실시간 지식 통합 (llm-wiki/openFDA/law.go.kr) | ✅ 완료 (law.go.kr HTTP 수정, openFDA/law.go.kr E2E 검증 완료, graceful degradation 확인) | [#30](https://github.com/holee9/ra-hermes-multi-agent/issues/30) (closed) |
 | Layer 4d data.go.kr MFDS DB 통합 (제조수입업허가/추적관리) | ✅ 완료 (DATA_GO_KR_API_KEY 통일, 2/3 서비스 E2E 검증) | [#31](https://github.com/holee9/ra-hermes-multi-agent/issues/31) (closed) |
+| Layer 4d data.go.kr 품목허가(15057456) 3/3 서비스 완성 | ✅ 완료 (MdlpPrdlstPrmisnInfoService05, nested item 처리, 6건 E2E 검증) | [#33](https://github.com/holee9/ra-hermes-multi-agent/issues/33) (closed) |
 | 정확성·신뢰성 우선 철학 전사 이식 | ✅ 완료 (CLAUDE.md·마스터설계·구현명세·운영전략·ra-us SOUL 전 문서 반영, cold start Yellow 게이트 기본값 명시) | [#32](https://github.com/holee9/ra-hermes-multi-agent/issues/32) (closed) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
