@@ -204,6 +204,12 @@ node_modules/
 out/
 
 # ===========================================
+# Playwright E2E Test Artifacts
+# ===========================================
+e2e/test-results/
+playwright-report/
+
+# ===========================================
 # Build Tools & Frameworks
 # ===========================================
 .turbo/
