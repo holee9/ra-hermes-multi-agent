@@ -4,8 +4,8 @@ GitHub + Gitea MD Indexing Script
 Indexes all .md files from configured GitHub repos and Gitea repos into the ra_knowledge pgvector table.
 
 MIGRATION: Qdrant → pgvector (2026-06, issue #17)
-  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
-  Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
+  POSTGRES_URL → postgresql://honcho:<pw>@localhost:5433/honcho  (set via POSTGRES_URL env)
+  Table: ra_knowledge  (dim=4096, qwen3-embedding:latest, ivfflat cosine)
   Qdrant COLLECTION "hermes-ra-knowledge" maps to table "ra_knowledge"
 
 Source path prefixes:
@@ -39,14 +39,14 @@ GITHUB_TOKEN: Optional[str] = os.environ.get("GITHUB_PAT") or os.environ.get("GI
 POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 TABLE = "ra_knowledge"
-EMBED_MODEL = "nomic-embed-text"
-EMBED_DIM = 768  # nomic-embed-text output dimension
+EMBED_MODEL = os.environ.get("EMBED_MODEL", "qwen3-embedding:latest")
+EMBED_DIM = int(os.environ.get("EMBED_DIM", "4096"))  # qwen3-embedding:latest output dimension
 STATE_FILE = "/tmp/github_index_state.json"
 SERVER_PORT = 7791
 
 GITHUB_API = "https://api.github.com"
 
-# Gitea (internal NAS Gitea, reachable via Tailscale: diskstation:7001)
+# Gitea (internal NAS Gitea — reachable on LAN via diskstation:7001; Tailscale not required)
 GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001")
 GITEA_TOKEN: Optional[str] = os.environ.get("GITEA_TOKEN")
 GITEA_REPOS = ["DR_RnD/ra-llm-wiki"]
@@ -319,11 +319,25 @@ def ensure_table() -> None:
             cur.execute(
                 f"CREATE INDEX IF NOT EXISTS {TABLE}_src_idx ON {TABLE} (source_path)"
             )
-            cur.execute(
-                f"""CREATE INDEX IF NOT EXISTS {TABLE}_emb_idx ON {TABLE}
-                    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"""
-            )
+            # pgvector ivfflat/hnsw indexes are capped at 2000 dims.
+            # qwen3-embedding:latest uses 4096 dims -> skip ANN index, rely on seq scan.
+            # For small knowledge bases (< ~10k docs) seq scan is fast enough.
+            if EMBED_DIM <= 2000:
+                cur.execute(
+                    f"""CREATE INDEX IF NOT EXISTS {TABLE}_emb_idx ON {TABLE}
+                        USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64)"""
+                )
+            else:
+                print(f"[NOTE] EMBED_DIM={EMBED_DIM} > 2000 — skipping ANN index (seq scan only)")
         conn.commit()
+
+
+def pgvector_source_exists(source_path: str) -> bool:
+    """Return True if at least one row for this source_path exists."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT 1 FROM {TABLE} WHERE source_path = %s LIMIT 1", (source_path,))
+            return cur.fetchone() is not None
 
 
 def pgvector_delete_by_source(source_path: str) -> None:
@@ -338,12 +352,14 @@ def pgvector_upsert(points: list[dict]) -> None:
     """Upsert a batch of points into the ra_knowledge table."""
     if not points:
         return
+    # Deduplicate by id — duplicate IDs in one batch cause CardinalityViolation
+    points = list({p["id"]: p for p in points}.values())
     values = [
         (
             p["id"],
             p.get("source_path", ""),
             p.get("chunk_index", 0),
-            p["content"],
+            p["content"].replace("\x00", ""),  # strip NUL bytes — PostgreSQL rejects them
             json.dumps(p["vector"]),
             json.dumps(p.get("metadata", {})),
         )
@@ -383,10 +399,14 @@ def pgvector_count() -> int:
 # Per-file indexing
 # ---------------------------------------------------------------------------
 
-def index_file(repo: str, path: str) -> int:
+def index_file(repo: str, path: str, force: bool = False) -> int:
     """Fetch, chunk, embed, and upsert one .md file. Returns chunks added."""
     source_path = f"github:{repo}/{path}"
     repo_short = repo.split("/")[-1]
+
+    # Skip files already in DB unless forced (supports interrupted runs)
+    if not force and pgvector_source_exists(source_path):
+        return -1  # sentinel: skipped
 
     content = fetch_file_content(repo, path)
     if content is None:
@@ -453,18 +473,22 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
         print(f"[{repo}] Found {len(md_files)} .md file(s).", flush=True)
 
         repo_files = 0
+        repo_skipped = 0
         repo_chunks = 0
         for item in md_files:
             path = item["path"]
-            print(f"  Indexing: {path}", flush=True)
             added = index_file(repo, path)
-            print(f"    → {added} chunk(s) added.", flush=True)
-            repo_files += 1
-            repo_chunks += added
+            if added == -1:
+                repo_skipped += 1  # already in DB
+            else:
+                print(f"  Indexing: {path}", flush=True)
+                print(f"    → {added} chunk(s) added.", flush=True)
+                repo_files += 1
+                repo_chunks += added
 
         elapsed = time.time() - t0
         print(
-            f"[{repo}] Done. files={repo_files}, chunks={repo_chunks}, time={elapsed:.1f}s",
+            f"[{repo}] Done. new={repo_files}, skipped={repo_skipped}, chunks={repo_chunks}, time={elapsed:.1f}s",
             flush=True,
         )
 
@@ -487,30 +511,43 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
 # Gitea indexing
 # ---------------------------------------------------------------------------
 
-def index_gitea_file(repo: str, path: str) -> int:
+def index_gitea_file(repo: str, path: str, force: bool = False) -> int:
     """Fetch, chunk, embed, and upsert one Gitea .md file. Returns chunk count."""
+    source = f"gitea:{repo}/{path}"
+    if not force and pgvector_source_exists(source):
+        return -1  # sentinel: skipped
+
     content = fetch_gitea_file_content(repo, path)
     if not content:
-        print(f"    [warn] Could not fetch gitea:{repo}/{path}", flush=True)
+        print(f"    [warn] Could not fetch {source}", flush=True)
         return 0
 
     chunks = chunk_markdown(content)
     source = f"gitea:{repo}/{path}"
     points = []
 
+    repo_short = repo.split("/")[-1]
+    indexed_at = datetime.now(timezone.utc).isoformat()
+
     for i, chunk in enumerate(chunks):
-        embedding = embed_text(chunk)
-        if embedding is None:
+        vector = embed_text(chunk)
+        if vector is None:
             continue
-        chunk_id = hashlib.md5(f"{source}#{i}".encode()).hexdigest()
+        chunk_id = make_id(source + chunk)
         points.append(
             {
                 "id": chunk_id,
-                "embedding": embedding,
-                "source": source,
+                "source_path": source,
                 "chunk_index": i,
                 "content": chunk,
-                "indexed_at": datetime.now(timezone.utc).isoformat(),
+                "vector": vector,
+                "metadata": {
+                    "sheet": repo_short,
+                    "doc_type": "regulatory_knowledge",
+                    "repo": repo,
+                    "file_path": path,
+                    "indexed_at": indexed_at,
+                },
             }
         )
 
@@ -542,18 +579,22 @@ def sync_gitea_repos(repos: list[str] = GITEA_REPOS) -> dict:
         print(f"[gitea:{repo}] Found {len(md_files)} .md file(s).", flush=True)
 
         repo_files = 0
+        repo_skipped = 0
         repo_chunks = 0
         for item in md_files:
             path = item["path"]
-            print(f"  Indexing: {path}", flush=True)
             added = index_gitea_file(repo, path)
-            print(f"    → {added} chunk(s) added.", flush=True)
-            repo_files += 1
-            repo_chunks += added
+            if added == -1:
+                repo_skipped += 1
+            else:
+                print(f"  Indexing: {path}", flush=True)
+                print(f"    → {added} chunk(s) added.", flush=True)
+                repo_files += 1
+                repo_chunks += added
 
         elapsed = time.time() - t0
         print(
-            f"[gitea:{repo}] Done. files={repo_files}, chunks={repo_chunks}, time={elapsed:.1f}s",
+            f"[gitea:{repo}] Done. new={repo_files}, skipped={repo_skipped}, chunks={repo_chunks}, time={elapsed:.1f}s",
             flush=True,
         )
 
