@@ -39,6 +39,9 @@
 | Phase 2~5 로드맵 문서화 | ✅ 완료 (master-design §12-§13, implementation-spec P2-P4, operations-guide §5 갱신) | [#34](https://github.com/holee9/ra-hermes-multi-agent/issues/34)~[#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | Gitea API 인덱싱 지원 추가 (DR_RnD/ra-llm-wiki) | 🔄 진행 중 (index_github_repos.py Gitea REST API 코드 완료, Tailscale 연결·실 인덱싱 미완료) | [#35](https://github.com/holee9/ra-hermes-multi-agent/issues/35) |
 | hermes-api-server.py 버전 관리 편입 + deploy-local.sh | ✅ 완료 (Layer 4 API 서버 git 편입, /opt/hermes-ra/ 동기화 스크립트, .env.example GITEA_URL 등 추가) | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) (연관) |
+| doc-converter NAS→pgvector 인덱싱 구현 | 🔄 진행 중 (convert.py + config.json 완료, NAS 마운트 실 테스트 미완료) | [#36](https://github.com/holee9/ra-hermes-multi-agent/issues/36) |
+| growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
+| 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | virtual-office Playwright E2E 테스트 추가 | ✅ 완료 (4 Suite 13 테스트 케이스 — 초기로드·재생컨트롤·이벤트재생·속도변경) | — |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
