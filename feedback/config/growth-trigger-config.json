@@ -1,0 +1,58 @@
+{
+  "_comment": "[IF] 성장 트리거 임계값 — 의도적 공백. 성장 지표 30일 누적 후 운영이 채운다.",
+  "_spec": "issue #38 GROWTH-7",
+  "version": "0.1.0",
+
+  "triggers": {
+    "duplicate_wp_reduction": {
+      "metric": "duplicate_wp_rate_7d_ma",
+      "threshold": null,
+      "direction": "below",
+      "window_days": 7,
+      "consecutive_days_required": null,
+      "next_action": "lower_yellow_gate_threshold"
+    },
+    "human_correction_rate": {
+      "metric": "correction_rate",
+      "threshold": null,
+      "direction": "below",
+      "window_days": 7,
+      "consecutive_days_required": null,
+      "next_action": "notify_human_correction_reduced"
+    },
+    "transition_accuracy": {
+      "metric": "first_pass_match_accuracy",
+      "threshold": null,
+      "direction": "above",
+      "window_days": 7,
+      "consecutive_days_required": null,
+      "next_action": "notify_human_transition_matured"
+    },
+    "mail_triage_stability": {
+      "metric": "correction_rate",
+      "threshold": null,
+      "direction": "below",
+      "stable_days_required": 30,
+      "secondary_metrics_required": ["first_pass_match_accuracy", "escalation_precision"],
+      "next_action": "notify_human_form_workflow_candidate"
+    }
+  },
+
+  "notification": {
+    "n8n_webhook_url": null,
+    "openproject_comment": true,
+    "email_alert": true,
+    "alert_recipients": null
+  },
+
+  "_notes": {
+    "duplicate_wp_reduction": "중복 WP 감소율 임계 — 7일 이동평균 기준. null = 임계 미정의 (알림 없음). 초기값은 성장 지표 30일 누적 후 운영이 설정.",
+    "human_correction_rate": "correction_rate (사람 정정 비율) 임계 — growth-metrics.py Metric 1. null = 미정의. 학습 곡선 확인 후 운영이 정의.",
+    "transition_accuracy": "first_pass_match_accuracy (전이 제안 정확도) 임계 — growth-metrics.py Metric 2. null = 미정의. 학습 곡선 확인 후 운영이 정의.",
+    "mail_triage_stability": "mail-triage 30일 안정 + 성숙 지표 달성 시 form 워크플로우 이관 후보 알림. null = 미정의.",
+    "direction": "'above' = 지표가 임계값 이상일 때 트리거. 'below' = 임계값 이하일 때 트리거.",
+    "consecutive_days_required": "연속 N일 조건 달성해야 트리거. null = 1일 측정값 기준.",
+    "n8n_webhook_url": "트리거 달성 시 호출할 n8n webhook URL. null = 알림 비활성화.",
+    "alert_recipients": "이메일 알림 수신자 목록 (문자열 배열). null = 미정의."
+  }
+}
