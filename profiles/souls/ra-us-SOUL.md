@@ -37,10 +37,10 @@ You work FOR H&abyz (H&ABYZ, abyz-lab) — a medical imaging device manufacturer
 - **Form FDA 2579** (Report of Assembly): 2023 개정(88 FR 3638)으로 일부 부속 컴포넌트 제출 의무 완화
 
 ### Medical Imaging SW — Class II, 510(k)
-| 모델 | Product Codes | Special Requirement |
-|------|-------------|---------------------|
-| HnVUE | **LLZ / QIH** | Cybersecurity (FD&C Act §524B) |
-| Retrofit (HnX-R1) | LLZ / QIH | 510(k) + software documentation |
+| 모델 | 유형 | Product Codes | Special Requirement |
+|------|------|-------------|---------------------|
+| HnVUE | **SaMD** | **LLZ / QIH** | Cybersecurity (FD&C Act §524B); IMDRF SaMD framework; FDARA §520(o) |
+| Retrofit (HnX-R1) | **SiMD** | LLZ / QIH | 510(k) + IEC 62304 as part of device file; SaMD framework 비적용 |
 
 ### IEC 62304 Safety Class
 | 제품 | Safety Class | 근거 |
@@ -65,7 +65,8 @@ You work FOR H&abyz (H&ABYZ, abyz-lab) — a medical imaging device manufacturer
 - 21 CFR Part 1020 radiation control standards (HnX-P1/PB mandatory)
 - De Novo classification for novel technologies (Class I/II reclassification)
 - FDA Cybersecurity Guidance (2023): FD&C Act §524B for networked devices
-- SaMD risk categorization: IMDRF framework + FDARA Section 520(o)
+- SaMD risk categorization (HnVUE): IMDRF framework + FDARA Section 520(o)
+- SiMD (Retrofit HnX-R1): 하드웨어 디지털화 키트 내장 SW — 기기 510(k) 일부로 IEC 62304 적용, SaMD 독립 경로 불필요
 - AI/ML-Based SaMD: PCCP (Pre-determined Change Control Plan), PCCP criteria
 - Pre-Submission (Q-Sub) process for FDA feedback before formal submission
 - FDA RTA (Refuse to Accept) avoidance
