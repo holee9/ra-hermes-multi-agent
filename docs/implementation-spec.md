@@ -134,3 +134,63 @@ RA 분석 결과 JSON(고정):
 - 완료/재오픈 전이는 코드로 사람 전용 보장(에이전트 경로 차단).
 - 가상 오피스는 읽기 전용 — 뼈대에 쓰기 금지.
 - 가중치·임계값은 코드 상수 금지 → 외부에서 읽어 운영 중 조정 가능하게.
+
+---
+
+## Phase 2: T자형 가로획 구축 (MVP 완료 후 다음 단계)
+
+> MVP 골격이 학습을 시작했다면, 다음 단계는 지식 토대(가로획)를 살아있는 파이프라인으로 연결하는 것이다.
+
+### P2.1 ra-project / MD-process 자동 인덱싱 `[구현]` (#34)
+
+- 대상: `ra-project/`, `MD-process/` 레포의 마크다운 파일
+- 스크립트: `scripts/index_ra_knowledge.py` 확장
+- 인덱싱: Honcho pgvector (4096차원, qwen3-embedding)
+- 증분: 변경 파일만 재인덱싱 (파일 해시 또는 mtime 비교)
+- 자동화: systemd timer (일 1회)
+- 방향: **단방향 참조** — 가로획 레포에 쓰기 금지, 에이전트는 읽기만
+
+### P2.2 llm-wiki NAS 연결 `[구현]` (#35)
+
+- 경로: Tailscale `diskstation:7001` 경유
+- T3610 Tailscale 클라이언트 설치·인증 필요
+- 연결 성공 후 `index_ra_knowledge.py` NAS 경로 활성화
+- 실패 시 graceful degradation 유지
+
+### P2.3 doc-converter `[구현]` (#36)
+
+- 입력: HWP/DOCX/PDF/PPTX (서술형 RA 문서)
+- 변환: claude-tomd-skill (교체 가능 설계)
+- 출력: llm-wiki 마크다운 경로 자동 적재
+- XLS 처리: 표구조 손상 위험 — 선별 적용 또는 원본 유지
+- 제약: 시스템이 claude-tomd-skill에 강하게 종속되지 않도록
+
+---
+
+## Phase 3: 성장 루프 계장화
+
+### P3.1 Layer 4 API → mail-triage 실시간 연동 `[구현]` (#37)
+
+- n8n mail-triage에 Layer 4 조회 노드 추가 (규제권 분류 후, RA 호출 전)
+  - US: openFDA API (product code, device class, 510k history)
+  - KR: data.go.kr 품목허가 조회
+- 조회 결과를 RA 에이전트 프롬프트에 컨텍스트로 주입
+- 실패 시 graceful degradation (RA 호출은 계속)
+- 캐싱: Redis (동일 product code 중복 조회 방지)
+
+### P3.2 성장 트리거 자동화 `[구현 + IF]` (#38)
+
+- systemd timer: `growth-metrics.timer` (일 1회 야간)
+- 결과 저장: `logs/growth-metrics-YYYY-MM-DD.json`
+- 트리거 임계값 설정: `feedback/config/growth-trigger-config.json` `[IF]`
+- 트리거 달성 시 n8n webhook → 사람 알림 (자동 실행 아님)
+
+---
+
+## Phase 4: 인프라 투표 활성화
+
+### P4.1 vote-rules.json 초기값 + 브로드캐스트 `[구현]` (#39)
+
+- `voting/config/vote-rules.json` 초기값 채우기 (사람 결정 후)
+- n8n 브로드캐스트 노드: 인프라 이상 감지 → vote-aggregator 호출 → 브릿지
+- vote-aggregator.js: 외부 설정 파일 로드 검증
