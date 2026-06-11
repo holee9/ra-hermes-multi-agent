@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
-GitHub MD Indexing Script
-Indexes all .md files from configured GitHub repos into the ra_knowledge pgvector table.
+GitHub + Gitea MD Indexing Script
+Indexes all .md files from configured GitHub repos and Gitea repos into the ra_knowledge pgvector table.
 
 MIGRATION: Qdrant → pgvector (2026-06, issue #17)
   POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
   Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
   Qdrant COLLECTION "hermes-ra-knowledge" maps to table "ra_knowledge"
+
+Source path prefixes:
+  github:{owner/repo}/{path}  → public GitHub repos (MD-process, ra-project)
+  gitea:{owner/repo}/{path}   → internal Gitea repos (llm-wiki)
 """
 
 import argparse
@@ -42,6 +46,11 @@ SERVER_PORT = 7791
 
 GITHUB_API = "https://api.github.com"
 
+# Gitea (internal NAS Gitea, reachable via Tailscale: diskstation:7001)
+GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001")
+GITEA_TOKEN: Optional[str] = os.environ.get("GITEA_TOKEN")
+GITEA_REPOS = ["DR_RnD/ra-llm-wiki"]
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -71,6 +80,81 @@ def github_get(url: str, params: dict = None) -> requests.Response:
                 print(f"  [warn] Network error ({exc}), skipping.", flush=True)
                 return None
     return None
+
+
+def gitea_headers() -> dict:
+    h = {"Accept": "application/json"}
+    if GITEA_TOKEN:
+        h["Authorization"] = f"token {GITEA_TOKEN}"
+    return h
+
+
+def gitea_get(path: str, params: dict = None) -> requests.Response:
+    """GET {GITEA_URL}/api/v1/{path} with one retry."""
+    url = f"{GITEA_URL}/api/v1/{path}"
+    for attempt in range(2):
+        try:
+            resp = requests.get(url, headers=gitea_headers(), params=params, timeout=30)
+            if resp.status_code in (429,):
+                print(f"  [warn] Gitea rate limited, sleeping 2s …", flush=True)
+                time.sleep(2)
+                continue
+            return resp
+        except requests.RequestException as exc:
+            if attempt == 0:
+                print(f"  [warn] Gitea network error ({exc}), retrying …", flush=True)
+                time.sleep(1)
+            else:
+                print(f"  [warn] Gitea network error ({exc}), skipping.", flush=True)
+                return None
+    return None
+
+
+def get_gitea_head_sha(repo: str) -> Optional[str]:
+    """Return HEAD commit SHA for the default branch of a Gitea repo."""
+    resp = gitea_get(f"repos/{repo}")
+    if resp is None or resp.status_code != 200:
+        return None
+    default_branch = resp.json().get("default_branch", "main")
+
+    resp2 = gitea_get(f"repos/{repo}/branches/{default_branch}")
+    if resp2 is None or resp2.status_code != 200:
+        return None
+    return resp2.json().get("commit", {}).get("id")
+
+
+def list_md_files_gitea(repo: str) -> list[dict]:
+    """Return list of {path, sha} for all .md files in a Gitea repo (recursive tree)."""
+    # Get HEAD SHA first
+    head_sha = get_gitea_head_sha(repo)
+    if not head_sha:
+        print(f"  [warn] Could not get HEAD sha for gitea:{repo}", flush=True)
+        return []
+
+    resp = gitea_get(f"repos/{repo}/git/trees/{head_sha}", params={"recursive": "true"})
+    if resp is None or resp.status_code != 200:
+        print(f"  [warn] Could not list tree for gitea:{repo}: {resp}", flush=True)
+        return []
+
+    tree = resp.json().get("tree", [])
+    return [
+        {"path": item["path"], "sha": item.get("sha", "")}
+        for item in tree
+        if item.get("type") == "blob" and item["path"].lower().endswith(".md")
+    ]
+
+
+def fetch_gitea_file_content(repo: str, path: str) -> Optional[str]:
+    """Fetch raw .md file content from Gitea via contents API."""
+    resp = gitea_get(f"repos/{repo}/contents/{path}")
+    if resp is None or resp.status_code != 200:
+        return None
+    data = resp.json()
+    encoded = data.get("content", "")
+    try:
+        return base64.b64decode(encoded).decode("utf-8", errors="replace")
+    except Exception:
+        return None
 
 
 def embed_text(text: str) -> Optional[list]:
@@ -400,6 +484,95 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Gitea indexing
+# ---------------------------------------------------------------------------
+
+def index_gitea_file(repo: str, path: str) -> int:
+    """Fetch, chunk, embed, and upsert one Gitea .md file. Returns chunk count."""
+    content = fetch_gitea_file_content(repo, path)
+    if not content:
+        print(f"    [warn] Could not fetch gitea:{repo}/{path}", flush=True)
+        return 0
+
+    chunks = chunk_markdown(content)
+    source = f"gitea:{repo}/{path}"
+    points = []
+
+    for i, chunk in enumerate(chunks):
+        embedding = embed_text(chunk)
+        if embedding is None:
+            continue
+        chunk_id = hashlib.md5(f"{source}#{i}".encode()).hexdigest()
+        points.append(
+            {
+                "id": chunk_id,
+                "embedding": embedding,
+                "source": source,
+                "chunk_index": i,
+                "content": chunk,
+                "indexed_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
+    if points:
+        pgvector_upsert(points)
+
+    return len(points)
+
+
+def sync_gitea_repos(repos: list[str] = GITEA_REPOS) -> dict:
+    """Sync all configured Gitea repos into ra_knowledge table."""
+    state = load_state()
+    total_files = 0
+    total_chunks = 0
+    repos_processed = []
+
+    for repo in repos:
+        state_key = f"gitea:{repo}"
+        print(f"\n[gitea:{repo}] Checking HEAD commit …", flush=True)
+        t0 = time.time()
+
+        head_sha = get_gitea_head_sha(repo)
+        if head_sha and state.get(state_key) == head_sha:
+            print(f"[gitea:{repo}] No changes since last run (sha={head_sha[:8]}), skipping.", flush=True)
+            continue
+
+        print(f"[gitea:{repo}] Listing .md files …", flush=True)
+        md_files = list_md_files_gitea(repo)
+        print(f"[gitea:{repo}] Found {len(md_files)} .md file(s).", flush=True)
+
+        repo_files = 0
+        repo_chunks = 0
+        for item in md_files:
+            path = item["path"]
+            print(f"  Indexing: {path}", flush=True)
+            added = index_gitea_file(repo, path)
+            print(f"    → {added} chunk(s) added.", flush=True)
+            repo_files += 1
+            repo_chunks += added
+
+        elapsed = time.time() - t0
+        print(
+            f"[gitea:{repo}] Done. files={repo_files}, chunks={repo_chunks}, time={elapsed:.1f}s",
+            flush=True,
+        )
+
+        total_files += repo_files
+        total_chunks += repo_chunks
+        repos_processed.append(f"gitea:{repo}")
+
+        if head_sha:
+            state[state_key] = head_sha
+            save_state(state)
+
+    return {
+        "repos_processed": repos_processed,
+        "total_files": total_files,
+        "chunks_added": total_chunks,
+    }
+
+
+# ---------------------------------------------------------------------------
 # HTTP server mode
 # ---------------------------------------------------------------------------
 
@@ -427,9 +600,12 @@ class SyncHandler(BaseHTTPRequestHandler):
             print("[server] /sync triggered", flush=True)
 
             def run():
-                result = sync_repos()
+                r1 = sync_repos()
+                r2 = sync_gitea_repos()
                 kb = pgvector_count()
-                print(f"[server] Sync complete: {result}, kb_rows={kb}", flush=True)
+                print(f"[server] GitHub sync: {r1}", flush=True)
+                print(f"[server] Gitea sync: {r2}", flush=True)
+                print(f"[server] Sync complete, kb_rows={kb}", flush=True)
 
             t = Thread(target=run, daemon=True)
             t.start()
@@ -474,26 +650,35 @@ def main():
         return
 
     print("=" * 60, flush=True)
-    print("GitHub MD Indexer (pgvector)", flush=True)
-    print(f"Repos    : {args.repos}", flush=True)
-    print(f"Postgres : {POSTGRES_URL}  Table: {TABLE}", flush=True)
-    print(f"Embed    : {OLLAMA_URL}  Model: {EMBED_MODEL}", flush=True)
+    print("GitHub + Gitea MD Indexer (pgvector)", flush=True)
+    print(f"GitHub repos : {args.repos}", flush=True)
+    print(f"Gitea repos  : {GITEA_REPOS}", flush=True)
+    print(f"Gitea URL    : {GITEA_URL}", flush=True)
+    print(f"Postgres     : {POSTGRES_URL}  Table: {TABLE}", flush=True)
+    print(f"Embed        : {OLLAMA_URL}  Model: {EMBED_MODEL}", flush=True)
     print("=" * 60, flush=True)
 
     ensure_table()
 
     t_start = time.time()
-    result = sync_repos(args.repos)
+    gh_result = sync_repos(args.repos)
+    gt_result = sync_gitea_repos()
     elapsed = time.time() - t_start
+
+    total_processed = len(gh_result["repos_processed"]) + len(gt_result["repos_processed"])
+    total_files = gh_result["total_files"] + gt_result["total_files"]
+    total_chunks = gh_result["chunks_added"] + gt_result["chunks_added"]
 
     kb_rows = pgvector_count()
     print("\n" + "=" * 60, flush=True)
     print(
-        f"Finished. repos_processed={len(result['repos_processed'])}, "
-        f"files={result['total_files']}, chunks={result['chunks_added']}, "
+        f"Finished. repos_processed={total_processed}, "
+        f"files={total_files}, chunks={total_chunks}, "
         f"time={elapsed:.1f}s",
         flush=True,
     )
+    print(f"  GitHub: {gh_result['repos_processed']}", flush=True)
+    print(f"  Gitea:  {gt_result['repos_processed']}", flush=True)
     print(f"Total KB rows in table: {kb_rows}", flush=True)
     print("=" * 60, flush=True)
 
