@@ -43,9 +43,9 @@ DATA_GO_KR_API_KEY = os.environ.get("DATA_GO_KR_API_KEY", "")
 TIMEOUT = int(os.environ.get("LAYER4_TIMEOUT", "8"))
 
 # data.go.kr MFDS medical device endpoints (org code 1471000)
-# Dataset 15057971: 의료기기 제조·수입업 허가정보
-# Dataset 15059056: 추적관리대상 의료기기 정보
-# Dataset 15057456: 의료기기 품목허가 정보 — service name unresolved, skipped
+# Dataset 15057971: 의료기기 제조·수입업 허가정보 — MdlpMnfcturPrmisnInfoService01
+# Dataset 15059056: 추적관리대상 의료기기 정보 — TraceManageMdlpInfoService01
+# Dataset 15057456: 의료기기 품목허가 정보 — MdlpPrdlstPrmisnInfoService05 (nested item struct)
 _DATA_GO_KR_BASE = "https://apis.data.go.kr/1471000"
 _DATA_GO_KR_SERVICES = [
     {
@@ -57,6 +57,12 @@ _DATA_GO_KR_SERVICES = [
         "path": "TraceManageMdlpInfoService01/getTraceManageMdlpInfoList01",
         "name": "추적관리대상 의료기기",
         "item_fields": ["ITEM_NAME", "ITEM_SEQ", "ENTP_NAME", "PRDLST_MST_CD"],
+    },
+    {
+        "path": "MdlpPrdlstPrmisnInfoService05/getMdlpPrdlstPrmisnList04",
+        "name": "의료기기 품목허가",
+        "item_fields": ["ENTRPS", "PRDUCT", "PRDUCT_PRMISN_NO", "PRMISN_DT"],
+        "nested": True,  # response items wrapped as {"item": {...}}
     },
 ]
 
@@ -265,7 +271,7 @@ def _extract_ko_keywords(query: str, max_len: int = 30) -> str:
 def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
     """Query data.go.kr MFDS medical device DBs for ra-kr context.
 
-    Searches 2 approved services: 제조수입업 허가정보, 추적관리대상 의료기기 정보.
+    Searches 3 approved services: 제조수입업 허가정보, 추적관리대상 의료기기 정보, 품목허가 정보.
     """
     if not DATA_GO_KR_API_KEY:
         return []
@@ -297,7 +303,8 @@ def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
 
         if not items:
             continue
-        for item in items[:top]:
+        for raw in items[:top]:
+            item = raw.get("item", raw) if svc.get("nested") else raw
             summary_parts = [
                 f"{k}: {item.get(k, '')}"
                 for k in svc["item_fields"]
