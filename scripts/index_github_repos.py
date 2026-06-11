@@ -35,7 +35,7 @@ import psycopg2.extras
 # ---------------------------------------------------------------------------
 
 REPOS = ["holee9/MD-process", "holee9/ra-project"]
-GITHUB_TOKEN: Optional[str] = os.environ.get("GITHUB_TOKEN")
+GITHUB_TOKEN: Optional[str] = os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_TOKEN")
 POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 TABLE = "ra_knowledge"
