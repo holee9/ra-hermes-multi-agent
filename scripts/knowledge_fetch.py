@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
 knowledge_fetch.py — Layer 4 real-time knowledge fetch
-Issue: #30
+Issue: #30, #31
 
-Queries three live sources alongside Layer 1 (Qdrant NAS):
+Queries four live sources alongside Layer 1 (Qdrant NAS):
   4a. llm-wiki      — Gitea diskstation:7001, H&abyz R&D / RA concept wiki
   4b. openFDA       — 510(k) clearance DB (ra-us / ra-eu context)
   4c. law.go.kr     — Korean medical device law text (ra-kr context)
+  4d. data.go.kr    — MFDS medical device license/manufacturer DB (ra-kr context)
 
 Usage:
   python3 knowledge_fetch.py "query string" [--profile ra-us|ra-eu|ra-kr] [--top N]
 
-Output: JSON {"results": {"llm_wiki": [...], "openfda": [...], "law_kr": [...]}}
+Output: JSON {"results": {"llm_wiki": [...], "openfda": [...], "law_kr": [...], "data_go_kr": [...]}}
   Each source returns [] on error — all sources are independently optional.
 
 Environment (read from shell, inherited from .env):
@@ -20,6 +21,7 @@ Environment (read from shell, inherited from .env):
   GITEA_WIKI_REPO   — default: DR_RnD/ra-llm-wiki
   OPENFDA_API_KEY   — required for openFDA
   LAW_GO_KR_OC      — required for law.go.kr (ra-kr only)
+  DATA_GO_KR_API_KEY — required for data.go.kr (ra-kr only)
   LAYER4_TIMEOUT    — per-source timeout seconds (default: 8)
 """
 
@@ -37,7 +39,26 @@ GITEA_TOKEN = os.environ.get("GITEA_TOKEN", "")
 GITEA_WIKI_REPO = os.environ.get("GITEA_WIKI_REPO", "DR_RnD/ra-llm-wiki")
 OPENFDA_API_KEY = os.environ.get("OPENFDA_API_KEY", "")
 LAW_GO_KR_OC = os.environ.get("LAW_GO_KR_OC", "")
+DATA_GO_KR_API_KEY = os.environ.get("DATA_GO_KR_API_KEY", "")
 TIMEOUT = int(os.environ.get("LAYER4_TIMEOUT", "8"))
+
+# data.go.kr MFDS medical device endpoints (org code 1471000)
+# Dataset 15057971: 의료기기 제조·수입업 허가정보
+# Dataset 15059056: 추적관리대상 의료기기 정보
+# Dataset 15057456: 의료기기 품목허가 정보 — service name unresolved, skipped
+_DATA_GO_KR_BASE = "https://apis.data.go.kr/1471000"
+_DATA_GO_KR_SERVICES = [
+    {
+        "path": "MdlpMnfcturPrmisnInfoService01/getMdlpMnfcturPrmisnList01",
+        "name": "의료기기 제조·수입업 허가",
+        "item_fields": ["ENTRPS", "INDUTY_TYPE", "BIZ_STTUS", "PRMISN_DT", "ADRES1"],
+    },
+    {
+        "path": "TraceManageMdlpInfoService01/getTraceManageMdlpInfoList01",
+        "name": "추적관리대상 의료기기",
+        "item_fields": ["ITEM_NAME", "ITEM_SEQ", "ENTP_NAME", "PRDLST_MST_CD"],
+    },
+]
 
 # H&abyz product code map for openFDA lookup
 _PRODUCT_CODE_MAP = {
@@ -233,6 +254,65 @@ def _extract_law_keywords(query: str) -> str:
     return query.split()[0][:30] if query.split() else ""
 
 
+def _extract_ko_keywords(query: str, max_len: int = 30) -> str:
+    """Extract the longest Korean word from query for data.go.kr search."""
+    ko_words = re.findall(r"[가-힯]+", query)
+    if ko_words:
+        return max(ko_words, key=len)[:max_len]
+    return query.split()[0][:max_len] if query.split() else ""
+
+
+def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
+    """Query data.go.kr MFDS medical device DBs for ra-kr context.
+
+    Searches 2 approved services: 제조수입업 허가정보, 추적관리대상 의료기기 정보.
+    """
+    if not DATA_GO_KR_API_KEY:
+        return []
+
+    keyword = _extract_ko_keywords(query)
+    if not keyword:
+        return []
+
+    results = []
+    for svc in _DATA_GO_KR_SERVICES:
+        url = (
+            f"{_DATA_GO_KR_BASE}/{svc['path']}"
+            f"?serviceKey={urllib.parse.quote(DATA_GO_KR_API_KEY)}"
+            f"&type=json"
+            f"&numOfRows={top}"
+            f"&pageNo=1"
+        )
+        body = _http_get(url)
+        if not body:
+            continue
+        try:
+            data = json.loads(body)
+            if data.get("header", {}).get("resultCode") != "00":
+                continue
+            items = data.get("body", {}).get("items", [])
+            total = data.get("body", {}).get("totalCount", 0)
+        except Exception:
+            continue
+
+        if not items:
+            continue
+        for item in items[:top]:
+            summary_parts = [
+                f"{k}: {item.get(k, '')}"
+                for k in svc["item_fields"]
+                if item.get(k)
+            ]
+            results.append({
+                "source": "data_go_kr",
+                "service": svc["name"],
+                "total_count": total,
+                "summary": " | ".join(summary_parts),
+                "item": {k: item.get(k) for k in svc["item_fields"]},
+            })
+    return results
+
+
 def fetch_law_kr(query: str, top: int = 2) -> list[dict]:
     """Query law.go.kr for Korean medical device regulation text."""
     if not LAW_GO_KR_OC:
@@ -279,20 +359,23 @@ def fetch_all(query: str, profile: str = "ra-us", top: int = 3) -> dict:
     wiki_results = fetch_llm_wiki(query, top=top)
     fda_results: list[dict] = []
     law_results: list[dict] = []
+    data_go_kr_results: list[dict] = []
 
     # openFDA: relevant for FDA/MDR contexts (ra-us, ra-eu)
     if profile in ("ra-us", "ra-eu", "hermes-ra"):
         fda_results = fetch_openfda(query, top=top)
 
-    # law.go.kr: Korean regulatory context only
+    # Korean regulatory sources: ra-kr only
     if profile == "ra-kr":
         law_results = fetch_law_kr(query, top=top)
+        data_go_kr_results = fetch_data_go_kr(query, top=top)
 
     return {
         "results": {
             "llm_wiki": wiki_results,
             "openfda": fda_results,
             "law_kr": law_results,
+            "data_go_kr": data_go_kr_results,
         }
     }
 
