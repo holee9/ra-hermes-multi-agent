@@ -1,0 +1,26 @@
+{
+  "name": "ra-hermes-multi-agent",
+  "version": "1.0.0",
+  "description": "> 의료기기 인허가(RA) 도메인의 학습하는 멀티 에이전트 시스템. > Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-09.",
+  "main": "playwright.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holee9/ra-hermes-multi-agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/holee9/ra-hermes-multi-agent/issues"
+  },
+  "homepage": "https://github.com/holee9/ra-hermes-multi-agent#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
