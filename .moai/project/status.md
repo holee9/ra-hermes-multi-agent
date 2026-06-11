@@ -5,6 +5,30 @@
 
 ---
 
+## 점검 기록 #3 — 2026-06-11
+
+### .env 점검 및 인프라 정보 반영
+
+#### 발견 및 변경 사항
+
+| 항목 | 이전 기록 | 확인된 실제 값 | 조치 |
+|------|----------|--------------|------|
+| NAS 연결 방식 | Tailscale HTTP (`diskstation:7001`) | NFS 로컬 마운트 (`/mnt/nas-ra/공통자료/RA`) | 이슈 #35 DoD 재정의, 코멘트 추가 |
+| hermes-api-server.py 포트 | 미기록 | `8643` (`API_SERVER_PORT`) | master-design.md §14.1 업데이트 |
+| Layer 4 API 키 변수명 | 미기록 | `OPENFDA_API_KEY`, `LAW_GO_KR_OC`, `DATA_GO_KR_API_KEY` | 이슈 #37 코멘트 추가 |
+| GX10 Ollama URL | 192.168.100.1 (추정) | `http://192.168.100.1:11434` (확인) | master-design.md §14.1 추가 |
+| Qdrant URL | pgvector 이전 완료 | 여전히 .env에 잔존 (미사용) | .env.example에 주석 처리 |
+
+#### 변경된 파일
+
+- `scripts/index_ra_knowledge.py`: `NAS_BASE` 하드코딩 → `NAS_RA_PATH` 환경변수 읽기
+- `.env.example` 신규 생성: 모든 환경변수 이름 문서화 (값 없음)
+- `docs/RA-multi-agent-master-design.md` §14.1: 운영 서비스 URL 맵 추가
+- 이슈 #35 보정 코멘트: NAS 로컬 마운트 확인됨
+- 이슈 #37 보정 코멘트: env var 이름 및 API 서버 포트 명시
+
+---
+
 ## 점검 기록 #2 — 2026-06-11
 
 ### 전체 그림 재정립 (이 세션의 핵심 발견)
