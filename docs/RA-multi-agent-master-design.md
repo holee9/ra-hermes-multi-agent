@@ -197,20 +197,25 @@
 ## 12. 미결 항목
 
 - [완료] 레포 호스팅: GitHub 확정 (2026-06-05).
-- 학습 시드: cold start vs 기존 OpenProject 이력 backfill.
+- [완료] 학습 시드: OP 이력 backfill 완료 (#18 SEED-1, 2026-06-09).
 - 무평가 결정 해석: 중립 vs 약한 긍정.
-- [완료] GX10 임베딩: 로컬(온프레미스) 확정 — 4096차원 (Qwen3 qwen3-embedding:latest), init-vector-dim.sql로 pgvector 스키마 초기화 적용 (2026-06-05).
-- 외부 지식 연계·Regula 연계·가상 오피스 연동: 각각 후속 연계 프로젝트(사람이 시점 판단).
+- [완료] GX10 임베딩: 로컬(온프레미스) 확정 — 4096차원 (Qwen3 qwen3-embedding:latest, 2026-06-05).
+- **[진행중] T자형 가로획 구축**: ra-project·MD-process 자동 인덱싱 미완 (#34), llm-wiki NAS 미연결 (#35), doc-converter 미구현 (#36).
+- **[진행중] 성장 루프 계장화**: Layer 4 API → mail-triage 미연결 (#37), 성장 트리거 알림 자동화 미완 (#38).
+- **[진행중] 인프라 투표 활성화**: vote-rules.json 초기값 미설정, 브로드캐스트 n8n 미구현 (#39).
+- 외부 지식 연계·Regula 연계: 각각 후속 연계 프로젝트 (사람이 시점 판단).
 - 사람 다중화 시 방향 정렬 메커니즘.
 
 ---
 
 ## 13. 단계 요약
 
-1. **인프라 검증**: T3610 Honcho ↔ GX10 Qwen3 deriver 성공 / 2장비 Hermes의 workspace 공유 conclusion 읽기.
-2. **mail-triage 이관**: Gmail 재전송 분석을 RA 전문가 3종으로(규제권 라우팅). 매칭·덧글 자율, 등록·게이트는 n8n(초기 Yellow).
-3. **학습 효과 측정**: 중복 WP 감소 / 사람 개입 감소.
-4. **확장**: form 이관 · 인프라 에이전트 3종 + 투표·평가 루프 · 부재 기반으로 세부 전문가/팀 확장 · 가상 오피스 MVP 연동.
+1. ~~**인프라 검증**~~ ✅: T3610 Honcho ↔ GX10 Qwen3 deriver 성공 (2026-06-05).
+2. ~~**mail-triage 이관**~~ ✅: Gmail 재전송 분석 → RA 3종 → WP 처리 → GROWTH 루프 (2026-06-09).
+3. **T자형 가로획 구축** (현재): ra-project·MD-process 인덱싱 · llm-wiki NAS 연결 · doc-converter (#34-36).
+4. **성장 루프 계장화** (현재): Layer 4 API mail-triage 연동 · 성장 트리거 자동화 (#37-38).
+5. **인프라 투표 활성화**: vote-rules 초기값 · 브로드캐스트 구현 (#39).
+6. **확장** (성장 트리거 달성 후): form 이관 · 세부 전문가 에이전트 · 프랙탈 workspace 추가 (#40-41).
 
 ---
 
