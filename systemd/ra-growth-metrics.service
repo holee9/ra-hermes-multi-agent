@@ -1,0 +1,13 @@
+[Unit]
+Description=RA Hermes Growth Metrics
+After=network.target
+
+[Service]
+Type=oneshot
+User=abyz-lab
+WorkingDirectory=/home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent
+Environment=HONCHO_URL=http://localhost:8000
+Environment=HONCHO_WORKSPACE=work
+ExecStart=/usr/bin/bash scripts/growth-metrics-cron.sh
+StandardOutput=append:/var/log/ra-growth-metrics.log
+StandardError=append:/var/log/ra-growth-metrics.log

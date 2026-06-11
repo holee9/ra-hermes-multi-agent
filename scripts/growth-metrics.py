@@ -40,6 +40,7 @@ HONCHO_URL = os.environ.get("HONCHO_URL", "http://localhost:8000")
 HONCHO_WS = os.environ.get("HONCHO_WORKSPACE", "work")
 REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / "reports"
+TRIGGER_CONFIG = REPO_ROOT / "feedback" / "config" / "growth-trigger-config.json"
 
 
 # ---------------------------------------------------------------------------
@@ -433,6 +434,65 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
     return metrics
 
 
+# @MX:ANCHOR: [AUTO] check_and_notify_triggers — growth-trigger-config.json reader and webhook caller
+# @MX:REASON: Called from main() after metrics save. Webhook is null-safe (no-op when unconfigured).
+def check_and_notify_triggers(metrics: dict) -> None:
+    """Check growth-trigger-config.json thresholds and POST to n8n webhook if met."""
+    if not TRIGGER_CONFIG.exists():
+        return
+
+    with open(TRIGGER_CONFIG, encoding="utf-8") as f:
+        cfg = json.load(f)
+
+    webhook_url: str | None = cfg.get("notification", {}).get("n8n_webhook_url")
+    triggers = cfg.get("triggers", {})
+    metric_values = {name: data.get("value") for name, data in metrics.get("metrics", {}).items()}
+
+    triggered = []
+    for trigger_name, tdef in triggers.items():
+        threshold = tdef.get("threshold")
+        if threshold is None:
+            continue
+        metric_name = tdef.get("metric")
+        direction = tdef.get("direction", "below")
+        value = metric_values.get(metric_name)
+        if value is None:
+            continue
+        met = (direction == "below" and value < threshold) or (direction == "above" and value > threshold)
+        if met:
+            triggered.append({
+                "trigger": trigger_name,
+                "metric": metric_name,
+                "value": value,
+                "threshold": threshold,
+                "direction": direction,
+                "next_action": tdef.get("next_action"),
+            })
+
+    if not triggered:
+        return
+
+    print("\n=== 성장 트리거 달성 ===", flush=True)
+    for t in triggered:
+        print(f"  [{t['trigger']}] {t['metric']}={t['value']:.3f} {t['direction']} {t['threshold']}", flush=True)
+
+    if not webhook_url:
+        print("  (n8n_webhook_url 미설정 — 알림 없음)", flush=True)
+        return
+
+    payload = {
+        "event": "growth_trigger_activated",
+        "date": metrics.get("date", ""),
+        "triggers": triggered,
+    }
+    try:
+        resp = requests.post(webhook_url, json=payload, timeout=15)
+        resp.raise_for_status()
+        print(f"  n8n webhook 알림 전송: {webhook_url}", flush=True)
+    except requests.RequestException as e:
+        print(f"  Webhook 호출 실패: {e}", flush=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Compute daily growth metrics from Honcho workspace."
@@ -487,6 +547,9 @@ def main() -> None:
         n = data.get("denominator") or data.get("n_pairs") or data.get("warm_n", 0) + data.get("cold_n", 0)
         direction = data.get("direction", "")
         print(f"  {name}: {val_str}  (n={n}, target={direction})", flush=True)
+
+    # Check growth triggers and notify if thresholds are met
+    check_and_notify_triggers(metrics)
 
 
 if __name__ == "__main__":
