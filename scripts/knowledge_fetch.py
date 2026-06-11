@@ -223,13 +223,14 @@ def fetch_openfda(query: str, top: int = 3) -> list[dict]:
 
 
 def _extract_law_keywords(query: str) -> str:
-    """Extract Korean law/regulation keywords for law.go.kr search."""
-    # Prefer Korean regulatory terms if present
+    """Extract Korean law/regulation keywords for law.go.kr search.
+    law.go.kr does not support multi-word phrase queries — use first keyword only.
+    """
     ko_keywords = re.findall(r"[가-힯]+", query)
     if ko_keywords:
-        return " ".join(ko_keywords[:3])
-    # Fallback: use English terms
-    return query[:50]
+        # Use longest Korean word (most likely the domain term, e.g. '의료기기')
+        return max(ko_keywords, key=len)
+    return query.split()[0][:30] if query.split() else ""
 
 
 def fetch_law_kr(query: str, top: int = 2) -> list[dict]:
@@ -241,9 +242,9 @@ def fetch_law_kr(query: str, top: int = 2) -> list[dict]:
     if not keywords.strip():
         return []
 
-    # Law search API
+    # Law search API — HTTPS is blocked from T3610; use HTTP
     search_url = (
-        "https://www.law.go.kr/DRF/lawSearch.do"
+        "http://www.law.go.kr/DRF/lawSearch.do"
         f"?OC={urllib.parse.quote(LAW_GO_KR_OC)}"
         f"&target=law"
         f"&query={urllib.parse.quote(keywords)}"
