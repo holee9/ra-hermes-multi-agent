@@ -26,7 +26,7 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 TABLE = "ra_knowledge"
 EMBED_MODEL = "nomic-embed-text"
 EMBED_DIM = 768  # nomic-embed-text output dimension
-NAS_BASE = "/mnt/nas-ra/공통자료/RA"
+NAS_BASE = os.environ.get("NAS_RA_PATH", "/mnt/nas-ra/공통자료/RA")
 HANDOVER_DIR = f"{NAS_BASE}/99_4. 한지민(241120~260508)"
 WEEKLY_DIR = f"{NAS_BASE}/RA Weekly Report"
 

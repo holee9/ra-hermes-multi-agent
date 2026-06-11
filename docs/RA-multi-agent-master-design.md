@@ -240,6 +240,21 @@
 
 **[확정] 임베딩 차원**: GX10 Qwen3 로컬 임베딩 확정 — 4096차원 (qwen3-embedding:latest). init-vector-dim.sql로 pgvector 스키마 초기화 적용 (2026-06-05).
 
+**[확정] 운영 서비스 URL 맵 (2026-06-11, /opt/hermes-ra/.env 기준)**:
+
+| 서비스 | URL / 경로 | 비고 |
+|--------|-----------|------|
+| Honcho API | `http://localhost:8000` | T3610 Docker |
+| hermes-api-server.py (Layer 4) | `http://localhost:8643` | `API_SERVER_PORT=8643` |
+| GX10 Ollama | `http://192.168.100.1:11434` | OpenAI-compatible, Qwen3 |
+| n8n | `https://n8n.abyz-lab.work` | RPi 호스팅 |
+| OpenProject | `https://plm.abyz-lab.work` | RPi 호스팅 |
+| pgvector | `localhost:5433` | Docker 포트 바인딩 |
+| Redis | `localhost:6379` | Docker, 루프백 |
+| NAS | `/mnt/nas-ra/공통자료/RA` | T3610 NFS 로컬 마운트 (Tailscale 불필요) |
+
+규제기관 API 키: `OPENFDA_API_KEY`, `LAW_GO_KR_OC`, `DATA_GO_KR_API_KEY` — 모두 .env 설정 완료. 신규 환경 구성 시 `.env.example` 참조.
+
 ### 14.2 RA 전문가 프로파일 (T3610)
 
 - `hermes profile create ra-us` (→ `ra-us` 별칭 자동 생성), `--clone`으로 ra-eu·ra-kr 파생.
