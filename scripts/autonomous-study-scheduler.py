@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -59,6 +60,16 @@ BOOTSTRAP_MAX = int(os.environ.get("STUDY_BOOTSTRAP_MAX", "9999"))
 REQUEST_TIMEOUT = int(os.environ.get("STUDY_TIMEOUT", "120"))
 # Seconds between Hermes API calls — prevents overloading GX10
 CALL_DELAY = float(os.environ.get("STUDY_CALL_DELAY", "1.0"))
+
+# Claude Code CLI backend — set USE_CLAUDE_CLI=1 to bypass hermes-api-server
+CLAUDE_BIN = os.environ.get(
+    "CLAUDE_BIN",
+    "/home/abyz-lab/.npm-global/lib/node_modules/@anthropic-ai/claude-code"
+    "/node_modules/@anthropic-ai/claude-code-linux-x64/claude",
+)
+USE_CLAUDE_CLI = bool(os.environ.get("USE_CLAUDE_CLI", ""))
+SOUL_BASE_DIR = Path(os.environ.get("SOUL_BASE_DIR", "/home/abyz-lab/.hermes/profiles"))
+_PROFILE_MAP: dict[str, str] = {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
 
 CHECKPOINT_FILE = Path(__file__).parent / "study-checkpoint.json"
 
@@ -222,10 +233,34 @@ def build_study_prompt(agent: dict, chunk: dict) -> str:
     )
 
 
+def _load_soul(agent_model: str) -> str:
+    profile = _PROFILE_MAP.get(agent_model, "ra-us")
+    soul_path = SOUL_BASE_DIR / profile / "SOUL.md"
+    try:
+        return soul_path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
 # @MX:ANCHOR: [AUTO] call_hermes — hermes-api-server OpenAI-compatible call
 # @MX:REASON: Called per chunk per agent; failure must not abort entire study loop
 def call_hermes(agent: dict, user_message: str) -> str | None:
-    """POST to hermes-api-server /v1/chat/completions and return assistant content."""
+    """Call Claude Code CLI or hermes-api-server; return assistant content."""
+    if USE_CLAUDE_CLI:
+        soul = _load_soul(agent["model"])
+        full_prompt = f"{soul}\n\n---\n\n{user_message}" if soul else user_message
+        try:
+            result = subprocess.run(
+                [CLAUDE_BIN, "-p", full_prompt, "--model", "claude-haiku-4-5-20251001"],
+                capture_output=True,
+                text=True,
+                timeout=REQUEST_TIMEOUT,
+            )
+            return result.stdout.strip() or None
+        except Exception as exc:
+            log.warning("claude -p error (%s): %s", agent["id"], exc)
+            return None
+
     payload = {
         "model": agent["model"],
         "messages": [{"role": "user", "content": user_message}],
