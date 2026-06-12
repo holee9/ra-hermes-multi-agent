@@ -39,7 +39,7 @@
 | Phase 2~5 로드맵 문서화 | ✅ 완료 (master-design §12-§13, implementation-spec P2-P4, operations-guide §5 갱신) | [#34](https://github.com/holee9/ra-hermes-multi-agent/issues/34)~[#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | Gitea API 인덱싱 지원 추가 (DR_RnD/ra-llm-wiki) | ✅ 완료 (Gitea 990 소스 pgvector 인덱싱 완료, ra_knowledge 총 1493 sources) | [#35](https://github.com/holee9/ra-hermes-multi-agent/issues/35) (closed) |
 | hermes-api-server.py 버전 관리 편입 + deploy-local.sh | ✅ 완료 (Layer 4 API 서버 git 편입, /opt/hermes-ra/ 동기화 스크립트, .env.example GITEA_URL 등 추가) | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) (연관) |
-| doc-converter NAS→pgvector 인덱싱 구현 | 🔄 진행 중 (convert.py + config.json 완료, NAS 마운트 실 테스트 미완료) | [#36](https://github.com/holee9/ra-hermes-multi-agent/issues/36) |
+| doc-converter NAS→pgvector 인덱싱 | ✅ 완료 (llm-wiki + #35 인덱싱으로 목적 충족, 별도 구현 불필요, scripts/doc-converter/ 삭제) | [#36](https://github.com/holee9/ra-hermes-multi-agent/issues/36) (closed) |
 | growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
 | 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | virtual-office Playwright E2E 테스트 추가 | ✅ 완료 (4 Suite 13 테스트 케이스 — 초기로드·재생컨트롤·이벤트재생·속도변경) | — |
