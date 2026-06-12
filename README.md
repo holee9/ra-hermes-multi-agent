@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 · Gitea 990소스 pgvector 인덱싱 완료 · growth-metrics systemd 타이머 배포** | 최종 갱신: 2026-06-12
+**Phase 1+2+3+4+5 완료 · 에이전트 자율 학습 루프 구현(Layer 4 7소스 + Bootstrap/Delta 스케줄러 + 피어 교환)** | 최종 갱신: 2026-06-12
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -42,6 +42,7 @@
 | doc-converter NAS→pgvector 인덱싱 | ✅ 완료 (llm-wiki + #35 인덱싱으로 목적 충족, 별도 구현 불필요, scripts/doc-converter/ 삭제) | [#36](https://github.com/holee9/ra-hermes-multi-agent/issues/36) (closed) |
 | growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
 | 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
+| 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
 | virtual-office Playwright E2E 테스트 추가 | ✅ 완료 (4 Suite 13 테스트 케이스 — 초기로드·재생컨트롤·이벤트재생·속도변경) | — |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
