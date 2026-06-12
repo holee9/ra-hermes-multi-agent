@@ -312,7 +312,7 @@ def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
     data = honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions",
         {
-            "name": session_name,
+            "id": session_name,
             "metadata": {
                 "actor": agent_id,
                 "session_type": "autonomous_study",
@@ -330,22 +330,25 @@ def record_insight(session_id: str, agent_id: str, chunk: dict,
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
-            "content": json.dumps({
-                "ts": run_ts,
-                "type": "study_insight",
-                "actor": agent_id,
-                "payload": {
+            "messages": [{
+                "content": json.dumps({
+                    "ts": run_ts,
+                    "type": "study_insight",
                     "actor": agent_id,
-                    "source": chunk.get("source_path", ""),
-                    "chunk_id": str(chunk.get("id", "")),
-                    "topic": insight.get("topic", ""),
-                    "finding": insight.get("finding", ""),
-                    "relevance": insight.get("relevance", ""),
-                    "confidence": insight.get("confidence", 0.0),
-                    "action_hint": insight.get("action_hint", ""),
-                },
-            }, ensure_ascii=False),
-            "metadata": {"record_type": "study_insight", "actor": agent_id},
+                    "payload": {
+                        "actor": agent_id,
+                        "source": chunk.get("source_path", ""),
+                        "chunk_id": str(chunk.get("id", "")),
+                        "topic": insight.get("topic", ""),
+                        "finding": insight.get("finding", ""),
+                        "relevance": insight.get("relevance", ""),
+                        "confidence": insight.get("confidence", 0.0),
+                        "action_hint": insight.get("action_hint", ""),
+                    },
+                }, ensure_ascii=False),
+                "peer_id": agent_id,
+                "metadata": {"record_type": "study_insight", "actor": agent_id},
+            }],
         },
     )
 
@@ -356,22 +359,25 @@ def record_peer_insight(session_id: str, target_agent: str, source_agent: str,
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
-            "content": json.dumps({
-                "ts": run_ts,
-                "type": "study_insight",
-                "actor": target_agent,
-                "payload": {
+            "messages": [{
+                "content": json.dumps({
+                    "ts": run_ts,
+                    "type": "study_insight",
                     "actor": target_agent,
-                    "source_agent": source_agent,
-                    "topic": insight.get("topic", ""),
-                    "finding": insight.get("finding", ""),
-                    "relevance": insight.get("relevance", ""),
-                    "confidence": insight.get("confidence", 0.0),
-                    "action_hint": insight.get("action_hint", ""),
-                    "peer_exchange": True,
-                },
-            }, ensure_ascii=False),
-            "metadata": {"record_type": "study_insight", "actor": target_agent, "peer_exchange": True},
+                    "payload": {
+                        "actor": target_agent,
+                        "source_agent": source_agent,
+                        "topic": insight.get("topic", ""),
+                        "finding": insight.get("finding", ""),
+                        "relevance": insight.get("relevance", ""),
+                        "confidence": insight.get("confidence", 0.0),
+                        "action_hint": insight.get("action_hint", ""),
+                        "peer_exchange": True,
+                    },
+                }, ensure_ascii=False),
+                "peer_id": target_agent,
+                "metadata": {"record_type": "study_insight", "actor": target_agent, "peer_exchange": True},
+            }],
         },
     )
 
@@ -382,17 +388,20 @@ def record_session_complete(session_id: str, agent_id: str, chunks_studied: int,
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
-            "content": json.dumps({
-                "ts": run_ts,
-                "type": "study_session_complete",
-                "actor": agent_id,
-                "payload": {
+            "messages": [{
+                "content": json.dumps({
+                    "ts": run_ts,
+                    "type": "study_session_complete",
                     "actor": agent_id,
-                    "chunks_studied": chunks_studied,
-                    "insights_recorded": insights_recorded,
-                },
-            }, ensure_ascii=False),
-            "metadata": {"record_type": "study_session_complete", "actor": agent_id},
+                    "payload": {
+                        "actor": agent_id,
+                        "chunks_studied": chunks_studied,
+                        "insights_recorded": insights_recorded,
+                    },
+                }, ensure_ascii=False),
+                "peer_id": agent_id,
+                "metadata": {"record_type": "study_session_complete", "actor": agent_id},
+            }],
         },
     )
 
