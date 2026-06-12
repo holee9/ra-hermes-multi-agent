@@ -1,18 +1,17 @@
 [Unit]
 Description=RA Hermes Agent Autonomous Study Scheduler
-After=network.target postgresql.service
-Requires=postgresql.service
+After=network.target
 
 [Service]
 Type=oneshot
 User=abyz-lab
 WorkingDirectory=/home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent
+# POSTGRES_URL and API_SERVER_KEY must be set in scripts/.env (git-ignored)
 EnvironmentFile=/home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent/scripts/.env
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=HONCHO_URL=http://localhost:8000
 Environment=HONCHO_WS=work
 Environment=HERMES_API_URL=http://localhost:8643
-Environment=POSTGRES_URL=postgresql://postgres:postgres@localhost:5433/ra
 Environment=STUDY_BATCH_SIZE=5
 Environment=STUDY_MAX_CHUNKS=200
 Environment=STUDY_CALL_DELAY=1.5

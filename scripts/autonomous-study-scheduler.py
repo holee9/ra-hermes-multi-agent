@@ -50,12 +50,12 @@ HONCHO_URL = os.environ.get("HONCHO_URL", "http://localhost:8000")
 HONCHO_WS = os.environ.get("HONCHO_WS", "work")
 HERMES_API_URL = os.environ.get("HERMES_API_URL", "http://localhost:8643")
 HERMES_API_KEY = os.environ.get("API_SERVER_KEY", "")
-PG_DSN = os.environ.get(
-    "POSTGRES_URL",
-    "postgresql://postgres:postgres@localhost:5433/ra",
-)
+# POSTGRES_URL must be set in scripts/.env (git-ignored) — no hardcoded default
+PG_DSN = os.environ.get("POSTGRES_URL", "")
 CHUNK_BATCH_SIZE = int(os.environ.get("STUDY_BATCH_SIZE", "5"))
 MAX_CHUNKS_PER_SESSION = int(os.environ.get("STUDY_MAX_CHUNKS", "200"))
+# Bootstrap fetches all available chunks; delta is bounded by MAX_CHUNKS_PER_SESSION
+BOOTSTRAP_MAX = int(os.environ.get("STUDY_BOOTSTRAP_MAX", "9999"))
 REQUEST_TIMEOUT = int(os.environ.get("STUDY_TIMEOUT", "120"))
 # Seconds between Hermes API calls — prevents overloading GX10
 CALL_DELAY = float(os.environ.get("STUDY_CALL_DELAY", "1.0"))
@@ -120,10 +120,10 @@ def fetch_chunks(since_ts: str | None = None, limit: int = MAX_CHUNKS_PER_SESSIO
         if since_ts:
             cur.execute(
                 """
-                SELECT id, content, source, metadata, created_at
+                SELECT id, content, source_path, metadata, indexed_at
                 FROM ra_knowledge
-                WHERE created_at > %s
-                ORDER BY created_at ASC
+                WHERE indexed_at > %s
+                ORDER BY indexed_at ASC
                 LIMIT %s
                 """,
                 (since_ts, limit),
@@ -131,9 +131,9 @@ def fetch_chunks(since_ts: str | None = None, limit: int = MAX_CHUNKS_PER_SESSIO
         else:
             cur.execute(
                 """
-                SELECT id, content, source, metadata, created_at
+                SELECT id, content, source_path, metadata, indexed_at
                 FROM ra_knowledge
-                ORDER BY created_at ASC
+                ORDER BY indexed_at ASC
                 LIMIT %s
                 """,
                 (limit,),
@@ -159,7 +159,7 @@ def fetch_chunks_for_agent(agent_id: str, since_ts: str | None = None,
     regions = REGION_FILTER.get(agent_id, ["global"])
     # Build OR conditions for region matching in source or metadata JSONB
     conditions = " OR ".join(
-        f"(source ILIKE %s OR metadata::text ILIKE %s)" for _ in regions
+        f"(source_path ILIKE %s OR metadata::text ILIKE %s)" for _ in regions
     )
     params: list[Any] = []
     for region in regions:
@@ -167,7 +167,7 @@ def fetch_chunks_for_agent(agent_id: str, since_ts: str | None = None,
 
     if since_ts:
         params.append(since_ts)
-        where = f"({conditions}) AND created_at > %s"
+        where = f"({conditions}) AND indexed_at > %s"
     else:
         where = f"({conditions})"
 
@@ -178,8 +178,8 @@ def fetch_chunks_for_agent(agent_id: str, since_ts: str | None = None,
         conn = psycopg2.connect(PG_DSN)
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(
-            f"SELECT id, content, source, metadata, created_at FROM ra_knowledge "  # noqa: S608
-            f"WHERE {where} ORDER BY created_at ASC LIMIT %s",
+            f"SELECT id, content, source_path, metadata, indexed_at FROM ra_knowledge "  # noqa: S608
+            f"WHERE {where} ORDER BY indexed_at ASC LIMIT %s",
             params,
         )
         rows = cur.fetchall()
@@ -291,11 +291,28 @@ def honcho_post(path: str, body: dict) -> dict | None:
 
 
 def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
-    """Create a Honcho session for this study run, return session id or None."""
+    """Get or create a Honcho session for this study run, return session id or None.
+
+    Idempotent: if a session with today's name already exists, reuse it to avoid
+    duplicate session records on repeated bootstrap runs within the same day.
+    """
+    session_name = f"study-{agent_id}-{mode}-{run_ts[:10]}"
+    # Check if session already exists (idempotency guard)
+    try:
+        resp = requests.get(
+            f"{HONCHO_URL}/v3/workspaces/{HONCHO_WS}/sessions/{session_name}",
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            log.info("[%s] Reusing existing study session: %s", agent_id, session_name)
+            return session_name
+    except Exception:
+        pass  # Fall through to create
+
     data = honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions",
         {
-            "name": f"study-{agent_id}-{mode}-{run_ts[:10]}",
+            "name": session_name,
             "metadata": {
                 "actor": agent_id,
                 "session_type": "autonomous_study",
@@ -319,7 +336,7 @@ def record_insight(session_id: str, agent_id: str, chunk: dict,
                 "actor": agent_id,
                 "payload": {
                     "actor": agent_id,
-                    "source": chunk.get("source", ""),
+                    "source": chunk.get("source_path", ""),
                     "chunk_id": str(chunk.get("id", "")),
                     "topic": insight.get("topic", ""),
                     "finding": insight.get("finding", ""),
@@ -451,7 +468,21 @@ def peer_exchange(agent_results: list[dict], run_ts: str) -> None:
 # Main orchestration
 # ---------------------------------------------------------------------------
 
-def run(mode: str) -> None:
+def run(mode: str, dry_run: bool = False) -> None:
+    # Pre-flight: abort early on missing required env vars
+    if not PG_DSN:
+        log.error(
+            "POSTGRES_URL is not set. Add it to scripts/.env (git-ignored). "
+            "Example: POSTGRES_URL=postgresql://honcho:<pass>@localhost:5433/honcho"
+        )
+        sys.exit(1)
+    if not HERMES_API_KEY:
+        log.error(
+            "API_SERVER_KEY is not set. Add it to scripts/.env (git-ignored). "
+            "Check the running hermes-api-server.service environment for the value."
+        )
+        sys.exit(1)
+
     run_ts = datetime.now(timezone.utc).isoformat()
     checkpoint = load_checkpoint()
 
@@ -462,18 +493,32 @@ def run(mode: str) -> None:
             log.info("No delta checkpoint found — running as bootstrap instead")
             mode = "bootstrap"
 
-    log.info("=== Autonomous Study Scheduler [%s] ===", mode.upper())
+    log.info("=== Autonomous Study Scheduler [%s]%s ===", mode.upper(),
+             " [DRY-RUN]" if dry_run else "")
     log.info("run_ts=%s  since_ts=%s", run_ts, since_ts)
+
+    # Bootstrap: fetch all chunks (up to BOOTSTRAP_MAX); delta: respect MAX_CHUNKS_PER_SESSION
+    chunk_limit = BOOTSTRAP_MAX if mode == "bootstrap" else MAX_CHUNKS_PER_SESSION
 
     agent_results: list[dict] = []
     for agent in AGENTS:
-        chunks = fetch_chunks_for_agent(agent["id"], since_ts=since_ts)
+        chunks = fetch_chunks_for_agent(agent["id"], since_ts=since_ts, limit=chunk_limit)
         if not chunks:
             log.info("[%s] No chunks to study — skipping", agent["id"])
             agent_results.append({"agent_id": agent["id"], "insights": [], "session_id": None})
             continue
+        if dry_run:
+            log.info("[%s] DRY-RUN: would study %d chunks (no Honcho writes)", agent["id"], len(chunks))
+            agent_results.append({"agent_id": agent["id"], "insights": [], "session_id": None,
+                                   "_dry_chunk_count": len(chunks)})
+            continue
         result = study_agent(agent, chunks, mode, run_ts)
         agent_results.append(result)
+
+    if dry_run:
+        total = sum(r.get("_dry_chunk_count", 0) for r in agent_results)
+        log.info("DRY-RUN complete — would have studied %d total chunks across 3 agents", total)
+        return
 
     # Peer exchange after all agents have finished studying
     peer_exchange(agent_results, run_ts)
@@ -500,8 +545,13 @@ def main() -> None:
         default="delta",
         help="bootstrap = all chunks (first run); delta = incremental (daily)",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Read pgvector and log what would be studied; skip all Honcho writes",
+    )
     args = parser.parse_args()
-    run(args.mode)
+    run(args.mode, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
