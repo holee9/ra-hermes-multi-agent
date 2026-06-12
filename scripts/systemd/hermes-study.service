@@ -12,16 +12,20 @@ Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=HONCHO_URL=http://localhost:8000
 Environment=HONCHO_WS=work
 Environment=HERMES_API_URL=http://localhost:8643
-Environment=STUDY_BATCH_SIZE=5
-Environment=STUDY_MAX_CHUNKS=200
-Environment=STUDY_CALL_DELAY=1.5
+Environment=STUDY_BATCH_SIZE=20
+Environment=STUDY_MAX_CHUNKS=500
+Environment=STUDY_CALL_DELAY=0.5
+Environment=STUDY_TIMEOUT=180
+Environment=USE_CLAUDE_CLI=1
+Environment=CLAUDE_BIN=/home/abyz-lab/.npm-global/lib/node_modules/@anthropic-ai/claude-code/node_modules/@anthropic-ai/claude-code-linux-x64/claude
+Environment=PYTHONUNBUFFERED=1
 
-ExecStart=/usr/bin/python3 scripts/autonomous-study-scheduler.py delta
+ExecStart=/usr/bin/python3 -u scripts/autonomous-study-scheduler.py delta
 
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=hermes-study
-TimeoutStartSec=3600
+TimeoutStartSec=14400
 
 [Install]
 WantedBy=multi-user.target
