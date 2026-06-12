@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
 knowledge_fetch.py — Layer 4 real-time knowledge fetch
-Issue: #30, #31
+Issue: #30, #31, #42
 
-Queries four live sources alongside Layer 1 (Qdrant NAS):
-  4a. llm-wiki      — Gitea diskstation:7001, H&abyz R&D / RA concept wiki
-  4b. openFDA       — 510(k) clearance DB (ra-us / ra-eu context)
-  4c. law.go.kr     — Korean medical device law text (ra-kr context)
-  4d. data.go.kr    — MFDS medical device license/manufacturer DB (ra-kr context)
+Queries live regulatory sources alongside Layer 1 (pgvector NAS):
+  4a. llm-wiki           — Gitea diskstation:7001, H&abyz R&D / RA concept wiki
+  4b. openFDA            — 510(k) clearance DB (ra-us context)
+  4c. cdrh_rss           — FDA CDRH guidance RSS feed (ra-us, public)
+  4d. mdcg_guidance      — MDCG guidance document feed (ra-eu, public)
+  4e. law.go.kr          — Korean medical device law text (ra-kr context)
+  4f. data.go.kr         — MFDS medical device license/manufacturer DB (ra-kr context)
+  4g. mfds_notices       — MFDS 고시/지침 RSS feed (ra-kr, public)
 
 Usage:
   python3 knowledge_fetch.py "query string" [--profile ra-us|ra-eu|ra-kr] [--top N]
 
-Output: JSON {"results": {"llm_wiki": [...], "openfda": [...], "law_kr": [...], "data_go_kr": [...]}}
+Output: JSON {"results": {"llm_wiki": [...], "openfda": [...], "cdrh_rss": [...], ...}}
   Each source returns [] on error — all sources are independently optional.
 
 Environment (read from shell, inherited from .env):
@@ -361,28 +364,190 @@ def fetch_law_kr(query: str, top: int = 2) -> list[dict]:
     return results
 
 
-def fetch_all(query: str, profile: str = "ra-us", top: int = 3) -> dict:
-    """Run all applicable Layer 4 sources and return combined results."""
+def fetch_cdrh_guidance_rss(top: int = 5) -> list[dict]:
+    """Fetch recent FDA CDRH guidance documents from public RSS feed.
+    Public, no auth required. ra-us only.
+    """
+    # CDRH guidance RSS (device-specific guidance feed)
+    guidance_url = "https://www.fda.gov/feeds/guidance/guidancedocuments/rss.xml"
+    body = _http_get(guidance_url, timeout=TIMEOUT)
+    if not body:
+        return []
+    try:
+        text = body.decode("utf-8", errors="replace")
+        raw_items = re.findall(r"<item>(.*?)</item>", text, re.DOTALL)[:top * 3]
+        results = []
+        for item in raw_items:
+            if "device" not in item.lower() and "cdrh" not in item.lower():
+                continue
+            title_m = re.search(r"<title[^>]*>(.*?)</title>", item, re.DOTALL)
+            link_m = re.search(r"<link[^>]*>(.*?)</link>", item, re.DOTALL)
+            date_m = re.search(r"<pubDate>(.*?)</pubDate>", item, re.DOTALL)
+            desc_m = re.search(r"<description[^>]*>(.*?)</description>", item, re.DOTALL)
+            title = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", title_m.group(1) if title_m else "").strip()
+            link = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", link_m.group(1) if link_m else "").strip()
+            pub_date = date_m.group(1).strip() if date_m else ""
+            description = re.sub(r"<[^>]+>", "", desc_m.group(1) if desc_m else "").strip()[:300]
+            if not title:
+                continue
+            results.append({
+                "source": "fda_cdrh_rss",
+                "title": title,
+                "link": link,
+                "published": pub_date,
+                "summary": f"[FDA CDRH 가이던스] {title} ({pub_date})",
+                "excerpt": description,
+            })
+            if len(results) >= top:
+                break
+        return results
+    except Exception:
+        return []
+
+
+def fetch_mdcg_guidance(top: int = 5) -> list[dict]:
+    """Fetch MDCG guidance document list from EC public JSON index.
+    Public, no auth required. ra-eu only.
+    Fallback: returns static notice if endpoint unavailable.
+    """
+    # EC health website has a JSON listing for MDCG guidance
+    index_url = (
+        "https://health.ec.europa.eu/system/files/2024-01/"
+        "mdcg_guidance_documents_en.json"
+    )
+    body = _http_get(index_url, timeout=TIMEOUT)
+    if body:
+        try:
+            data = json.loads(body)
+            items = data if isinstance(data, list) else data.get("items", [])
+            results = []
+            for item in items[:top]:
+                title = item.get("title", "")
+                date = item.get("date", item.get("published", ""))
+                url_ = item.get("url", item.get("link", ""))
+                results.append({
+                    "source": "mdcg_guidance",
+                    "title": title,
+                    "date": date,
+                    "url": url_,
+                    "summary": f"[MDCG 가이던스] {title} ({date})",
+                })
+            if results:
+                return results
+        except Exception:
+            pass
+
+    # Fallback: try EUR-Lex open search for MDR/IVDR guidance
+    eur_url = (
+        "https://eur-lex.europa.eu/search-simple-ui.json"
+        "?query=MDCG+guidance+medical+device"
+        "&type=REGULATION_GUIDANCE&GROUPBY=DOCUMENT&sortOneOrder=DD&page=1&pageSize=5"
+    )
+    body = _http_get(eur_url, timeout=TIMEOUT)
+    if not body:
+        return []
+    try:
+        data = json.loads(body)
+        results = []
+        for item in (data.get("results") or [])[:top]:
+            title = (item.get("title") or {}).get("value", "")
+            identifier = item.get("identifier", "")
+            date = item.get("date", "")
+            results.append({
+                "source": "mdcg_guidance",
+                "title": title,
+                "identifier": identifier,
+                "date": date,
+                "summary": f"[EUR-Lex MDCG] {title} ({date})",
+            })
+        return results
+    except Exception:
+        return []
+
+
+def fetch_mfds_notices(top: int = 5) -> list[dict]:
+    """Fetch recent MFDS 고시/지침 from mfds.go.kr public RSS feed.
+    Public, no auth required. ra-kr only.
+    """
+    url = "https://www.mfds.go.kr/brd/m_99/rss.do?brd_id=NOTIFICATION"
+    body = _http_get(url, timeout=TIMEOUT)
+    if not body:
+        return []
+    try:
+        # Try EUC-KR first (common for Korean government sites), fall back to UTF-8
+        try:
+            text = body.decode("euc-kr")
+        except UnicodeDecodeError:
+            text = body.decode("utf-8", errors="replace")
+        raw_items = re.findall(r"<item>(.*?)</item>", text, re.DOTALL)[:top]
+        results = []
+        for item in raw_items:
+            title_m = re.search(r"<title[^>]*>(.*?)</title>", item, re.DOTALL)
+            link_m = re.search(r"<link[^>]*>(.*?)</link>", item, re.DOTALL)
+            date_m = re.search(r"<pubDate>(.*?)</pubDate>", item, re.DOTALL)
+            title = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", title_m.group(1) if title_m else "").strip()
+            link = (link_m.group(1) if link_m else "").strip()
+            pub_date = (date_m.group(1) if date_m else "").strip()
+            title = re.sub(r"<[^>]+>", "", title).strip()
+            if not title:
+                continue
+            results.append({
+                "source": "mfds_notice",
+                "title": title,
+                "link": link,
+                "published": pub_date,
+                "summary": f"[MFDS 고시] {title} ({pub_date})",
+            })
+        return results
+    except Exception:
+        return []
+
+
+# @MX:ANCHOR: [AUTO] fetch_all — Layer 4 aggregate entry point
+# @MX:REASON: Called from hermes-api-server (chat_completions) + autonomous-study-scheduler
+def fetch_all(query: str, profile: str = "ra-us", top: int = 3, since_ts: str | None = None) -> dict:
+    """Run all applicable Layer 4 sources and return combined results.
+
+    Args:
+        query: search query string
+        profile: ra-us | ra-eu | ra-kr
+        top: results per source
+        since_ts: ISO timestamp for delta mode — filter feed items published after this time.
+            Currently applied to feed sources (cdrh_rss, mdcg_guidance, mfds_notices).
+            pgvector delta is handled by autonomous-study-scheduler, not here.
+    """
     wiki_results = fetch_llm_wiki(query, top=top)
     fda_results: list[dict] = []
+    cdrh_rss_results: list[dict] = []
+    mdcg_results: list[dict] = []
     law_results: list[dict] = []
     data_go_kr_results: list[dict] = []
+    mfds_results: list[dict] = []
 
-    # openFDA: relevant for FDA/MDR contexts (ra-us, ra-eu)
-    if profile in ("ra-us", "ra-eu", "hermes-ra"):
+    # ra-us: openFDA + CDRH guidance RSS
+    if profile in ("ra-us", "hermes-ra"):
         fda_results = fetch_openfda(query, top=top)
+        cdrh_rss_results = fetch_cdrh_guidance_rss(top=top)
+
+    # ra-eu: openFDA (MDR context) + MDCG guidance
+    if profile == "ra-eu":
+        mdcg_results = fetch_mdcg_guidance(top=top)
 
     # Korean regulatory sources: ra-kr only
     if profile == "ra-kr":
         law_results = fetch_law_kr(query, top=top)
         data_go_kr_results = fetch_data_go_kr(query, top=top)
+        mfds_results = fetch_mfds_notices(top=top)
 
     return {
         "results": {
             "llm_wiki": wiki_results,
             "openfda": fda_results,
+            "cdrh_rss": cdrh_rss_results,
+            "mdcg_guidance": mdcg_results,
             "law_kr": law_results,
             "data_go_kr": data_go_kr_results,
+            "mfds_notices": mfds_results,
         }
     }
 

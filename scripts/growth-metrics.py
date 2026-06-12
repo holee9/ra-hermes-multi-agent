@@ -393,6 +393,110 @@ def compute_escalation_precision(messages_by_session: dict[str, list[dict]],
 
 
 # ---------------------------------------------------------------------------
+# Metric 6: autonomous_study_sessions
+# Count study sessions recorded by autonomous-study-scheduler per agent
+# ---------------------------------------------------------------------------
+
+def compute_autonomous_study_sessions(messages_by_session: dict[str, list[dict]],
+                                       since: datetime, until: datetime) -> dict:
+    """
+    Count autonomous study sessions (type=study_session_complete) per agent within window.
+    autonomous_study_sessions = total study sessions completed by all agents.
+    """
+    total = 0
+    by_agent: dict[str, int] = {}
+    samples: list[dict] = []
+
+    for session_id, msgs in messages_by_session.items():
+        if "study" not in session_id:
+            continue
+        for msg in msgs:
+            try:
+                content = json.loads(msg.get("content", "{}"))
+            except (json.JSONDecodeError, TypeError):
+                continue
+            ts = content.get("ts", "")
+            if not is_within_window(ts, since, until):
+                continue
+            if content.get("type") != "study_session_complete":
+                continue
+            payload = content.get("payload", {})
+            actor = payload.get("actor", content.get("actor", "unknown"))
+            total += 1
+            by_agent[actor] = by_agent.get(actor, 0) + 1
+            if len(samples) < 5:
+                samples.append({
+                    "session": session_id,
+                    "actor": actor,
+                    "chunks_studied": payload.get("chunks_studied", 0),
+                    "insights_recorded": payload.get("insights_recorded", 0),
+                    "ts": ts,
+                })
+
+    return {
+        "value": total,
+        "numerator": total,
+        "denominator": None,
+        "by_agent": by_agent,
+        "samples": samples,
+        "direction": "up",
+        "note": "autonomous study sessions completed by all RA agents (higher = more self-study)",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Metric 7: study_insights_count
+# Count unique insights extracted and stored during autonomous study
+# ---------------------------------------------------------------------------
+
+def compute_study_insights_count(messages_by_session: dict[str, list[dict]],
+                                  since: datetime, until: datetime) -> dict:
+    """
+    Count insight records (type=study_insight) deposited to Honcho during autonomous study.
+    study_insights_count = total insight entries created within window.
+    """
+    total = 0
+    by_agent: dict[str, int] = {}
+    samples: list[dict] = []
+
+    for session_id, msgs in messages_by_session.items():
+        if "study" not in session_id:
+            continue
+        for msg in msgs:
+            try:
+                content = json.loads(msg.get("content", "{}"))
+            except (json.JSONDecodeError, TypeError):
+                continue
+            ts = content.get("ts", "")
+            if not is_within_window(ts, since, until):
+                continue
+            if content.get("type") != "study_insight":
+                continue
+            payload = content.get("payload", {})
+            actor = payload.get("actor", content.get("actor", "unknown"))
+            total += 1
+            by_agent[actor] = by_agent.get(actor, 0) + 1
+            if len(samples) < 5:
+                samples.append({
+                    "session": session_id,
+                    "actor": actor,
+                    "topic": payload.get("topic", ""),
+                    "source": payload.get("source", ""),
+                    "ts": ts,
+                })
+
+    return {
+        "value": total,
+        "numerator": total,
+        "denominator": None,
+        "by_agent": by_agent,
+        "samples": samples,
+        "direction": "up",
+        "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -429,6 +533,8 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
             "confidence_calibration": compute_confidence_calibration(messages_by_session, since, until),
             "warmstart_lift": compute_warmstart_lift(messages_by_session, since, until),
             "escalation_precision": compute_escalation_precision(messages_by_session, since, until),
+            "autonomous_study_sessions": compute_autonomous_study_sessions(messages_by_session, since, until),
+            "study_insights_count": compute_study_insights_count(messages_by_session, since, until),
         },
     }
     return metrics
