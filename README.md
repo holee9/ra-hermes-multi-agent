@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 · hermes-api-server.py 버전관리 편입 · Gitea 인덱싱 코드 추가 · Phase 2~5 로드맵 문서화** | 최종 갱신: 2026-06-11
+**Phase 1+2+3+4+5 완료 · Gitea 990소스 pgvector 인덱싱 완료 · growth-metrics systemd 타이머 배포** | 최종 갱신: 2026-06-12
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -37,7 +37,7 @@
 | 정확성·신뢰성 우선 철학 전사 이식 | ✅ 완료 (CLAUDE.md·마스터설계·구현명세·운영전략·ra-us SOUL 전 문서 반영, cold start Yellow 게이트 기본값 명시) | [#32](https://github.com/holee9/ra-hermes-multi-agent/issues/32) (closed) |
 | SaMD/SiMD 분류 보정 (ra-us/eu/kr SOUL.md) | ✅ 완료 (HnVUE=SaMD, Retrofit=SiMD 명시, SOUL.md 3종 테이블 갱신) | — |
 | Phase 2~5 로드맵 문서화 | ✅ 완료 (master-design §12-§13, implementation-spec P2-P4, operations-guide §5 갱신) | [#34](https://github.com/holee9/ra-hermes-multi-agent/issues/34)~[#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
-| Gitea API 인덱싱 지원 추가 (DR_RnD/ra-llm-wiki) | 🔄 진행 중 (index_github_repos.py Gitea REST API 코드 완료, Tailscale 연결·실 인덱싱 미완료) | [#35](https://github.com/holee9/ra-hermes-multi-agent/issues/35) |
+| Gitea API 인덱싱 지원 추가 (DR_RnD/ra-llm-wiki) | ✅ 완료 (Gitea 990 소스 pgvector 인덱싱 완료, ra_knowledge 총 1493 sources) | [#35](https://github.com/holee9/ra-hermes-multi-agent/issues/35) (closed) |
 | hermes-api-server.py 버전 관리 편입 + deploy-local.sh | ✅ 완료 (Layer 4 API 서버 git 편입, /opt/hermes-ra/ 동기화 스크립트, .env.example GITEA_URL 등 추가) | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) (연관) |
 | doc-converter NAS→pgvector 인덱싱 구현 | 🔄 진행 중 (convert.py + config.json 완료, NAS 마운트 실 테스트 미완료) | [#36](https://github.com/holee9/ra-hermes-multi-agent/issues/36) |
 | growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
