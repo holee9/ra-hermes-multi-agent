@@ -114,6 +114,15 @@ All implementation and deployment tasks must be tracked in GitHub issues.
 
 Format and flow: `.claude/rules/issue-history-protocol.md`
 
+### Session Handoff Protocol (Hard)
+
+After completing any work session, update the next-session entrypoint so work can resume without context loss.
+
+5. **After session work**: Update `memory/next-session-entrypoint.md` with completed items, blockers, and next runnable task.
+6. **Before closing**: Ensure no uncommitted changes remain (`git status` clean).
+
+Format and checklist: `.claude/rules/session-handoff-protocol.md`
+
 ---
 
 ### Gate Rules (Hard, Never Coded Around)
