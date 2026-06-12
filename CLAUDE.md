@@ -116,10 +116,12 @@ Format and flow: `.claude/rules/issue-history-protocol.md`
 
 ### Session Handoff Protocol (Hard)
 
-After completing any work session, update the next-session entrypoint so work can resume without context loss.
+After completing any work session, perform the handoff **BEFORE** delivering the completion report to the user.
 
-5. **After session work**: Update `memory/next-session-entrypoint.md` with completed items, blockers, and next runnable task.
-6. **Before closing**: Ensure no uncommitted changes remain (`git status` clean).
+Mandatory order:
+5. **Handoff first**: Update `memory/next-session-entrypoint.md` with completed items, blockers, and next runnable task.
+6. **Git clean**: Ensure no uncommitted changes remain (`git status` clean).
+7. **Then report**: Deliver the completion summary to the user only after steps 5–6 are done.
 
 Format and checklist: `.claude/rules/session-handoff-protocol.md`
 
@@ -134,6 +136,7 @@ Format and checklist: `.claude/rules/session-handoff-protocol.md`
 | **Close / Reopen WP** | **Human only — permanently** |
 | n8n workflow changes | Report first, then proceed |
 | Destructive infra actions | Human approval required |
+| **Write to llm-wiki / ra-project / MD-process repos** | **Prohibited permanently — read-only from this repo** |
 
 ---
 
@@ -161,4 +164,12 @@ Format and checklist: `.claude/rules/session-handoff-protocol.md`
 
 ## Ecosystem Position
 
-This repo is one piece of a larger RA ecosystem. Knowledge bases are separate projects (`llm-wiki`, `ra-project`, `MD-process`) — agents reference them unidirectionally; do not duplicate RAG here. The virtual office reads from this system but this system is unaware of the virtual office.
+This repo is one piece of a larger RA ecosystem.
+
+**[HARD] Knowledge bases are completely read-only from this repo:**
+- `llm-wiki`, `ra-project`, `MD-process` are separate projects maintained independently.
+- **Never write, push, upload, or supply content to these repos from ra-hermes** — not even Markdown conversion output.
+- Agents access knowledge exclusively via pgvector `ra_knowledge` (pre-indexed from these sources).
+- doc-converter writes only to pgvector `ra_knowledge`, never to any knowledge base repo.
+
+The virtual office reads from this system; this system is unaware of the virtual office.

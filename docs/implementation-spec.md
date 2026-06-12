@@ -94,7 +94,8 @@ RA 분석 결과 JSON(고정):
 ---
 
 ### 2.8 문서 변환 전처리 (doc-converter) `[구현]`
-- 역할: HWP/DOCX/PDF/PPTX/XLS 원본 → Markdown 변환 → llm-wiki(가로획 토대)에 공급. 새 조각 아닌 **llm-wiki 입력 단계**.
+- 역할: HWP/DOCX/PDF/PPTX/XLS 원본 → 텍스트 추출 → **pgvector ra_knowledge 직접 인덱싱**.
+- **[HARD] llm-wiki·ra-project·MD-process는 완전 읽기 전용 — 이 레포에서 절대 쓰지 않는다.** 이 스크립트는 pgvector에만 쓴다.
 - 도구: claude-tomd-skill(외부, Claude Code 스킬). 한국어·HWP 95, DOCX/PDF 95, Obsidian/Claude Code 98, **XLS 75(병합셀·표구조 약함)**.
 - 용도 분기: 서술형 RA 문서(심사의견·가이드라인·보고서·공문·교육자료)는 변환 적용. **XLS 구조화 데이터(검증 매트릭스·RTM)는 표 손상 위험 → 선별 적용 또는 원본 유지.**
 - 규제 안전: 변환물을 규제 판단의 유일 근거로 삼지 말 것 → 중요 사안은 원본 병행·사람 검증(기존 게이트 원칙).
@@ -161,7 +162,7 @@ RA 분석 결과 JSON(고정):
 
 - 입력: HWP/DOCX/PDF/PPTX (서술형 RA 문서)
 - 변환: claude-tomd-skill (교체 가능 설계)
-- 출력: llm-wiki 마크다운 경로 자동 적재
+- 출력: pgvector ra_knowledge 직접 인덱싱 (`source_path: nas://...` 형식, llm-wiki에 쓰지 않음)
 - XLS 처리: 표구조 손상 위험 — 선별 적용 또는 원본 유지
 - 제약: 시스템이 claude-tomd-skill에 강하게 종속되지 않도록
 

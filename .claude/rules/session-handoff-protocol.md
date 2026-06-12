@@ -75,7 +75,23 @@ git commit -m "type(#이슈번호): 작업 내용"
 1. ...
 ```
 
+## 완료 보고 순서 [HARD]
+
+**완료 보고는 반드시 핸드오프 완료 후에만 허용한다.**
+
+순서:
+1. 작업 완료
+2. memory/next-session-entrypoint.md 갱신 (체크리스트 3번)
+3. 이슈 코멘트/close (체크리스트 1번)
+4. README 갱신 (체크리스트 2번)
+5. git 커밋 — 미커밋 변경사항 없는 상태 확인 (체크리스트 4번)
+6. **이 모든 단계 완료 후에만 사용자에게 완료 보고**
+
+금지: 작업이 끝났다고 사용자에게 완료를 보고한 뒤 핸드오프를 처리하는 것.
+이유: 핸드오프 전에 세션이 종료되거나 컨텍스트 손실이 발생하면 다음 세션이 어디서 이어야 할지 불명확해진다.
+
 ## 관련 규칙
 
+- CLAUDE.md `Session Handoff Protocol` — 완료 순서 HARD 규칙
 - CLAUDE.md `Issue History Protocol` — 이슈 코멘트/close 절차
 - `.claude/rules/issue-history-protocol.md` — 코멘트 형식 상세
