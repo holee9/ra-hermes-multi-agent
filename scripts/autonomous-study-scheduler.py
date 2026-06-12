@@ -72,6 +72,7 @@ SOUL_BASE_DIR = Path(os.environ.get("SOUL_BASE_DIR", "/home/abyz-lab/.hermes/pro
 _PROFILE_MAP: dict[str, str] = {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
 
 CHECKPOINT_FILE = Path(__file__).parent / "study-checkpoint.json"
+PROGRESS_FILE = Path(__file__).parent / "study-bootstrap-progress.json"
 
 # Agents ordered for peer exchange
 AGENTS: list[dict[str, str]] = [
@@ -111,6 +112,27 @@ def load_checkpoint() -> dict:
 def save_checkpoint(data: dict) -> None:
     CHECKPOINT_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     log.info("Checkpoint saved: %s", CHECKPOINT_FILE)
+
+
+def load_bootstrap_progress() -> dict:
+    """Load per-agent batch progress for resumable bootstrap runs."""
+    if PROGRESS_FILE.exists():
+        try:
+            return json.loads(PROGRESS_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+def save_bootstrap_progress(agent_id: str, chunks_done: int, session_id: str, insights_count: int) -> None:
+    """Persist per-agent progress after each batch so bootstrap can resume on restart."""
+    progress = load_bootstrap_progress()
+    progress[agent_id] = {
+        "chunks_done": chunks_done,
+        "session_id": session_id,
+        "insights_count": insights_count,
+    }
+    PROGRESS_FILE.write_text(json.dumps(progress, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -448,17 +470,43 @@ def record_session_complete(session_id: str, agent_id: str, chunks_studied: int,
 # @MX:ANCHOR: [AUTO] study_agent — per-agent knowledge study loop
 # @MX:REASON: Called for each of 3 agents per run; also provides insights dict for peer_exchange()
 def study_agent(agent: dict, chunks: list[dict], mode: str, run_ts: str) -> dict:
-    """Run the study loop for one agent. Returns collected insights for peer exchange."""
+    """Run the study loop for one agent. Returns collected insights for peer exchange.
+
+    Bootstrap mode supports resuming from a saved progress file so a restart after
+    process death skips already-processed chunks instead of redoing the entire run.
+    """
     agent_id = agent["id"]
-    log.info("[%s] Starting %s study — %d chunks", agent_id, mode, len(chunks))
-
-    session_id = create_study_session(agent_id, mode, run_ts)
-    if not session_id:
-        log.warning("[%s] Could not create Honcho study session — skipping", agent_id)
-        return {"agent_id": agent_id, "insights": [], "session_id": None}
-
+    total_chunks = len(chunks)
     all_insights: list[dict] = []
     chunks_studied = 0
+
+    # Resume support: skip already-processed chunks on bootstrap restart
+    resume_from = 0
+    session_id: str | None = None
+    if mode == "bootstrap":
+        prev = load_bootstrap_progress().get(agent_id, {})
+        resume_from = prev.get("chunks_done", 0)
+        session_id = prev.get("session_id")
+        if resume_from > 0:
+            log.info("[%s] Resuming bootstrap from chunk %d/%d (session %s)",
+                     agent_id, resume_from, total_chunks, session_id)
+            chunks = chunks[resume_from:]
+
+    # Already fully processed on a previous run — skip entirely
+    if resume_from >= total_chunks:
+        log.info("[%s] Already fully studied (%d/%d chunks) — skipping",
+                 agent_id, resume_from, total_chunks)
+        return {"agent_id": agent_id, "insights": [], "session_id": session_id}
+
+    if not session_id:
+        log.info("[%s] Starting %s study — %d chunks", agent_id, mode, total_chunks)
+        session_id = create_study_session(agent_id, mode, run_ts)
+        if not session_id:
+            log.warning("[%s] Could not create Honcho study session — skipping", agent_id)
+            return {"agent_id": agent_id, "insights": [], "session_id": None}
+
+    total_batches = (total_chunks + CHUNK_BATCH_SIZE - 1) // CHUNK_BATCH_SIZE
+    start_batch = resume_from // CHUNK_BATCH_SIZE
 
     for i in range(0, len(chunks), CHUNK_BATCH_SIZE):
         batch = chunks[i : i + CHUNK_BATCH_SIZE]
@@ -472,13 +520,15 @@ def study_agent(agent: dict, chunks: list[dict], mode: str, run_ts: str) -> dict
             chunks_studied += 1
             time.sleep(CALL_DELAY)
 
+        batch_num = start_batch + i // CHUNK_BATCH_SIZE + 1
         log.info("[%s] Batch %d/%d done — %d insights so far",
-                 agent_id, i // CHUNK_BATCH_SIZE + 1,
-                 (len(chunks) + CHUNK_BATCH_SIZE - 1) // CHUNK_BATCH_SIZE,
-                 len(all_insights))
+                 agent_id, batch_num, total_batches, len(all_insights))
 
-    record_session_complete(session_id, agent_id, chunks_studied, len(all_insights), run_ts)
-    log.info("[%s] Study complete — %d chunks, %d insights", agent_id, chunks_studied, len(all_insights))
+        if mode == "bootstrap":
+            save_bootstrap_progress(agent_id, resume_from + chunks_studied, session_id, len(all_insights))
+
+    record_session_complete(session_id, agent_id, resume_from + chunks_studied, len(all_insights), run_ts)
+    log.info("[%s] Study complete — %d chunks, %d insights", agent_id, resume_from + chunks_studied, len(all_insights))
     return {"agent_id": agent_id, "insights": all_insights, "session_id": session_id}
 
 
@@ -570,6 +620,10 @@ def run(mode: str, dry_run: bool = False) -> None:
     # Save checkpoint
     if mode == "bootstrap":
         checkpoint["last_bootstrap_ts"] = run_ts
+        # Clear batch-level progress file — full run succeeded
+        if PROGRESS_FILE.exists():
+            PROGRESS_FILE.unlink()
+            log.info("Bootstrap progress file cleared: %s", PROGRESS_FILE)
     else:
         checkpoint["last_delta_ts"] = run_ts
     checkpoint["last_run_ts"] = run_ts
