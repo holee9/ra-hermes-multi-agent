@@ -260,6 +260,18 @@ npm test
 - XLS 처리: 표구조 손상 위험 — 선별 적용 또는 원본 유지
 - 제약: 시스템이 claude-tomd-skill에 강하게 종속되지 않도록
 
+### P2.4 source-level curriculum seed `[구현]` (#50)
+
+- 목적: 이미 `ra_knowledge`에 색인된 원천을 chunk별 LLM bootstrap보다 빠르게 담당 RA peer에 이식한다.
+- 스크립트: `scripts/curriculum-seed.py`
+- 검증: `scripts/verify-curriculum-seed.py`
+- 출력: Honcho `messages`에 clean text `curriculum_seed` 기록.
+- metadata 계약: `record_type`, `actor`, `peer_id`, `profile_id`, `curriculum_version`, `source`, `source_hash`, `chunk_count`, `sampled_chunk_count`, `matched_keywords`.
+- idempotence: `peer_name + curriculum_version + source_hash` 기준으로 이미 seed된 source를 건너뛴다.
+- 안전 장치: 프로파일 ID는 hyphen(`ra-kr`), Honcho peer ID는 underscore(`ra_kr`)로 분리한다. content는 JSON envelope 금지.
+- precision 기본값: `wiki/entities/*`는 제외한다. 엔티티 페이지는 초기 전문성 seed가 아니라 보조 context로 취급한다.
+- 2026-06-13 상태: `ra_kr` explicit KR/MFDS source 29건 seed 완료, JSON envelope 0, idempotence 확인. deriver 문서 파생은 기존 `ra_us`/`ra_eu` backlog 이후 처리된다.
+
 ---
 
 ## Phase 3: 성장 루프 계장화
