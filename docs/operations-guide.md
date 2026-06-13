@@ -151,6 +151,85 @@ python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 
 `honcho-deriver-1`는 재시작되었고, `ra_us`/`ra_eu` 정상 peer queue를 처리한다. backlog 완료 전에는 #49를 닫지 않는다.
 
+### 3.2 기존 지식베이스 빠른 이식: source curriculum seed (#50)
+
+chunk별 LLM bootstrap은 느리고 deriver queue를 크게 만든다. 이미 `ra_knowledge`에 축적된 원천은 먼저 source 단위 curriculum card로 묶어 Honcho에 clean text로 기록한다. 이 경로는 LLM을 호출하지 않으므로 빠르고, `curriculum_seed` metadata로 idempotent하게 재실행할 수 있다.
+
+실행 전 로컬 계약 검증:
+
+```bash
+python3 scripts/verify-curriculum-seed.py
+python3 scripts/verify-study-scheduler.py
+```
+
+`ra_kr` 우선 dry-run:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/curriculum-seed.py --agent ra-kr --scope explicit --limit-sources 30 --preview 30
+```
+
+정상 dry-run 기준:
+
+- `peer_id`는 `ra_kr`처럼 underscore만 사용한다.
+- 기본값은 `wiki/entities/*`를 제외한다. 초기 seed에 회사/인물 엔티티 노이즈를 섞지 않는다.
+- 이미 들어간 source hash는 `already_seeded`로 빠져야 한다.
+
+제한 실행:
+
+```bash
+python3 scripts/curriculum-seed.py --agent ra-kr --scope explicit --limit-sources 30 --preview 5 --execute --batch-size 10
+```
+
+검증 SQL:
+
+```bash
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+SELECT peer_name,
+       COUNT(*) AS seeds,
+       COUNT(*) FILTER (WHERE left(ltrim(content),1)='{') AS json_envelope,
+       COUNT(*) FILTER (
+         WHERE metadata->>'actor'='ra_kr'
+           AND metadata->>'peer_id'='ra_kr'
+           AND metadata->>'profile_id'='ra-kr'
+       ) AS correct_metadata,
+       COUNT(DISTINCT metadata->>'source_hash') AS distinct_hashes
+FROM messages
+WHERE peer_name='ra_kr'
+  AND metadata->>'record_type'='curriculum_seed'
+GROUP BY peer_name;
+"
+```
+
+2026-06-13 실제 수행 결과:
+
+| 항목 | 결과 |
+|---|---:|
+| `ra_kr` KR/MFDS explicit source candidates | 29 |
+| written `curriculum_seed` messages | 29 |
+| JSON envelope content | 0 |
+| correct metadata (`actor=ra_kr`, `peer_id=ra_kr`, `profile_id=ra-kr`) | 29 / 29 |
+| distinct source hashes | 29 |
+| idempotence dry-run after execute | `already_seeded=29`, `to_seed=0` |
+
+속도 경계:
+
+- source seed write 자체는 29건 기준 약 30초 이내에 끝난다.
+- 실제 Honcho memory/document 파생은 `honcho-deriver-1` queue 속도에 좌우된다.
+- 2026-06-13 기준 deriver는 #49 `ra_us`/`ra_eu` backlog를 먼저 처리 중이며, `ra_kr` seed는 pending queue에 정상 적재된 상태다.
+
+운영 sync 계획:
+
+| 주기 | 목적 | 작업 |
+|---|---|---|
+| Daily | 새 지식 빠른 반영 | delta 인덱싱 후 curriculum dry-run, 소량 execute, deriver backlog 확인 |
+| Weekly | 담당자별 전문성 보정 | `ra_us`/`ra_eu`/`ra_kr` explicit source seed 재검토, shared source는 선별 |
+| Monthly | 사람 평가 기반 정밀화 | 낮은 신뢰·오답 사례를 source와 연결해 SOUL/운영 규칙 갱신 |
+| Quarterly | 커버리지 감사 | FDA/EU/MFDS source gap, stale source, duplicate source hash 점검 |
+| Yearly | 규제 baseline 재인증 | 주요 법령·가이드라인·표준 개정 반영 여부를 사람 검토로 확정 |
+
+Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, weekly 이상 주기는 품질·커버리지·오염 방지에 필요하다.
+
 ---
 
 ## 4. 게이트 운영 (고정 규칙)

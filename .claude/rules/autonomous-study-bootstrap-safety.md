@@ -18,6 +18,7 @@ Never use a profile ID as a Honcho `peer_id`.
 - Confirm all Honcho writes use underscore `peer_id` values.
 - Confirm bootstrap resume keys use underscore `peer_id` values.
 - Run `python3 scripts/verify-study-scheduler.py` after any scheduler change.
+- Run `python3 scripts/verify-curriculum-seed.py` after any curriculum seed change.
 - Run bootstrap `--dry-run` with `STUDY_BOOTSTRAP_MAX=1` before any real bootstrap restart.
 - Check host processes with `ps -eo pid,ppid,etime,args`; do not rely only on sandbox-local process visibility.
 
@@ -25,6 +26,13 @@ Never use a profile ID as a Honcho `peer_id`.
 
 Any write like `"peer_id": agent_id` is forbidden when `agent_id` can contain `ra-us`,
 `ra-eu`, or `ra-kr`.
+
+Curriculum/source seed writes must follow the same contract:
+
+- Write to `ra_us`, `ra_eu`, or `ra_kr`, never `ra-us`, `ra-eu`, or `ra-kr`.
+- Keep source/chunk facts in clean text content and structured metadata.
+- Do not seed low-signal `wiki/entities/*` pages by default.
+- Re-run only through idempotent source-hash checks.
 
 Direct DB rename of wrong-peer data is also forbidden:
 
