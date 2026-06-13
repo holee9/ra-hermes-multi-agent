@@ -42,6 +42,8 @@ Therefore:
 
 ## Remediation
 
+### Code Fix
+
 - Separate `profile_id` from `peer_id` in the autonomous study scheduler.
 - Fail fast if a configured Honcho `peer_id` contains a hyphen.
 - Key bootstrap resume progress by underscore `peer_id`, not profile ID.
@@ -51,10 +53,38 @@ Therefore:
 - Add `scripts/verify-study-scheduler.py` to catch this regression without touching
   Honcho or Postgres.
 
+### Data Recovery Performed
+
+Performed on 2026-06-13 after confirming the wrong-peer bootstrap process was still
+running and continuing to write `ra-eu` records.
+
+- Stopped the active wrong-peer bootstrap process.
+- Stopped `honcho-deriver-1` before mutating affected queue/document rows.
+- Exported affected rows to local JSONL backups under `backups/issue-49/`.
+- Quarantined pending wrong-peer queue rows by marking them processed with an
+  issue #49 quarantine note.
+- Soft-deleted active derived documents where `observer` or `observed` was `ra-us`
+  or `ra-eu`.
+- Replayed 2,085 recoverable raw study insight payloads into the correct peers:
+  - `ra-us` -> `ra_us`: 1,656 messages
+  - `ra-eu` -> `ra_eu`: 429 messages
+- Replayed messages use clean text content and recovery metadata instead of the
+  original JSON envelope.
+- Restarted `honcho-deriver-1` so clean `ra_us`/`ra_eu` messages can derive normal
+  documents.
+
+Recovery script:
+
+```bash
+set -a; . scripts/.env; set +a
+python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
+```
+
 ## Side-Effect Boundary
 
-This fix does not delete, migrate, or mutate historical Honcho data. Existing polluted
-records under `ra-us` remain for a separately approved cleanup/migration step.
+The original wrong-peer messages are preserved as audit/source records. Derived
+wrong-peer documents were soft-deleted, not hard-deleted. Pending wrong-peer queue
+rows were quarantined, not physically removed.
 
 ## Required Reflection For Future Claude Code Sessions
 
@@ -64,4 +94,5 @@ Before touching Hermes autonomous learning code, verify these invariants:
 2. Honcho `peer_id` values must be underscore IDs.
 3. Bootstrap progress must not resume from legacy hyphen peer keys.
 4. Honcho message content should be memory-derivable domain text, not raw JSON envelopes.
-5. Database cleanup is a separate operation requiring explicit approval.
+5. Do not directly rename wrong-peer documents into correct peers; recover from raw
+   payloads and replay as clean text.
