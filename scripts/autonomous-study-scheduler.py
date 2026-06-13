@@ -4,7 +4,7 @@ Modes:
   bootstrap  First run: study all pgvector ra_knowledge chunks per agent.
   delta      Incremental run: only chunks added/updated since last checkpoint.
 
-Per agent (ra-us/ra-eu/ra-kr):
+Per agent (profiles ra-us/ra-eu/ra-kr, Honcho peers ra_us/ra_eu/ra_kr):
   1. Pull relevant chunks from pgvector ra_knowledge (filtered by profile region).
   2. For each chunk batch, send a study prompt to hermes-api-server (/v1/chat/completions).
   3. Parse extracted insights from the response.
@@ -76,10 +76,56 @@ PROGRESS_FILE = Path(__file__).parent / "study-bootstrap-progress.json"
 
 # Agents ordered for peer exchange
 AGENTS: list[dict[str, str]] = [
-    {"id": "ra-us", "model": "ra_us", "region": "US", "name": "Mike"},
-    {"id": "ra-eu", "model": "ra_eu", "region": "EU", "name": "Theo"},
-    {"id": "ra-kr", "model": "ra_kr", "region": "KR", "name": "Sam"},
+    {
+        "id": "ra-us",
+        "profile_id": "ra-us",
+        "peer_id": "ra_us",
+        "model": "ra_us",
+        "region": "US",
+        "name": "Mike",
+    },
+    {
+        "id": "ra-eu",
+        "profile_id": "ra-eu",
+        "peer_id": "ra_eu",
+        "model": "ra_eu",
+        "region": "EU",
+        "name": "Theo",
+    },
+    {
+        "id": "ra-kr",
+        "profile_id": "ra-kr",
+        "peer_id": "ra_kr",
+        "model": "ra_kr",
+        "region": "KR",
+        "name": "Sam",
+    },
 ]
+
+
+def validate_agent_config() -> None:
+    """Fail fast if profile IDs are confused with Honcho peer IDs."""
+    failures: list[str] = []
+    seen_peer_ids: set[str] = set()
+    for agent in AGENTS:
+        profile_id = agent.get("profile_id") or agent.get("id", "")
+        peer_id = agent.get("peer_id", "")
+        model = agent.get("model", "")
+        if not profile_id or "-" not in profile_id:
+            failures.append(f"{agent}: profile_id must use the hyphen profile convention")
+        if not peer_id or "-" in peer_id:
+            failures.append(f"{agent}: peer_id must use the underscore Honcho data contract")
+        if peer_id != model:
+            failures.append(f"{agent}: peer_id must match model/aiPeer ({model})")
+        if profile_id == peer_id:
+            failures.append(f"{agent}: profile_id and peer_id must be distinct")
+        if peer_id in seen_peer_ids:
+            failures.append(f"{agent}: duplicate peer_id {peer_id}")
+        seen_peer_ids.add(peer_id)
+        if profile_id not in REGION_FILTER:
+            failures.append(f"{agent}: missing REGION_FILTER for profile_id {profile_id}")
+    if failures:
+        raise RuntimeError("Invalid autonomous study agent config: " + "; ".join(failures))
 
 # SQL region filters per agent — matches tags/source fields used at index time
 REGION_FILTER: dict[str, list[str]] = {
@@ -124,10 +170,10 @@ def load_bootstrap_progress() -> dict:
     return {}
 
 
-def save_bootstrap_progress(agent_id: str, chunks_done: int, session_id: str, insights_count: int) -> None:
+def save_bootstrap_progress(peer_id: str, chunks_done: int, session_id: str, insights_count: int) -> None:
     """Persist per-agent progress after each batch so bootstrap can resume on restart."""
     progress = load_bootstrap_progress()
-    progress[agent_id] = {
+    progress[peer_id] = {
         "chunks_done": chunks_done,
         "session_id": session_id,
         "insights_count": insights_count,
@@ -241,7 +287,7 @@ def build_study_prompt(agent: dict, chunk: dict) -> str:
     """Build the study prompt for a single knowledge chunk."""
     agent_name = agent["name"]
     region = agent["region"]
-    source = chunk.get("source", "unknown")
+    source = chunk.get("source_path") or chunk.get("source") or "unknown"
     content = chunk.get("content", "")
     return (
         f"[자율 학습 세션] {agent_name}({region} RA 전문가)로서 아래 지식베이스 내용을 분석해주세요.\n\n"
@@ -347,13 +393,15 @@ def honcho_post(path: str, body: dict) -> dict | None:
         return None
 
 
-def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
+def create_study_session(agent: dict, mode: str, run_ts: str) -> str | None:
     """Get or create a Honcho session for this study run, return session id or None.
 
     Idempotent: if a session with today's name already exists, reuse it to avoid
     duplicate session records on repeated bootstrap runs within the same day.
     """
-    session_name = f"study-{agent_id}-{mode}-{run_ts[:10]}"
+    profile_id = agent["profile_id"]
+    peer_id = agent["peer_id"]
+    session_name = f"study-{peer_id}-{mode}-{run_ts[:10]}"
     # Check if session already exists (idempotency guard)
     try:
         resp = requests.get(
@@ -361,7 +409,7 @@ def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
             timeout=10,
         )
         if resp.status_code == 200:
-            log.info("[%s] Reusing existing study session: %s", agent_id, session_name)
+            log.info("[%s] Reusing existing study session: %s", peer_id, session_name)
             return session_name
     except Exception:
         pass  # Fall through to create
@@ -371,7 +419,9 @@ def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
         {
             "id": session_name,
             "metadata": {
-                "actor": agent_id,
+                "actor": peer_id,
+                "peer_id": peer_id,
+                "profile_id": profile_id,
                 "session_type": "autonomous_study",
                 "mode": mode,
                 "run_ts": run_ts,
@@ -381,83 +431,128 @@ def create_study_session(agent_id: str, mode: str, run_ts: str) -> str | None:
     return (data or {}).get("id")
 
 
-def record_insight(session_id: str, agent_id: str, chunk: dict,
+def _clean_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _confidence(value: Any) -> float:
+    try:
+        return max(0.0, min(1.0, float(value)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def format_insight_content(agent: dict, chunk: dict, insight: dict, run_ts: str) -> str:
+    """Format a study insight for Honcho memory derivation."""
+    source = chunk.get("source_path") or chunk.get("source") or "unknown"
+    return "\n".join([
+        "Regulatory knowledge seed",
+        f"Audience: {agent['name']} ({agent['region']} RA)",
+        f"Topic: {_clean_text(insight.get('topic'))}",
+        f"Finding: {_clean_text(insight.get('finding'))}",
+        f"Regulatory relevance: {_clean_text(insight.get('relevance'))}",
+        f"Operational hint: {_clean_text(insight.get('action_hint'))}",
+        f"Confidence: {_confidence(insight.get('confidence')):.2f}",
+        f"Source: {_clean_text(source)}",
+        f"Chunk ID: {_clean_text(chunk.get('id'))}",
+        f"Run timestamp: {run_ts}",
+    ])
+
+
+def format_peer_insight_content(target_agent: dict, source_agent: dict,
+                                insight: dict, run_ts: str) -> str:
+    """Format a peer exchange insight without a JSON envelope."""
+    return "\n".join([
+        "Cross-region regulatory knowledge seed",
+        f"Audience: {target_agent['name']} ({target_agent['region']} RA)",
+        f"Source perspective: {source_agent['name']} ({source_agent['region']} RA)",
+        f"Topic: {_clean_text(insight.get('topic'))}",
+        f"Finding: {_clean_text(insight.get('finding'))}",
+        f"Regulatory relevance: {_clean_text(insight.get('relevance'))}",
+        f"Operational hint: {_clean_text(insight.get('action_hint'))}",
+        f"Confidence: {_confidence(insight.get('confidence')):.2f}",
+        f"Run timestamp: {run_ts}",
+    ])
+
+
+def record_insight(session_id: str, agent: dict, chunk: dict,
                    insight: dict, run_ts: str) -> None:
     """Record a single extracted insight as a Honcho message."""
+    profile_id = agent["profile_id"]
+    peer_id = agent["peer_id"]
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
             "messages": [{
-                "content": json.dumps({
-                    "ts": run_ts,
-                    "type": "study_insight",
-                    "actor": agent_id,
-                    "payload": {
-                        "actor": agent_id,
-                        "source": chunk.get("source_path", ""),
-                        "chunk_id": str(chunk.get("id", "")),
-                        "topic": insight.get("topic", ""),
-                        "finding": insight.get("finding", ""),
-                        "relevance": insight.get("relevance", ""),
-                        "confidence": insight.get("confidence", 0.0),
-                        "action_hint": insight.get("action_hint", ""),
-                    },
-                }, ensure_ascii=False),
-                "peer_id": agent_id,
-                "metadata": {"record_type": "study_insight", "actor": agent_id},
+                "content": format_insight_content(agent, chunk, insight, run_ts),
+                "peer_id": peer_id,
+                "metadata": {
+                    "record_type": "study_insight",
+                    "actor": peer_id,
+                    "peer_id": peer_id,
+                    "profile_id": profile_id,
+                    "source": chunk.get("source_path", ""),
+                    "chunk_id": str(chunk.get("id", "")),
+                    "topic": insight.get("topic", ""),
+                    "confidence": _confidence(insight.get("confidence")),
+                },
             }],
         },
     )
 
 
-def record_peer_insight(session_id: str, target_agent: str, source_agent: str,
+def record_peer_insight(session_id: str, target_agent: dict, source_agent: dict,
                         insight: dict, run_ts: str) -> None:
     """Record a peer-exchanged insight to the target agent's study session."""
+    target_peer_id = target_agent["peer_id"]
+    source_peer_id = source_agent["peer_id"]
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
             "messages": [{
-                "content": json.dumps({
-                    "ts": run_ts,
-                    "type": "study_insight",
-                    "actor": target_agent,
-                    "payload": {
-                        "actor": target_agent,
-                        "source_agent": source_agent,
-                        "topic": insight.get("topic", ""),
-                        "finding": insight.get("finding", ""),
-                        "relevance": insight.get("relevance", ""),
-                        "confidence": insight.get("confidence", 0.0),
-                        "action_hint": insight.get("action_hint", ""),
-                        "peer_exchange": True,
-                    },
-                }, ensure_ascii=False),
-                "peer_id": target_agent,
-                "metadata": {"record_type": "study_insight", "actor": target_agent, "peer_exchange": True},
+                "content": format_peer_insight_content(target_agent, source_agent, insight, run_ts),
+                "peer_id": target_peer_id,
+                "metadata": {
+                    "record_type": "study_insight",
+                    "actor": target_peer_id,
+                    "peer_id": target_peer_id,
+                    "profile_id": target_agent["profile_id"],
+                    "source_agent": source_peer_id,
+                    "peer_exchange": True,
+                    "topic": insight.get("topic", ""),
+                    "confidence": _confidence(insight.get("confidence")),
+                },
             }],
         },
     )
 
 
-def record_session_complete(session_id: str, agent_id: str, chunks_studied: int,
+def record_session_complete(session_id: str, agent: dict, chunks_studied: int,
                              insights_recorded: int, run_ts: str) -> None:
     """Record a study_session_complete summary message."""
+    profile_id = agent["profile_id"]
+    peer_id = agent["peer_id"]
+    content = "\n".join([
+        "Autonomous study session complete",
+        f"Audience: {agent['name']} ({agent['region']} RA)",
+        f"Chunks studied: {chunks_studied}",
+        f"Insights recorded: {insights_recorded}",
+        f"Run timestamp: {run_ts}",
+    ])
     honcho_post(
         f"/v3/workspaces/{HONCHO_WS}/sessions/{session_id}/messages",
         {
             "messages": [{
-                "content": json.dumps({
-                    "ts": run_ts,
-                    "type": "study_session_complete",
-                    "actor": agent_id,
-                    "payload": {
-                        "actor": agent_id,
-                        "chunks_studied": chunks_studied,
-                        "insights_recorded": insights_recorded,
-                    },
-                }, ensure_ascii=False),
-                "peer_id": agent_id,
-                "metadata": {"record_type": "study_session_complete", "actor": agent_id},
+                "content": content,
+                "peer_id": peer_id,
+                "metadata": {
+                    "record_type": "study_session_complete",
+                    "actor": peer_id,
+                    "peer_id": peer_id,
+                    "profile_id": profile_id,
+                    "chunks_studied": chunks_studied,
+                    "insights_recorded": insights_recorded,
+                },
             }],
         },
     )
@@ -475,7 +570,8 @@ def study_agent(agent: dict, chunks: list[dict], mode: str, run_ts: str) -> dict
     Bootstrap mode supports resuming from a saved progress file so a restart after
     process death skips already-processed chunks instead of redoing the entire run.
     """
-    agent_id = agent["id"]
+    profile_id = agent["profile_id"]
+    peer_id = agent["peer_id"]
     total_chunks = len(chunks)
     all_insights: list[dict] = []
     chunks_studied = 0
@@ -484,26 +580,38 @@ def study_agent(agent: dict, chunks: list[dict], mode: str, run_ts: str) -> dict
     resume_from = 0
     session_id: str | None = None
     if mode == "bootstrap":
-        prev = load_bootstrap_progress().get(agent_id, {})
+        prev = load_bootstrap_progress().get(peer_id, {})
         resume_from = prev.get("chunks_done", 0)
         session_id = prev.get("session_id")
         if resume_from > 0:
             log.info("[%s] Resuming bootstrap from chunk %d/%d (session %s)",
-                     agent_id, resume_from, total_chunks, session_id)
+                     peer_id, resume_from, total_chunks, session_id)
             chunks = chunks[resume_from:]
 
     # Already fully processed on a previous run — skip entirely
     if resume_from >= total_chunks:
         log.info("[%s] Already fully studied (%d/%d chunks) — skipping",
-                 agent_id, resume_from, total_chunks)
-        return {"agent_id": agent_id, "insights": [], "session_id": session_id}
+                 peer_id, resume_from, total_chunks)
+        return {
+            "agent": agent,
+            "agent_id": peer_id,
+            "profile_id": profile_id,
+            "insights": [],
+            "session_id": session_id,
+        }
 
     if not session_id:
-        log.info("[%s] Starting %s study — %d chunks", agent_id, mode, total_chunks)
-        session_id = create_study_session(agent_id, mode, run_ts)
+        log.info("[%s] Starting %s study — %d chunks", peer_id, mode, total_chunks)
+        session_id = create_study_session(agent, mode, run_ts)
         if not session_id:
-            log.warning("[%s] Could not create Honcho study session — skipping", agent_id)
-            return {"agent_id": agent_id, "insights": [], "session_id": None}
+            log.warning("[%s] Could not create Honcho study session — skipping", peer_id)
+            return {
+                "agent": agent,
+                "agent_id": peer_id,
+                "profile_id": profile_id,
+                "insights": [],
+                "session_id": None,
+            }
 
     total_batches = (total_chunks + CHUNK_BATCH_SIZE - 1) // CHUNK_BATCH_SIZE
     start_batch = resume_from // CHUNK_BATCH_SIZE
@@ -515,21 +623,29 @@ def study_agent(agent: dict, chunks: list[dict], mode: str, run_ts: str) -> dict
             raw = call_hermes(agent, prompt)
             insights = extract_insights(raw)
             for insight in insights:
-                record_insight(session_id, agent_id, chunk, insight, run_ts)
+                if not isinstance(insight, dict):
+                    continue
+                record_insight(session_id, agent, chunk, insight, run_ts)
                 all_insights.append(insight)
             chunks_studied += 1
             time.sleep(CALL_DELAY)
 
         batch_num = start_batch + i // CHUNK_BATCH_SIZE + 1
         log.info("[%s] Batch %d/%d done — %d insights so far",
-                 agent_id, batch_num, total_batches, len(all_insights))
+                 peer_id, batch_num, total_batches, len(all_insights))
 
         if mode == "bootstrap":
-            save_bootstrap_progress(agent_id, resume_from + chunks_studied, session_id, len(all_insights))
+            save_bootstrap_progress(peer_id, resume_from + chunks_studied, session_id, len(all_insights))
 
-    record_session_complete(session_id, agent_id, resume_from + chunks_studied, len(all_insights), run_ts)
-    log.info("[%s] Study complete — %d chunks, %d insights", agent_id, resume_from + chunks_studied, len(all_insights))
-    return {"agent_id": agent_id, "insights": all_insights, "session_id": session_id}
+    record_session_complete(session_id, agent, resume_from + chunks_studied, len(all_insights), run_ts)
+    log.info("[%s] Study complete — %d chunks, %d insights", peer_id, resume_from + chunks_studied, len(all_insights))
+    return {
+        "agent": agent,
+        "agent_id": peer_id,
+        "profile_id": profile_id,
+        "insights": all_insights,
+        "session_id": session_id,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -540,12 +656,14 @@ def peer_exchange(agent_results: list[dict], run_ts: str) -> None:
     """Cross-inject top insights between agents to build cross-regional awareness."""
     # Build a session for peer exchange per target agent
     for result in agent_results:
+        target_agent = result["agent"]
         target_id = result["agent_id"]
         session_id = result.get("session_id")
         if not session_id:
             continue
 
         for source_result in agent_results:
+            source_agent = source_result["agent"]
             source_id = source_result["agent_id"]
             if source_id == target_id:
                 continue
@@ -553,7 +671,7 @@ def peer_exchange(agent_results: list[dict], run_ts: str) -> None:
             # Share top 5 insights (by confidence) from each peer
             top = sorted(insights, key=lambda x: x.get("confidence", 0), reverse=True)[:5]
             for insight in top:
-                record_peer_insight(session_id, target_id, source_id, insight, run_ts)
+                record_peer_insight(session_id, target_agent, source_agent, insight, run_ts)
 
         log.info("[%s] Peer exchange complete — received insights from peers", target_id)
 
@@ -563,6 +681,8 @@ def peer_exchange(agent_results: list[dict], run_ts: str) -> None:
 # ---------------------------------------------------------------------------
 
 def run(mode: str, dry_run: bool = False) -> None:
+    validate_agent_config()
+
     # Pre-flight: abort early on missing required env vars
     if not PG_DSN:
         log.error(
@@ -596,15 +716,29 @@ def run(mode: str, dry_run: bool = False) -> None:
 
     agent_results: list[dict] = []
     for agent in AGENTS:
-        chunks = fetch_chunks_for_agent(agent["id"], since_ts=since_ts, limit=chunk_limit)
+        profile_id = agent["profile_id"]
+        peer_id = agent["peer_id"]
+        chunks = fetch_chunks_for_agent(profile_id, since_ts=since_ts, limit=chunk_limit)
         if not chunks:
-            log.info("[%s] No chunks to study — skipping", agent["id"])
-            agent_results.append({"agent_id": agent["id"], "insights": [], "session_id": None})
+            log.info("[%s] No chunks to study — skipping", peer_id)
+            agent_results.append({
+                "agent": agent,
+                "agent_id": peer_id,
+                "profile_id": profile_id,
+                "insights": [],
+                "session_id": None,
+            })
             continue
         if dry_run:
-            log.info("[%s] DRY-RUN: would study %d chunks (no Honcho writes)", agent["id"], len(chunks))
-            agent_results.append({"agent_id": agent["id"], "insights": [], "session_id": None,
-                                   "_dry_chunk_count": len(chunks)})
+            log.info("[%s] DRY-RUN: would study %d chunks (no Honcho writes)", peer_id, len(chunks))
+            agent_results.append({
+                "agent": agent,
+                "agent_id": peer_id,
+                "profile_id": profile_id,
+                "insights": [],
+                "session_id": None,
+                "_dry_chunk_count": len(chunks),
+            })
             continue
         result = study_agent(agent, chunks, mode, run_ts)
         agent_results.append(result)
