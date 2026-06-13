@@ -36,10 +36,14 @@ bash profiles/setup.sh
 | 프로파일 | aiPeer (정확한 값) | 오류 예시 (사용 금지) |
 |---------|------------------|-------------------|
 | ra-us | `ra_us` | ~~`ra-us`~~ |
+| ra-eu | `ra_eu` | ~~`ra-eu`~~ |
+| ra-kr | `ra_kr` | ~~`ra-kr`~~ |
 | op-manager | `op_manager` | ~~`op-manager`~~ |
 | infra-t3610 | `infra_t3610` | ~~`infra-t3610`~~ |
 
 `profiles/setup.sh` 는 프로파일 ID(하이픈)를 자동으로 언더스코어로 변환합니다.
+
+> **P0 회귀 방지 (#49)**: 자율 학습·bootstrap·replay·Honcho 직접 기록 코드에서는 프로파일 ID와 Honcho peer ID를 반드시 분리한다. `peer_id`에 `ra-us`, `ra-eu`, `ra-kr`가 들어가는 순간 wrong peer가 생성되고, 메모리·문서·queue가 분리 오염된다. 이 경우 직접 rename하지 말고 raw payload를 clean text로 replay한다.
 
 ### 2.1b Honcho 피어 수동 등록
 
@@ -86,6 +90,66 @@ curl -s -X POST "http://localhost:8000/v3/workspaces/infra/peers" \
 5. 가중치는 평가가 사안 영역별로 사후 조정(앞에서 설계 안 함).
 
 > 무평가 결정 = 중립(가중치 불변). 평가된 것만 학습에 사용.
+
+### 3.1 자율 학습 bootstrap 운영 규칙 (#49 이후)
+
+자율 학습 bootstrap은 대량 Honcho write와 deriver queue를 발생시키므로, 실행 전 반드시 아래 preflight를 통과해야 한다.
+
+```bash
+cd /home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent
+python3 scripts/verify-study-scheduler.py
+
+SCRIPT_DIR="$PWD/scripts"
+set -a && . "$SCRIPT_DIR/.env" && set +a
+STUDY_BOOTSTRAP_MAX=1 python3 "$SCRIPT_DIR/autonomous-study-scheduler.py" bootstrap --dry-run
+```
+
+정상 dry-run 로그는 `ra_us`, `ra_eu`, `ra_kr`처럼 언더스코어 peer ID를 보여야 한다. `ra-us`, `ra-eu`, `ra-kr`가 Honcho write 대상처럼 보이면 즉시 중단한다.
+
+#### 실행 중 확인
+
+프로덕션 T3610에서는 sandbox 안의 PID 조회가 실제 프로세스를 놓칠 수 있다. 반드시 host 기준으로 확인한다.
+
+```bash
+ps -eo pid,ppid,etime,args | rg 'autonomous-study-scheduler|claude -p'
+tail -80 /tmp/hermes-bootstrap.log
+```
+
+#### 오염 발생 시 즉시 절차
+
+1. wrong-peer bootstrap 프로세스와 child `claude -p`를 먼저 종료한다.
+2. `honcho-deriver-1`를 중지해 pending queue가 더 이상 wrong-peer documents를 만들지 못하게 한다.
+3. affected `messages`/`documents`/`queue`/`sessions`를 JSONL로 백업한다.
+4. wrong-peer pending queue는 `processed=true`와 quarantine note로 격리한다.
+5. wrong-peer derived documents는 soft-delete 또는 quarantine한다. 정상 peer로 직접 이동하지 않는다.
+6. raw `study_insight` JSON payload에서 `topic`/`finding`/`relevance`/`source`/`chunk_id`만 추출해 clean text로 정상 peer에 replay한다.
+7. `honcho-deriver-1`를 재시작하고 정상 peer queue 처리 상태를 모니터링한다.
+
+복구 replay는 idempotent 스크립트를 사용한다.
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/replay-study-insights-issue49.py          # dry-run
+python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
+```
+
+직접 SQL로 `peer_name='ra-us'`를 `peer_name='ra_us'`로 바꾸는 방식은 금지한다. content 내부 actor, session name, embeddings, derived documents가 함께 오염되어 정상 peer에 meta-memory를 이식할 위험이 있다.
+
+#### #49 실제 복구 상태
+
+2026-06-13 기준 복구 결과:
+
+| 항목 | 결과 |
+|---|---:|
+| wrong-peer source messages 백업 | 2,086 rows |
+| wrong-peer queue 백업 | 1,573 rows |
+| wrong-peer documents 백업 | 7,862 rows |
+| clean replay to `ra_us` | 1,656 messages |
+| clean replay to `ra_eu` | 429 messages |
+| replay JSON envelope | 0 |
+| wrong-peer active documents 최종 확인 | 0 |
+
+`honcho-deriver-1`는 재시작되었고, `ra_us`/`ra_eu` 정상 peer queue를 처리한다. backlog 완료 전에는 #49를 닫지 않는다.
 
 ---
 
