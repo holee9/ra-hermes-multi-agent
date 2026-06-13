@@ -1,7 +1,11 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const { pathToFileURL } = require('url');
 
-const HTML_URL = 'file:///home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent/virtual-office/virtual-office.html';
+const HTML_URL = pathToFileURL(
+  path.join(__dirname, '..', 'virtual-office', 'virtual-office.html')
+).href;
 
 // ──────────────────────────────────────────────────────────────
 // Suite 1: 초기 로드 (Initial Load)

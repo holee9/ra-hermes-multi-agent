@@ -1,7 +1,7 @@
 # RA Hermes 멀티 에이전트 시스템
 
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
-> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-11.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-13.
 
 **[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md)
 
@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1+2+3+4+5 완료 · 에이전트 자율 학습 루프 구현(Layer 4 7소스 + Bootstrap/Delta 스케줄러 + 피어 교환)** | 최종 갱신: 2026-06-12
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · 안전/QA 하드닝 레포 반영** | 최종 갱신: 2026-06-13
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -43,7 +43,11 @@
 | growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
 | 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
-| virtual-office Playwright E2E 테스트 추가 | ✅ 완료 (4 Suite 13 테스트 케이스 — 초기로드·재생컨트롤·이벤트재생·속도변경) | — |
+| mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
+| 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
+| n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
+| npm test 품질 게이트 복구 | ✅ 완료 (`test:static` + Playwright E2E 11건) | [#46](https://github.com/holee9/ra-hermes-multi-agent/issues/46) |
+| 문서 상태 불일치 정리 | ✅ 완료 (README·설계·운영·생태계·상태 문서 동기화) | [#47](https://github.com/holee9/ra-hermes-multi-agent/issues/47) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
@@ -62,18 +66,18 @@
 
 > `honcho.json` `aiPeer` 값은 모두 언더스코어 형식(frozen 데이터 계약 준수). `undefined` spurious 피어는 DB 직접 삭제 필요 (사용 가이드 §10 참조).
 
-### 골격 구현 포함 항목 (배포·연결 대기 중)
+### 주요 구현 항목
 
 | 컴포넌트 | 파일 | 상태 |
 |---|---|---|
-| Honcho 서버 설정 | `honcho/docker-compose.yml`, `init-vector-dim.sql`, `init-workspaces.sh` | 설정 완료, T3610 배포 진행 중 |
-| RA 프로파일 템플릿 | `profiles/honcho-config-templates/` 8종 | 완료 — #3 완료 후 Honcho API에 생성 |
-| SOUL.md 페르소나 | `profiles/souls/` 6종 (ra-us/eu/kr, op/n8n-manager, infra) | 완료 — #4 완료 후 세션 이식 |
-| mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` (17K) | 완료 — #4 완료 후 RPi n8n import |
-| 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` (7.6K) | 완료, relay_conditions는 [IF] |
-| 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` (5.1K) | 완료, 가중치 공식은 [IF] |
+| Honcho 서버 설정 | `honcho/docker-compose.yml`, `init-vector-dim.sql`, `init-workspaces.sh` | 완료, T3610 배포 완료 |
+| RA 프로파일 템플릿 | `profiles/honcho-config-templates/` 8종 | 완료 |
+| SOUL.md 페르소나 | `profiles/souls/` 6종 (ra-us/eu/kr, op/n8n-manager, infra) | 완료 |
+| mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` | 완료, #43/#44/#45 안전 게이트 레포 반영 — RPi n8n 재import 필요 |
+| 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` | 완료, relay 조건 env/config 외부화(#45) |
+| 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` | 완료, 가중치 공식 env/config 외부화(#45) |
 | 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
-| 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료 — Honcho 실데이터 연결 대기 |
+| 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 
@@ -157,10 +161,11 @@ ra-hermes-multi-agent/
 │   ├── hermes-api-server.py         # Layer 4 규제 API 서버 (openFDA/law.go.kr/data.go.kr) — 버전 관리 편입
 │   ├── deploy-local.sh              # git scripts/ → /opt/hermes-ra/ 동기화 (--dry-run 지원)
 │   ├── index_github_repos.py        # GitHub + Gitea 레포 → pgvector 인덱싱 (DR_RnD/ra-llm-wiki 포함)
+│   ├── verify-workflows.js          # n8n JSON/Code node 정적 검증
 │   └── ...                          # 기타 자동화 17종
 │
 ├── e2e/                             # Playwright E2E 테스트 (virtual-office)
-│   └── virtual-office.spec.js       # 4 Suite 13 테스트 케이스
+│   └── virtual-office.spec.js       # 4 Suite 11 테스트 케이스
 │
 ├── virtual-office/                  # 가상오피스 (자기완결)
 │   ├── Dockerfile                   # Docker 단일 컨테이너 빌드

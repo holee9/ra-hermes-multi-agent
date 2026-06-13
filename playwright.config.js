@@ -1,5 +1,17 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
+const fs = require('fs');
+
+const launchOptions = {
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+};
+
+const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+  || ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium'].find((candidate) => fs.existsSync(candidate));
+
+if (chromiumExecutable) {
+  launchOptions.executablePath = chromiumExecutable;
+}
 
 module.exports = defineConfig({
   testDir: './e2e',
@@ -10,10 +22,7 @@ module.exports = defineConfig({
 
   use: {
     headless: true,
-    launchOptions: {
-      executablePath: '/usr/bin/chromium-browser',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    },
+    launchOptions,
   },
 
   projects: [

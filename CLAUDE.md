@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **RA Hermes Multi-Agent** — A learning multi-agent system for medical device regulatory affairs (RA). Automates email triage and work package management via AI agents that grow smarter through human feedback.
 
-Current status: **MVP skeleton implemented. T3610 deployment in progress.**
+Current status: **MVP deployed, growth loop implemented, and safety/QA hardening reflected in repo. n8n runtime re-import is still required for the latest workflow hardening.**
 
 ---
 

@@ -5,6 +5,39 @@
 
 ---
 
+## 점검 기록 #4 — 2026-06-13
+
+### 전수 리뷰 후 하드닝 구현
+
+#### 기준선
+
+- 신규 품질 이슈: #43~#47 등록.
+- 운영 후속 오픈: #2(RULE), #37(Layer 4 mail-triage 연결), #39(인프라 투표 활성화), #40~#41(확장), #43~#45(n8n 운영 import/E2E).
+- 완료 처리 대상: #46(`npm test` 품질 게이트), #47(문서 동기화).
+
+#### 변경된 구현
+
+| 이슈 | 변경 |
+|------|------|
+| #43 | `mail-triage.json`에 Yellow confidence 게이트, 파싱 실패/저신뢰 사람 알림 payload, 선택 Webhook 전송 경로 추가 |
+| #44 | 기존 WP 매칭 시 OpenProject 상태 조회·검증을 추가하고, 종료/조회 실패/불명 상태는 Yellow 사람 검토로 전환 |
+| #45 | n8n workflow의 OpenProject/Honcho URL, 브릿지 relay 조건, feedback 가중치 설정을 env/config 입력으로 외부화 |
+| #46 | `npm test`를 정적 검증 + Playwright E2E로 복구하고 n8n Code node 컴파일 검증 스크립트 추가 |
+| #47 | README, CLAUDE, 설계서, 운영 가이드, 생태계 지도, 상태 기록의 완료/대기 표현 동기화 |
+
+#### 검증
+
+- `npm run test:static`: 통과.
+- `npm test`: 통과. Playwright 11/11 테스트 통과.
+- Playwright 브라우저 설치는 Ubuntu 26.04 환경에서 공식 chromium 패키지 미지원으로 실패했으며, 로컬 `/usr/bin/chromium-browser` 실행 경로로 검증했다.
+
+#### 남은 운영 작업
+
+- #43~#45 변경 workflow를 RPi n8n에 import하고 실제 알림/Webhook/OP 상태 조회 경로를 E2E 검증.
+- #37 Layer 4 API를 mail-triage 실시간 질의 경로에 연결.
+- #39 인프라 투표 브로드캐스트와 vote-rules 운영 초기값 확정.
+- #40~#41 확장 트리거는 성장 지표 운영 데이터 누적 후 사람 판단으로 진행.
+
 ## 점검 기록 #3 — 2026-06-11
 
 ### .env 점검 및 인프라 정보 반영
