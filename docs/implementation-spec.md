@@ -272,6 +272,19 @@ npm test
 - precision 기본값: `wiki/entities/*`는 제외한다. 엔티티 페이지는 초기 전문성 seed가 아니라 보조 context로 취급한다.
 - 2026-06-13 상태: `ra_kr` explicit KR/MFDS source 29건 seed 완료, JSON envelope 0, idempotence 확인. deriver 문서 파생은 기존 `ra_us`/`ra_eu` backlog 이후 처리된다.
 
+### P2.5 daily KB-driven growth runner `[구현]` (#51)
+
+- 목적: 메일이 몇 달간 없어도 RA 담당자가 매일 지식베이스 기반으로 성장하도록 한다.
+- 스크립트: `scripts/daily-growth-runner.py`
+- 검증: `scripts/verify-daily-growth-runner.py`
+- 기본값: dry-run only. 자동 실행은 수동 성장/backlog 완료 전 금지한다.
+- execute gate: `--execute`만으로는 실행되지 않는다. `--manual-growth-complete`가 필요하며, `--max-pending` 이하로 queue가 줄어야 한다.
+- 출력 계획: 담당자별 daily regulatory case, source path, source hash, matched keywords, queue status, self docs, cadence.
+- Honcho write record: `daily_growth_case` clean text message. JSON envelope 금지.
+- metadata 계약: `record_type`, `actor`, `peer_id`, `profile_id`, `growth_version`, `run_date`, `scenario_id`, `source`, `source_hash`.
+- source precision: 너무 넓은 `CE`, `US`, `KR`, `Korea` 단독 키워드는 daily case routing에서 제외한다. MDR/FDA/MFDS/KGMP처럼 신호가 강한 키워드를 우선한다.
+- 성장 루틴: daily KB delta/case, weekly peer-review replay, monthly human-feedback review, quarterly source freshness audit.
+
 ---
 
 ## Phase 3: 성장 루프 계장화

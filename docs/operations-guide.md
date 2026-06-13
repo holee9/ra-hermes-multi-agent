@@ -230,6 +230,57 @@ GROUP BY peer_name;
 
 Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, weekly 이상 주기는 품질·커버리지·오염 방지에 필요하다.
 
+### 3.3 메일 비의존 daily growth runner (#51)
+
+메일은 입력 채널 중 하나일 뿐이다. 메일이 없어도 담당자 성장은 매일 돌아가야 한다. 이를 위해 `daily-growth-runner.py`는 `ra_knowledge`에서 담당자별 source를 회전 선택하고 daily regulatory case를 계획한다.
+
+현재 정책:
+
+- 수동 성장과 deriver backlog가 끝나기 전에는 자동 실행하지 않는다.
+- 기본 실행은 dry-run이다.
+- `--execute`는 `--manual-growth-complete`와 queue pending gate를 통과해야 한다.
+- source 선택은 FDA/MDR/MFDS/KGMP 등 강한 키워드 중심이다. `CE`, `US`, `KR`, `Korea` 같은 넓은 단독 키워드는 노이즈를 만들 수 있어 daily routing에서 제외한다.
+
+검증:
+
+```bash
+python3 scripts/verify-daily-growth-runner.py
+```
+
+계획 dry-run:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/daily-growth-runner.py --agent all --cases-per-agent 2 --source-pool 20 --max-chunks-per-case 2
+```
+
+수동 성장 완료 전 execute 차단 검증:
+
+```bash
+python3 scripts/daily-growth-runner.py --agent ra-kr --cases-per-agent 1 --source-pool 5 --max-chunks-per-case 1 --execute
+```
+
+정상 차단 기준:
+
+- `execute_gate.allowed=false`
+- `manual_growth_complete_provided=false`
+- pending queue가 있으면 execute 금지
+
+수동 성장 완료 후 전환 명령 예시:
+
+```bash
+python3 scripts/daily-growth-runner.py \
+  --agent all \
+  --cases-per-agent 3 \
+  --source-pool 60 \
+  --max-chunks-per-case 3 \
+  --max-pending 0 \
+  --manual-growth-complete \
+  --execute
+```
+
+이 명령은 바로 systemd에 등록하지 않는다. 먼저 3일 이상 수동 dry-run 결과를 검토하고, source 품질·deriver 처리량·사람 평가 루틴이 확인된 뒤 timer로 승격한다.
+
 ---
 
 ## 4. 게이트 운영 (고정 규칙)
