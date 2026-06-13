@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · 안전/QA 하드닝 레포 반영** | 최종 갱신: 2026-06-13
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #49 peer_id 복구 완료·deriver 처리 모니터링 중** | 최종 갱신: 2026-06-13
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -43,6 +43,7 @@
 | growth-metrics systemd 타이머 + 트리거 알림 자동화 | ✅ 완료 (check_and_notify_triggers 추가, systemd/ra-growth-metrics.{service,timer} 생성, T3610 배포 명령 이슈 기록) | [#38](https://github.com/holee9/ra-hermes-multi-agent/issues/38) (closed) |
 | 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
+| 자율 학습 peer_id 오염 복구 | 🔄 복구 완료·deriver backlog 처리 중 (wrong-peer queue/docs quarantine, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, replay idempotence 확인) | [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
@@ -51,7 +52,7 @@
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
-### Hermes 프로파일 & Honcho 피어 현황 (2026-06-09 기준)
+### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 
 | 프로파일 | Honcho 피어 ID | Workspace | 인물 | 상태 |
 |---------|--------------|-----------|-----|-----|
@@ -64,7 +65,7 @@
 | infra-gx10 | `infra_gx10` | infra | Leo (GX10) | ✅ 등록·SOUL.md 이식 완료 |
 | infra-rpi | `infra_rpi` | infra | Gus (RPi) | ✅ 등록·SOUL.md 이식 완료 |
 
-> `honcho.json` `aiPeer` 값은 모두 언더스코어 형식(frozen 데이터 계약 준수). `undefined` spurious 피어는 DB 직접 삭제 필요 (사용 가이드 §10 참조).
+> `honcho.json` `aiPeer` 값은 모두 언더스코어 형식(frozen 데이터 계약 준수). #49에서 `ra-us`/`ra-eu` wrong-peer bootstrap 오염을 복구했으며, 이후 자율 학습은 `scripts/verify-study-scheduler.py`와 dry-run을 통과한 뒤만 재시작한다. wrong-peer records는 직접 rename하지 않고 raw payload replay 방식만 허용한다.
 
 ### 주요 구현 항목
 
@@ -78,6 +79,7 @@
 | 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` | 완료, 가중치 공식 env/config 외부화(#45) |
 | 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `voting/config/vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
+| 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 

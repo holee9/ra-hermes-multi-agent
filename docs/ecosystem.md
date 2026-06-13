@@ -35,7 +35,7 @@
 |------|------|----------|----------|---------|
 | 1 | `ra-med-bot` | 60개 내외 | feat/issue-22-predicate 진행 중 | Wave 3 PREDICATE-001 구현 미완, 미결 이슈 최다 |
 | 2 | `hybrid-ra-saas` | 10개 내외 | 로컬 미클론, 원격만 존재 | 사전작업 이슈 진행 중, 최근 push 활발 |
-| 3 | `ra-hermes-multi-agent` | #37, #39~#45, #49 등 | Phase 1~2 완료, 성장 루프/자율 학습/안전 하드닝 레포 반영. #43~#45는 운영 import/E2E 대기 | 에코시스템 오케스트레이터, Honcho/OpenProject/n8n 운영 계약 안정화 중 |
+| 3 | `ra-hermes-multi-agent` | #37, #39~#45, #49 등 | Phase 1~2 완료, 성장 루프/자율 학습/안전 하드닝 레포 반영. #49 peer_id 오염은 queue/docs 격리 + 2,085건 clean replay 완료, deriver backlog 모니터링 중. #43~#45는 운영 import/E2E 대기 | 에코시스템 오케스트레이터, Honcho/OpenProject/n8n 운영 계약 안정화 중 |
 | 4 | `regula-eval-suite` | 0개 | 초기 단계 | ra-med-bot 평가 인프라, 연계 개발 필요 |
 | 5 | `nas-llm` | 2개 | Phase 4 인제스트 진행 중 | Phase 4 전량 인제스트 미완 |
 
@@ -79,5 +79,5 @@
 
 | 날짜 | 내용 |
 |------|------|
-| 2026-06-13 | ra-hermes 상태 갱신 — #43~#47 안전/QA/문서 하드닝, #49 autonomous study peer_id 후속 반영 |
+| 2026-06-13 | ra-hermes 상태 갱신 — #43~#47 안전/QA/문서 하드닝, #49 autonomous study peer_id 오염 containment/replay/backlog 모니터링 반영 |
 | 2026-06-10 | 최초 작성 — 에코시스템 분석 및 AI 도구 전략 정리 |

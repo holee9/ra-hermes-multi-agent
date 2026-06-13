@@ -471,20 +471,109 @@ bash profiles/setup.sh
 
 ---
 
-## 10. undefined 피어 삭제
+## 10. spurious / wrong peer 처리
 
-Honcho `work` workspace 에 `undefined` 라는 spurious 피어가 존재합니다.
-Honcho v0.15.1에는 피어 삭제 API 엔드포인트가 없으므로, DB에서 직접 삭제해야 합니다.
-
-**삭제 명령 (사람이 직접 실행)**:
+Honcho v0.15.1에는 피어 삭제 API 엔드포인트가 없습니다. DB 직접 조작은 프로덕션 데이터에 영향을 주므로, 먼저 피어가 참조 중인지 확인합니다.
 
 ```bash
-! docker exec honcho-postgres-1 psql -U honcho -d honcho \
-  -c "DELETE FROM peers WHERE id = 'undefined' AND workspace_id = 'work';"
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+SELECT name, workspace_name, id, created_at
+FROM peers
+WHERE name IN ('undefined', 'ra-us', 'ra-eu', 'ra-kr', 'ra_us', 'ra_eu', 'ra_kr')
+ORDER BY workspace_name, name;
+"
 ```
 
-> `!` prefix를 붙여 Claude Code 터미널에서 직접 실행하거나, 별도 터미널에서 실행하세요.
-> T3610 프로덕션 DB에 접근하는 명령이므로 신중히 실행하세요.
+참조 여부 확인:
+
+```bash
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+SELECT 'messages' AS kind, peer_name AS peer, COUNT(*) FROM messages
+WHERE peer_name IN ('undefined', 'ra-us', 'ra-eu', 'ra-kr')
+GROUP BY peer_name
+UNION ALL
+SELECT 'documents_observer', observer, COUNT(*) FROM documents
+WHERE observer IN ('undefined', 'ra-us', 'ra-eu', 'ra-kr')
+GROUP BY observer
+UNION ALL
+SELECT 'documents_observed', observed, COUNT(*) FROM documents
+WHERE observed IN ('undefined', 'ra-us', 'ra-eu', 'ra-kr')
+GROUP BY observed
+UNION ALL
+SELECT 'session_peers', peer_name, COUNT(*) FROM session_peers
+WHERE peer_name IN ('undefined', 'ra-us', 'ra-eu', 'ra-kr')
+GROUP BY peer_name
+ORDER BY kind, peer;
+"
+```
+
+### 10.1 `undefined`처럼 참조 없는 피어
+
+참조가 0인 피어만 삭제 후보입니다. 삭제 전에는 반드시 `SELECT`로 대상이 1건인지 확인합니다.
+
+```bash
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+SELECT id, name, workspace_name
+FROM peers
+WHERE name='undefined' AND workspace_name='work';
+"
+```
+
+삭제가 필요하면 사람이 직접 승인 후 실행합니다.
+
+```bash
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+DELETE FROM peers
+WHERE name='undefined' AND workspace_name='work'
+  AND NOT EXISTS (SELECT 1 FROM messages WHERE peer_name='undefined' AND workspace_name='work')
+  AND NOT EXISTS (SELECT 1 FROM documents WHERE workspace_name='work' AND (observer='undefined' OR observed='undefined'))
+  AND NOT EXISTS (SELECT 1 FROM session_peers WHERE peer_name='undefined' AND workspace_name='work');
+"
+```
+
+### 10.2 `ra-us`/`ra-eu` 같은 wrong-peer 오염 (#49)
+
+`ra-us`, `ra-eu`, `ra-kr` wrong peer는 단순 삭제하거나 `ra_us`, `ra_eu`, `ra_kr`로 직접 rename하면 안 됩니다. messages content 내부 actor, session name, embeddings, documents, queue가 서로 묶여 있어 정상 peer 메모리를 오염시킬 수 있습니다.
+
+표준 처리:
+
+1. wrong bootstrap 프로세스를 종료한다.
+2. `honcho-deriver-1`를 중지한다.
+3. affected rows를 JSONL로 백업한다.
+4. wrong-peer pending queue를 quarantine한다.
+5. wrong-peer derived documents를 soft-delete/quarantine한다.
+6. raw `study_insight` payload를 clean text로 정상 peer에 replay한다.
+7. deriver를 재시작한다.
+
+복구 replay dry-run:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/replay-study-insights-issue49.py
+```
+
+실행:
+
+```bash
+python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
+```
+
+검증:
+
+```bash
+docker exec honcho-postgres-1 psql -U honcho -d honcho -c "
+SELECT peer_name,
+       COUNT(*) AS recovered,
+       COUNT(*) FILTER (WHERE left(ltrim(content),1)='{') AS json_envelope,
+       COUNT(*) FILTER (WHERE metadata->>'actor' IN ('ra_us','ra_eu')) AS correct_actor
+FROM messages
+WHERE metadata->>'recovered_from_issue'='49'
+GROUP BY peer_name
+ORDER BY peer_name;
+"
+```
+
+정상 결과는 `json_envelope=0`이고, `correct_actor`가 `recovered`와 같아야 합니다.
 
 ---
 
@@ -557,4 +646,4 @@ curl -s -X POST "http://localhost:8000/v3/workspaces/work/peers" \
 
 ---
 
-*최종 갱신: 2026-06-09 | Hermes v0.15.1 / Honcho v0.15.1 기준*
+*최종 갱신: 2026-06-13 | Hermes v0.15.1 / Honcho v0.15.1 기준*

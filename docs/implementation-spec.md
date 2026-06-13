@@ -51,6 +51,38 @@
 - 각 honcho.json host 블록: `workspace="work"`, `aiPeer="ra_us|ra_eu|ra_kr"`.
 - SOUL.md는 운영 전략서가 정의.
 
+### 2.2a 자율 학습 scheduler peer 계약 `[구현]`
+
+`scripts/autonomous-study-scheduler.py`는 Hermes 프로파일 ID와 Honcho peer ID를 분리해서 다룬다.
+
+| 개념 | 형식 | 예 |
+|---|---|---|
+| Hermes profile / SOUL directory | hyphen | `ra-us`, `ra-eu`, `ra-kr` |
+| Honcho peer / aiPeer / memory key | underscore | `ra_us`, `ra_eu`, `ra_kr` |
+
+고정 규칙:
+
+- Honcho `sessions.metadata.actor`, message `peer_id`, message metadata `actor`, bootstrap progress key는 모두 underscore peer ID만 사용한다.
+- `profile_id`는 SOUL.md 로딩과 region filter 등 프로파일 선택에만 사용한다.
+- `peer_id`에 하이픈이 들어가면 preflight에서 실패해야 한다.
+- study message 본문은 deriver가 바로 domain fact로 읽을 수 있는 자연어 텍스트여야 하며, raw JSON envelope를 Honcho content에 넣지 않는다.
+- structured 필드는 metadata에 보존한다: `record_type`, `actor`, `peer_id`, `profile_id`, `source`, `chunk_id`, `topic`, `confidence`.
+- 변경 후에는 `python3 scripts/verify-study-scheduler.py`를 통과해야 한다.
+
+#49 복구에서 확인된 금지 패턴:
+
+- wrong-peer messages/documents/queue를 SQL rename으로 `ra-us -> ra_us` 처리하지 않는다.
+- wrong-peer derived documents를 정상 peer로 직접 이식하지 않는다.
+- recoverable raw payload만 추출해 clean text로 replay한다.
+
+복구 replay 도구:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/replay-study-insights-issue49.py          # dry-run
+python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
+```
+
 ### 2.3 mail-triage 워크플로우 (n8n) `[구현]`
 입력: 재전송 Gmail. 출력: OpenProject WP 코멘트/생성 + Honcho conclusion 기록.
 - **본문 파싱** `[구현]`: 재전송 본문에서 원 제목·원 발신자·사안 식별자 추출 → 정규화 매칭 키. (헤더는 재전송으로 파괴됨 → 본문 기반)

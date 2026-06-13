@@ -73,6 +73,20 @@ running and continuing to write `ra-eu` records.
 - Restarted `honcho-deriver-1` so clean `ra_us`/`ra_eu` messages can derive normal
   documents.
 
+Final verification after replay:
+
+| Check | Result |
+| --- | ---: |
+| Recovered `ra_us` messages | 1,656 |
+| Recovered `ra_eu` messages | 429 |
+| Recovered messages with JSON envelope content | 0 |
+| Recovered messages with correct actor metadata | 2,085 / 2,085 |
+| Wrong-peer `ra-us`/`ra-eu` active documents | 0 |
+| Wrong-peer `ra-us`/`ra-eu` documents after cleanup queue pass | 0 |
+| `ra_us -> ra_us` active documents observed after deriver restart | 71 |
+| `ra_eu -> ra_eu` active documents observed after deriver restart | 94 |
+| Replay idempotence check | `already_replayed=2085`, `to_replay=0` |
+
 Recovery script:
 
 ```bash
@@ -83,8 +97,9 @@ python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 ## Side-Effect Boundary
 
 The original wrong-peer messages are preserved as audit/source records. Derived
-wrong-peer documents were soft-deleted, not hard-deleted. Pending wrong-peer queue
-rows were quarantined, not physically removed.
+wrong-peer documents were first soft-deleted; Honcho cleanup then removed those
+document rows from the active table. Pending wrong-peer queue rows were quarantined
+and marked processed, not physically removed.
 
 ## Required Reflection For Future Claude Code Sessions
 
