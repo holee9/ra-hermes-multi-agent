@@ -150,6 +150,29 @@ curl -s -X POST "http://localhost:8000/v3/workspaces/infra/peers" \
 - 사람 1인이 병목이 되면 → 팀/그룹별 담당 사람 배정(팀 담당→그룹 총괄→전체). workspace가 사람 책임 경계.
 - **[미결]** 사람 다중화 시 사람 간 방향 정렬 — 그룹 총괄 또는 공통 헌장으로 해소.
 
+### 5.4 n8n 하드닝 운영 기준 (#43~#45)
+
+workflow 변경분은 레포에 반영된 것과 RPi n8n에 import된 것이 다를 수 있다. 아래 순서를 운영 기준으로 삼는다.
+
+1. 변경 전 보고: 어떤 workflow와 env 값이 바뀌는지 사람에게 먼저 보고한다.
+2. import 대상: `mail-triage.json`, `infra-to-work-bridge.json`, `feedback-recorder.json`.
+3. env 적용: `OPENPROJECT_API_URL`, `HONCHO_WORK_WORKSPACE`, `YELLOW_CONFIDENCE_THRESHOLD`를 먼저 확인한다.
+4. 선택 채널: `HUMAN_ALERT_WEBHOOK_URL`이 있으면 Yellow payload 수신지를 확인한다.
+5. 검증 순서: 낮은 confidence, 완료 WP 매칭, OpenProject 조회 실패, bridge config parse, feedback config parse.
+6. 이슈 이력: #43~#45에 import 일시, env 적용 여부, E2E 결과를 코멘트한다.
+
+운영 판정 원칙:
+
+| 상황 | 자동 처리 | 사람 처리 |
+|------|-----------|-----------|
+| confidence 임계값 이상 + 허용 WP 상태 | 코멘트/신규 생성 가능 | 사후 평가 |
+| confidence 임계값 미만 | 중단 | 검토 후 처리 |
+| 임계값 미설정/비정상 | 중단 | env 수정 또는 수동 처리 |
+| 완료/종결 WP 매칭 | 중단 | 재오픈/신규/무시 결정 |
+| OpenProject 상태 조회 실패 | 중단 | 인증·네트워크 확인 |
+
+`BRIDGE_RELAY_CONFIG_JSON`과 `WEIGHT_ADJUSTMENT_CONFIG_JSON`은 [IF] 설정이다. 비워 두면 시스템은 안전한 초기 동작을 유지하되, 운영자가 값을 넣는 순간 그 JSON은 이슈에 기록한다.
+
 ---
 
 ## 6. 가상 오피스 운영

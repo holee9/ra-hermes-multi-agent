@@ -4,7 +4,7 @@
 > **원칙**: 인터페이스는 엄격히 고정, 내부 구현은 위임. 이 시스템은 *학습하며 성장*하므로, 평가로 수렴할 규칙(투표·가중치·임계)은 **의도적 공백**으로 둔다 — 미결이 아니라 설계다. 그 부분은 인터페이스만 만들고 내부는 운영·학습이 채운다.
 > **정확성 우선 원칙**: 의료기기 인허가 도메인에서 속도보다 정확성이 항상 우선한다. **Cold start(임계값 미설정) 상태에서는 모든 판단을 Yellow 게이트(사람 확인)로 처리한다.** 자동 처리 비중은 학습·평가 누적 이후에만 단계적으로 확대한다.
 > **성숙도 표기**: `[구현]` 코딩 가능 깊이로 명세 / `[IF]` 인터페이스만 — 내부는 PoC·학습이 채움(임의 구현 금지, 비워두거나 사람에게 질의).
-> 사실 기준일 2026-06-05. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
+> 사실 기준일 2026-06-13. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
 
 ---
 
@@ -56,9 +56,9 @@
 - **본문 파싱** `[구현]`: 재전송 본문에서 원 제목·원 발신자·사안 식별자 추출 → 정규화 매칭 키. (헤더는 재전송으로 파괴됨 → 본문 기반)
 - **규제권 라우팅** `[구현]`: 본문의 규제기관(FDA/MDR/MFDS)·제출 종류 → ra_us|ra_eu|ra_kr 결정. 판별 불가 시 사람 질의(Yellow).
 - **RA 호출** `[구현]`: 해당 프로파일을 Hermes `/v1/chat/completions`(또는 게이트웨이)로 호출, 분석 결과 수신.
-- **WP 반영** `[구현]`: 미완료 WP(오픈·진행중·리뷰중) 매칭 시 코멘트 추가, 미매칭 시 WP 생성. (n8n OpenProject 커뮤니티 노드 또는 OpenProject MCP 서버 — create_work_package / add_comment / update_work_package_status / get_statuses)
+- **WP 반영** `[구현]`: 기존 WP 매칭 시 OpenProject 상태를 먼저 조회한다. 오픈·진행중·리뷰중 계열 상태만 자율 코멘트(Green)를 허용하고, 완료·종결·닫힘·조회 실패·불명 상태는 Yellow로 전환한다. 미매칭 시에는 신규 WP를 생성한다.
 - **기록** `[구현]`: 사안↔WP 매핑을 Honcho conclusion으로 기록(다음 회차 매칭에 사용).
-- **게이트** `[구현]`: 매칭·코멘트=자율(Green). 상태 전이 제안=Yellow(사람 확정). 완료=사람 전용(불변, 코드로 차단).
+- **게이트** `[구현]`: 매칭·코멘트=자율(Green), 단 기존 WP가 허용 상태일 때만. 상태 전이 제안·저신뢰 분석·파싱 실패·라우팅 불명확·완료/종결 WP 매칭은 Yellow(사람 확정). 완료=사람 전용(불변, 코드로 차단).
 
 #### mail-triage 데이터 계약 (입출력 고정)
 RA 분석 결과 JSON(고정):
@@ -67,6 +67,68 @@ RA 분석 결과 JSON(고정):
   "confidence":0.0-1.0, "region":"US|EU|KR",
   "comment":"...", "transition_proposed":"리뷰중|null" }
 ```
+
+#### mail-triage 안전 게이트 계약 (#43, #44)
+
+Yellow 게이트로 전환되는 조건은 보수적으로 유지한다.
+
+| 조건 | `yellow_reason` | 처리 |
+|------|-----------------|------|
+| RA 응답 JSON 파싱 실패 | `parse_error` | 사람 검토 payload 생성, 자동 WP 반영 중단 |
+| 필수 필드 누락 | `missing_fields` | 누락 필드 포함해 사람 검토 |
+| `confidence`가 숫자/0~1 범위가 아님 | `invalid_confidence` | 사람 검토 |
+| `YELLOW_CONFIDENCE_THRESHOLD` 미설정/비정상 | `threshold_unconfigured` | cold start로 간주해 사람 검토 |
+| `confidence < YELLOW_CONFIDENCE_THRESHOLD` | `low_confidence` | 사람 검토 |
+| 기존 WP ID 누락 | `wp_id_missing` | 사람 검토 |
+| OpenProject 상태 조회 실패 | `wp_status_lookup_failed` | 사람 검토 |
+| 매칭 WP가 완료/종결/닫힘 계열 | `wp_closed_or_done` | 사람 검토, 재오픈/신규 생성은 사람 결정 |
+| 매칭 WP 상태가 허용 목록 밖 | `wp_status_unknown` | 사람 검토 |
+| 규제권 미판별/다중 판별 | `yellow_no_region`, `yellow_multi_region` | 담당자 수동 배정 |
+
+Yellow payload는 `human_alert`에 표준화한다. `HUMAN_ALERT_WEBHOOK_URL`이 있으면 Webhook으로 전송하고, 없으면 n8n 실행 로그와 payload만 남긴다. `HUMAN_ALERT_EMAIL`은 채널 메타데이터로 남기되, 실제 이메일 발송 노드는 운영자가 별도 SMTP 설정 후 연결한다.
+
+#### OpenProject 상태 허용 계약 (#44)
+
+기존 WP에 대한 자율 코멘트는 다음 상태명 패턴에만 허용한다.
+
+| 분류 | 패턴 |
+|------|------|
+| 허용 | `open`, `new`, `progress`, `review`, `오픈`, `진행`, `리뷰`, `검토` |
+| 차단 | `closed`, `done`, `complete`, `completed`, `완료`, `종결`, `닫힘` |
+
+OpenProject 응답의 상태 필드는 `status.title`, `status.name`, `_embedded.status.title`, `_embedded.status.name`, `_links.status.title`, `_links.status.name` 순서로 읽는다. 응답에 `id`가 없거나 오류 payload로 보이면 조회 실패로 처리한다.
+
+#### n8n 환경변수/config 계약 (#45)
+
+| 변수 | 필수 | 용도 | 비고 |
+|------|------|------|------|
+| `HONCHO_API_URL` | 필수 | Honcho API base URL | 예: `http://t3610:8000` |
+| `HONCHO_WORK_WORKSPACE` | 필수 | work workspace 이름 | 기본 운용값은 n8n `.env`에서 관리 |
+| `OPENPROJECT_API_URL` | 필수 | OpenProject API base URL | hardcode 금지 |
+| `OPENPROJECT_DEFAULT_PROJECT_ID` | 필수 | 신규 WP 생성 대상 project | 운영 환경별 값 |
+| `YELLOW_CONFIDENCE_THRESHOLD` | 필수 | Yellow 전환 confidence 기준 | 미설정/비정상은 Yellow |
+| `HUMAN_ALERT_WEBHOOK_URL` | 선택 | Yellow payload 전송 Webhook | 비워도 workflow는 동작 |
+| `HUMAN_ALERT_EMAIL` | 선택 | 알림 대상 메타데이터 | SMTP 노드 연결 시 사용 |
+| `BRIDGE_RELAY_CONFIG_JSON` | 선택 | bridge relay 조건 | 비우면 초기 기본값(전달) |
+| `WEIGHT_ADJUSTMENT_CONFIG_JSON` | 선택 | feedback 가중치 공식 자리 | 비우면 기록만 하고 조정 생략 |
+
+#### mail-triage 검증 절차
+
+레포 레벨 검증:
+
+```bash
+npm run test:static
+npm test
+```
+
+운영 import 후 RPi n8n에서 확인할 시나리오:
+
+1. 낮은 confidence 응답 → `low_confidence` Yellow payload 생성, WP 생성/코멘트 미실행.
+2. `YELLOW_CONFIDENCE_THRESHOLD` 미설정 → `threshold_unconfigured` Yellow 전환.
+3. 기존 WP가 open/progress/review 계열 → 기존 WP 코멘트 추가.
+4. 기존 WP가 closed/done/완료/종결 계열 → `wp_closed_or_done` Yellow 전환.
+5. OpenProject 인증/네트워크 실패 → `wp_status_lookup_failed` Yellow 전환.
+6. `HUMAN_ALERT_WEBHOOK_URL` 설정 → Webhook payload 수신 확인.
 
 ### 2.4 인프라 에이전트 + 투표
 - 프로파일 3개: infra_t3610·infra_gx10·infra_rpi, `workspace="infra"`. (Hermes 운영)
@@ -119,7 +181,7 @@ RA 분석 결과 JSON(고정):
 
 전체 골격이 cold start로 한 사이클 도는 것 = MVP 성공.
 1. `[구현]` Honcho가 GX10 Qwen3로 deriver 관찰 추출 성공(tool-calling 검증).
-2. `[구현]` 재전송 메일 → ra_us 분석 → 미완료 WP 코멘트 / 신규 WP 생성 → Honcho 기록.
+2. `[구현]` 재전송 메일 → ra_us 분석 → 허용 상태의 미완료 WP 코멘트 / 신규 WP 생성 → Honcho 기록. 저신뢰·완료 WP 매칭·조회 실패는 Yellow 전환.
 3. `[구현]` 동일 사안 반복 메일에서 중복 WP 생성 감소(핵심 지표).
 4. `[IF]` 인프라 3종이 투표 자리에서 표를 집계해 결정 산출(규칙은 단순 시작).
 5. `[구현]` 브릿지가 인프라 결정을 업무 workspace로 전달.

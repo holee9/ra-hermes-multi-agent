@@ -95,6 +95,8 @@ Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G 
   "comment":"...", "transition_proposed":"리뷰중|null" }
 ```
 
+`confidence` below `YELLOW_CONFIDENCE_THRESHOLD`, invalid/missing fields, ambiguous routing, existing WP closed/done state, or OpenProject lookup failure must route to Yellow/human review.
+
 **Activity log format** (Honcho output = Virtual Office input, frozen):
 ```json
 { "ts":"ISO8601", "type":"mail_received|matched|comment_added|...",

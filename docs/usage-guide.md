@@ -308,7 +308,25 @@ n8n (RPi)
   ↓ Honcho 활동 로그 기록
 ```
 
-### 6.2 RA 분석 결과 JSON (frozen 데이터 계약)
+### 6.2 운영 환경변수
+
+RPi n8n의 `.env`에는 최소한 아래 값이 있어야 합니다. 예시는 `n8n/.env.example`을 기준으로 유지합니다.
+
+| 변수 | 필수 | 설명 |
+|------|------|------|
+| `HONCHO_API_URL` | 필수 | T3610 Honcho API base URL |
+| `HONCHO_WORK_WORKSPACE` | 필수 | RA 업무 workspace 이름 |
+| `OPENPROJECT_API_URL` | 필수 | OpenProject base URL. workflow에 URL 하드코딩 금지 |
+| `OPENPROJECT_DEFAULT_PROJECT_ID` | 필수 | 신규 WP 생성 project ID |
+| `YELLOW_CONFIDENCE_THRESHOLD` | 필수 | 이 값 미만의 분석은 사람 검토로 전환 |
+| `HUMAN_ALERT_WEBHOOK_URL` | 선택 | Yellow payload를 받을 Webhook |
+| `HUMAN_ALERT_EMAIL` | 선택 | 사람 알림 대상 메타데이터 |
+| `BRIDGE_RELAY_CONFIG_JSON` | 선택 | infra→work bridge relay 조건 JSON |
+| `WEIGHT_ADJUSTMENT_CONFIG_JSON` | 선택 | feedback 가중치 조정 공식 JSON |
+
+`YELLOW_CONFIDENCE_THRESHOLD`가 비어 있거나 0~1 범위 숫자가 아니면 cold start로 간주하여 Yellow 게이트로 보냅니다.
+
+### 6.3 RA 분석 결과 JSON (frozen 데이터 계약)
 
 ```json
 {
@@ -324,17 +342,61 @@ n8n (RPi)
 
 이 스키마는 변경 불가입니다. n8n 워크플로우·가상오피스·모든 컴포넌트가 이 형식을 기준으로 합니다.
 
-### 6.3 n8n 활성화 확인 (RPi)
+### 6.4 Yellow 게이트 운영 기준
+
+아래 상황은 자동 WP 반영을 멈추고 사람에게 올립니다.
+
+| 상황 | 운영 판단 |
+|------|-----------|
+| 규제권 미판별 또는 복수 규제권 감지 | 담당 RA를 사람이 배정 |
+| RA 응답 JSON 파싱 실패/필드 누락 | 모델 응답 또는 프롬프트를 점검 |
+| confidence가 임계값 미만 | 근거 확인 후 기존 WP 코멘트/신규 WP 생성 결정 |
+| 기존 WP가 완료/종결/닫힘 상태 | 재오픈, 신규 WP 생성, 무시 중 사람이 결정 |
+| OpenProject 상태 조회 실패 | 인증/네트워크/권한 확인 후 재실행 |
+
+Yellow payload에는 원 제목, 원 발신자, matching key, 본문 excerpt, 분석 결과, `yellow_reason`, OpenProject 상태 정보가 들어갑니다.
+
+### 6.5 기존 WP 상태 검증
+
+`match="existing"`이면 workflow는 바로 코멘트하지 않고 OpenProject에서 WP 상태를 조회합니다.
+
+| 결과 | 처리 |
+|------|------|
+| open/new/progress/review/오픈/진행/리뷰/검토 | 기존 WP에 코멘트 추가 |
+| closed/done/complete/완료/종결/닫힘 | Yellow 전환 |
+| 상태 필드 없음, 인증 실패, 조회 실패 | Yellow 전환 |
+| 상태명이 허용/차단 목록 어디에도 없음 | Yellow 전환 |
+
+완료·재오픈은 영구적으로 사람 전용입니다.
+
+### 6.6 n8n 활성화 확인 (RPi)
 
 ```bash
 ssh raspi5p "curl -s -H 'X-N8N-API-KEY: \${N8N_API_KEY}' \
   http://localhost:5678/api/v1/workflows | python3 -m json.tool"
 ```
 
-### 6.4 테스트 메일 발송
+### 6.7 import 후 검증 시나리오
 
-n8n의 webhook URL로 테스트 페이로드를 전송하여 전체 파이프라인을 확인할 수 있습니다.
-(상세 절차: `docs/implementation-spec.md` §mail-triage 검증 절차 참조)
+n8n의 webhook URL로 테스트 페이로드를 전송하여 전체 파이프라인을 확인합니다. 최소 시나리오는 아래 순서로 실행합니다.
+
+1. 정상 신규 사안: `match="new"`, confidence 임계값 이상 → WP 생성.
+2. 정상 기존 사안: `match="existing"`, OpenProject 상태 open/progress/review → 코멘트 추가.
+3. 저신뢰 사안: confidence 임계값 미만 → Yellow payload, WP 반영 없음.
+4. 완료 WP 매칭: OpenProject 상태 closed/done/완료/종결 → Yellow payload.
+5. 알림 채널: `HUMAN_ALERT_WEBHOOK_URL` 설정 시 Webhook 수신 확인.
+
+레포에서 먼저 돌릴 정적 검증:
+
+```bash
+npm run test:static
+```
+
+브라우저가 있는 개발/운영 점검 환경에서는 전체 게이트도 실행합니다.
+
+```bash
+npm test
+```
 
 ---
 

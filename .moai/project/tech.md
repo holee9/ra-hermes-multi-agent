@@ -155,6 +155,7 @@ psql -h localhost -p 5433 -U honcho -d honcho \
 - `confidence`: 실수 0~1
 - `region`: 정확히 하나 선택
 - `transition_proposed`: 선택적, null 가능
+- `confidence`가 `YELLOW_CONFIDENCE_THRESHOLD` 미만이거나 값 자체가 비정상이면 Yellow 게이트로 전환
 
 ### 활동 기록 포맷
 
@@ -171,8 +172,27 @@ psql -h localhost -p 5433 -U honcho -d honcho \
 - `mail_received`: `{ "from": "...", "subject": "...", "message_id": "..." }`
 - `matched`: `{ "wp": "WP-123", "confidence": 0.85 }`
 - `comment_added`: `{ "wp": "WP-123", "comment": "..." }`
+- `yellow_gate`: `{ "yellow_reason": "...", "analysis": {...}, "op_wp_status": {...} }`
 - `feedback_submitted`: `{ "wp": "WP-123", "evaluation": "..." }`
 - `state_changed`: `{ "wp": "WP-123", "from": "진행중", "to": "리뷰중" }`
+
+### n8n 하드닝 환경변수
+
+| 변수 | 용도 |
+|------|------|
+| `OPENPROJECT_API_URL` | OpenProject API base URL. workflow 하드코딩 금지 |
+| `HONCHO_WORK_WORKSPACE` | RA 업무 workspace 이름 |
+| `YELLOW_CONFIDENCE_THRESHOLD` | mail-triage Yellow confidence 기준 |
+| `HUMAN_ALERT_WEBHOOK_URL` | Yellow payload 전송 Webhook |
+| `BRIDGE_RELAY_CONFIG_JSON` | infra→work bridge [IF] relay 조건 |
+| `WEIGHT_ADJUSTMENT_CONFIG_JSON` | feedback [IF] 가중치 조정 공식 |
+
+### 품질 게이트
+
+```bash
+npm run test:static   # JSON + n8n Code node + Python/shell syntax
+npm test              # static + Playwright virtual-office E2E
+```
 
 ## 개발 가이드
 
@@ -182,8 +202,8 @@ psql -h localhost -p 5433 -U honcho -d honcho \
 
 **위치**:
 - `n8n/workflows/feedback-recorder.json` — 가중치 공식 [IF]
-- `voting/vote-rules.json` — 분산 투표 규칙 [IF]
-- `bridge/relay-conditions.json` — 신호 필터링 로직 [IF]
+- `voting/config/vote-rules.json` — 분산 투표 규칙 [IF]
+- `BRIDGE_RELAY_CONFIG_JSON` / payload `bridge_config_json` — 신호 필터링 로직 [IF]
 
 **규칙**:
 - 하드코딩된 임계값 금지 (예: `if confidence > 0.8`)

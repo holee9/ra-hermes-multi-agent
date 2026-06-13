@@ -76,10 +76,29 @@
 | mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` | 완료, #43/#44/#45 안전 게이트 레포 반영 — RPi n8n 재import 필요 |
 | 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` | 완료, relay 조건 env/config 외부화(#45) |
 | 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` | 완료, 가중치 공식 env/config 외부화(#45) |
-| 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
+| 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `voting/config/vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
+
+### n8n 운영 적용 체크리스트 (#43~#45)
+
+RPi n8n에는 레포 변경을 import해야 실제 운영에 반영된다.
+
+| 순서 | 확인 항목 |
+|------|-----------|
+| 1 | `n8n/.env.example` 기준으로 `OPENPROJECT_API_URL`, `HONCHO_WORK_WORKSPACE`, `YELLOW_CONFIDENCE_THRESHOLD` 확인 |
+| 2 | 선택 알림 채널 `HUMAN_ALERT_WEBHOOK_URL` 설정 여부 결정 |
+| 3 | `mail-triage.json`, `infra-to-work-bridge.json`, `feedback-recorder.json` import |
+| 4 | 낮은 confidence, 완료 WP 매칭, OpenProject 조회 실패, bridge/feedback config parse 시나리오 E2E |
+| 5 | 결과를 #43~#45 이슈에 코멘트 후 운영 기준값 변경 시 문서 동기화 |
+
+레포 검증 명령:
+
+```bash
+npm run test:static
+npm test
+```
 
 ---
 
