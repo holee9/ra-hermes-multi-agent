@@ -4,7 +4,7 @@ Visual diagrams of the RA Hermes Multi-Agent system architecture, data flows, an
 
 **Generated**: 2026-06-10  
 **Project**: RA Hermes Multi-Agent (Medical Device Regulatory Affairs)  
-**Status**: Operational (MVP complete, GROWTH phases 1-5 done)
+**Status**: Operational baseline with safety/QA hardening reflected in repo (2026-06-13)
 
 ---
 
@@ -39,9 +39,10 @@ Detailed sequence showing how incoming emails are processed and routed:
 - **Routing**: Decision to send to ra_us, ra_eu, or ra_kr based on region
 - **Analysis**: RA experts analyze and search Honcho for matching Work Packages (WPs)
 - **Matching**: Confidence scoring for existing vs. new WP decision
+- **Safety Hardening**: Low confidence, parse failure, existing WP closed/done state, or OpenProject lookup failure routes to Yellow
 - **Gate Rules** (Color-coded):
-  - **Green (GATE-1)**: Autonomous — matching + comment addition
-  - **Yellow (GATE-2)**: Human review — status transitions
+  - **Green (GATE-1)**: Autonomous — matching + comment addition only when confidence and WP status are allowed
+  - **Yellow (GATE-2)**: Human review — status transitions, low confidence, parse failure, ambiguous routing, closed/done WP match, OP lookup failure
   - **Red (GATE-3)**: Human only — close/reopen WP
 - **Actions**: Create WP, add comment, propose status change, store in Honcho
 - **Learning Loop**: Human 3-point evaluation → Deriver inference → weight adjustment for next run
@@ -162,6 +163,8 @@ Install the "Markdown Preview Mermaid Support" extension:
 | RA analysis execution | Agent autonomous | GATE-1 (Green) |
 | Comment addition | Agent autonomous | GATE-1 (Green) |
 | WP creation | Agent autonomous | GATE-1 (Green) |
+| Low confidence / parse failure / ambiguous routing | Human review | GATE-2 (Yellow) |
+| Existing WP closed/done/unknown or lookup failed | Human review | GATE-2 (Yellow) |
 | Status transition (review → approval) | Human review | GATE-2 (Yellow) |
 | n8n workflow changes | Human approval | GATE-2 (Yellow) |
 | **WP close / reopen** | **Human only** | **GATE-3 (Red)** |
@@ -190,6 +193,6 @@ To understand the system:
 
 ---
 
-**Last Updated**: 2026-06-10  
+**Last Updated**: 2026-06-13
 **Maintainer**: Project Architecture  
 **Verification**: GitHub Issues + Code Review

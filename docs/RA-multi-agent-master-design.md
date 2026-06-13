@@ -267,8 +267,10 @@
 
 검증된 n8n 도구로 구성 가능:
 - **OpenProject 연동**: 커뮤니티 노드(`n8n-nodes-openproject` 계열)가 WP 생성·조회·수정·목록·**코멘트 추가** 지원. 또는 OpenProject MCP 서버(`create_work_package`·`update_work_package_status`·`add_comment`·`get_statuses`·`get_types`)를 n8n MCP Client로 연결.
-- **흐름**: Gmail 트리거 → 본문 파싱(원 제목·원 발신자·식별자 → 매칭 키 + 규제권 판별) → 해당 RA 프로파일 호출(Hermes `/v1/chat/completions` 또는 게이트웨이) → 분석 결과 수신 → 미완료 WP 매칭 시 코멘트 추가, 미매칭 시 WP 생성 → 결과를 Honcho conclusion으로 기록.
-- **게이트**: 매칭·코멘트는 자율(Green). 상태 전이 제안은 Yellow(사람 확정). 완료는 사람 전용(불변).
+- **흐름**: Gmail 트리거 → 본문 파싱(원 제목·원 발신자·식별자 → 매칭 키 + 규제권 판별) → 해당 RA 프로파일 호출(Hermes `/v1/chat/completions` 또는 게이트웨이) → 분석 결과 수신 → confidence/파싱 검증 → 기존 WP 상태 조회 또는 신규 WP 생성 → 결과를 Honcho conclusion으로 기록.
+- **게이트**: 매칭·코멘트는 자율(Green)이나 기존 WP가 open/new/progress/review 계열일 때만 허용한다. 상태 전이 제안, confidence 임계값 미만, 임계값 미설정, 파싱 실패, 완료/종결 WP 매칭, OpenProject 조회 실패는 Yellow(사람 확정). 완료·재오픈은 사람 전용(불변).
+- **운영 알림**: Yellow payload는 `human_alert`로 표준화한다. `HUMAN_ALERT_WEBHOOK_URL`이 있으면 Webhook으로 전송하고, 없으면 n8n 실행 로그와 payload를 감사 기록으로 남긴다.
+- **외부 설정**: OpenProject URL, Honcho workspace, Yellow confidence 임계값, bridge relay 조건, feedback 가중치 공식은 env/config로만 주입한다. 코드에 운영 임계값을 하드코딩하지 않는다.
 
 ### 14.4 가상 오피스 MVP (별도 웹앱)
 

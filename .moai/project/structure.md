@@ -24,7 +24,7 @@
 └────────────────────────────────────────────────────────────────┘
 
 흐름:
-이메일 → n8n mail-triage → RA 분석(Hermes) → WP 반영 → Honcho 기록
+이메일 → n8n mail-triage → RA 분석(Hermes) → confidence/WP 상태 게이트 → WP 반영 또는 Yellow → Honcho 기록
 ↓
 학습 피드백(사람 3점) → Deriver → 다음 판단에 반영
 ```
@@ -69,11 +69,11 @@
 │  ├─ implementation-spec.md      # 구현 명세(코딩 경계)
 │  ├─ operations-guide.md         # 운영 가이드
 │  ├─ usage-guide.md              # 에이전트 사용 설명서
-│  └─ ECOSYSTEM.md                # 전체 생태계 맵
+│  ├─ ecosystem.md                # 생태계 개발 전략
+│  └─ incidents/                  # 운영 사고/후속 기록
 │
-├─ bridge/                        # n8n 브릿지 (인프라 ← → 업무)
-│  ├─ relay-conditions.json       # [IF] 중계 규칙(운영이 설정)
-│  └─ bridge-trigger.py           # Honcho 신호 감지 스크립트
+├─ bridge/                        # n8n 브릿지 설정 (인프라 → 업무)
+│  └─ config/bridge-config.json   # [IF] 중계 규칙(운영이 설정)
 │
 ├─ honcho/                        # Honcho 서버 설정 (T3610)
 │  ├─ docker-compose.yml          # 전체 스택
@@ -86,7 +86,7 @@
 │  │  ├─ mail-triage.json         # 이메일 분류 → WP 자동화
 │  │  ├─ infra-to-work-bridge.json # 인프라 신호 → 업무팀
 │  │  └─ feedback-recorder.json   # 사람 평가 → Honcho 기록
-│  └─ IMPORT.md                   # n8n import 가이드
+│  └─ .env.example                # n8n env/config 템플릿
 │
 ├─ profiles/                      # Hermes 프로파일 설정 (T3610)
 │  ├─ honcho-config-templates/
@@ -118,7 +118,9 @@
 │  ├─ verify-honcho.sh            # Honcho 서버 상태 확인
 │  ├─ cold-start-verify.sh        # MVP 기동 점검(GROWTH-1 워밍)
 │  ├─ extract-mail-qa.py          # pgvector 이메일 QA 추출
-│  └─ openproject-backfill.py     # OP 기존 WP → Honcho 시드
+│  ├─ openproject-backfill.py     # OP 기존 WP → Honcho 시드
+│  ├─ verify-workflows.js         # n8n JSON/Code node 정적 검증
+│  └─ verify-study-scheduler.py   # autonomous study 계약 검증
 │
 ├─ virtual-office/                # 가상 오피스 (시각화)
 │  ├─ virtual-office.html         # 자체 포함 픽셀아트 앱
@@ -130,8 +132,7 @@
 │
 ├─ voting/                        # 인프라 투표 집계 ([IF])
 │  ├─ vote-aggregator.js          # 분산 투표 인터페이스
-│  ├─ vote-rules.json             # [IF] 내부 규칙 (운영 설정)
-│  └─ consensus-engine.md         # 투표 메커니즘 설명
+│  └─ config/vote-rules.json      # [IF] 내부 규칙 (운영 설정)
 │
 └─ README.md                      # 현재 상태 요약
 ```
@@ -147,7 +148,8 @@ Gmail(재전송)
   → 본문 파싱(정규화)
   → 규제권 라우팅 판정(FDA/MDR/MFDS)
   → Hermes ra_us|ra_eu|ra_kr 호출(/v1/chat/completions)
-  → WP 매칭(OpenProject)
+  → confidence 검증 + WP 상태 조회(OpenProject)
+  → 허용 상태면 WP 코멘트/생성, 아니면 Yellow
   → Honcho conclusion 저장
 ```
 
@@ -163,7 +165,7 @@ Gmail(재전송)
 ```
 infra_* 에이전트(투표)
   → n8n infra-to-work-bridge.json
-  → [IF] relay-conditions 검토
+  → [IF] bridge config 검토 (`BRIDGE_RELAY_CONFIG_JSON` 또는 `bridge/config/bridge-config.json`)
   → op_manager 또는 모니터링 알림
 ```
 
@@ -278,8 +280,8 @@ Honcho activity log
 
 ⚠️ RA 프로파일 SOUL.md(페르소나, 판단 철학)  
 ⚠️ Honcho 학습 루프(deriver, 추론, 피드백 가중치)  
-⚠️ n8n relay-conditions(브릿지 신호 필터링)  
-⚠️ voting/vote-rules.json(분산 투표 규칙)  
+⚠️ n8n bridge relay config(브릿지 신호 필터링)
+⚠️ `voting/config/vote-rules.json`(분산 투표 규칙)
 ⚠️ n8n feedback-recorder 가중치 공식  
 
 **원칙**: [IF] 항목은 인터페이스만 코딩, 내부는 비워둠 → 운영·학습이 실험으로 채움.
@@ -313,7 +315,7 @@ Honcho activity log
 
 ### `voting/`
 - **용도**: 인프라 분산 투표 인터페이스
-- **관리**: vote-aggregator.js, vote-rules.json([IF])
+- **관리**: `vote-aggregator.js`, `config/vote-rules.json`([IF])
 - **운영**: 규칙은 운영 중에 학습으로 채움
 
 ### `virtual-office/`

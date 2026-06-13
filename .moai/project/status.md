@@ -5,6 +5,29 @@
 
 ---
 
+## 점검 기록 #5 — 2026-06-13
+
+### 관련 문서 상세화 및 push 준비
+
+#### 문서 보강 범위
+
+| 문서 | 보강 내용 |
+|------|-----------|
+| `docs/implementation-spec.md` | Yellow 게이트 조건, OpenProject 상태 허용/차단 계약, n8n env/config 계약, 운영 검증 시나리오 |
+| `docs/usage-guide.md` | RPi n8n 환경변수, Yellow 운영 기준, 기존 WP 상태 검증, import 후 E2E 절차 |
+| `docs/operations-guide.md` | #43~#45 운영 import 순서, env 적용, 이슈 이력 기록 기준 |
+| `docs/RA-multi-agent-master-design.md` | mail-triage 최신 흐름, 사람 알림, 외부 설정 원칙 |
+| `README.md` | n8n 운영 적용 체크리스트와 검증 명령 |
+| `.moai/project/*` | 구조/기술/codemap 설명을 최신 파일·게이트 기준으로 동기화 |
+| `docs/ecosystem.md` | 2026-06-13 기준 우선순위와 ra-hermes 상태 갱신 |
+
+#### 운영상 남은 항목
+
+- #43~#45: RPi n8n import와 실제 Webhook/OpenProject 상태 조회 E2E.
+- #37: Layer 4 API → mail-triage 실시간 연결.
+- #39: vote-rules 운영 초기값과 브로드캐스트 결정.
+- #49: autonomous study peer_id 오염 데이터 cleanup/migration 방침 사람 승인.
+
 ## 점검 기록 #4 — 2026-06-13
 
 ### 전수 리뷰 후 하드닝 구현
