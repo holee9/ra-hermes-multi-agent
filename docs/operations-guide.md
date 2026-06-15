@@ -137,7 +137,7 @@ python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 
 #### #49 실제 복구 상태
 
-2026-06-13 기준 복구 결과:
+2026-06-15 최종 복구 결과:
 
 | 항목 | 결과 |
 |---|---:|
@@ -148,8 +148,9 @@ python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 | clean replay to `ra_eu` | 429 messages |
 | replay JSON envelope | 0 |
 | wrong-peer active documents 최종 확인 | 0 |
+| wrong-peer pending queue 최종 확인 | 0 |
 
-`honcho-deriver-1`는 재시작되었고, `ra_us`/`ra_eu` 정상 peer queue를 처리한다. backlog 완료 전에는 #49를 닫지 않는다.
+원본 오염 메시지는 감사 증적으로 보존하되 활성 성장 material로 사용하지 않는다. #48/#49는 wrong-peer active docs 0, wrong-peer pending 0, canonical replay 2,085건 검증 후 종료했다.
 
 ### 3.2 기존 지식베이스 빠른 이식: source curriculum seed (#50)
 
@@ -162,10 +163,12 @@ python3 scripts/verify-curriculum-seed.py
 python3 scripts/verify-study-scheduler.py
 ```
 
-`ra_kr` 우선 dry-run:
+담당자별 explicit source dry-run:
 
 ```bash
 set -a && . scripts/.env && set +a
+python3 scripts/curriculum-seed.py --agent ra-us --scope explicit --limit-sources 60 --preview 30
+python3 scripts/curriculum-seed.py --agent ra-eu --scope explicit --limit-sources 60 --preview 30
 python3 scripts/curriculum-seed.py --agent ra-kr --scope explicit --limit-sources 30 --preview 30
 ```
 
@@ -178,6 +181,8 @@ python3 scripts/curriculum-seed.py --agent ra-kr --scope explicit --limit-source
 제한 실행:
 
 ```bash
+python3 scripts/curriculum-seed.py --agent ra-us --scope explicit --limit-sources 60 --preview 5 --execute --batch-size 10
+python3 scripts/curriculum-seed.py --agent ra-eu --scope explicit --limit-sources 60 --preview 5 --execute --batch-size 10
 python3 scripts/curriculum-seed.py --agent ra-kr --scope explicit --limit-sources 30 --preview 5 --execute --batch-size 10
 ```
 
@@ -201,22 +206,25 @@ GROUP BY peer_name;
 "
 ```
 
-2026-06-13 실제 수행 결과:
+2026-06-15 최종 수행 결과:
 
 | 항목 | 결과 |
 |---|---:|
+| `ra_us` FDA/US explicit source candidates | 48 |
+| `ra_eu` MDR/EU explicit source candidates | 31 |
 | `ra_kr` KR/MFDS explicit source candidates | 29 |
-| written `curriculum_seed` messages | 29 |
+| written `curriculum_seed` messages | 108 |
 | JSON envelope content | 0 |
-| correct metadata (`actor=ra_kr`, `peer_id=ra_kr`, `profile_id=ra-kr`) | 29 / 29 |
-| distinct source hashes | 29 |
-| idempotence dry-run after execute | `already_seeded=29`, `to_seed=0` |
+| correct metadata | 108 / 108 |
+| distinct source hashes | 108 |
+| idempotence dry-run after execute | `ra_us` 48/0, `ra_eu` 31/0, `ra_kr` 29/0 (`already_seeded`/`to_seed`) |
+| deriver pending after drain | RA pending 0 |
 
 속도 경계:
 
-- source seed write 자체는 29건 기준 약 30초 이내에 끝난다.
+- source seed write 자체는 LLM 호출 없이 수십 건 단위로 빠르게 끝난다.
 - 실제 Honcho memory/document 파생은 `honcho-deriver-1` queue 속도에 좌우된다.
-- 2026-06-13 기준 deriver는 #49 `ra_us`/`ra_eu` backlog를 먼저 처리 중이며, `ra_kr` seed는 pending queue에 정상 적재된 상태다.
+- 2026-06-15 기준 `ra_us`/`ra_eu`/`ra_kr` seed backlog는 모두 processed 상태다.
 
 운영 sync 계획:
 
@@ -383,13 +391,21 @@ timer 실행 내용:
 - 월요일에는 `--execute-curriculum`을 추가해 `ra_knowledge` 신규 source를 담당자별로 idempotent seed한다.
 - `reports/auto-growth/`에 pre-auto와 non-email 리포트를 남긴다.
 
+2026-06-15 운영 반영:
+
+- `hermes-auto-growth.timer` 설치 및 enable/start 완료.
+- 다음 실행 예정: 2026-06-16 03:32:57 KST.
+- `ra_us` 48개, `ra_eu` 31개, `ra_kr` 29개 explicit source curriculum seed 실행 및 deriver 처리 완료.
+- timer service는 실행 시점마다 RA pending gate를 다시 검사한다.
+- 2026-06-15 22:05:50 KST 수동 1회 service 실행 성공: `status=0/SUCCESS`, pre-auto report `ok=true`, non-email report `ok=true`.
+
 2026-06-15 전환 점검 결과:
 
 - `daily_growth_case` 3건(`ra_us`, `ra_eu`, `ra_kr`) execute 완료.
 - `DERIVER_FLUSH_ENABLED=true` 적용 후 pending representation queue 0으로 회복.
 - 같은 날짜 재실행 dry-run은 `skipped_existing=3`, `planned_case_count=0`으로 idempotence 확인.
 - `pre-auto-growth-loop.py` dry-run 및 execute smoke 모두 통과.
-- 자동 timer 승격 전 남은 결정은 운영 승인뿐이다.
+- `hermes-auto-growth.service` 수동 1회 실행까지 성공했으므로 자동 timer 전환 조건을 충족했다.
 
 ---
 

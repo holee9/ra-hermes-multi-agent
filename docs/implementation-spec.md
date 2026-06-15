@@ -270,7 +270,7 @@ npm test
 - idempotence: `peer_name + curriculum_version + source_hash` 기준으로 이미 seed된 source를 건너뛴다.
 - 안전 장치: 프로파일 ID는 hyphen(`ra-kr`), Honcho peer ID는 underscore(`ra_kr`)로 분리한다. content는 JSON envelope 금지.
 - precision 기본값: `wiki/entities/*`는 제외한다. 엔티티 페이지는 초기 전문성 seed가 아니라 보조 context로 취급한다.
-- 2026-06-13 상태: `ra_kr` explicit KR/MFDS source 29건 seed 완료, JSON envelope 0, idempotence 확인. deriver 문서 파생은 기존 `ra_us`/`ra_eu` backlog 이후 처리된다.
+- 2026-06-15 상태: `ra_us` 48건, `ra_eu` 31건, `ra_kr` 29건 explicit source seed 완료. JSON envelope 0, correct metadata 108/108, idempotence `to_seed=0`, RA deriver pending 0.
 
 ### P2.5 daily KB-driven growth runner `[구현]` (#51)
 
@@ -291,6 +291,7 @@ npm test
 - 성장 루틴: `non-email-growth-loop.py --cadence all` 기준 daily KB case, weekly source curriculum seed, monthly autonomous study delta dry-run, quarterly source coverage/freshness audit.
 - 오염 판정: active growth record의 JSON envelope는 0이어야 한다. 과거 legacy test payload는 원본 백업 후 `metadata.quarantine_status=quarantined`로 표시하고 active gate에서 제외한다.
 - timer 정책: `hermes-auto-growth.timer`는 매일 03:30 KST 실행한다. `auto-growth-runner.sh`는 daily KB growth를 idempotent execute하고, 월요일에는 curriculum seed도 idempotent execute한다.
+- 2026-06-15 전환 상태: timer enable/start 완료, 수동 1회 `hermes-auto-growth.service` 실행 `status=0/SUCCESS`, pre-auto/non-email reports 모두 `ok=true`, 다음 timer 실행 2026-06-16 03:32:57 KST.
 
 ---
 
