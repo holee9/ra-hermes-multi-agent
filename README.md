@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #49 peer_id 복구 완료 · #50 ra_kr source curriculum seed 완료 · #51 daily growth runner 준비 중 · 전체 문서 전수 점검 완료(2026-06-15)** | 최종 갱신: 2026-06-15
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #49 peer_id 복구 완료 · #50 ra_kr source curriculum seed 완료 · #51/#52 daily growth E2E 검증 완료 · 전체 문서 전수 점검 완료(2026-06-15)** | 최종 갱신: 2026-06-15
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -45,7 +45,7 @@
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
 | 자율 학습 peer_id 오염 복구 | 🔄 복구 완료·deriver backlog 처리 중 (wrong-peer queue/docs quarantine, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, replay idempotence 확인) | [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49) |
 | source-level curriculum seed fast-track | 🔄 `ra_kr` 우선 29개 KR/MFDS source clean seed 완료 (`curriculum_seed`, JSON envelope 0, idempotence 확인), deriver backlog 처리 대기 | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) |
-| 메일 비의존 daily growth runner | 🔄 구현·검증 진행 중 (dry-run 기본, manual growth 완료 전 execute gate 차단, KB 기반 daily case 계획 생성) | [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) |
+| 메일 비의존 daily growth runner | ✅ 1회 E2E 검증 완료 (`daily_growth_case` 3건 clean text 기록, deriver flush 보완, queue pending 0, idempotence 확인; timer 승격은 운영 승인 후) | [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
