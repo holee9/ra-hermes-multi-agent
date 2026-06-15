@@ -233,6 +233,7 @@ honcho-src/
 reports/*.json
 reports/pre-auto-growth/
 reports/non-email-growth/
+reports/auto-growth/
 
 # Incident/database export backups (runtime artifacts — not version-controlled)
 backups/

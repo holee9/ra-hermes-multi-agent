@@ -37,6 +37,12 @@ def main() -> None:
     if "-" in agent.peer_id:
         fail(f"hyphenated Honcho peer_id found: {agent.peer_id}")
 
+    broad_keywords = {"US", "EU", "CE", "KR", "Korea"}
+    for check_agent in module.AGENTS.values():
+        leaked = broad_keywords.intersection(check_agent.explicit_keywords)
+        if leaked:
+            fail(f"explicit curriculum keywords are too broad for {check_agent.peer_id}: {sorted(leaked)}")
+
     session_name = module.build_session_name(agent, "2026-06-13")
     if session_name != "study-ra_kr-curriculum-seed-2026-06-13":
         fail(f"wrong session naming convention: {session_name}")

@@ -278,6 +278,7 @@ npm test
 - 스크립트: `scripts/daily-growth-runner.py`
 - 비메일 성장 cadence 루프: `scripts/non-email-growth-loop.py`
 - 사전 전환 루프: `scripts/pre-auto-growth-loop.py`
+- 자동 실행 entrypoint: `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`
 - 검증: `scripts/verify-daily-growth-runner.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/verify-pre-auto-growth-loop.py`
 - 기본값: dry-run only. 자동 실행은 수동 성장/backlog 완료 전 금지한다.
 - execute gate: `--execute`만으로는 실행되지 않는다. `--manual-growth-complete`가 필요하며, `--max-pending` 이하로 queue가 줄어야 한다.
@@ -289,6 +290,7 @@ npm test
 - 자동 timer 승격 조건: `pre-auto-growth-loop.py`가 local verifier, deriver flush, queue clean, daily runner idempotence, optional execute drain을 통과해야 한다. 일반 메일/Hermes 입력이 동시에 들어오는 시간에는 `--pending-scope ra`로 RA 담당자 큐를 strict gate로 두고 전체 pending은 감시값으로 분리한다.
 - 성장 루틴: `non-email-growth-loop.py --cadence all` 기준 daily KB case, weekly source curriculum seed, monthly autonomous study delta dry-run, quarterly source coverage/freshness audit.
 - 오염 판정: active growth record의 JSON envelope는 0이어야 한다. 과거 legacy test payload는 원본 백업 후 `metadata.quarantine_status=quarantined`로 표시하고 active gate에서 제외한다.
+- timer 정책: `hermes-auto-growth.timer`는 매일 03:30 KST 실행한다. `auto-growth-runner.sh`는 daily KB growth를 idempotent execute하고, 월요일에는 curriculum seed도 idempotent execute한다.
 
 ---
 

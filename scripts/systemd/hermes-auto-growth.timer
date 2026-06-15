@@ -1,0 +1,12 @@
+[Unit]
+Description=RA Hermes Non-Email Auto Growth — Daily Timer
+Requires=hermes-auto-growth.service
+
+[Timer]
+# Run after growth metrics and low-traffic study windows.
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

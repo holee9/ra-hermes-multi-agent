@@ -364,6 +364,25 @@ python3 scripts/pre-auto-growth-loop.py \
 - `daily_growth_case` JSON envelope 0, hyphen peer 0.
 - 같은 날짜 기존 케이스가 있으면 `skipped_existing`로 처리되고 중복 기록하지 않는다.
 
+자동 timer 설치:
+
+```bash
+bash scripts/install-auto-growth-timer.sh --enable
+```
+
+즉시 1회 실행까지 포함하려면:
+
+```bash
+bash scripts/install-auto-growth-timer.sh --enable --start-now
+```
+
+timer 실행 내용:
+
+- `auto-growth-runner.sh`가 `pre-auto-growth-loop.py --pending-scope ra --execute-daily-growth`를 먼저 실행한다.
+- 이후 `non-email-growth-loop.py --cadence all`을 실행한다.
+- 월요일에는 `--execute-curriculum`을 추가해 `ra_knowledge` 신규 source를 담당자별로 idempotent seed한다.
+- `reports/auto-growth/`에 pre-auto와 non-email 리포트를 남긴다.
+
 2026-06-15 전환 점검 결과:
 
 - `daily_growth_case` 3건(`ra_us`, `ra_eu`, `ra_kr`) execute 완료.
