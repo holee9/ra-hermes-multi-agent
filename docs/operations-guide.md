@@ -246,6 +246,7 @@ Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, week
 
 ```bash
 python3 scripts/verify-daily-growth-runner.py
+python3 scripts/verify-pre-auto-growth-loop.py
 ```
 
 계획 dry-run:
@@ -295,11 +296,41 @@ python3 scripts/daily-growth-runner.py \
 
 이 명령은 바로 systemd에 등록하지 않는다. 먼저 3일 이상 수동 dry-run 결과를 검토하고, source 품질·deriver 처리량·사람 평가 루틴이 확인된 뒤 timer로 승격한다.
 
+자동 timer 승격 전 readiness loop:
+
+```bash
+python3 scripts/pre-auto-growth-loop.py \
+  --iterations 1 \
+  --max-pending 0 \
+  --sleep-seconds 5 \
+  --drain-timeout-seconds 420
+```
+
+선택적 execute smoke:
+
+```bash
+python3 scripts/pre-auto-growth-loop.py \
+  --iterations 1 \
+  --max-pending 0 \
+  --sleep-seconds 5 \
+  --drain-timeout-seconds 420 \
+  --execute-daily-growth
+```
+
+루프 정상 기준:
+
+- 로컬 계약 검증 4종 통과: study scheduler, curriculum seed, daily growth runner, pre-auto loop.
+- `DERIVER_FLUSH_ENABLED=True`.
+- loop 전후 `queue.processed=false` 전체 0.
+- `daily_growth_case` JSON envelope 0, hyphen peer 0.
+- 같은 날짜 기존 케이스가 있으면 `skipped_existing`로 처리되고 중복 기록하지 않는다.
+
 2026-06-15 전환 점검 결과:
 
 - `daily_growth_case` 3건(`ra_us`, `ra_eu`, `ra_kr`) execute 완료.
 - `DERIVER_FLUSH_ENABLED=true` 적용 후 pending representation queue 0으로 회복.
 - 같은 날짜 재실행 dry-run은 `skipped_existing=3`, `planned_case_count=0`으로 idempotence 확인.
+- `pre-auto-growth-loop.py` dry-run 및 execute smoke 모두 통과.
 - 자동 timer 승격 전 남은 결정은 운영 승인뿐이다.
 
 ---
