@@ -55,7 +55,6 @@ AGENTS: dict[str, Agent] = {
         name="Mike",
         region="US",
         explicit_keywords=(
-            "US",
             "FDA",
             "510k",
             "510(k)",
@@ -82,10 +81,8 @@ AGENTS: dict[str, Agent] = {
         name="Theo",
         region="EU",
         explicit_keywords=(
-            "EU",
             "MDR",
             "IVDR",
-            "CE",
             "EUDAMED",
             "Notified Body",
             "MDCG",
@@ -108,8 +105,6 @@ AGENTS: dict[str, Agent] = {
         name="Sam",
         region="KR",
         explicit_keywords=(
-            "KR",
-            "Korea",
             "MFDS",
             "KGMP",
             "식약처",
