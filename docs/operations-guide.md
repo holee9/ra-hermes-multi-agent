@@ -301,6 +301,18 @@ python3 scripts/daily-growth-runner.py \
 ```bash
 python3 scripts/pre-auto-growth-loop.py \
   --iterations 1 \
+  --pending-scope all \
+  --max-pending 0 \
+  --sleep-seconds 5 \
+  --drain-timeout-seconds 420
+```
+
+메일·Hermes 일반 입력이 동시에 들어오는 운영 시간에는 RA 성장 큐만 strict하게 점검할 수 있다:
+
+```bash
+python3 scripts/pre-auto-growth-loop.py \
+  --iterations 1 \
+  --pending-scope ra \
   --max-pending 0 \
   --sleep-seconds 5 \
   --drain-timeout-seconds 420
@@ -311,6 +323,7 @@ python3 scripts/pre-auto-growth-loop.py \
 ```bash
 python3 scripts/pre-auto-growth-loop.py \
   --iterations 1 \
+  --pending-scope ra \
   --max-pending 0 \
   --sleep-seconds 5 \
   --drain-timeout-seconds 420 \
@@ -321,7 +334,8 @@ python3 scripts/pre-auto-growth-loop.py \
 
 - 로컬 계약 검증 4종 통과: study scheduler, curriculum seed, daily growth runner, pre-auto loop.
 - `DERIVER_FLUSH_ENABLED=True`.
-- loop 전후 `queue.processed=false` 전체 0.
+- `--pending-scope all`이면 loop 전후 `queue.processed=false` 전체 0.
+- `--pending-scope ra`이면 loop 전후 RA 담당자(`ra_us`, `ra_eu`, `ra_kr`) pending 0. 전체 pending은 일반 메일/Hermes 유입 감시값으로 남긴다.
 - `daily_growth_case` JSON envelope 0, hyphen peer 0.
 - 같은 날짜 기존 케이스가 있으면 `skipped_existing`로 처리되고 중복 기록하지 않는다.
 
