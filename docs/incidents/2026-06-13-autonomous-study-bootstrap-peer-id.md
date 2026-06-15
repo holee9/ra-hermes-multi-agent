@@ -2,6 +2,16 @@
 
 GitHub issue: #49
 
+## Discovery
+
+This issue was discovered by the user (holee9) during manual testing of Hermes Agent sessions,
+not by an automated Codex review. The user observed:
+- 9,272 chunks processed
+- ra-us session generated 1,144 insights, mostly under wrong peer `ra-us`
+- EU bootstrap had 0 insights after hundreds of chunks
+
+Evidence: https://github.com/holee9/ra-hermes-multi-agent/issues/48
+
 ## Severity
 
 P0 critical data-contract incident.
