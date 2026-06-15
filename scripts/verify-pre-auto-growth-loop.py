@@ -42,6 +42,8 @@ def main() -> None:
         fail("default iterations must be 1")
     if args.max_pending != 0:
         fail("default max_pending must be 0")
+    if args.pending_scope != "all":
+        fail("default pending_scope must be all")
     if args.execute_daily_growth:
         fail("execute_daily_growth must be opt-in")
     if args.cases_per_agent != 1 or args.source_pool != 10 or args.max_chunks_per_case != 1:
@@ -58,12 +60,14 @@ def main() -> None:
         "growth_message_health": {"json_envelopes": 0, "hyphen_peers": 0},
         "queue_after": {"pending_total": 0},
     }
-    if module.evaluate_iteration(clean_report, 0):
+    if module.pending_for_scope({"pending_total": 2, "pending_by_ra": {"ra_us": 0, "ra_eu": 0, "ra_kr": 0}}, "ra") != 0:
+        fail("RA pending scope must ignore non-RA pending")
+    if module.evaluate_iteration(clean_report, 0, "all"):
         fail("clean report should not fail")
 
     dirty_report = dict(clean_report)
     dirty_report["queue_after"] = {"pending_total": 1}
-    if not module.evaluate_iteration(dirty_report, 0):
+    if not module.evaluate_iteration(dirty_report, 0, "all"):
         fail("dirty queue must fail evaluation")
 
     print("OK: pre-auto growth loop contract holds")

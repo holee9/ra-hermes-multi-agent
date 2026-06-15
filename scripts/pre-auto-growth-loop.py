@@ -236,26 +236,41 @@ def run_daily_growth(
     }
 
 
-def wait_for_drain(env: dict[str, str], max_pending: int, timeout_seconds: int, sleep_seconds: int) -> dict[str, Any]:
+def pending_for_scope(snapshot: dict[str, Any], pending_scope: str) -> int:
+    if pending_scope == "all":
+        return int(snapshot["pending_total"])
+    if pending_scope == "ra":
+        return sum(int(value) for value in snapshot["pending_by_ra"].values())
+    raise ValueError(f"unknown pending scope: {pending_scope}")
+
+
+def wait_for_drain(
+    env: dict[str, str],
+    max_pending: int,
+    timeout_seconds: int,
+    sleep_seconds: int,
+    pending_scope: str,
+) -> dict[str, Any]:
     deadline = time.monotonic() + timeout_seconds
     snapshots: list[dict[str, Any]] = []
     while True:
         with connect(env) as conn:
             snapshot = fetch_queue_snapshot(conn)
         snapshots.append(snapshot)
-        if snapshot["pending_total"] <= max_pending:
-            return {"ok": True, "snapshots": snapshots}
+        if pending_for_scope(snapshot, pending_scope) <= max_pending:
+            return {"ok": True, "pending_scope": pending_scope, "snapshots": snapshots}
         if time.monotonic() >= deadline:
-            return {"ok": False, "snapshots": snapshots}
+            return {"ok": False, "pending_scope": pending_scope, "snapshots": snapshots}
         time.sleep(sleep_seconds)
 
 
-def evaluate_iteration(report: dict[str, Any], max_pending: int) -> list[str]:
+def evaluate_iteration(report: dict[str, Any], max_pending: int, pending_scope: str) -> list[str]:
     failures: list[str] = []
     if not report["deriver_flush"]["ok"]:
         failures.append("DERIVER_FLUSH_ENABLED is not True")
-    if report["queue_before"]["pending_total"] > max_pending:
-        failures.append(f"queue pending before loop is {report['queue_before']['pending_total']}")
+    pending_before = pending_for_scope(report["queue_before"], pending_scope)
+    if pending_before > max_pending:
+        failures.append(f"{pending_scope} queue pending before loop is {pending_before}")
     for verifier in report["verifiers"]:
         if verifier["returncode"] != 0:
             failures.append(f"verifier failed: {' '.join(verifier['cmd'])}")
@@ -273,8 +288,9 @@ def evaluate_iteration(report: dict[str, Any], max_pending: int) -> list[str]:
         failures.append("daily_growth_case JSON envelope contamination detected")
     if int(health.get("hyphen_peers") or 0) != 0:
         failures.append("daily_growth_case hyphen peer contamination detected")
-    if report["queue_after"]["pending_total"] > max_pending:
-        failures.append(f"queue pending after loop is {report['queue_after']['pending_total']}")
+    pending_after = pending_for_scope(report["queue_after"], pending_scope)
+    if pending_after > max_pending:
+        failures.append(f"{pending_scope} queue pending after loop is {pending_after}")
     return failures
 
 
@@ -284,6 +300,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sleep-seconds", type=int, default=10)
     parser.add_argument("--drain-timeout-seconds", type=int, default=420)
     parser.add_argument("--max-pending", type=int, default=0)
+    parser.add_argument("--pending-scope", default="all", choices=["all", "ra"])
     parser.add_argument("--agent", default="all", choices=["ra-us", "ra-eu", "ra-kr", "all"])
     parser.add_argument("--date", default=None, help="Run date YYYY-MM-DD, default daily-growth-runner UTC today")
     parser.add_argument("--cases-per-agent", type=int, default=1)
@@ -318,6 +335,7 @@ def main() -> None:
         "issue": "53",
         "iterations_requested": args.iterations,
         "execute_daily_growth": bool(args.execute_daily_growth),
+        "pending_scope": args.pending_scope,
         "iterations": [],
         "ok": False,
     }
@@ -351,6 +369,7 @@ def main() -> None:
                 max_pending=args.max_pending,
                 timeout_seconds=args.drain_timeout_seconds,
                 sleep_seconds=args.sleep_seconds,
+                pending_scope=args.pending_scope,
             )
 
         with connect(env) as conn:
@@ -358,7 +377,7 @@ def main() -> None:
             iteration_report["self_docs_after"] = fetch_self_docs(conn)
             iteration_report["growth_message_health"] = fetch_growth_message_health(conn, run_date_for_health)
 
-        failures = evaluate_iteration(iteration_report, args.max_pending)
+        failures = evaluate_iteration(iteration_report, args.max_pending, args.pending_scope)
         iteration_report["failures"] = failures
         iteration_report["ok"] = not failures
         top_report["iterations"].append(iteration_report)
