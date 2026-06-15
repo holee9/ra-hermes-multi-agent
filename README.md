@@ -1,7 +1,7 @@
 # RA Hermes 멀티 에이전트 시스템
 
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
-> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-13.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-15.
 
 **[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md)
 
@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #49 peer_id 복구 완료 · #50 ra_kr source curriculum seed 완료 · #51 daily growth runner 준비 중** | 최종 갱신: 2026-06-13
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #49 peer_id 복구 완료 · #50 ra_kr source curriculum seed 완료 · #51 daily growth runner 준비 중 · 전체 문서 전수 점검 완료(2026-06-15)** | 최종 갱신: 2026-06-15
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
