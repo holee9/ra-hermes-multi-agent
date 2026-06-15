@@ -232,6 +232,7 @@ honcho-src/
 # Cold-start verification run reports (runtime artifacts — not version-controlled)
 reports/*.json
 reports/pre-auto-growth/
+reports/non-email-growth/
 
 # Incident/database export backups (runtime artifacts — not version-controlled)
 backups/

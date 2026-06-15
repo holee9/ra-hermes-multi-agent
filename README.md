@@ -45,7 +45,7 @@
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
 | 자율 학습 peer_id 오염 복구 | 🔄 복구 완료·deriver backlog 처리 중 (wrong-peer queue/docs quarantine, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, replay idempotence 확인) | [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49) |
 | source-level curriculum seed fast-track | 🔄 `ra_kr` 우선 29개 KR/MFDS source clean seed 완료 (`curriculum_seed`, JSON envelope 0, idempotence 확인), deriver backlog 처리 대기 | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) |
-| 메일 비의존 daily growth runner | ✅ 1회 E2E 검증 완료 (`daily_growth_case` 3건 clean text 기록, deriver flush 보완, pre-auto loop 통과, queue pending 0, idempotence 확인; timer 승격은 운영 승인 후) | [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) |
+| 비메일 성장 cadence loop | ✅ daily/weekly/monthly/quarterly dry-run 검증 완료 (`daily_growth_case` 3건, active JSON envelope 0, RA pending 0, legacy test JSON 1건 quarantine; timer 승격은 운영 승인 후) | [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
@@ -83,7 +83,7 @@
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_kr` 29건 완료) |
-| daily growth runner | `scripts/daily-growth-runner.py`, `scripts/verify-daily-growth-runner.py`, `scripts/pre-auto-growth-loop.py`, `scripts/verify-pre-auto-growth-loop.py` | #51/#53 메일 수신 없이 KB 기반 daily regulatory case 계획 생성, 자동 timer 전환 전 반복 readiness loop 통과 필요 |
+| non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/daily-growth-runner.py`, `scripts/pre-auto-growth-loop.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, 자동 timer 전환 전 readiness loop 통과 필요 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 
