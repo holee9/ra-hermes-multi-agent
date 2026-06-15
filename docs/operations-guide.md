@@ -222,10 +222,10 @@ GROUP BY peer_name;
 
 | 주기 | 목적 | 작업 |
 |---|---|---|
-| Daily | 새 지식 빠른 반영 | delta 인덱싱 후 curriculum dry-run, 소량 execute, deriver backlog 확인 |
-| Weekly | 담당자별 전문성 보정 | `ra_us`/`ra_eu`/`ra_kr` explicit source seed 재검토, shared source는 선별 |
-| Monthly | 사람 평가 기반 정밀화 | 낮은 신뢰·오답 사례를 source와 연결해 SOUL/운영 규칙 갱신 |
-| Quarterly | 커버리지 감사 | FDA/EU/MFDS source gap, stale source, duplicate source hash 점검 |
+| Daily | 새 지식 빠른 반영 | `daily-growth-runner.py`로 `ra_knowledge` 기반 daily regulatory case 생성 |
+| Weekly | 담당자별 전문성 보정 | `curriculum-seed.py --agent all`로 explicit source seed 재검토 |
+| Monthly | 사람 평가 기반 정밀화 | `autonomous-study-scheduler.py delta --dry-run`으로 delta 학습 후보 점검 |
+| Quarterly | 커버리지 감사 | `non-email-growth-loop.py` source coverage/freshness audit |
 | Yearly | 규제 baseline 재인증 | 주요 법령·가이드라인·표준 개정 반영 여부를 사람 검토로 확정 |
 
 Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, weekly 이상 주기는 품질·커버리지·오염 방지에 필요하다.
@@ -246,8 +246,33 @@ Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, week
 
 ```bash
 python3 scripts/verify-daily-growth-runner.py
+python3 scripts/verify-non-email-growth-loop.py
 python3 scripts/verify-pre-auto-growth-loop.py
 ```
+
+메일 비의존 성장 cadence 루프:
+
+```bash
+python3 scripts/non-email-growth-loop.py \
+  --cadence all \
+  --agent all \
+  --max-pending 0
+```
+
+이 루프의 성장 입력은 메일이 아니라 다음 네 가지다:
+
+- daily: `ra_knowledge` source rotation 기반 `daily_growth_case`.
+- weekly: `ra_knowledge` source-level `curriculum_seed`.
+- monthly: autonomous study delta dry-run.
+- quarterly: jurisdiction source coverage/freshness audit.
+
+2026-06-15 비메일 성장 cadence 검증 결과:
+
+- `non-email-growth-loop.py --cadence all --agent all --max-pending 0` 통과.
+- RA pending: `ra_us=0`, `ra_eu=0`, `ra_kr=0`.
+- source coverage: all 1,018 sources / 8,102 chunks, `ra_us` 48 sources, `ra_eu` 31 sources, `ra_kr` 29 sources.
+- `daily_growth_case`: 3건, JSON envelope 0, hyphen peer 0, distinct scenarios 3.
+- legacy `ra_us study_insight` JSON envelope 1건은 #55로 백업 후 quarantine metadata를 부여했다. active growth contamination 기준은 0이다.
 
 계획 dry-run:
 

@@ -32,6 +32,7 @@ VERIFY_SCRIPTS = (
     "scripts/verify-study-scheduler.py",
     "scripts/verify-curriculum-seed.py",
     "scripts/verify-daily-growth-runner.py",
+    "scripts/verify-non-email-growth-loop.py",
     "scripts/verify-pre-auto-growth-loop.py",
 )
 

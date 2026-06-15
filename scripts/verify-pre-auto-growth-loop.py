@@ -33,6 +33,8 @@ def main() -> None:
         fail(f"unexpected AGENT_PEERS: {module.AGENT_PEERS}")
     if "scripts/verify-daily-growth-runner.py" not in module.VERIFY_SCRIPTS:
         fail("daily growth verifier must be part of the pre-auto loop")
+    if "scripts/verify-non-email-growth-loop.py" not in module.VERIFY_SCRIPTS:
+        fail("non-email growth verifier must be part of the pre-auto loop")
     if "scripts/verify-study-scheduler.py" not in module.VERIFY_SCRIPTS:
         fail("study scheduler verifier must be part of the pre-auto loop")
 
