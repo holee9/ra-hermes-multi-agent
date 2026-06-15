@@ -25,6 +25,7 @@ services:
       CACHE_URL: "redis://redis:6379/0"
       CACHE_ENABLED: "true"
       DERIVER_WORKERS: "2"
+      DERIVER_FLUSH_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy

@@ -240,6 +240,7 @@ Daily 성장만으로는 충분하지 않다. Daily는 반영 속도이고, week
 - 기본 실행은 dry-run이다.
 - `--execute`는 `--manual-growth-complete`와 queue pending gate를 통과해야 한다.
 - source 선택은 FDA/MDR/MFDS/KGMP 등 강한 키워드 중심이다. `CE`, `US`, `KR`, `Korea` 같은 넓은 단독 키워드는 노이즈를 만들 수 있어 daily routing에서 제외한다.
+- Honcho deriver는 `DERIVER_FLUSH_ENABLED=true`로 운영한다. daily growth case는 담당자별 소량 메시지라서 기본 batch threshold(`REPRESENTATION_BATCH_MAX_TOKENS=1024`)만 사용하면 queue에 장시간 남을 수 있다.
 
 검증:
 
@@ -266,6 +267,19 @@ python3 scripts/daily-growth-runner.py --agent ra-kr --cases-per-agent 1 --sourc
 - `manual_growth_complete_provided=false`
 - pending queue가 있으면 execute 금지
 
+전환 전 필수 확인:
+
+```bash
+docker compose -f honcho/docker-compose.yml --env-file honcho/.env exec -T deriver \
+  python -c "from src.config import settings; print(settings.DERIVER.FLUSH_ENABLED)"
+```
+
+정상 기준:
+
+- 출력이 `True`
+- `daily_growth_case` execute 후 `queue.processed=false` representation row가 0으로 회복
+- 담당자별 self document(`observer=observed=ra_us/ra_eu/ra_kr`)가 증가
+
 수동 성장 완료 후 전환 명령 예시:
 
 ```bash
@@ -280,6 +294,13 @@ python3 scripts/daily-growth-runner.py \
 ```
 
 이 명령은 바로 systemd에 등록하지 않는다. 먼저 3일 이상 수동 dry-run 결과를 검토하고, source 품질·deriver 처리량·사람 평가 루틴이 확인된 뒤 timer로 승격한다.
+
+2026-06-15 전환 점검 결과:
+
+- `daily_growth_case` 3건(`ra_us`, `ra_eu`, `ra_kr`) execute 완료.
+- `DERIVER_FLUSH_ENABLED=true` 적용 후 pending representation queue 0으로 회복.
+- 같은 날짜 재실행 dry-run은 `skipped_existing=3`, `planned_case_count=0`으로 idempotence 확인.
+- 자동 timer 승격 전 남은 결정은 운영 승인뿐이다.
 
 ---
 
