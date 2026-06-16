@@ -1,0 +1,50 @@
+{
+  "_comment": "Operational coverage/depth guards for pre-activation review. These are not expert competency scores.",
+  "version": "2026-06-16",
+  "status": "reviewed_after_dashboard_challenge",
+  "source_coverage": {
+    "_rationale": "Expected explicit source counts come from the source-level curriculum fast-track discovered in ra_knowledge. This is a coverage guard: each RA owner should have the known jurisdiction-specific source set seeded before automation review.",
+    "expected_explicit_sources": {
+      "ra_us": 48,
+      "ra_eu": 31,
+      "ra_kr": 29
+    }
+  },
+  "self_doc_depth_floors": {
+    "_rationale": "Self-doc counts are only a memory-volume proxy. They are useful as a pre-activation floor, but they do not prove expert competence.",
+    "ra_us": {
+      "min": 5000,
+      "basis": "Post-recovery US corpus has materially deeper memory volume; keep automation from running if this mature baseline collapses."
+    },
+    "ra_eu": {
+      "min": 2000,
+      "basis": "Post-recovery EU corpus has enough MDR/IVDR memory depth for baseline automation review."
+    },
+    "ra_kr": {
+      "min": 500,
+      "basis": "#59 manual KR growth target; minimum viable KR memory depth before considering automation review."
+    }
+  },
+  "relative_depth_floors": [
+    {
+      "id": "kr_not_below_20pct_eu",
+      "agent": "ra_kr",
+      "baseline": "ra_eu",
+      "min_ratio": 0.2,
+      "status": "legacy_pre_activation_floor",
+      "basis": "Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity."
+    }
+  ],
+  "expert_maturity": {
+    "_rationale": "Expert maturity must be judged from behavior and feedback, not self-doc volume alone.",
+    "required_signals": [
+      "correction_rate",
+      "first_pass_match_accuracy",
+      "warmstart_lift",
+      "confidence_calibration",
+      "escalation_precision",
+      "human_feedback_coverage"
+    ],
+    "current_status": "insufficient_until_growth_metrics_ingestion_is_nonzero"
+  }
+}

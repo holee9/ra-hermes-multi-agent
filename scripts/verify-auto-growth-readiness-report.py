@@ -35,6 +35,12 @@ def main() -> None:
         fail("unexpected RA peer list")
     if module.EXPECTED_SEEDS != {"ra_us": 48, "ra_eu": 31, "ra_kr": 29}:
         fail("expected seed counts changed unexpectedly")
+    guards = module.load_coverage_guards()
+    relative_guards = guards.get("relative_depth_floors", [])
+    if not relative_guards or relative_guards[0].get("status") != "legacy_pre_activation_floor":
+        fail("KR/EU relative depth guard must be documented as a legacy pre-activation floor")
+    if float(relative_guards[0].get("min_ratio")) != 0.2:
+        fail("legacy KR/EU relative depth floor ratio changed unexpectedly")
 
     sample = {
         "operation_date": "2026-06-16",
@@ -76,6 +82,8 @@ def main() -> None:
         fail("growth input quality should be fully ready in sample")
     if matrix["scores"]["agent_balance"]["score"] >= 4:
         fail("agent balance should expose current ra_kr depth gap")
+    if matrix["scores"]["agent_balance"].get("guard_source") != "scripts/coverage-guards.json":
+        fail("agent balance must expose coverage guard source")
     if matrix["timer_operation_recommendation"] != "keep_off":
         fail("timer recommendation must remain keep_off when matrix is below 16")
 

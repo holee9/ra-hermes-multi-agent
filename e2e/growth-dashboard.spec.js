@@ -13,11 +13,14 @@ test.describe('growth dashboard', () => {
   });
 
   test('renders the static growth dashboard snapshot', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('RA Hermes Growth Dashboard');
-    await expect(page.locator('text=Readiness Radar')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('RA Expert Growth Dashboard');
+    await expect(page.locator('text=Expert Growth Verdict')).toBeVisible();
+    await expect(page.locator('.kpi').filter({ hasText: 'Expert Growth Verdict' })).toContainText('측정 불충분');
+    await expect(page.locator('text=Expert Evidence Radar')).toBeVisible();
+    await expect(page.locator('text=Coverage Guard Basis')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Depth Proxy & Source Coverage' })).toBeVisible();
+    await expect(page.locator('section').filter({ hasText: 'Coverage Guard Basis' })).toContainText('legacy_pre_activation_floor');
     await expect(page.locator('text=Readiness Matrix')).toBeVisible();
-    await expect(page.locator('text=Agent Balance Bars')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Agent Balance', exact: true })).toBeVisible();
     await expect(page.locator('text=Growth Trend')).toBeVisible();
     await expect(page.locator('text=Latest Growth Metrics')).toBeVisible();
     await expect(page.locator('text=Growth Report Trend')).toBeVisible();

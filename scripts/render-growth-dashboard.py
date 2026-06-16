@@ -15,6 +15,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 OUTPUT = ROOT / "docs" / "growth-dashboard.html"
+COVERAGE_GUARDS = ROOT / "scripts" / "coverage-guards.json"
+GROWTH_TARGETS = ROOT / "scripts" / "growth-targets.json"
 
 
 def load_json(path: Path) -> dict[str, Any] | None:
@@ -68,6 +70,8 @@ def collect_snapshot() -> dict[str, Any]:
     scores = matrix.get("scores", {})
     db = (readiness or {}).get("db", {})
     growth_metrics = (latest_growth or {}).get("metrics", {})
+    coverage_guards = load_json(COVERAGE_GUARDS) or {}
+    growth_targets = load_json(GROWTH_TARGETS) or {}
 
     hermes_timer_active = run(["systemctl", "is-active", "hermes-auto-growth.timer"])
     hermes_timer_enabled = run(["systemctl", "is-enabled", "hermes-auto-growth.timer"])
@@ -121,6 +125,8 @@ def collect_snapshot() -> dict[str, Any]:
             },
         },
         "trend_rows": trend_rows,
+        "coverage_guards": coverage_guards,
+        "growth_targets": growth_targets,
     }
 
 
@@ -135,6 +141,17 @@ def render_metric_row(name: str, data: dict[str, Any]) -> str:
         f"<td>{esc(data.get('note'))}</td>"
         "</tr>"
     )
+
+
+def evidence_label(name: str) -> str:
+    labels = {
+        "knowledge_depth_proxy": "Knowledge Depth Proxy",
+        "source_coverage": "Source Coverage",
+        "safety_cleanliness": "Safety Cleanliness",
+        "behavioral_metrics": "Behavioral Metrics",
+        "human_feedback": "Human Feedback",
+    }
+    return labels.get(name, name)
 
 
 def number(value: Any, fallback: float = 0.0) -> float:
@@ -152,12 +169,74 @@ def pct(value: float, denominator: float) -> float:
     return max(0.0, min(100.0, (value / denominator) * 100.0))
 
 
-def radar_chart(dimension_scores: dict[str, Any]) -> str:
+def evidence_scores(snapshot: dict[str, Any]) -> dict[str, float]:
+    guards = snapshot.get("coverage_guards", {})
+    expected_sources = (guards.get("source_coverage") or {}).get("expected_explicit_sources") or {}
+    depth_floors = guards.get("self_doc_depth_floors") or {}
+    self_docs = snapshot.get("self_docs", {})
+    seed_counts = snapshot.get("seed_counts", {})
+    growth_latest = snapshot.get("growth_latest", {})
+    growth_targets = snapshot.get("growth_targets", {})
+    target_metrics = ((growth_targets.get("phase2_dynamic_learning") or {}).get("metrics") or {})
+
+    source_values = [
+        min(1.0, number(seed_counts.get(agent)) / max(number(expected), 1.0))
+        for agent, expected in expected_sources.items()
+    ]
+    source_coverage = (sum(source_values) / len(source_values)) if source_values else 0.0
+
+    depth_values = [
+        min(1.0, number(self_docs.get(agent)) / max(number(config.get("min")), 1.0))
+        for agent, config in depth_floors.items()
+        if isinstance(config, dict)
+    ]
+    depth_proxy = (sum(depth_values) / len(depth_values)) if depth_values else 0.0
+
+    cleanliness_values = [1.0 if bool(value) else 0.0 for value in snapshot.get("cleanliness", {}).values()]
+    safety_cleanliness = (sum(cleanliness_values) / len(cleanliness_values)) if cleanliness_values else 0.0
+
+    sessions = number(growth_latest.get("sessions_scanned"))
+    messages = number(growth_latest.get("messages_scanned"))
+    metrics = growth_latest.get("metrics", {})
+    behavior_values = []
+    for metric_name, target in target_metrics.items():
+        metric = metrics.get(metric_name) or {}
+        value = metric.get("value")
+        if value is None:
+            behavior_values.append(0.0)
+            continue
+        metric_value = number(value)
+        if "target_min" in target:
+            behavior_values.append(1.0 if metric_value >= number(target.get("target_min")) else 0.0)
+        elif "target_max" in target:
+            behavior_values.append(1.0 if metric_value <= number(target.get("target_max")) else 0.0)
+    behavioral_signal = 0.0 if sessions == 0 or messages == 0 else (
+        (sum(behavior_values) / len(behavior_values)) if behavior_values else 0.0
+    )
+
+    min_feedback = number((growth_targets.get("phase2_dynamic_learning") or {}).get("min_feedback_coverage"))
+    feedback_metric = metrics.get("human_feedback_coverage") or metrics.get("feedback_coverage") or {}
+    feedback_value = feedback_metric.get("value")
+    feedback_signal = 0.0
+    if sessions > 0 and messages > 0 and feedback_value is not None:
+        feedback_signal = min(1.0, number(feedback_value) / max(min_feedback, 0.01))
+
+    return {
+        "knowledge_depth_proxy": depth_proxy * 4,
+        "source_coverage": source_coverage * 4,
+        "safety_cleanliness": safety_cleanliness * 4,
+        "behavioral_metrics": behavioral_signal * 4,
+        "human_feedback": feedback_signal * 4,
+    }
+
+
+def radar_chart(scores: dict[str, Any], title: str) -> str:
     order = [
-        ("activation_control", "Activation"),
-        ("data_cleanliness", "Cleanliness"),
-        ("growth_input_quality", "Input"),
-        ("agent_balance", "Balance"),
+        ("knowledge_depth_proxy", "Depth"),
+        ("source_coverage", "Sources"),
+        ("safety_cleanliness", "Safety"),
+        ("behavioral_metrics", "Behavior"),
+        ("human_feedback", "Feedback"),
     ]
     cx = cy = 130
     radius = 86
@@ -179,7 +258,7 @@ def radar_chart(dimension_scores: dict[str, Any]) -> str:
         end_y = cy + math.sin(angle) * radius
         label_x = cx + math.cos(angle) * (radius + 27)
         label_y = cy + math.sin(angle) * (radius + 27)
-        score = number(dimension_scores.get(key))
+        score = number(scores.get(key))
         value_r = radius * max(0, min(4, score)) / 4
         values.append(f"{cx + math.cos(angle) * value_r:.1f},{cy + math.sin(angle) * value_r:.1f}")
         axes.append(f"<line x1='{cx}' y1='{cy}' x2='{end_x:.1f}' y2='{end_y:.1f}' class='radar-axis' />")
@@ -189,7 +268,7 @@ def radar_chart(dimension_scores: dict[str, Any]) -> str:
         )
 
     return (
-        "<svg class='radar' viewBox='0 0 260 260' role='img' aria-label='readiness radar chart'>"
+        f"<svg class='radar' viewBox='0 0 260 260' role='img' aria-label='{esc(title)}'>"
         f"{''.join(rings)}{''.join(axes)}"
         f"<polygon points='{' '.join(values)}' class='radar-fill' />"
         f"<polyline points='{' '.join(values)} {values[0] if values else ''}' class='radar-line' />"
@@ -212,35 +291,91 @@ def status_lights(title: str, checks: dict[str, Any]) -> str:
     return f"<div class='status-panel'><h3>{esc(title)}</h3>{''.join(items)}</div>"
 
 
-def agent_bars(self_docs: dict[str, Any], seed_counts: dict[str, Any]) -> str:
-    max_docs = max([number(value) for value in self_docs.values()] + [1])
+def progress_bar(width: float, extra_class: str = "") -> str:
+    width = max(0.0, min(100.0, width))
+    return (
+        "<div class='bar-track'>"
+        f"<div class='bar-fill {extra_class}' style='width:{width:.1f}%'></div>"
+        "</div>"
+    )
+
+
+def agent_evidence_bars(snapshot: dict[str, Any]) -> str:
+    self_docs = snapshot["self_docs"]
+    seed_counts = snapshot["seed_counts"]
+    guards = snapshot.get("coverage_guards", {})
+    expected_sources = (guards.get("source_coverage") or {}).get("expected_explicit_sources") or {}
+    depth_floors = guards.get("self_doc_depth_floors") or {}
     rows = []
-    for peer, value in self_docs.items():
-        width = pct(number(value), max_docs)
+    for peer in sorted(set(self_docs) | set(expected_sources)):
+        docs = number(self_docs.get(peer))
+        floor_config = depth_floors.get(peer) if isinstance(depth_floors.get(peer), dict) else {}
+        depth_floor = number(floor_config.get("min"))
+        seeds = number(seed_counts.get(peer))
+        expected = number(expected_sources.get(peer))
         rows.append(
-            "<div class='agent-bar-row'>"
+            "<div class='agent-card'>"
             f"<div class='agent-name'>{esc(peer)}</div>"
-            "<div class='bar-track'>"
-            f"<div class='bar-fill' style='width:{width:.1f}%'></div>"
-            "</div>"
-            f"<div class='agent-value'>{esc(value)} docs · {esc(seed_counts.get(peer))} seeds</div>"
+            "<div class='agent-metric'><span>Depth Proxy</span>"
+            f"<strong>{esc(int(docs))}/{esc(int(depth_floor))}</strong></div>"
+            f"{progress_bar(pct(docs, depth_floor), 'depth-fill')}"
+            "<div class='agent-metric'><span>Source Coverage</span>"
+            f"<strong>{esc(int(seeds))}/{esc(int(expected))}</strong></div>"
+            f"{progress_bar(pct(seeds, expected), 'source-fill')}"
             "</div>"
         )
 
-    eu = number(self_docs.get("ra_eu"))
-    kr = number(self_docs.get("ra_kr"))
-    kr_target = int(eu * 0.2)
-    target_width = pct(kr, kr_target if kr_target else 1)
-    rows.append(
-        "<div class='threshold-card'>"
-        "<div class='threshold-head'><span>KR/EU 20% balance</span>"
-        f"<strong>{esc(int(kr))}/{esc(kr_target)}</strong></div>"
-        "<div class='bar-track threshold'>"
-        f"<div class='bar-fill threshold-fill' style='width:{min(target_width, 100):.1f}%'></div>"
-        "</div>"
-        "</div>"
-    )
+    for guard in guards.get("relative_depth_floors", []):
+        agent = guard.get("agent")
+        baseline = guard.get("baseline")
+        ratio = number(guard.get("min_ratio"))
+        current = number(self_docs.get(agent))
+        target = int(number(self_docs.get(baseline)) * ratio)
+        rows.append(
+            "<div class='threshold-card'>"
+            f"<div class='threshold-head'><span>{esc(guard.get('id'))}</span>"
+            f"<strong>{esc(int(current))}/{esc(target)}</strong></div>"
+            f"{progress_bar(pct(current, target if target else 1), 'threshold-fill')}"
+            f"<p><code>{esc(guard.get('status'))}</code> · {esc(guard.get('basis'))}</p>"
+            "</div>"
+        )
     return "".join(rows)
+
+
+def coverage_basis(snapshot: dict[str, Any]) -> str:
+    guards = snapshot.get("coverage_guards", {})
+    source = guards.get("source_coverage") or {}
+    depth = guards.get("self_doc_depth_floors") or {}
+    source_rows = "\n".join(
+        f"<tr><th>{esc(agent)}</th><td>{esc(expected)}</td><td>{esc(snapshot.get('seed_counts', {}).get(agent))}</td></tr>"
+        for agent, expected in (source.get("expected_explicit_sources") or {}).items()
+    )
+    depth_rows = "\n".join(
+        f"<tr><th>{esc(agent)}</th><td>{esc(config.get('min'))}</td><td>{esc(snapshot.get('self_docs', {}).get(agent))}</td><td>{esc(config.get('basis'))}</td></tr>"
+        for agent, config in depth.items()
+        if isinstance(config, dict)
+    )
+    legacy_rows = "\n".join(
+        "<tr>"
+        f"<th>{esc(guard.get('id'))}</th>"
+        f"<td><code>{esc(guard.get('status'))}</code></td>"
+        f"<td>{esc(guard.get('agent'))} >= {esc(guard.get('baseline'))} * {esc(guard.get('min_ratio'))}</td>"
+        f"<td>{esc(guard.get('basis'))}</td>"
+        "</tr>"
+        for guard in guards.get("relative_depth_floors", [])
+    )
+    return (
+        f"<p>{esc(source.get('_rationale'))}</p>"
+        "<div class='grid two compact-tables'>"
+        "<div><h3>Source Coverage</h3>"
+        f"<table><thead><tr><th>Agent</th><th>Expected</th><th>Current</th></tr></thead><tbody>{source_rows}</tbody></table></div>"
+        "<div><h3>Depth Proxy Floors</h3>"
+        f"<table><thead><tr><th>Agent</th><th>Floor</th><th>Current</th><th>Basis</th></tr></thead><tbody>{depth_rows}</tbody></table></div>"
+        "</div>"
+        "<h3>Legacy Relative Guard</h3>"
+        f"<table><thead><tr><th>Guard</th><th>Status</th><th>Rule</th><th>Basis</th></tr></thead><tbody>{legacy_rows}</tbody></table>"
+        "<div class='note'>KR/EU 20% is a legacy_pre_activation_floor and not expert maturity. It only prevents a near-empty KR corpus before automation review.</div>"
+    )
 
 
 def sparkline(rows: list[dict[str, Any]], key: str, label: str) -> str:
@@ -276,6 +411,20 @@ def render(snapshot: dict[str, Any]) -> str:
     seed_counts = snapshot["seed_counts"]
     growth_latest = snapshot["growth_latest"]
     score_ok = readiness.get("total_score") == readiness.get("max_score") and readiness.get("max_score")
+    scores = evidence_scores(snapshot)
+    sessions_scanned = number(growth_latest.get("sessions_scanned"))
+    messages_scanned = number(growth_latest.get("messages_scanned"))
+    maturity_measurable = sessions_scanned > 0 and messages_scanned > 0
+    maturity_verdict = (
+        "측정 가능: 행동/피드백 지표 기반으로 추세 판정 가능"
+        if maturity_measurable
+        else "측정 불충분: 행동/사람 평가 데이터 0건"
+    )
+    maturity_class = "ok" if maturity_measurable else "warn"
+    evidence_rows = "\n".join(
+        f"<tr><th>{esc(evidence_label(name))}</th><td>{esc(score)}/4</td></tr>"
+        for name, score in scores.items()
+    )
 
     dimension_rows = "\n".join(
         f"<tr><th>{esc(name)}</th><td>{esc(score)}/4</td></tr>"
@@ -310,8 +459,9 @@ def render(snapshot: dict[str, Any]) -> str:
         for row in snapshot["trend_rows"]
     )
     visuals = {
-        "radar": radar_chart(readiness.get("dimension_scores", {})),
-        "agent_bars": agent_bars(self_docs, seed_counts),
+        "radar": radar_chart(scores, "expert evidence radar chart"),
+        "agent_bars": agent_evidence_bars(snapshot),
+        "coverage_basis": coverage_basis(snapshot),
         "cleanliness_lights": status_lights("Cleanliness", snapshot.get("cleanliness", {})),
         "activation_lights": status_lights("Activation Control", snapshot.get("activation", {})),
         "messages_spark": sparkline(snapshot["trend_rows"], "messages_scanned", "Messages scanned"),
@@ -323,7 +473,7 @@ def render(snapshot: dict[str, Any]) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RA Hermes Growth Dashboard</title>
+  <title>RA Expert Growth Dashboard</title>
   <style>
     :root {{
       color-scheme: light;
@@ -394,14 +544,23 @@ def render(snapshot: dict[str, Any]) -> str:
     .dot.ok {{ background: var(--ok); }}
     .dot.warn {{ background: var(--warn); }}
     .dot.bad {{ background: var(--bad); }}
-    .agent-bar-row {{ display:grid; grid-template-columns: 74px 1fr 150px; gap: 10px; align-items:center; padding: 9px 0; border-top: 1px solid var(--line); }}
+    .agent-card {{ padding: 12px 0; border-top: 1px solid var(--line); }}
     .agent-name {{ font-weight: 720; color: #27364b; }}
-    .agent-value {{ color: var(--muted); font-size: 12px; text-align:right; }}
+    .agent-metric {{ display:flex; justify-content:space-between; gap: 12px; color: var(--muted); font-size: 12px; margin: 8px 0 5px; }}
+    .agent-metric strong {{ color: var(--ink); }}
     .bar-track {{ height: 12px; background: #e7edf5; border-radius: 999px; overflow:hidden; position:relative; }}
     .bar-fill {{ height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: inherit; }}
+    .source-fill {{ background: linear-gradient(90deg, var(--blue), var(--teal)); }}
+    .depth-fill {{ background: linear-gradient(90deg, var(--teal), var(--ok)); }}
     .threshold-card {{ margin-top: 14px; padding: 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }}
     .threshold-head {{ display:flex; justify-content:space-between; gap: 12px; margin-bottom: 8px; font-size: 13px; }}
     .threshold-fill {{ background: linear-gradient(90deg, var(--amber), var(--ok)); }}
+    .threshold-card p {{ margin-top: 8px; font-size: 12px; }}
+    .verdict {{ border-left: 5px solid var(--warn); }}
+    .verdict.ok {{ border-left-color: var(--ok); }}
+    .verdict .value {{ font-size: 20px; line-height: 1.25; }}
+    .compact-tables {{ margin-top: 12px; }}
+    h3 {{ margin: 10px 0 8px; font-size: 14px; }}
     .spark-card {{ padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; }}
     .spark-head {{ display:flex; justify-content:space-between; gap: 12px; align-items:center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }}
     .spark-head strong {{ color: var(--ink); font-size: 20px; }}
@@ -411,23 +570,21 @@ def render(snapshot: dict[str, Any]) -> str:
     @media (max-width: 900px) {{
       header, main, footer {{ padding-left: 16px; padding-right: 16px; }}
       .kpi-grid, .two, .visual-grid, .visual-grid-3 {{ grid-template-columns: 1fr; }}
-      .agent-bar-row {{ grid-template-columns: 1fr; }}
-      .agent-value {{ text-align:left; }}
       h1 {{ font-size: 23px; }}
     }}
   </style>
 </head>
 <body>
   <header>
-    <h1>RA Hermes Growth Dashboard</h1>
-    <p>Git에서 바로 열어 보는 정적 HTML snapshot. 자동성장 실행 화면이 아니라 readiness, 성장 지표, 안전 상태를 확인하는 운영용 보고서입니다.</p>
+    <h1>RA Expert Growth Dashboard</h1>
+    <p>RA 담당자의 전문가 성장 근거를 먼저 보여주고, 자동화 readiness와 커버리지 가드는 별도 근거로 분리한 정적 HTML snapshot입니다.</p>
   </header>
   <main>
     <div class="grid kpi-grid">
       <section class="kpi">
-        <div class="label">Readiness</div>
-        <div class="value"><span class="pill {status_class(bool(score_ok))}">{esc(readiness.get('total_score'))}/{esc(readiness.get('max_score'))}</span></div>
-        <div class="sub">{esc(readiness.get('recommendation'))}</div>
+        <div class="label">Expert Growth Verdict</div>
+        <div class="value"><span class="pill {maturity_class}">{esc(maturity_verdict)}</span></div>
+        <div class="sub">전문가 성숙도는 행동/피드백 데이터가 있어야 판정합니다.</div>
       </section>
       <section class="kpi">
         <div class="label">Auto Growth Timer</div>
@@ -444,22 +601,33 @@ def render(snapshot: dict[str, Any]) -> str:
         <div class="value">{esc(growth_latest.get('messages_scanned'))}</div>
         <div class="sub">messages scanned; 0이면 ingestion 보정 필요</div>
       </section>
+      <section class="kpi">
+        <div class="label">Readiness</div>
+        <div class="value"><span class="pill {status_class(bool(score_ok))}">{esc(readiness.get('total_score'))}/{esc(readiness.get('max_score'))}</span></div>
+        <div class="sub">{esc(readiness.get('recommendation'))}</div>
+      </section>
     </div>
 
     <div class="grid visual-grid">
       <section>
         <div class="visual-title">
-          <h2>Readiness Radar</h2>
-          <span class="pill {status_class(bool(score_ok))}">{esc(readiness.get('total_score'))}/{esc(readiness.get('max_score'))}</span>
+          <h2>Expert Evidence Radar</h2>
+          <span class="pill {maturity_class}">{esc(maturity_verdict)}</span>
         </div>
         <div class="radar-wrap">{visuals['radar']}</div>
-        <div class="note">4개 축이 모두 바깥 링에 닿으면 자동성장 승인 검토 기준을 충족합니다.</div>
+        <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
+        <table><tbody>{evidence_rows}</tbody></table>
       </section>
       <section>
-        <h2>Agent Balance Bars</h2>
+        <h2>Depth Proxy & Source Coverage</h2>
         {visuals['agent_bars']}
       </section>
     </div>
+
+    <section style="margin-top:16px">
+      <h2>Coverage Guard Basis</h2>
+      {visuals['coverage_basis']}
+    </section>
 
     <div class="grid visual-grid-3">
       <section>{visuals['cleanliness_lights']}</section>
@@ -476,10 +644,10 @@ def render(snapshot: dict[str, Any]) -> str:
       <section>
         <h2>Readiness Matrix</h2>
         <table><tbody>{dimension_rows}</tbody></table>
-        <div class="note">Source: {esc(snapshot.get('readiness_file'))}. 16/16은 승인 검토 가능 상태이며, production timer 활성화 완료를 뜻하지 않습니다.</div>
+        <div class="note">Source: {esc(snapshot.get('readiness_file'))}. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
       </section>
       <section>
-        <h2>Agent Balance</h2>
+        <h2>Raw Agent Inputs</h2>
         <table>
           <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
           <tbody>{self_doc_rows}</tbody>
