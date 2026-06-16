@@ -1,6 +1,6 @@
 # RA Hermes 에이전트 확장 가이드 (초안)
 
-> **상태: 초안** — 운영 데이터 축적 후 실측 기반으로 갱신 예정.
+> **상태: 운영 draft** — `absence_pattern_signals` metric은 구현됐고, 실제 에이전트 추가는 운영 데이터 축적 후 사람 승인으로만 진행한다.
 > 이 가이드는 구현 설계서가 아닙니다. "언제, 어떻게 에이전트를 추가하는가"의 의사결정 절차입니다.
 
 ---
@@ -26,6 +26,9 @@
 | `human_correction_rate` | 특정 영역 정정이 반복 (사람이 패턴 파악) |
 | `transition_accuracy` | 특정 유형 사안에서 정확도 정체 |
 | Yellow 게이트 비율 | 특정 영역에서 에스컬레이션 집중 |
+| `absence_pattern_signals` | 임상·품질/CAPA·PMS·사이버보안·조율 영역의 Yellow/correction 신호 집계 |
+
+2026-06-16부터 `scripts/growth-metrics.py`는 `absence_pattern_signals`를 출력한다. 이 값은 자동 에이전트 생성 트리거가 아니라, 사람 검토를 시작할지 판단하는 진단 신호다.
 
 ### 1.2 부재 유형 판별
 
@@ -66,9 +69,10 @@ hermes skill create <skill-name> --profile <profile-id>
 
 ### 부재 확인 기준 (모두 충족 필요)
 
-- [ ] 해당 영역 Yellow 게이트 비율이 전체의 X% 이상 (X는 운영 후 결정)
+- [ ] 해당 영역 Yellow 게이트/정정 신호가 `absence_pattern_signals`에서 반복 확인
 - [ ] 사람 정정 중 해당 영역 비중이 유의미하게 상승
 - [ ] 기존 에이전트 스킬 추가로 해결 안 됨
+- [ ] `scripts/growth-transition-readiness.py`가 specialist expansion review signal을 표시
 
 ### 추가 절차
 
@@ -140,7 +144,8 @@ RA 전문가 수가 늘어나거나, 멀티리전 사안 빈도가 증가하여 
 - `docs/operations-guide.md` §5 성장 기준
 - `profiles/souls/coordinator-SOUL.md` 팀장 에이전트 초안 (미활성)
 - `scripts/growth-metrics.py` 부재 측정 데이터 공급
+- `scripts/growth-transition-readiness.py` #40/#41/#65 전환 readiness 요약
 
 ---
 
-*버전: 초안 v0.1. 30일 운영 데이터 수집 후 실측 기반으로 갱신 예정.*
+*버전: 운영 draft v0.2. 30일 운영 데이터 수집 후 실측 기반으로 갱신 예정.*

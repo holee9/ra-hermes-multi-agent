@@ -24,7 +24,7 @@
 
 검증/감사 상세가 필요한 이유:
 
-- 결론 검산: 상단의 "성장 추세 미측정"이 실제 `sessions_scanned=0`, `messages_scanned=0`과 일치하는지 확인한다.
+- 결론 검산: 상단의 성장 추세 문구가 latest report의 `sessions_with_messages`, `messages_scanned`, `ingestion_diagnostics.empty_cause`와 일치하는지 확인한다.
 - 병목 위치 확인: Operational Input이 막힌 것인지, 피드백/정확도 지표가 부족한 것인지 구분한다.
 - 커버리지 오판 방지: KB/source floor 통과를 전문가 성숙도와 혼동하지 않도록 근거를 확인한다.
 - 이슈 기록 근거: GitHub issue에 남길 수치, 파일명, readiness/cleanliness 상태를 확인한다.
@@ -112,7 +112,9 @@ git push origin main
 
 ## 현재 한계
 
-2026-06-16 기준 `ra-growth-metrics.timer`는 active/enabled이고 `reports/growth-2026-06-16.json`까지 생성했다. 그러나 최근 growth reports는 `sessions_scanned=0`, `messages_scanned=0`이다.
+2026-06-16 #64 보정 전에는 `reports/growth-2026-06-16.json`까지 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이었다. 원인은 collector가 Honcho v0.15.1 list API를 `GET /sessions`로 호출한 것이다. 실제 API 계약은 `POST /sessions/list`, `POST /sessions/{id}/messages/list`다.
+
+보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록한다. scheduled daily report는 다음 `ra-growth-metrics.timer` 실행부터 같은 collector 계약을 따른다.
 
 따라서 현재 dashboard는 다음에는 충분하다.
 
@@ -122,17 +124,17 @@ git push origin main
 - KR/EU legacy pre-activation floor가 전문가 성숙도 기준이 아님을 확인
 - reports 생성 여부 확인
 
-현재 결론은 "기초 KB는 준비됐지만 운영 성장 데이터가 0건이라 성장 추세를 판단할 수 없다"이다. 사용자가 다음에 봐야 할 것은 자동성장 스위치가 아니라 metrics ingestion이 왜 성장/업무 이벤트를 읽지 못하는지다.
+현재 결론은 "metrics ingestion은 복구됐지만, 30일 유효 metrics와 충분한 사람 평가 coverage가 없어 자동성장 threshold나 form 이관을 아직 확정할 수 없다"이다.
 
 하지만 다음에는 아직 부족하다.
 
-- 실제 업무/학습 이벤트 기반 성장 추세 판단
+- 30일 유효 metrics 기반 성장 추세 판단
 - RA 담당자별 "지구 최강 전문가" 근접도 판정
 - 7일/30일 moving average 판단
 - trigger threshold 자동 알림 판단
 - 실시간 자동 갱신 dashboard
 
-이 잔여 작업은 #62에서 계속 추적한다.
+dashboard 표시 잔여 작업은 #62에서, threshold/webhook 정책은 #65에서 계속 추적한다.
 
 ## `virtual-office`와의 차이
 

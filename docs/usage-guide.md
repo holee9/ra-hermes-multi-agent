@@ -316,13 +316,18 @@ RPi n8n의 `.env`에는 최소한 아래 값이 있어야 합니다. 예시는 `
 |------|------|------|
 | `HONCHO_API_URL` | 필수 | T3610 Honcho API base URL |
 | `HONCHO_WORK_WORKSPACE` | 필수 | RA 업무 workspace 이름 |
+| `HERMES_API_URL` | 필수 | T3610 `hermes-api-server.py` base URL. RA 호출과 Layer 4 조회에 사용 |
+| `API_SERVER_KEY` | 필수 | Hermes API bearer key. workflow에 토큰 하드코딩 금지 |
 | `OPENPROJECT_API_URL` | 필수 | OpenProject base URL. workflow에 URL 하드코딩 금지 |
 | `OPENPROJECT_DEFAULT_PROJECT_ID` | 필수 | 신규 WP 생성 project ID |
 | `YELLOW_CONFIDENCE_THRESHOLD` | 필수 | 이 값 미만의 분석은 사람 검토로 전환 |
+| `N8N_BASE_URL` | 필수 | 내부 workflow-to-workflow webhook 호출 base URL |
 | `HUMAN_ALERT_WEBHOOK_URL` | 선택 | Yellow payload를 받을 Webhook |
 | `HUMAN_ALERT_EMAIL` | 선택 | 사람 알림 대상 메타데이터 |
 | `BRIDGE_RELAY_CONFIG_JSON` | 선택 | infra→work bridge relay 조건 JSON |
+| `VOTE_RULES_JSON` | 선택 | 인프라 투표 규칙 JSON. 비우면 repo 기본값 사용 |
 | `WEIGHT_ADJUSTMENT_CONFIG_JSON` | 선택 | feedback 가중치 조정 공식 JSON |
+| `FORM_TRIAGE_ENABLED` | 선택 | #40 draft workflow 활성화 게이트. 30일 valid metrics 전에는 `false` |
 
 `YELLOW_CONFIDENCE_THRESHOLD`가 비어 있거나 0~1 범위 숫자가 아니면 cold start로 간주하여 Yellow 게이트로 보냅니다.
 

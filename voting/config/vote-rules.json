@@ -1,13 +1,21 @@
 {
-  "_comment": "[IF] 집계 규칙 — 의도적 공백. 운영·학습이 채운다. 코드에 하드코딩 금지.",
-  "quorum": null,
-  "weights": {},
-  "majority_threshold": null,
-  "fallback_method": "simple_majority",
+  "_comment": "초기 운영 집계 규칙. 인프라 투표에만 사용하며 RA 규제 판단에는 적용 금지. 운영 데이터로 조정한다.",
+  "quorum": 2,
+  "weights": {
+    "infra_t3610": 1,
+    "infra_gx10": 1,
+    "infra_rpi": 1
+  },
+  "majority_threshold": 0.66,
+  "fallback_method": "configured_supermajority",
+  "timeout_seconds": 900,
+  "abstain_policy": "exclude_from_decisive_ratio",
   "_notes": {
-    "quorum": "투표 성립 최소 인원 수. null = 제한 없음 (초기 운영은 null로 시작).",
-    "weights": "에이전트별 투표 가중치. 비어 있으면 동등 가중치. 평가 누적으로 사후 조정.",
-    "majority_threshold": "가결 임계 비율 (0.0-1.0). null = 단순 다수결(>0.5).",
-    "fallback_method": "quorum/threshold 미설정 시 사용할 fallback. 현재: simple_majority."
+    "quorum": "투표 성립 최소 인원 수. 초기 운영값 2 = 3개 인프라 담당자 중 최소 2명 참여.",
+    "weights": "에이전트별 투표 가중치. 초기값은 모두 1. 평가 누적으로 사후 조정 가능.",
+    "majority_threshold": "가결 임계 비율. 0.66 = 2/3 이상 찬성 필요. 코드 상수가 아니라 이 파일에서만 조정.",
+    "fallback_method": "설정이 존재할 때 사용하는 집계 방식 이름. 코드 동작은 quorum/threshold/weights 값을 따른다.",
+    "timeout_seconds": "투표 수집 제한 시간. n8n 브로드캐스트/운영자가 적용할 값.",
+    "abstain_policy": "기권표는 정족수에는 포함하되 찬반 비율 계산에서 제외한다."
   }
 }

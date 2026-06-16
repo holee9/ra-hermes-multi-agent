@@ -1,0 +1,81 @@
+{
+  "id": "infraVoteBroadcast001",
+  "name": "infra-vote-broadcast",
+  "nodes": [
+    {
+      "id": "infra-vote-webhook",
+      "name": "인프라 투표 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "infra-vote-broadcast-webhook",
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "infra-vote-broadcast",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize-infra-vote",
+      "name": "인프라 투표 요청 표준화",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0],
+      "parameters": {
+        "jsCode": "const raw = $json.body || $json;\nconst topic = raw.topic || raw.alert_id || ('infra-' + Date.now());\nconst voters = Array.isArray(raw.expected_voters) && raw.expected_voters.length > 0\n  ? raw.expected_voters\n  : ['infra_t3610', 'infra_gx10', 'infra_rpi'];\nconst votes = Array.isArray(raw.votes) ? raw.votes.map(v => ({\n  actor: v.actor,\n  vote: String(v.vote || '').toLowerCase(),\n  topic,\n  rationale: v.rationale || null\n})) : [];\nreturn [{ json: {\n  topic,\n  severity: raw.severity || 'unknown',\n  summary: raw.summary || raw.message || '',\n  votes,\n  expected_voters: voters,\n  vote_opened_at: raw.vote_opened_at || new Date().toISOString(),\n  source: raw.source || 'infra-vote-broadcast'\n}}];"
+      }
+    },
+    {
+      "id": "aggregate-infra-vote",
+      "name": "인프라 투표 집계",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 0],
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\nlet rules = { quorum: 2, weights: { infra_t3610: 1, infra_gx10: 1, infra_rpi: 1 }, majority_threshold: 0.66, timeout_seconds: 900 };\nlet rulesStatus = 'default_embedded_from_repo_config';\nconst rulesRaw = env.VOTE_RULES_JSON || input.vote_rules_json || null;\nif (rulesRaw) {\n  try {\n    rules = typeof rulesRaw === 'string' ? JSON.parse(rulesRaw) : rulesRaw;\n    rulesStatus = 'loaded';\n  } catch (e) {\n    rulesStatus = 'parse_error:' + e.message;\n  }\n}\nconst votes = input.votes || [];\nconst tally = { approve: 0, reject: 0, abstain: 0 };\nfor (const v of votes) {\n  const vote = String(v.vote || '').toLowerCase();\n  if (vote in tally) tally[vote] += 1;\n}\nconst quorum = Number.isFinite(Number(rules.quorum)) ? Number(rules.quorum) : null;\nlet result = 'pending';\nlet method = 'no_votes';\nif (votes.length > 0 && quorum !== null && votes.length < quorum) {\n  method = 'quorum_not_met';\n} else if (votes.length > 0) {\n  let weightedApprove = 0;\n  let weightedReject = 0;\n  const weights = rules.weights || {};\n  for (const v of votes) {\n    const weight = Number(weights[v.actor] ?? 1);\n    if (v.vote === 'approve') weightedApprove += weight;\n    if (v.vote === 'reject') weightedReject += weight;\n  }\n  const decisive = weightedApprove + weightedReject;\n  if (decisive === 0) {\n    method = 'all_abstained';\n  } else {\n    const threshold = Number.isFinite(Number(rules.majority_threshold)) ? Number(rules.majority_threshold) : 0.5;\n    const approveRatio = weightedApprove / decisive;\n    result = approveRatio > threshold ? 'approved' : 'rejected';\n    method = 'threshold_' + threshold;\n    input.weighted = { approve: weightedApprove, reject: weightedReject };\n    input.approve_ratio = Math.round(approveRatio * 100) / 100;\n  }\n}\nreturn [{ json: {\n  ...input,\n  result,\n  method,\n  tally,\n  quorum_required: quorum,\n  votes_received: votes.length,\n  vote_rules_status: rulesStatus,\n  vote_closed_at: new Date().toISOString()\n}}];"
+      }
+    },
+    {
+      "id": "relay-vote-result",
+      "name": "집계 결과 브릿지 전달",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [720, 0],
+      "continueOnFail": true,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || 'http://localhost:5678') + '/webhook/infra-vote-result' }}",
+        "authentication": "none",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      }
+    }
+  ],
+  "connections": {
+    "인프라 투표 Webhook": {
+      "main": [[{ "node": "인프라 투표 요청 표준화", "type": "main", "index": 0 }]]
+    },
+    "인프라 투표 요청 표준화": {
+      "main": [[{ "node": "인프라 투표 집계", "type": "main", "index": 0 }]]
+    },
+    "인프라 투표 집계": {
+      "main": [[{ "node": "집계 결과 브릿지 전달", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "pinData": {}
+}

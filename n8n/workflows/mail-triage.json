@@ -79,7 +79,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer 10cc6bbfde9f63f77dfa3e1ca34ae745b13fd0e2f06bd93b314aafd8227848f7"
+              "value": "={{ 'Bearer ' + ($env.API_SERVER_KEY || $env.HERMES_API_KEY || '') }}"
             }
           ]
         },
@@ -87,7 +87,7 @@
         "specifyHeaders": "keypair",
         "specifyBody": "json",
         "contentType": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: $json.primary_actor,\n  messages: [{\n    role: 'user',\n    content: [\n      'You are processing a forwarded regulatory affairs email.',\n      'Original subject: ' + $json.original_subject,\n      'Original from: ' + $json.original_from,\n      'Matching key: ' + $json.matching_key,\n      'Body excerpt: ' + $json.body_excerpt,\n      $json.warm_start_context || '',\n      '',\n      'Analyze this case and return ONLY a JSON object with these fields:',\n      '  actor: which RA agent handles this (ra_us, ra_eu, or ra_kr based on region)',\n      '  wp: work package ID if matched (e.g. WP-123), or null if new',\n      '  match: \\\"existing\\\" if wp found, \\\"new\\\" if not',\n      '  confidence: 0.0-1.0 confidence score',\n      '  region: primary region (US, EU, KR)',\n      '  comment: brief analysis comment',\n      '  transition_proposed: status transition if any, or null',\n      '',\n      'Return ONLY the JSON object, no other text.'\n    ].join('\\\\n')\n  }]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.primary_actor,\n  messages: [{\n    role: 'user',\n    content: [\n      'You are processing a forwarded regulatory affairs email.',\n      'Original subject: ' + $json.original_subject,\n      'Original from: ' + $json.original_from,\n      'Matching key: ' + $json.matching_key,\n      'Body excerpt: ' + $json.body_excerpt,\n      $json.warm_start_context || '',\n      $json.layer4_context || '',\n      '',\n      'Analyze this case and return ONLY a JSON object with these fields:',\n      '  actor: which RA agent handles this (ra_us, ra_eu, or ra_kr based on region)',\n      '  wp: work package ID if matched (e.g. WP-123), or null if new',\n      '  match: \\\"existing\\\" if wp found, \\\"new\\\" if not',\n      '  confidence: 0.0-1.0 confidence score',\n      '  region: primary region (US, EU, KR)',\n      '  comment: brief analysis comment',\n      '  transition_proposed: status transition if any, or null',\n      '',\n      'Return ONLY the JSON object, no other text.'\n    ].join('\\\\n')\n  }]\n}) }}"
       },
       "id": "call-ra-agent",
       "name": "RA 에이전트 호출",
@@ -243,7 +243,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Honcho conclusion 기록: 사안↔WP 매핑\n// 활동 기록 계약 형식 (고정)\nconst analysis = $('RA 응답 파싱').first().json;\nconst parsed = $node['본문 파싱 및 규제권 라우팅'].json;\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: analysis.match === 'existing' ? 'matched' : 'matched',\n  actor: analysis.actor,\n  payload: {\n    wp: analysis.wp,\n    match: analysis.match,\n    confidence: analysis.confidence,\n    region: analysis.region,\n    matching_key: parsed.matching_key,\n    original_subject: parsed.original_subject,\n    email_id: parsed.email_id\n  }\n};\n\nconst mailRecord = {\n  ts: parsed.received_at,\n  type: 'mail_received',\n  actor: 'system',\n  payload: {\n    region: analysis.region,\n    subject: parsed.original_subject,\n    email_id: parsed.email_id,\n    target: analysis.actor\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord, mail_record: mailRecord, analysis } }];"
+        "jsCode": "// Honcho conclusion 기록: 사안↔WP 매핑\n// 활동 기록 계약 형식 (고정)\nconst analysis = $('RA 응답 파싱').first().json;\nconst parsed = $node['본문 파싱 및 규제권 라우팅'].json;\nlet layer4 = {};\ntry {\n  layer4 = $('Layer 4 컨텍스트 주입').first().json || {};\n} catch (e) {\n  layer4 = {};\n}\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: analysis.match === 'existing' ? 'matched' : 'matched',\n  actor: analysis.actor,\n  payload: {\n    wp: analysis.wp,\n    match: analysis.match,\n    confidence: analysis.confidence,\n    region: analysis.region,\n    matching_key: parsed.matching_key,\n    original_subject: parsed.original_subject,\n    email_id: parsed.email_id,\n    layer4_status: layer4.layer4_status || null,\n    layer4_result_counts: layer4.layer4_result_counts || null\n  }\n};\n\nconst mailRecord = {\n  ts: parsed.received_at,\n  type: 'mail_received',\n  actor: 'system',\n  payload: {\n    region: analysis.region,\n    subject: parsed.original_subject,\n    email_id: parsed.email_id,\n    target: analysis.actor,\n    layer4_status: layer4.layer4_status || null\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord, mail_record: mailRecord, analysis } }];"
       },
       "id": "prepare-honcho",
       "name": "Honcho 기록 준비",
@@ -439,6 +439,68 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "continueOnFail": true
+    },
+    {
+      "id": "layer4-lookup-prepare",
+      "name": "Layer 4 조회 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Prepare Layer 4 real-time regulatory lookup.\n// This node preserves warm-start data and builds a bounded query for hermes-api-server.\nconst data = $input.item.json;\nconst queryParts = [\n  data.original_subject,\n  data.matching_key,\n  data.body_excerpt\n].filter(Boolean);\nconst layer4Query = queryParts.join(' ').slice(0, 800);\nreturn [{\n  json: {\n    ...data,\n    layer4_query: layer4Query,\n    layer4_profile: data.primary_actor || data.actor || 'ra_us',\n    layer4_requested: Boolean(layer4Query)\n  }\n}];"
+      }
+    },
+    {
+      "id": "layer4-knowledge-fetch",
+      "name": "Layer 4 규제 DB 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        480,
+        0
+      ],
+      "continueOnFail": true,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HERMES_API_URL }}/v1/knowledge/fetch",
+        "authentication": "none",
+        "options": {
+          "timeout": 15000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + ($env.API_SERVER_KEY || $env.HERMES_API_KEY || '') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.layer4_query, model: $json.layer4_profile, top: 3 }) }}"
+      }
+    },
+    {
+      "id": "layer4-context-inject",
+      "name": "Layer 4 컨텍스트 주입",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Merge Layer 4 lookup result back into the RA prompt input.\n// Lookup failure must not stop RA processing; it becomes an explicit degraded context note.\nlet base = {};\ntry {\n  base = $('Layer 4 조회 준비').first().json || {};\n} catch (e) {\n  base = {};\n}\nconst lookup = $input.item.json || {};\nconst results = lookup.results || {};\nconst sections = [];\n\nfunction addList(title, items, formatter) {\n  if (!Array.isArray(items) || items.length === 0) return;\n  sections.push(title);\n  items.slice(0, 3).forEach((item, idx) => sections.push('[' + (idx + 1) + '] ' + formatter(item)));\n}\n\naddList('Layer 4 llm-wiki results', results.llm_wiki, (item) => {\n  return [item.path || item.source || '', item.excerpt || item.summary || ''].filter(Boolean).join(' — ').slice(0, 500);\n});\naddList('Layer 4 openFDA results', results.openfda, (item) => {\n  return [item.k_number, item.product_code, item.device_name, item.decision_code, item.decision_date].filter(Boolean).join(' | ');\n});\naddList('Layer 4 KR law/data.go.kr results', results.law_kr || results.data_go_kr, (item) => {\n  return [item.summary || item.title || '', item.law_name || item.service || ''].filter(Boolean).join(' — ').slice(0, 500);\n});\n\nlet layer4Context = '';\nif (sections.length > 0) {\n  layer4Context = '\\n--- REAL-TIME REGULATORY DATA (Layer 4, reference only) ---\\n' + sections.join('\\n') + '\\n--- END REAL-TIME REGULATORY DATA ---';\n} else {\n  const status = lookup.status || (lookup.error ? 'lookup_failed' : 'empty_or_unavailable');\n  layer4Context = '\\n--- REAL-TIME REGULATORY DATA (Layer 4) ---\\nNo live result available; continue with static KB and escalate uncertainty. status=' + status + '\\n--- END REAL-TIME REGULATORY DATA ---';\n}\n\nreturn [{\n  json: {\n    ...base,\n    layer4_context: layer4Context,\n    layer4_status: lookup.status || (lookup.error ? 'lookup_failed' : 'unknown'),\n    layer4_result_counts: {\n      llm_wiki: Array.isArray(results.llm_wiki) ? results.llm_wiki.length : 0,\n      openfda: Array.isArray(results.openfda) ? results.openfda.length : 0,\n      law_kr: Array.isArray(results.law_kr) ? results.law_kr.length : 0,\n      data_go_kr: Array.isArray(results.data_go_kr) ? results.data_go_kr.length : 0\n    }\n  }\n}];"
+      }
     }
   ],
   "connections": {
@@ -650,7 +712,7 @@
       "main": [
         [
           {
-            "node": "RA 에이전트 호출",
+            "node": "Layer 4 조회 준비",
             "type": "main",
             "index": 0
           }
@@ -718,6 +780,39 @@
           }
         ],
         []
+      ]
+    },
+    "Layer 4 조회 준비": {
+      "main": [
+        [
+          {
+            "node": "Layer 4 규제 DB 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Layer 4 규제 DB 조회": {
+      "main": [
+        [
+          {
+            "node": "Layer 4 컨텍스트 주입",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Layer 4 컨텍스트 주입": {
+      "main": [
+        [
+          {
+            "node": "RA 에이전트 호출",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

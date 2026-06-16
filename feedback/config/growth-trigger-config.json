@@ -2,6 +2,17 @@
   "_comment": "[IF] 성장 트리거 임계값 — 의도적 공백. 성장 지표 30일 누적 후 운영이 채운다.",
   "_spec": "issue #38 GROWTH-7",
   "version": "0.1.0",
+  "policy": {
+    "status": "metrics_gated",
+    "threshold_definition_depends_on": "issue #64 valid growth metrics ingestion",
+    "minimum_valid_metric_days": 30,
+    "null_threshold_meaning": "not configured; do not trigger notification or automation",
+    "forbidden_basis": [
+      "auto-growth readiness score alone",
+      "legacy KR 20% pre-activation floor",
+      "dashboard visual state without valid messages_scanned"
+    ]
+  },
 
   "triggers": {
     "duplicate_wp_reduction": {

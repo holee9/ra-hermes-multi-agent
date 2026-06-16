@@ -201,11 +201,11 @@
 - 무평가 결정 해석: 중립 vs 약한 긍정.
 - [완료] GX10 임베딩: 로컬(온프레미스) 확정 — 4096차원 (Qwen3 qwen3-embedding:latest, 2026-06-05).
 - **[완료] T자형 가로획 구축**: ra-project·MD-process·Gitea/NAS 지식 인덱싱 경로 정리 완료 (#34, #35, #36).
-- **[부분 완료] 성장 루프 계장화**: 성장 트리거 알림·자율 학습 루프 완료 (#38, #42). 단, 최근 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이라 성장 추세 판단용 data contract 보정이 필요하다 (#64). Layer 4 API → mail-triage 실시간 연결은 후속 (#37).
-- **[대기] 자동성장 threshold/notification 정책**: 유효 metrics 확보 전까지 threshold/webhook은 의도적으로 비워 둔다. 운영 기준 확정은 #65에서 처리한다.
+- **[완료] 성장 루프 계장화 보정**: 성장 트리거 알림·자율 학습 루프 완료 (#38, #42). #64에서 Honcho list API 계약을 보정해 diagnostic report가 32 sessions / 302 messages를 스캔한다. #37에서 Layer 4 API → mail-triage 조회/프롬프트 주입을 repo/RPi runtime에 반영했다.
+- **[조건부] 자동성장 threshold/notification 정책**: #65에서 threshold null 정책과 validator를 구현했다. 30일 유효 metrics와 사람 승인 전까지 threshold/webhook은 비활성으로 유지한다.
 - **[완료] 프로젝트 상태 재정렬**: 완료 구현, 운영 E2E, 성장 증거, 확장 조건을 재분리해 문서와 이슈를 동기화했다 (#63).
-- **[진행중] 인프라 투표 활성화**: vote-rules.json 초기값 미설정, 브로드캐스트 n8n 미구현 (#39).
-- **[부분 완료] 안전/QA 하드닝**: mail-triage Yellow 게이트·기존 WP 상태 검증·n8n env/config 외부화·테스트 하네스·문서 동기화 레포 반영 (#43~#47). #43~#45는 RPi n8n import 및 운영 E2E 검증 필요.
+- **[완료] 인프라 투표 skeleton 활성화**: vote-rules 초기값과 infra-vote-broadcast n8n workflow를 추가하고 RPi import/activate smoke를 완료했다 (#39).
+- **[완료] 안전/QA 하드닝 운영 반영**: mail-triage Yellow 게이트·기존 WP 상태 검증·n8n env/config 외부화·테스트 하네스·문서 동기화 레포 반영 및 RPi n8n import/smoke 완료 (#43~#47).
 - 외부 지식 연계·Regula 연계: 각각 후속 연계 프로젝트 (사람이 시점 판단).
 - 사람 다중화 시 방향 정렬 메커니즘.
 
@@ -216,10 +216,10 @@
 1. ~~**인프라 검증**~~ ✅: T3610 Honcho ↔ GX10 Qwen3 deriver 성공 (2026-06-05).
 2. ~~**mail-triage 이관**~~ ✅: Gmail 재전송 분석 → RA 3종 → WP 처리 → GROWTH 루프 (2026-06-09).
 3. ~~**T자형 가로획 구축**~~ ✅: ra-project·MD-process·Gitea/NAS 지식 인덱싱 경로 정리 (#34-36).
-4. **성장 루프 계장화** (부분 완료): 성장 트리거 알림·자율 학습 루프 완료 (#38, #42), metrics ingestion/data contract 보정 (#64), Layer 4 API mail-triage 연결 후속 (#37), threshold/notification 정책 (#65).
-5. **인프라 투표 활성화** (진행 예정): vote-rules 초기값 · 브로드캐스트 구현 (#39).
-6. **확장** (조건부): form 이관 · 세부 전문가 에이전트 · 프랙탈 workspace 추가 (#40-41).
-7. **안전/QA 하드닝** (레포 반영): Yellow 게이트, WP 상태 검증, env/config 외부화, `npm test` 품질 게이트, 문서 동기화 (#43-47).
+4. **성장 루프 계장화** ✅: 성장 트리거 알림·자율 학습 루프 완료 (#38, #42), metrics ingestion/data contract 보정 (#64), Layer 4 API mail-triage 연결 (#37), threshold/notification policy gate (#65).
+5. **인프라 투표 활성화** ✅: vote-rules 초기값 · 브로드캐스트 skeleton 구현/import/smoke (#39).
+6. **확장** 🔄 조건부: form draft와 세부 전문가 부재 signal은 구현했으나, 30일 valid metrics와 사람 승인 전에는 활성화하지 않음 (#40-41).
+7. **안전/QA 하드닝** ✅: Yellow 게이트, WP 상태 검증, env/config 외부화, `npm test` 품질 게이트, RPi n8n import/smoke (#43-47).
 
 ---
 

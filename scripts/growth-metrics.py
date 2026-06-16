@@ -41,6 +41,32 @@ HONCHO_WS = os.environ.get("HONCHO_WORKSPACE", "work")
 REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / "reports"
 TRIGGER_CONFIG = REPO_ROOT / "feedback" / "config" / "growth-trigger-config.json"
+EXPECTED_GROWTH_RECORD_TYPES = {
+    "score_given",
+    "mail_triaged",
+    "ra_analysis",
+    "study_session_complete",
+    "study_insight",
+}
+EXPECTED_ACTIVITY_TYPES = {
+    "score_given",
+    "mail_received",
+    "matched",
+    "comment_added",
+    "transition_proposed",
+    "escalated",
+    "escalation_requested",
+    "study_session_complete",
+    "study_insight",
+}
+API_ERRORS: list[dict] = []
+ABSENCE_DOMAINS = {
+    "clinical_evaluation": ["cer", "clinical", "임상", "clinical evaluation", "clinical trial"],
+    "quality_capa": ["qms", "capa", "audit", "kgmp", "품질", "시정", "예방조치", "감사"],
+    "pms_vigilance": ["pms", "pmcf", "fsca", "vigilance", "시판후", "안전성 정보"],
+    "cybersecurity": ["cyber", "524b", "mdcg 2019-16", "mdcg 2021-6", "보안", "사이버"],
+    "coordination": ["multi-region", "multi_region", "yellow_multi_region", "조율", "coordination"],
+}
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +81,12 @@ def honcho_get(path: str, params: dict | None = None) -> dict | list | None:
         return resp.json()
     except requests.RequestException as exc:
         print(f"  [warn] GET {path} failed: {exc}", file=sys.stderr)
+        API_ERRORS.append({
+            "method": "GET",
+            "path": path,
+            "params": params or {},
+            "error": str(exc),
+        })
         return None
 
 
@@ -66,21 +98,40 @@ def honcho_post(path: str, body: dict) -> dict | None:
         return resp.json()
     except requests.RequestException as exc:
         print(f"  [warn] POST {path} failed: {exc}", file=sys.stderr)
+        API_ERRORS.append({
+            "method": "POST",
+            "path": path,
+            "body": body,
+            "error": str(exc),
+        })
         return None
 
 
 def list_sessions(limit: int = 200) -> list[dict]:
-    result = honcho_get("/sessions", params={"limit": limit})
+    result = honcho_post("/sessions/list", {"page": 1, "page_size": limit, "size": limit})
     if isinstance(result, dict):
-        return result.get("items", [])
+        items = result.get("items", result.get("sessions", result.get("data", [])))
+        return items if isinstance(items, list) else []
     return result or []
 
 
 def list_messages(session_id: str, limit: int = 500) -> list[dict]:
-    result = honcho_get(f"/sessions/{session_id}/messages", params={"limit": limit})
+    result = honcho_post(
+        f"/sessions/{session_id}/messages/list",
+        {"page": 1, "page_size": limit, "size": limit},
+    )
     if isinstance(result, dict):
-        return result.get("items", [])
+        items = result.get("items", result.get("messages", result.get("data", [])))
+        return items if isinstance(items, list) else []
     return result or []
+
+
+def session_identifier(session: dict) -> str:
+    for key in ("id", "name", "session_id"):
+        value = session.get(key)
+        if value:
+            return str(value)
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -99,12 +150,124 @@ def parse_activity_log(msg: dict) -> dict | None:
     return content
 
 
+def parse_content(msg: dict) -> dict:
+    try:
+        content = json.loads(msg.get("content", "{}"))
+        return content if isinstance(content, dict) else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
 def is_within_window(ts_str: str, since: datetime, until: datetime) -> bool:
     try:
         ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
         return since <= ts <= until
     except (ValueError, TypeError):
         return False
+
+
+def record_contract_diagnostics(messages_by_session: dict[str, list[dict]],
+                                since: datetime, until: datetime) -> dict:
+    record_type_counts: dict[str, int] = {}
+    activity_type_counts: dict[str, int] = {}
+    actor_counts: dict[str, int] = {}
+    peer_counts: dict[str, int] = {}
+    in_window = 0
+    expected_records_found = 0
+    expected_activity_found = 0
+    parse_failures = 0
+    unsupported_samples: list[dict] = []
+
+    for session_id, msgs in messages_by_session.items():
+        for msg in msgs:
+            meta = msg.get("metadata") or {}
+            record_type = str(meta.get("record_type") or meta.get("type") or "unclassified")
+            record_type_counts[record_type] = record_type_counts.get(record_type, 0) + 1
+            if record_type in EXPECTED_GROWTH_RECORD_TYPES:
+                expected_records_found += 1
+
+            content = parse_content(msg)
+            if not content and msg.get("content"):
+                parse_failures += 1
+            activity_type = str(content.get("type") or "unclassified")
+            activity_type_counts[activity_type] = activity_type_counts.get(activity_type, 0) + 1
+            if activity_type in EXPECTED_ACTIVITY_TYPES:
+                expected_activity_found += 1
+
+            ts = content.get("ts") or meta.get("ts") or meta.get("created_at") or msg.get("created_at")
+            if ts and is_within_window(str(ts), since, until):
+                in_window += 1
+
+            actor = (
+                meta.get("actor")
+                or meta.get("peer_id")
+                or content.get("actor")
+                or (content.get("payload") or {}).get("actor")
+                or "unknown"
+            )
+            actor_counts[str(actor)] = actor_counts.get(str(actor), 0) + 1
+
+            peer = (
+                msg.get("peer_name")
+                or msg.get("peer_id")
+                or meta.get("peer_id")
+                or meta.get("actor")
+                or "unknown"
+            )
+            peer_counts[str(peer)] = peer_counts.get(str(peer), 0) + 1
+
+            if (
+                len(unsupported_samples) < 5
+                and record_type not in EXPECTED_GROWTH_RECORD_TYPES
+                and activity_type not in EXPECTED_ACTIVITY_TYPES
+            ):
+                unsupported_samples.append({
+                    "session": session_id,
+                    "record_type": record_type,
+                    "activity_type": activity_type,
+                    "metadata_keys": sorted(meta.keys())[:12],
+                    "content_prefix": str(msg.get("content", ""))[:120],
+                })
+
+    return {
+        "expected_record_types": sorted(EXPECTED_GROWTH_RECORD_TYPES),
+        "expected_activity_types": sorted(EXPECTED_ACTIVITY_TYPES),
+        "record_type_counts": dict(sorted(record_type_counts.items())),
+        "activity_type_counts": dict(sorted(activity_type_counts.items())),
+        "expected_records_found": expected_records_found,
+        "expected_activity_found": expected_activity_found,
+        "messages_in_window": in_window,
+        "content_parse_failures": parse_failures,
+        "actor_counts": dict(sorted(actor_counts.items())),
+        "peer_counts": dict(sorted(peer_counts.items())),
+        "unsupported_samples": unsupported_samples,
+    }
+
+
+def classify_empty_cause(sessions_listed: int,
+                         sessions_with_messages: int,
+                         message_fetch_attempts: int,
+                         message_fetch_failures: int,
+                         total_messages: int,
+                         contract: dict) -> str:
+    if API_ERRORS and sessions_listed == 0:
+        return "api_unreachable_or_auth_failed"
+    if sessions_listed == 0:
+        return "no_sessions_returned"
+    if message_fetch_attempts > 0 and message_fetch_failures == message_fetch_attempts:
+        return "message_fetch_failed"
+    if sessions_with_messages == 0:
+        return "sessions_returned_but_no_messages"
+    if total_messages == 0:
+        return "no_messages_loaded"
+    if contract.get("messages_in_window", 0) == 0:
+        return "messages_loaded_but_none_in_window"
+    if (
+        contract.get("expected_records_found", 0) == 0
+        and contract.get("expected_activity_found", 0) == 0
+    ):
+        return "messages_loaded_but_no_supported_growth_records"
+    return "metrics_input_available"
 
 
 # ---------------------------------------------------------------------------
@@ -497,10 +660,99 @@ def compute_study_insights_count(messages_by_session: dict[str, list[dict]],
 
 
 # ---------------------------------------------------------------------------
+# Metric 8: absence_pattern_signals
+# Early signal for #41 specialist-agent expansion decisions
+# ---------------------------------------------------------------------------
+
+def classify_absence_domain(text: str) -> str:
+    lowered = text.lower()
+    for domain, keywords in ABSENCE_DOMAINS.items():
+        if any(keyword.lower() in lowered for keyword in keywords):
+            return domain
+    return "unclassified"
+
+
+def compute_absence_pattern_signals(messages_by_session: dict[str, list[dict]],
+                                     since: datetime, until: datetime) -> dict:
+    yellow_by_domain: dict[str, int] = {}
+    correction_by_domain: dict[str, int] = {}
+    total_yellow = 0
+    total_corrections = 0
+    samples: list[dict] = []
+
+    for session_id, msgs in messages_by_session.items():
+        for msg in msgs:
+            meta = msg.get("metadata") or {}
+            content = parse_content(msg)
+            ts = content.get("ts") or meta.get("ts") or msg.get("created_at") or ""
+            if ts and not is_within_window(str(ts), since, until):
+                continue
+            payload = content.get("payload") or {}
+            searchable = " ".join([
+                str(content.get("type", "")),
+                str(content.get("yellow_reason", "")),
+                str(payload.get("yellow_reason", "")),
+                str(payload.get("reason", "")),
+                str(payload.get("comment", "")),
+                str(payload.get("subject", "")),
+                str(payload.get("domain", "")),
+                str(payload.get("category", "")),
+                str(msg.get("content", ""))[:500],
+            ])
+            domain = classify_absence_domain(searchable)
+
+            yellow_reason = payload.get("yellow_reason") or content.get("yellow_reason")
+            is_yellow = bool(yellow_reason) or content.get("type") in ("yellow_gate", "escalated", "escalation_requested")
+            if is_yellow:
+                total_yellow += 1
+                yellow_by_domain[domain] = yellow_by_domain.get(domain, 0) + 1
+
+            is_correction = (
+                meta.get("record_type") == "score_given"
+                and (payload.get("delta") or {}).get("self_correction") is True
+            )
+            if is_correction:
+                total_corrections += 1
+                correction_by_domain[domain] = correction_by_domain.get(domain, 0) + 1
+
+            if len(samples) < 5 and (is_yellow or is_correction):
+                samples.append({
+                    "session": session_id,
+                    "domain": domain,
+                    "yellow_reason": yellow_reason,
+                    "record_type": meta.get("record_type"),
+                    "type": content.get("type"),
+                })
+
+    strongest_domain = None
+    if yellow_by_domain or correction_by_domain:
+        combined: dict[str, int] = {}
+        for domain, count in yellow_by_domain.items():
+            combined[domain] = combined.get(domain, 0) + count
+        for domain, count in correction_by_domain.items():
+            combined[domain] = combined.get(domain, 0) + count
+        strongest_domain = max(combined, key=combined.get)
+
+    return {
+        "value": total_yellow + total_corrections,
+        "yellow_total": total_yellow,
+        "correction_total": total_corrections,
+        "yellow_by_domain": dict(sorted(yellow_by_domain.items())),
+        "correction_by_domain": dict(sorted(correction_by_domain.items())),
+        "strongest_domain": strongest_domain,
+        "domains": sorted(ABSENCE_DOMAINS.keys()),
+        "samples": samples,
+        "direction": "diagnostic",
+        "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def compute_metrics(since: datetime, until: datetime) -> dict:
+    API_ERRORS.clear()
     print(f"Querying Honcho: {HONCHO_URL}/v3/workspaces/{HONCHO_WS}", flush=True)
     print(f"  window: {since.date()} → {until.date()}", flush=True)
 
@@ -508,16 +760,40 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
     print(f"  sessions found: {len(sessions)}", flush=True)
 
     messages_by_session: dict[str, list[dict]] = {}
+    sessions_without_id = 0
+    message_fetch_attempts = 0
+    message_fetch_failures = 0
+    session_samples: list[dict] = []
     for session in sessions:
-        sid = session.get("id", "")
+        sid = session_identifier(session)
         if not sid:
+            sessions_without_id += 1
             continue
+        if len(session_samples) < 5:
+            session_samples.append({
+                "id": sid,
+                "keys": sorted(session.keys())[:12],
+                "metadata": session.get("metadata") or {},
+            })
+        before_errors = len(API_ERRORS)
+        message_fetch_attempts += 1
         msgs = list_messages(sid, limit=500)
+        if len(API_ERRORS) > before_errors:
+            message_fetch_failures += 1
         if msgs:
             messages_by_session[sid] = msgs
 
     total_messages = sum(len(v) for v in messages_by_session.values())
     print(f"  messages loaded: {total_messages}", flush=True)
+    contract = record_contract_diagnostics(messages_by_session, since, until)
+    empty_cause = classify_empty_cause(
+        sessions_listed=len(sessions),
+        sessions_with_messages=len(messages_by_session),
+        message_fetch_attempts=message_fetch_attempts,
+        message_fetch_failures=message_fetch_failures,
+        total_messages=total_messages,
+        contract=contract,
+    )
 
     metrics = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -525,8 +801,22 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
         "window_end": until.isoformat(),
         "honcho_url": HONCHO_URL,
         "workspace": HONCHO_WS,
+        "sessions_listed": len(sessions),
         "sessions_scanned": len(messages_by_session),
+        "sessions_with_messages": len(messages_by_session),
         "messages_scanned": total_messages,
+        "ingestion_diagnostics": {
+            "api_status": "failed" if API_ERRORS and len(sessions) == 0 else "partial_failure" if API_ERRORS else "ok",
+            "api_errors": API_ERRORS[:10],
+            "sessions_listed": len(sessions),
+            "sessions_without_id": sessions_without_id,
+            "sessions_with_messages": len(messages_by_session),
+            "message_fetch_attempts": message_fetch_attempts,
+            "message_fetch_failures": message_fetch_failures,
+            "empty_cause": empty_cause,
+            "session_samples": session_samples,
+            "record_contract": contract,
+        },
         "metrics": {
             "correction_rate": compute_correction_rate(messages_by_session, since, until),
             "first_pass_match_accuracy": compute_first_pass_match_accuracy(messages_by_session, since, until),
@@ -535,6 +825,7 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
             "escalation_precision": compute_escalation_precision(messages_by_session, since, until),
             "autonomous_study_sessions": compute_autonomous_study_sessions(messages_by_session, since, until),
             "study_insights_count": compute_study_insights_count(messages_by_session, since, until),
+            "absence_pattern_signals": compute_absence_pattern_signals(messages_by_session, since, until),
         },
     }
     return metrics

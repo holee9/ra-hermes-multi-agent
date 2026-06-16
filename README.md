@@ -47,14 +47,14 @@
 | source-level curriculum seed fast-track | ✅ 완료 (`ra_us` 48개, `ra_eu` 31개, `ra_kr` 48개 source seed processed, `curriculum_seed` JSON envelope 0, `ra_kr` all-scope idempotence `to_seed=0`) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
 | 비메일 성장 cadence loop | ✅ 구현 완료·운영 timer off (`hermes-auto-growth.timer` inactive/disabled, RA pending 0, 수동 readiness 16/16 확인, activation은 명시 승인 필요) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed), [#57](https://github.com/holee9/ra-hermes-multi-agent/issues/57) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
 | 자동성장 pre-production hardening | ✅ 목표치 완료 (`auto-growth-readiness-report.py` 4x4 matrix 16/16, timer OFF 유지, `ra_kr` self-doc 638로 legacy pre-activation floor 통과. 이 20% floor는 전문가 성숙도 기준이 아님) | [#58](https://github.com/holee9/ra-hermes-multi-agent/issues/58) (closed), [#59](https://github.com/holee9/ra-hermes-multi-agent/issues/59) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
-| mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
-| 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
-| n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
+| mail-triage Yellow 게이트·사람 알림 강화 | ✅ RPi n8n import/activate, mail-triage Yellow smoke 완료 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
+| 기존 WP 매칭 시 OpenProject 상태 검증 | ✅ RPi n8n import/activate 완료 (통제된 closed-WP side-effect E2E는 별도 테스트 WP에서 수행) | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
+| n8n 워크플로우 env/config 외부화 | ✅ RPi n8n env/compose 반영, workflow import/activate 완료 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
 | npm test 품질 게이트 복구 | ✅ 완료 (`test:static` + Playwright E2E 11건) | [#46](https://github.com/holee9/ra-hermes-multi-agent/issues/46) |
 | 문서 상태 불일치 정리 | ✅ 완료 (README·설계·운영·생태계·상태 문서 동기화) | [#47](https://github.com/holee9/ra-hermes-multi-agent/issues/47) |
 | 제로 베이스 프로젝트 상태 재정렬 | ✅ 완료 (목표·현황·잔여 작업을 대시보드가 아니라 RA 전문가 성장 운영 기준으로 재정렬) | [#63](https://github.com/holee9/ra-hermes-multi-agent/issues/63) |
-| 성장 지표 ingestion/data contract 보정 | 🔴 필수 (최근 reports가 `sessions_scanned=0`, `messages_scanned=0`; 성장 추세 판단 불가) | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
-| 자동성장 threshold/notification 정책 | ⏳ 대기 (#64로 유효 metrics 확보 후 임계값·알림 정책 확정) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
+| 성장 지표 ingestion/data contract 보정 | ✅ 완료 (Honcho v0.15.1 `POST /sessions/list`·`POST /messages/list` 계약 반영, diagnostic report 32 sessions/302 messages scanned) | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
+| 자동성장 threshold/notification 정책 | 🔄 정책 게이트 구현 (threshold null 정책·검증 추가, 30일 유효 metrics 전까지 자동 알림 비활성) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
@@ -66,23 +66,23 @@
 |---|---|---|
 | 지식 토대 | `ra_knowledge` source curriculum seed와 Layer 4 API가 구축됨. `ra_us` 48, `ra_eu` 31, `ra_kr` 48 source seed 처리 완료 | ✅ foundation 존재 |
 | 개별 성장 입력 | 메일 비의존 daily/weekly/monthly/quarterly growth loop 구현, timer는 승인 전 OFF | ✅ 구현 완료·운영 보류 |
-| 성장 증명 데이터 | `ra-growth-metrics.timer`는 active/enabled이나 최근 reports가 sessions/messages 0 | 🔴 #64 선행 필요 |
-| 런타임 안전 게이트 | Yellow gate, WP 상태 검증, env/config 외부화가 repo에 반영됨 | 🔄 #43~#45 RPi import/E2E 필요 |
-| 실시간 규제 활용 | Layer 4 API 서버와 deploy-local은 repo에 편입됨 | 🔄 #37 mail-triage n8n 연결 필요 |
-| 인프라 의사결정 | vote aggregator 자리는 있으나 운영 규칙·브로드캐스트 미정 | ⏳ #39 |
-| 확장 | coordinator 자리와 확장 가이드 초안 존재 | ⏳ #41, 운영 데이터 필요 |
+| 성장 증명 데이터 | `growth-diagnostic-2026-06-16.json` 기준 32 sessions, 27 sessions_with_messages, 302 messages scanned | ✅ ingestion 복구 |
+| 런타임 안전 게이트 | Yellow gate, WP 상태 검증, env/config 외부화 workflow를 RPi n8n에 import/activate. feedback + mail-triage Yellow smoke 완료 | ✅ 운영 반영 |
+| 실시간 규제 활용 | `/v1/knowledge/fetch` 추가, T3610 runtime 배포/restart, RPi → Layer 4 smoke 200 OK | ✅ 운영 반영 |
+| 인프라 의사결정 | `vote-rules.json` 초기값 + `infra-vote-broadcast` workflow 추가/import/activate, webhook smoke 완료 | ✅ skeleton 운영 반영 |
+| 확장 | absence signal metric과 transition readiness report 추가. 현재 specialist/form 전환은 운영 데이터 부족으로 blocked | 🔄 데이터 대기 |
 
 ### 남은 작업 우선순위
 
 | 우선순위 | 작업 | 왜 필요한가 | 이슈 |
 |---|---|---|---|
-| P0 | 성장 metrics ingestion/data contract 보정 | 자동성장 여부가 아니라 "성장하고 있음"을 증명하는 기본 계측이 0건 상태 | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
-| P0 | #43~#45 RPi n8n import 및 실제 E2E | repo 변경만으로는 운영 workflow가 바뀌지 않음 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43), [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44), [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
-| P1 | Layer 4 API → mail-triage 실시간 연결 | RA 분석 프롬프트가 최신 규제 DB 조회 결과를 직접 쓰게 해야 함 | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) |
-| P1 | 유효 metrics 기반 threshold/notification 정책 | 임의 20% 같은 proxy가 아니라 운영 데이터 기반 임계값이 필요 | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
-| P2 | infra vote-rules와 n8n broadcast | 인프라 workspace의 프랙탈 의사결정 루프 활성화 | [#39](https://github.com/holee9/ra-hermes-multi-agent/issues/39) |
-| P2 | 세부 전문가 확장 조건 데이터화 | 부재 기반 확장은 운영 데이터가 있어야 과잉 분화를 피함 | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
-| P3 | form workflow 이관 | mail-triage 30일 안정화와 성장 지표 달성 후 진행 | [#40](https://github.com/holee9/ra-hermes-multi-agent/issues/40) |
+| P0 | 성장 metrics ingestion/data contract 보정 | 완료. scheduled report는 다음 timer run부터 새 collector 계약 반영 | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
+| P0 | #43~#45 RPi n8n import 및 smoke | 완료. 4개 workflow import/activate, env 반영, feedback webhook + mail-triage Yellow smoke 완료 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43), [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44), [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
+| P1 | Layer 4 API → mail-triage 실시간 연결 | 완료. n8n Layer 4 lookup node + prompt injection + runtime endpoint smoke 완료 | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) |
+| P1 | 유효 metrics 기반 threshold/notification 정책 | policy/validator 구현. 임계값은 30일 valid metrics 전까지 null 유지 | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
+| P2 | infra vote-rules와 n8n broadcast | 완료. 초기 2/3 quorum rule + broadcast workflow + webhook smoke | [#39](https://github.com/holee9/ra-hermes-multi-agent/issues/39) |
+| P2 | 세부 전문가 확장 조건 데이터화 | 완료. `absence_pattern_signals` metric 추가. 현재 review signal 없음 | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
+| P3 | form workflow 이관 | draft workflow/enable gate 구현. 현재 30일 valid metrics 미달로 `FORM_TRIAGE_ENABLED=false` 유지 | [#40](https://github.com/holee9/ra-hermes-multi-agent/issues/40) |
 
 ### 지속 성장 모니터링 현황 (2026-06-16)
 
@@ -92,11 +92,11 @@
 | 자동성장 timer | `hermes-auto-growth.timer` inactive/disabled, 명시 승인 전 자동 실행 없음 | ✅ 안전 |
 | 일일 성장 지표 timer | `ra-growth-metrics.timer` active/enabled, 매일 02:00 KST 실행 | ✅ 스케줄러 존재 |
 | 성장 지표 산출물 | `reports/growth-YYYY-MM-DD.json` 생성 (`correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`, `autonomous_study_sessions`, `study_insights_count`) | ⚠️ 파일 기반 |
-| 최근 지표 유효성 | 2026-06-14~16 보고서가 `sessions_scanned=0`, `messages_scanned=0` | ⚠️ 데이터 집계 보정 필요 |
+| 최근 지표 유효성 | `growth-diagnostic-2026-06-16.json`: `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available` | ✅ ingestion 복구 |
 | 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. RA Growth Operations 요약, 담당자별 성장 카드, growth signal flow, 성장 측정 상태, 커버리지 근거 포함 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, 실제 운영 중 각 RA 담당자의 성장 입력, KB foundation, 운영 evidence, feedback/growth signal 흐름을 먼저 보여준다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 상단에 "성장 추세 미측정"과 담당자별 "기초 KB 확보 / 운영 성장 데이터 없음"을 표시한다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. dashboard 표시 유지·보정은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62), metrics ingestion 0건 보정은 [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64), threshold/webhook 운영 기준은 [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)에서 각각 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열린다. 2026-06-16 #64에서 Honcho v0.15.1 list API 계약을 `POST /sessions/list`, `POST /messages/list`로 보정했고, diagnostic report는 32 sessions / 302 messages를 스캔한다. scheduled daily report는 다음 timer run부터 이 collector 계약을 따른다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. dashboard 표시 유지·보정은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62), metrics ingestion 보정 이력은 [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64), threshold/webhook 운영 기준은 [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)에서 각각 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-16 기준)
 
@@ -123,7 +123,7 @@
 | mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` | 완료, #43/#44/#45 안전 게이트 레포 반영 — RPi n8n 재import 필요 |
 | 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` | 완료, relay 조건 env/config 외부화(#45) |
 | 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` | 완료, 가중치 공식 env/config 외부화(#45) |
-| 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `voting/config/vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
+| 투표 집계 인터페이스 | `voting/vote-aggregator.js`, `voting/config/vote-rules.json`, `n8n/workflows/infra-vote-broadcast.json` | 완료 — 초기 2/3 quorum rule, RPi n8n import/activate, webhook smoke 완료 |
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50/#60 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 48 processed) |
@@ -215,11 +215,13 @@ ra-hermes-multi-agent/
 │   └── workflows/
 │       ├── mail-triage.json         # 핵심: 재전송 메일 → RA 분석 → WP 처리
 │       ├── infra-to-work-bridge.json # 인프라→업무 단방향 브릿지
-│       └── feedback-recorder.json   # 3점 평가 → Honcho 기록
+│       ├── infra-vote-broadcast.json # 인프라 투표 브로드캐스트 skeleton
+│       ├── feedback-recorder.json   # 3점 평가 → Honcho 기록
+│       └── form-triage-draft.json   # #40 form 이관 draft (FORM_TRIAGE_ENABLED=false)
 │
 ├── voting/                          # 인프라 투표 자리 [IF]
 │   ├── vote-aggregator.js           # 집계 인터페이스 (규칙은 외부 설정)
-│   └── config/vote-rules.json       # 집계 규칙 (의도적 공백 — 운영이 채움)
+│   └── config/vote-rules.json       # 집계 규칙 (초기 운영값: quorum 2, threshold 0.66)
 │
 ├── bridge/
 │   └── config/bridge-config.json   # 브릿지 전달 임계 조건 [IF]

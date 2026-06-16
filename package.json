@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "npm run test:static && npm run test:e2e",
-    "test:static": "node scripts/verify-workflows.js && python3 -m compileall -q scripts && bash -n scripts/*.sh profiles/setup.sh honcho/init-workspaces.sh",
+    "test:static": "node scripts/verify-workflows.js && python3 scripts/verify-growth-metrics.py && python3 -m compileall -q scripts && bash -n scripts/*.sh profiles/setup.sh honcho/init-workspaces.sh",
     "test:e2e": "playwright test"
   },
   "repository": {

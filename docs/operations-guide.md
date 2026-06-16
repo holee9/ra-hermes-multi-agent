@@ -7,17 +7,18 @@
 
 ## 0. 현재 운영 판정 (2026-06-16)
 
-자동성장 timer는 **OFF 유지**가 현재 기준이다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 자동성장 전환 전에는 아래 세 가지가 먼저 증명되어야 한다.
+자동성장 timer는 **OFF 유지**가 현재 기준이다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 2026-06-16 일괄 보강으로 P0/P1/P2/P3의 repo-side 구현과 RPi smoke는 진행했지만, 자동성장 timer 전환에는 30일 유효 metrics와 사람 승인 조건이 남아 있다.
 
 | 선행 조건 | 현재 사실 | 이슈 |
 |---|---|---|
-| 성장 metrics ingestion 유효성 | `ra-growth-metrics.timer`는 active/enabled이나 최근 reports가 `sessions_scanned=0`, `messages_scanned=0` | #64 |
-| 운영 workflow 런타임 반영 | #43~#45 변경은 repo에 반영됐지만 RPi n8n import/E2E가 남음 | #43~#45 |
-| 실시간 규제 근거 주입 | Layer 4 API 서버는 준비됐지만 mail-triage n8n prompt 연결이 남음 | #37 |
+| 성장 metrics ingestion 유효성 | #64에서 Honcho list API 계약을 POST로 보정. diagnostic report: 32 sessions / 302 messages scanned | #64 |
+| 운영 workflow 런타임 반영 | #43~#45 workflow 4개 RPi n8n import/activate, feedback webhook + mail-triage Yellow smoke 완료 | #43~#45 |
+| 실시간 규제 근거 주입 | `/v1/knowledge/fetch` endpoint 추가, T3610 runtime 배포/restart, n8n Layer 4 조회/프롬프트 주입 추가 | #37 |
+| 자동성장 threshold 정책 | threshold null 정책과 validator 구현. 30일 valid metrics 전까지 자동 알림 비활성 | #65 |
 
 따라서 현재 작업 초점은 대시보드 열람이 아니라 **성장 입력이 발생하고, 그 입력이 올바른 peer에 기록되며, metrics가 이를 수집해 사람에게 판단 가능한 증거를 제공하는지** 확인하는 것이다.
 
-남은 작업의 실행 우선순위는 P0 metrics 보정(#64)과 RPi n8n E2E(#43~#45), P1 Layer 4 mail-triage 연결(#37), P1 threshold/notification 정책(#65), P2 infra vote-rules/broadcast(#39), P2 확장 조건 데이터화(#41), P3 form 이관(#40) 순서다.
+남은 실행 우선순위는 `ra-growth-metrics.timer`의 다음 scheduled run 확인, 30일 valid metrics 누적, 사람 평가 coverage 확보, 그리고 Green 경로/OpenProject side-effect E2E를 통제 조건에서 추가 확인하는 순서다.
 
 ---
 
@@ -507,10 +508,10 @@ timer 실행 내용:
 |------|------|------|
 | Phase 1: MVP 골격 | ✅ 완료 | #3~#33 |
 | Phase 2: T자형 가로획 구축 | ✅ 완료 | #34, #35, #36 |
-| Phase 3: 성장 루프 계장화 | 🔄 부분 완료 | #38, #42 완료 / #37, #64, #65 후속 |
-| Phase 4: 인프라 투표 활성화 | ⏳ 대기 | #39 |
-| Phase 5: 프랙탈 확장 | ⏳ 조건부·일부 진행 | #40, #41 |
-| Safety/QA 하드닝 | 🔄 레포 반영 | #43~#47 (#43~#45 운영 import/E2E 대기) |
+| Phase 3: 성장 루프 계장화 | ✅ ingestion 복구·정책 게이트 구현 | #37, #38, #42, #64, #65 |
+| Phase 4: 인프라 투표 활성화 | ✅ 초기 skeleton 운영 반영 | #39 |
+| Phase 5: 프랙탈 확장 | 🔄 조건부·일부 진행 | #40, #41 |
+| Safety/QA 하드닝 | ✅ RPi import/smoke 완료 | #43~#47 |
 | Project status reconciliation | ✅ 완료 | #63 |
 
 ### 5.1 성숙 지표 (이게 오르면 프로덕션에 가까워짐)
@@ -525,11 +526,12 @@ timer 실행 내용:
 
 - `ra-growth-metrics.timer`는 active/enabled이며 매일 02:00 KST에 `ra-growth-metrics.service`를 실행한다.
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
-- 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
+- #64 보정 전 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 `sessions_scanned=0`, `messages_scanned=0`이었다. 원인은 Honcho v0.15.1 list API가 `GET /sessions`가 아니라 `POST /sessions/list`, `POST /sessions/{id}/messages/list`였기 때문이다.
+- 보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록한다. scheduled report는 다음 `ra-growth-metrics.timer` 실행부터 같은 collector 계약을 따른다.
 - `scripts/auto-growth-readiness-report.py`는 activation safety/readiness snapshot이다. 장기 성장 추세 지표가 아니며, 자동성장 timer 활성화 승인을 대체하지 않는다.
 - `scripts/coverage-guards.json`의 `kr_not_below_20pct_eu`는 `legacy_pre_activation_floor`다. `ra_kr`이 빈 상태로 남지 않게 막는 사전 안전선일 뿐, 전문가 성숙도나 KR/EU 균형 목표가 아니다.
 - `docs/growth-dashboard.html`은 보조 snapshot이다. 프로젝트 운영 판단의 주 데이터는 reports JSON, Honcho activity records, n8n E2E 결과, 사람 평가 기록이다.
-- metrics ingestion 유효성 보정은 #64, threshold/webhook 운영 기준은 #65에서 분리 추적한다. #62는 기존 dashboard 산출물 유지·표시 보정용 이력으로만 본다.
+- metrics ingestion 보정은 #64, threshold/webhook 운영 기준은 #65에서 추적한다. #62는 기존 dashboard 산출물 유지·표시 보정용 이력으로만 본다.
 
 운영 확인 명령:
 
