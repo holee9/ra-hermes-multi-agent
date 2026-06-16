@@ -22,6 +22,13 @@
 
 첫 화면에서 매일 확인할 필수 현황은 RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow 3개다. 그 아래의 readiness, coverage guard, raw metrics, trend table은 기본 접힘 상태의 "검증/감사 상세"이며, 결론을 검산하거나 이슈 기록에 근거가 필요할 때만 펼친다.
 
+검증/감사 상세가 필요한 이유:
+
+- 결론 검산: 상단의 "성장 추세 미측정"이 실제 `sessions_scanned=0`, `messages_scanned=0`과 일치하는지 확인한다.
+- 병목 위치 확인: Operational Input이 막힌 것인지, 피드백/정확도 지표가 부족한 것인지 구분한다.
+- 커버리지 오판 방지: KB/source floor 통과를 전문가 성숙도와 혼동하지 않도록 근거를 확인한다.
+- 이슈 기록 근거: GitHub issue에 남길 수치, 파일명, readiness/cleanliness 상태를 확인한다.
+
 ## 바로 보는 방법
 
 README에서 [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)를 클릭하면 GitHub Pages로 렌더링된 HTML이 열린다.
