@@ -64,10 +64,10 @@
 | 일일 성장 지표 timer | `ra-growth-metrics.timer` active/enabled, 매일 02:00 KST 실행 | ✅ 스케줄러 존재 |
 | 성장 지표 산출물 | `reports/growth-YYYY-MM-DD.json` 생성 (`correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`, `autonomous_study_sessions`, `study_insights_count`) | ⚠️ 파일 기반 |
 | 최근 지표 유효성 | 2026-06-14~16 보고서가 `sessions_scanned=0`, `messages_scanned=0` | ⚠️ 데이터 집계 보정 필요 |
-| 웹 대시보드 | `virtual-office/` 파일럿 대시보드는 존재하나 활동 이벤트 재생용이며, 성장 지표·readiness 통합 대시보드는 아님 | ❌ 미구현 |
+| 웹 대시보드 | `docs/growth-dashboard.html` 정적 snapshot 추가. `virtual-office/`는 별도 활동 이벤트 재생용 파일럿 | ✅ 정적 보기 가능 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 파일 기반 모니터링 인프라**다. 향후 지속 성장 추이를 한 화면에서 보는 **통합 성장 대시보드**는 아직 없다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 유지하고, 성장 추세·readiness·pending·오염 상태·timer 상태를 보는 대시보드는 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 별도 구현·검증한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [growth-dashboard.html](docs/growth-dashboard.html)은 Git checkout에서 브라우저로 바로 열 수 있고, readiness·timer·pending/오염·담당자 균형·최근 growth metrics를 한 화면에 표시한다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 
@@ -99,6 +99,7 @@
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50/#60 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 48 processed) |
 | non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-readiness-report.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`, `scripts/verify-auto-growth-activation-policy.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, #57 이후 timer 활성화는 명시 승인 게이트 필요, #58 pre-production readiness loop로 지속 개선 |
+| static growth dashboard | `docs/growth-dashboard.html`, `scripts/render-growth-dashboard.py`, `scripts/verify-growth-dashboard.py` | #62 Git에서 바로 열 수 있는 standalone HTML snapshot. readiness, timer, cleanliness, agent balance, growth metrics 표시 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 

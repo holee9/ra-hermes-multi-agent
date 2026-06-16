@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RA Hermes Growth Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --ink: #17202f;
+      --muted: #617086;
+      --line: #d9e0ea;
+      --ok: #16784f;
+      --warn: #9a6500;
+      --bad: #b42318;
+      --blue: #2563eb;
+      --teal: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    header {
+      padding: 28px 32px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; font-weight: 760; letter-spacing: 0; }
+    h2 { margin: 0 0 14px; font-size: 17px; font-weight: 720; letter-spacing: 0; }
+    p { margin: 0; color: var(--muted); }
+    main { padding: 24px 32px 36px; max-width: 1280px; margin: 0 auto; }
+    .grid { display: grid; gap: 16px; }
+    .kpi-grid { grid-template-columns: repeat(4, minmax(180px, 1fr)); }
+    .two { grid-template-columns: repeat(2, minmax(280px, 1fr)); margin-top: 16px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      min-width: 0;
+    }
+    .kpi .label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .kpi .value { font-size: 24px; font-weight: 780; letter-spacing: 0; }
+    .kpi .sub { color: var(--muted); font-size: 12px; margin-top: 8px; overflow-wrap: anywhere; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-weight: 680; color: #27364b; }
+    .pill { display: inline-block; padding: 3px 8px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+    .pill.ok { color: var(--ok); background: #e9f7ef; }
+    .pill.warn { color: var(--warn); background: #fff6df; }
+    .pill.bad { color: var(--bad); background: #feecec; }
+    .note { margin-top: 14px; padding: 12px 14px; border-left: 4px solid var(--teal); background: #eef8f6; color: #17443f; }
+    .scroll { overflow-x: auto; }
+    footer { padding: 0 32px 28px; max-width: 1280px; margin: 0 auto; color: var(--muted); font-size: 12px; }
+    @media (max-width: 900px) {
+      header, main, footer { padding-left: 16px; padding-right: 16px; }
+      .kpi-grid, .two { grid-template-columns: 1fr; }
+      h1 { font-size: 23px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RA Hermes Growth Dashboard</h1>
+    <p>Git에서 바로 열어 보는 정적 HTML snapshot. 자동성장 실행 화면이 아니라 readiness, 성장 지표, 안전 상태를 확인하는 운영용 보고서입니다.</p>
+  </header>
+  <main>
+    <div class="grid kpi-grid">
+      <section class="kpi">
+        <div class="label">Readiness</div>
+        <div class="value"><span class="pill ok">16/16</span></div>
+        <div class="sub">approval_review_required</div>
+      </section>
+      <section class="kpi">
+        <div class="label">Auto Growth Timer</div>
+        <div class="value"><span class="pill ok">inactive/disabled</span></div>
+        <div class="sub">명시 승인 전 off 유지</div>
+      </section>
+      <section class="kpi">
+        <div class="label">Metrics Timer</div>
+        <div class="value"><span class="pill ok">active/enabled</span></div>
+        <div class="sub">매일 02:00 KST</div>
+      </section>
+      <section class="kpi">
+        <div class="label">Latest Growth Input</div>
+        <div class="value">0</div>
+        <div class="sub">messages scanned; 0이면 ingestion 보정 필요</div>
+      </section>
+    </div>
+
+    <div class="grid two">
+      <section>
+        <h2>Readiness Matrix</h2>
+        <table><tbody><tr><th>activation_control</th><td>4/4</td></tr>
+<tr><th>data_cleanliness</th><td>4/4</td></tr>
+<tr><th>growth_input_quality</th><td>4/4</td></tr>
+<tr><th>agent_balance</th><td>4/4</td></tr></tbody></table>
+        <div class="note">Source: issue-60-final-readiness.json. 16/16은 승인 검토 가능 상태이며, production timer 활성화 완료를 뜻하지 않습니다.</div>
+      </section>
+      <section>
+        <h2>Agent Balance</h2>
+        <table>
+          <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
+          <tbody><tr><th>ra_us</th><td>9064</td><td>48</td></tr>
+<tr><th>ra_eu</th><td>2956</td><td>31</td></tr>
+<tr><th>ra_kr</th><td>638</td><td>48</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="grid two">
+      <section>
+        <h2>Cleanliness</h2>
+        <table><tbody><tr><th>pending_total_zero</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>ra_pending_zero</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>wrong_peer_zero</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>active_json_zero</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>hyphen_peer_zero</th><td><span class='pill ok'>True</span></td></tr></tbody></table>
+      </section>
+      <section>
+        <h2>Activation Control</h2>
+        <table><tbody><tr><th>timer_inactive</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>timer_disabled</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>not_scheduled</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>persistent_false</th><td><span class='pill ok'>True</span></td></tr>
+<tr><th>activation_guard</th><td><span class='pill ok'>True</span></td></tr></tbody></table>
+      </section>
+    </div>
+
+    <section style="margin-top:16px">
+      <h2>Latest Growth Metrics</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Metric</th><th>Value</th><th>Direction</th><th>Note</th></tr></thead>
+          <tbody><tr><th>correction_rate</th><td><span class='pill warn'>N/A</span></td><td>down</td><td>fraction of human-reviewed decisions where agent was overridden</td></tr>
+<tr><th>first_pass_match_accuracy</th><td><span class='pill warn'>N/A</span></td><td>up</td><td>fraction of WP match decisions confirmed correct by human</td></tr>
+<tr><th>confidence_calibration</th><td><span class='pill warn'>N/A</span></td><td>zero</td><td>Brier score: mean((confidence - actual_correct)^2). Lower → better calibrated.</td></tr>
+<tr><th>warmstart_lift</th><td><span class='pill warn'>N/A</span></td><td>positive</td><td>warm_mean - cold_mean (1-3 scale). Positive → memory helps.</td></tr>
+<tr><th>escalation_precision</th><td><span class='pill warn'>N/A</span></td><td>up</td><td>fraction of escalations that required actual human correction (score=1)</td></tr>
+<tr><th>autonomous_study_sessions</th><td><span class='pill ok'>0</span></td><td>up</td><td>autonomous study sessions completed by all RA agents (higher = more self-study)</td></tr>
+<tr><th>study_insights_count</th><td><span class='pill ok'>0</span></td><td>up</td><td>knowledge insights extracted during autonomous study (higher = richer knowledge base)</td></tr></tbody>
+        </table>
+      </div>
+      <div class="note">Source: growth-2026-06-16.json. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
+    </section>
+
+    <section style="margin-top:16px">
+      <h2>Growth Report Trend</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>File</th><th>Sessions</th><th>Messages</th><th>Correction</th><th>First Pass</th><th>Study Sessions</th><th>Insights</th></tr>
+          </thead>
+          <tbody><tr><td>growth-2026-06-12.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>-</td><td>-</td></tr>
+<tr><td>growth-2026-06-13.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-14.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-15.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-16.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Generated at 2026-06-16T15:39:19+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+  </footer>
+</body>
+</html>

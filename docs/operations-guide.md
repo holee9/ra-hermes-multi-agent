@@ -510,8 +510,9 @@ timer 실행 내용:
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
 - 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
 - `scripts/auto-growth-readiness-report.py`는 자동성장 전환 가능성 점검용 4x4 readiness matrix다. 장기 성장 추세 지표가 아니라 activation safety/readiness snapshot이다.
-- `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. RA 성장 지표, readiness, pending, 오염 상태를 통합하는 지속 성장 모니터링 대시보드는 아직 없다.
-- 통합 성장 대시보드와 metrics ingestion 유효성 보정은 #62에서 추적한다.
+- `docs/growth-dashboard.html`은 Git checkout에서 브라우저로 바로 여는 standalone HTML snapshot이다. readiness, timer, cleanliness, 담당자 균형, 최근 growth metrics를 한 화면에 표시한다.
+- `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. 성장 모니터링 dashboard와 역할을 분리한다.
+- 실시간 dashboard, metrics ingestion 유효성 보정, threshold/webhook 운영 기준은 #62에서 계속 추적한다.
 
 운영 확인 명령:
 
@@ -522,9 +523,10 @@ systemctl list-timers --all --no-pager | rg 'ra-growth-metrics|hermes-auto-growt
 ls -lh reports/growth-*.json
 python3 scripts/auto-growth-readiness-report.py \
   --output reports/auto-growth-readiness/manual-readiness-$(date +%F).json
+python3 scripts/render-growth-dashboard.py
 ```
 
-성장 대시보드를 구현할 때 최소 위젯:
+정적 성장 대시보드 최소 위젯:
 
 - readiness matrix: 16/16 유지 여부, `timer_operation_recommendation`.
 - 성장 지표: correction rate, first-pass match accuracy, confidence calibration, warmstart lift, escalation precision.
@@ -532,6 +534,15 @@ python3 scripts/auto-growth-readiness-report.py \
 - 안전 지표: total pending, RA pending, wrong-peer/live contamination, active JSON envelope, hyphen peer.
 - timer 상태: `hermes-auto-growth.timer`, `ra-growth-metrics.timer`.
 - 담당자 균형: `ra_us`, `ra_eu`, `ra_kr` self-docs와 상대 균형 기준.
+
+HTML 갱신 절차:
+
+```bash
+python3 scripts/render-growth-dashboard.py
+python3 scripts/verify-growth-dashboard.py
+```
+
+생성된 [growth-dashboard.html](growth-dashboard.html)은 외부 JS/CSS/JSON fetch 없이 동작한다. GitHub 파일 화면에서는 소스가 보일 수 있으므로, 실제 화면 확인은 checkout 후 브라우저에서 열거나 GitHub Pages/raw HTML viewer를 사용한다.
 
 ### 5.2 성장 트리거 (조건 → 실행)
 
