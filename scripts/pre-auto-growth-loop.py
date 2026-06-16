@@ -37,6 +37,7 @@ VERIFY_SCRIPTS = (
     "scripts/verify-non-email-growth-loop.py",
     "scripts/verify-pre-auto-growth-loop.py",
     "scripts/verify-auto-growth-activation-policy.py",
+    "scripts/verify-auto-growth-readiness-report.py",
 )
 
 

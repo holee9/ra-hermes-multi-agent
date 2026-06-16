@@ -342,6 +342,25 @@ python3 scripts/daily-growth-runner.py \
 
 이 명령은 바로 systemd에 등록하지 않는다. 먼저 3일 이상 수동 dry-run 결과를 검토하고, source 품질·deriver 처리량·사람 평가 루틴이 확인된 뒤 timer로 승격한다.
 
+3일 검토는 대기 시간이 아니다. timer를 OFF로 둔 상태에서 매일 다음 hardening loop를 반복한다:
+
+```bash
+python3 scripts/auto-growth-readiness-report.py \
+  --output reports/auto-growth-readiness/manual-readiness-$(date +%F).json
+python3 scripts/pre-auto-growth-loop.py \
+  --iterations 1 \
+  --pending-scope all \
+  --max-pending 0 \
+  --sleep-seconds 5 \
+  --drain-timeout-seconds 420
+python3 scripts/non-email-growth-loop.py \
+  --cadence all \
+  --agent all \
+  --max-pending 0
+```
+
+hardening loop에서 문제를 발견하면 timer를 켜지 말고 별도 이슈로 분리해 fix한다. 특히 readiness matrix의 `agent_balance`가 낮으면 `ra_kr` 성장 보강처럼 품질 개선 작업을 먼저 수행한다.
+
 자동 timer 승격 전 readiness loop:
 
 ```bash

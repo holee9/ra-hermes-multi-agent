@@ -39,6 +39,8 @@ def main() -> None:
         fail("study scheduler verifier must be part of the pre-auto loop")
     if "scripts/verify-auto-growth-activation-policy.py" not in module.VERIFY_SCRIPTS:
         fail("activation policy verifier must be part of the pre-auto loop")
+    if "scripts/verify-auto-growth-readiness-report.py" not in module.VERIFY_SCRIPTS:
+        fail("readiness report verifier must be part of the pre-auto loop")
     if module.DEFAULT_OPERATION_TIMEZONE != "Asia/Seoul":
         fail("default operation timezone must be Asia/Seoul")
 

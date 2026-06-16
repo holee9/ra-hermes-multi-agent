@@ -279,7 +279,8 @@ npm test
 - 비메일 성장 cadence 루프: `scripts/non-email-growth-loop.py`
 - 사전 전환 루프: `scripts/pre-auto-growth-loop.py`
 - 자동 실행 entrypoint: `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`
-- 검증: `scripts/verify-daily-growth-runner.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/verify-pre-auto-growth-loop.py`
+- pre-production readiness: `scripts/auto-growth-readiness-report.py`
+- 검증: `scripts/verify-daily-growth-runner.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/verify-pre-auto-growth-loop.py`, `scripts/verify-auto-growth-activation-policy.py`, `scripts/verify-auto-growth-readiness-report.py`
 - 기본값: dry-run only. 자동 실행은 수동 성장/backlog 완료 전 금지한다.
 - execute gate: `--execute`만으로는 실행되지 않는다. `--manual-growth-complete`가 필요하며, `--max-pending` 이하로 queue가 줄어야 한다.
 - 출력 계획: 담당자별 daily regulatory case, source path, source hash, matched keywords, queue status, self docs, cadence.
@@ -293,6 +294,7 @@ npm test
 - timer 정책: `hermes-auto-growth.timer`는 운영 승인 후 매일 03:30 KST 실행한다. `auto-growth-runner.sh`는 `AUTO_GROWTH_OPERATION_TZ=Asia/Seoul` 기본값으로 운영일을 계산하고, daily KB growth를 idempotent execute하며, 월요일에는 curriculum seed도 idempotent execute한다.
 - activation safety: `scripts/install-auto-growth-timer.sh`는 `--confirm-auto-growth-activation` 없이는 `--enable`/`--start-now`를 거부한다. timer unit은 `Persistent=false`로 missed-run 보상 실행을 차단한다.
 - 2026-06-16 #57 보정 상태: 승인 없이 활성화된 timer는 stop/disable했으며, 현재 자동 실행 예약은 없다. 수동 readiness/service 실행은 가능하지만 운영 timer 승격은 승인 게이트 통과 후 별도 수행한다.
+- 2026-06-16 #58 보정 상태: 운영 timer 승격 전 대기하지 않고 `auto-growth-readiness-report.py`와 non-email/pre-auto dry-run을 반복해 readiness matrix를 측정하고, 낮은 축은 별도 이슈로 fix한다.
 
 ---
 
