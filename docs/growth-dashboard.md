@@ -6,14 +6,15 @@
 
 `docs/growth-dashboard.html`은 정적 HTML snapshot이다. 서버, 빌드, 외부 JavaScript, 외부 CSS, JSON fetch 없이 열린다.
 
-이 dashboard는 자동성장을 실행하지 않는다. 다음 상태를 사람이 검토하기 쉽게 보여주는 읽기 전용 보고서다. 첫 화면의 우선순위는 "자동화가 켜졌는가"가 아니라 "RA 담당자의 전문가 성장을 근거 있게 판정할 수 있는가"다.
+이 dashboard는 자동성장을 실행하지 않는다. 첫 화면의 우선순위는 실제 운영 중 각 RA 담당자가 성장하고 있는지, 성장 신호가 어디서 끊겼는지, 사용자가 다음에 무엇을 확인해야 하는지를 보여주는 것이다.
 
-- RA 전문가 성장 verdict
-- expert evidence radar chart
-- 담당자별 Depth Proxy / Source Coverage
+- RA Growth Operations 요약
+- 담당자별 성장 카드: foundation, KB depth, source coverage, operational evidence
+- Growth Signal Flow: Knowledge Base → Operational Input → Feedback Signal → Expert Growth
+- Growth Trend Verdict
+- Growth Evidence Radar
 - Coverage Guard Basis
 - 자동성장 readiness matrix
-- 자동성장 timer 상태등
 - 성장 지표 timer 상태등
 - pending / wrong-peer / JSON envelope / hyphen peer cleanliness 상태등
 - 최신 growth metrics
@@ -80,8 +81,10 @@ git push origin main
 
 | 항목 | 정상 판정 |
 |---|---|
-| Expert Growth Verdict | `sessions_scanned > 0` 및 `messages_scanned > 0`이고 행동/피드백 지표가 target range에 들어와야 판정 가능 |
-| Expert Evidence Radar | Depth/Source/Safety는 pre-activation proxy, Behavior/Feedback은 실제 행동/사람 평가 데이터 기반 |
+| RA Growth Operations | 최근 보고서의 `sessions_scanned`, `messages_scanned`, 14-report 누적 input/insight를 첫 화면에 표시 |
+| 담당자별 성장 카드 | `ra_us`, `ra_eu`, `ra_kr` 각각 foundation, source, operational evidence를 분리 표시 |
+| Growth Trend Verdict | `sessions_scanned > 0` 및 `messages_scanned > 0`이고 행동/피드백 지표가 target range에 들어와야 판정 가능 |
+| Growth Evidence Radar | Depth/Source/Safety는 foundation proxy, Behavior/Feedback은 실제 행동/사람 평가 데이터 기반 |
 | Readiness | `16/16` |
 | Timer recommendation | `approval_review_required` |
 | Auto growth timer | `inactive/disabled` until explicit approval |
@@ -104,9 +107,9 @@ git push origin main
 
 따라서 현재 dashboard는 다음에는 충분하다.
 
-- readiness / safety 상태 확인
-- timer on/off 상태 확인
-- 담당자별 source coverage와 self-doc depth floor 확인
+- 담당자별 KB foundation과 source coverage 확인
+- 운영 성장 데이터가 실제로 들어오고 있는지 확인
+- 성장 신호가 Knowledge Base 이후 Operational Input에서 끊겼는지 확인
 - KR/EU legacy pre-activation floor가 전문가 성숙도 기준이 아님을 확인
 - reports 생성 여부 확인
 

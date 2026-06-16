@@ -33,9 +33,15 @@ def main() -> None:
             fail(f"dashboard renderer missing {term}")
 
     required_html_terms = [
-        "RA Expert Growth Dashboard",
-        "Expert Growth Verdict",
-        "Expert Evidence Radar",
+        "RA Growth Operations Dashboard",
+        "RA Growth Operations",
+        "Growth Trend Verdict",
+        "Growth Evidence Radar",
+        "Growth Signal Flow",
+        "Mike / US FDA",
+        "Theo / EU MDR",
+        "Sam / MFDS",
+        "기초 KB 확보 / 운영 성장 데이터 없음",
         "측정 불충분",
         "Coverage Guard Basis",
         "legacy_pre_activation_floor",
@@ -53,7 +59,6 @@ def main() -> None:
         "bar-fill",
         "dot ok",
         "16/16",
-        "inactive/disabled",
         "active/enabled",
     ]
     for term in required_html_terms:

@@ -300,6 +300,111 @@ def progress_bar(width: float, extra_class: str = "") -> str:
     )
 
 
+def agent_display_name(peer: str) -> str:
+    return {
+        "ra_us": "Mike / US FDA",
+        "ra_eu": "Theo / EU MDR",
+        "ra_kr": "Sam / MFDS",
+    }.get(peer, peer)
+
+
+def agent_growth_cards(snapshot: dict[str, Any]) -> str:
+    self_docs = snapshot["self_docs"]
+    seed_counts = snapshot["seed_counts"]
+    guards = snapshot.get("coverage_guards", {})
+    expected_sources = (guards.get("source_coverage") or {}).get("expected_explicit_sources") or {}
+    depth_floors = guards.get("self_doc_depth_floors") or {}
+    growth_metrics = snapshot.get("growth_latest", {}).get("metrics", {})
+    study_by_agent = (growth_metrics.get("autonomous_study_sessions") or {}).get("by_agent") or {}
+    insights_by_agent = (growth_metrics.get("study_insights_count") or {}).get("by_agent") or {}
+    messages_scanned = number(snapshot.get("growth_latest", {}).get("messages_scanned"))
+
+    cards = []
+    for peer in ("ra_us", "ra_eu", "ra_kr"):
+        docs = number(self_docs.get(peer))
+        floor_config = depth_floors.get(peer) if isinstance(depth_floors.get(peer), dict) else {}
+        depth_floor = number(floor_config.get("min"))
+        seeds = number(seed_counts.get(peer))
+        expected = number(expected_sources.get(peer))
+        study_count = number(study_by_agent.get(peer))
+        insight_count = number(insights_by_agent.get(peer))
+        foundation = (pct(docs, depth_floor) + pct(seeds, expected)) / 2
+        operations = 0.0 if messages_scanned == 0 else min(100.0, study_count * 20 + insight_count * 5)
+        level = "ok" if foundation >= 100 and operations > 0 else ("warn" if foundation >= 100 else "bad")
+        status = (
+            "기초 KB 확보 / 운영 성장 데이터 없음"
+            if foundation >= 100 and operations == 0
+            else ("운영 성장 측정 중" if operations > 0 else "기초 KB 부족")
+        )
+        cards.append(
+            f"<article class='growth-card {level}'>"
+            f"<div class='growth-card-head'><span>{esc(agent_display_name(peer))}</span><strong>{esc(status)}</strong></div>"
+            "<div class='growth-score'>"
+            f"<span>{esc(int(foundation))}%</span><small>foundation</small>"
+            "</div>"
+            "<div class='growth-bars'>"
+            "<div class='growth-bar-row'><span>KB Depth</span>"
+            f"{progress_bar(pct(docs, depth_floor), 'depth-fill')}"
+            f"<strong>{esc(int(docs))}/{esc(int(depth_floor))}</strong></div>"
+            "<div class='growth-bar-row'><span>Sources</span>"
+            f"{progress_bar(pct(seeds, expected), 'source-fill')}"
+            f"<strong>{esc(int(seeds))}/{esc(int(expected))}</strong></div>"
+            "<div class='growth-bar-row'><span>Ops Evidence</span>"
+            f"{progress_bar(operations, 'ops-fill')}"
+            f"<strong>{esc(int(study_count))} study / {esc(int(insight_count))} insight</strong></div>"
+            "</div>"
+            "</article>"
+        )
+    return "".join(cards)
+
+
+def growth_signal_strip(snapshot: dict[str, Any], maturity_measurable: bool) -> str:
+    growth_latest = snapshot["growth_latest"]
+    latest_messages = int(number(growth_latest.get("messages_scanned")))
+    latest_sessions = int(number(growth_latest.get("sessions_scanned")))
+    trend_messages = sum(int(number(row.get("messages_scanned"))) for row in snapshot.get("trend_rows", []))
+    trend_insights = sum(int(number(row.get("study_insights_count"))) for row in snapshot.get("trend_rows", []))
+    state = "blocked" if not maturity_measurable else "running"
+    verdict = "성장 추세 미측정" if not maturity_measurable else "성장 추세 측정 중"
+    next_action = (
+        "metrics ingestion이 성장/업무 이벤트를 읽지 못하고 있습니다. 먼저 scanned input 0건을 고쳐야 합니다."
+        if not maturity_measurable
+        else "7일/30일 추세와 사람 피드백 기준선을 확인합니다."
+    )
+    return (
+        f"<section class='growth-summary {state}'>"
+        "<div>"
+        "<div class='eyebrow'>RA Growth Operations</div>"
+        f"<h2>{esc(verdict)}</h2>"
+        f"<p>{esc(next_action)}</p>"
+        "</div>"
+        "<div class='summary-metrics'>"
+        f"<div><strong>{esc(latest_messages)}</strong><span>latest messages</span></div>"
+        f"<div><strong>{esc(latest_sessions)}</strong><span>latest sessions</span></div>"
+        f"<div><strong>{esc(trend_messages)}</strong><span>14-report messages</span></div>"
+        f"<div><strong>{esc(trend_insights)}</strong><span>14-report insights</span></div>"
+        "</div>"
+        "</section>"
+    )
+
+
+def growth_flow(maturity_measurable: bool) -> str:
+    steps = [
+        ("ok", "1", "Knowledge Base", "seed/depth ready"),
+        ("bad" if not maturity_measurable else "ok", "2", "Operational Input", "messages scanned"),
+        ("bad" if not maturity_measurable else "ok", "3", "Feedback Signal", "human review"),
+        ("warn" if not maturity_measurable else "ok", "4", "Expert Growth", "trend verdict"),
+    ]
+    nodes = []
+    for level, step, title, detail in steps:
+        nodes.append(
+            f"<div class='flow-node {level}'>"
+            f"<span>{esc(step)}</span><strong>{esc(title)}</strong><small>{esc(detail)}</small>"
+            "</div>"
+        )
+    return f"<section><h2>Growth Signal Flow</h2><div class='flow'>{''.join(nodes)}</div></section>"
+
+
 def agent_evidence_bars(snapshot: dict[str, Any]) -> str:
     self_docs = snapshot["self_docs"]
     seed_counts = snapshot["seed_counts"]
@@ -460,6 +565,9 @@ def render(snapshot: dict[str, Any]) -> str:
     )
     visuals = {
         "radar": radar_chart(scores, "expert evidence radar chart"),
+        "growth_summary": growth_signal_strip(snapshot, maturity_measurable),
+        "growth_cards": agent_growth_cards(snapshot),
+        "growth_flow": growth_flow(maturity_measurable),
         "agent_bars": agent_evidence_bars(snapshot),
         "coverage_basis": coverage_basis(snapshot),
         "cleanliness_lights": status_lights("Cleanliness", snapshot.get("cleanliness", {})),
@@ -473,7 +581,7 @@ def render(snapshot: dict[str, Any]) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RA Expert Growth Dashboard</title>
+  <title>RA Growth Operations Dashboard</title>
   <style>
     :root {{
       color-scheme: light;
@@ -488,6 +596,9 @@ def render(snapshot: dict[str, Any]) -> str:
       --blue: #2563eb;
       --teal: #0f766e;
       --amber: #d97706;
+      --red-bg: #fff1f0;
+      --green-bg: #edf9f2;
+      --yellow-bg: #fff8e8;
     }}
     * {{ box-sizing: border-box; }}
     body {{
@@ -508,6 +619,7 @@ def render(snapshot: dict[str, Any]) -> str:
     main {{ padding: 24px 32px 36px; max-width: 1280px; margin: 0 auto; }}
     .grid {{ display: grid; gap: 16px; }}
     .kpi-grid {{ grid-template-columns: repeat(4, minmax(180px, 1fr)); }}
+    .growth-agent-grid {{ grid-template-columns: repeat(3, minmax(220px, 1fr)); margin-top: 16px; }}
     .two {{ grid-template-columns: repeat(2, minmax(280px, 1fr)); margin-top: 16px; }}
     section {{
       background: var(--panel);
@@ -519,6 +631,43 @@ def render(snapshot: dict[str, Any]) -> str:
     .kpi .label {{ color: var(--muted); font-size: 13px; margin-bottom: 8px; }}
     .kpi .value {{ font-size: 24px; font-weight: 780; letter-spacing: 0; }}
     .kpi .sub {{ color: var(--muted); font-size: 12px; margin-top: 8px; overflow-wrap: anywhere; }}
+    .growth-summary {{
+      display: grid;
+      grid-template-columns: minmax(280px, 1.2fr) minmax(320px, .8fr);
+      gap: 18px;
+      align-items: center;
+      border-width: 2px;
+    }}
+    .growth-summary.blocked {{ background: var(--red-bg); border-color: #f5b5ae; }}
+    .growth-summary.running {{ background: var(--green-bg); border-color: #9ad8b0; }}
+    .eyebrow {{ color: var(--muted); font-size: 12px; font-weight: 780; text-transform: uppercase; letter-spacing: .08em; }}
+    .growth-summary h2 {{ margin: 4px 0 8px; font-size: 30px; }}
+    .growth-summary p {{ max-width: 760px; color: #3a4658; }}
+    .summary-metrics {{ display:grid; grid-template-columns: repeat(2, minmax(130px, 1fr)); gap: 10px; }}
+    .summary-metrics div {{ background: rgba(255,255,255,.7); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }}
+    .summary-metrics strong {{ display:block; font-size: 26px; }}
+    .summary-metrics span {{ color: var(--muted); font-size: 12px; }}
+    .growth-card {{ border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #fff; }}
+    .growth-card.ok {{ border-color: #9ad8b0; background: var(--green-bg); }}
+    .growth-card.warn {{ border-color: #f0ce80; background: var(--yellow-bg); }}
+    .growth-card.bad {{ border-color: #f5b5ae; background: var(--red-bg); }}
+    .growth-card-head {{ display:flex; justify-content:space-between; align-items:flex-start; gap: 12px; min-height: 44px; }}
+    .growth-card-head span {{ font-weight: 780; font-size: 15px; }}
+    .growth-card-head strong {{ color: #3a4658; font-size: 12px; text-align:right; max-width: 170px; }}
+    .growth-score {{ display:flex; align-items:baseline; gap: 8px; margin: 12px 0; }}
+    .growth-score span {{ font-size: 36px; font-weight: 820; }}
+    .growth-score small {{ color: var(--muted); }}
+    .growth-bar-row {{ display:grid; grid-template-columns: 92px 1fr 112px; gap: 10px; align-items:center; margin-top: 10px; font-size: 12px; }}
+    .growth-bar-row span {{ color: var(--muted); }}
+    .growth-bar-row strong {{ text-align:right; color: #27364b; }}
+    .flow {{ display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 10px; }}
+    .flow-node {{ border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #fff; position:relative; min-height: 116px; }}
+    .flow-node.ok {{ background: var(--green-bg); border-color: #9ad8b0; }}
+    .flow-node.warn {{ background: var(--yellow-bg); border-color: #f0ce80; }}
+    .flow-node.bad {{ background: var(--red-bg); border-color: #f5b5ae; }}
+    .flow-node span {{ display:inline-grid; place-items:center; width: 28px; height: 28px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-weight: 800; }}
+    .flow-node strong {{ display:block; margin-top: 12px; font-size: 15px; }}
+    .flow-node small {{ display:block; margin-top: 5px; color: var(--muted); }}
     table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     th, td {{ padding: 9px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }}
     th {{ font-weight: 680; color: #27364b; }}
@@ -552,6 +701,7 @@ def render(snapshot: dict[str, Any]) -> str:
     .bar-fill {{ height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: inherit; }}
     .source-fill {{ background: linear-gradient(90deg, var(--blue), var(--teal)); }}
     .depth-fill {{ background: linear-gradient(90deg, var(--teal), var(--ok)); }}
+    .ops-fill {{ background: linear-gradient(90deg, var(--amber), var(--bad)); }}
     .threshold-card {{ margin-top: 14px; padding: 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }}
     .threshold-head {{ display:flex; justify-content:space-between; gap: 12px; margin-bottom: 8px; font-size: 13px; }}
     .threshold-fill {{ background: linear-gradient(90deg, var(--amber), var(--ok)); }}
@@ -569,37 +719,47 @@ def render(snapshot: dict[str, Any]) -> str:
     footer {{ padding: 0 32px 28px; max-width: 1280px; margin: 0 auto; color: var(--muted); font-size: 12px; }}
     @media (max-width: 900px) {{
       header, main, footer {{ padding-left: 16px; padding-right: 16px; }}
-      .kpi-grid, .two, .visual-grid, .visual-grid-3 {{ grid-template-columns: 1fr; }}
+      .kpi-grid, .two, .visual-grid, .visual-grid-3, .growth-agent-grid, .growth-summary, .flow {{ grid-template-columns: 1fr; }}
+      .growth-bar-row {{ grid-template-columns: 1fr; }}
+      .growth-bar-row strong {{ text-align:left; }}
       h1 {{ font-size: 23px; }}
     }}
   </style>
 </head>
 <body>
   <header>
-    <h1>RA Expert Growth Dashboard</h1>
-    <p>RA 담당자의 전문가 성장 근거를 먼저 보여주고, 자동화 readiness와 커버리지 가드는 별도 근거로 분리한 정적 HTML snapshot입니다.</p>
+    <h1>RA Growth Operations Dashboard</h1>
+    <p>실제 운영 중 각 RA 담당자의 성장 입력, 학습 근거, 피드백 신호, 성장 추세 측정 가능 여부를 확인하는 현황판입니다.</p>
   </header>
   <main>
+    {visuals['growth_summary']}
+
+    <div class="grid growth-agent-grid">
+      {visuals['growth_cards']}
+    </div>
+
+    {visuals['growth_flow']}
+
     <div class="grid kpi-grid">
       <section class="kpi">
-        <div class="label">Expert Growth Verdict</div>
+        <div class="label">Growth Trend Verdict</div>
         <div class="value"><span class="pill {maturity_class}">{esc(maturity_verdict)}</span></div>
-        <div class="sub">전문가 성숙도는 행동/피드백 데이터가 있어야 판정합니다.</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Auto Growth Timer</div>
-        <div class="value"><span class="pill {status_class(timers['hermes_auto_growth']['active'] == 'inactive' and timers['hermes_auto_growth']['enabled'] == 'disabled')}">{esc(timers['hermes_auto_growth']['active'])}/{esc(timers['hermes_auto_growth']['enabled'])}</span></div>
-        <div class="sub">명시 승인 전 off 유지</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Metrics Timer</div>
-        <div class="value"><span class="pill {status_class(timers['ra_growth_metrics']['active'] == 'active' and timers['ra_growth_metrics']['enabled'] == 'enabled')}">{esc(timers['ra_growth_metrics']['active'])}/{esc(timers['ra_growth_metrics']['enabled'])}</span></div>
-        <div class="sub">매일 02:00 KST</div>
+        <div class="sub">성장 추세는 운영 입력과 피드백 데이터가 있어야 판정합니다.</div>
       </section>
       <section class="kpi">
         <div class="label">Latest Growth Input</div>
         <div class="value">{esc(growth_latest.get('messages_scanned'))}</div>
-        <div class="sub">messages scanned; 0이면 ingestion 보정 필요</div>
+        <div class="sub">최근 보고서의 scanned messages</div>
+      </section>
+      <section class="kpi">
+        <div class="label">Metrics Collection</div>
+        <div class="value"><span class="pill {status_class(timers['ra_growth_metrics']['active'] == 'active' and timers['ra_growth_metrics']['enabled'] == 'enabled')}">{esc(timers['ra_growth_metrics']['active'])}/{esc(timers['ra_growth_metrics']['enabled'])}</span></div>
+        <div class="sub">timer 상태. 입력 0건이면 수집 경로 장애</div>
+      </section>
+      <section class="kpi">
+        <div class="label">Knowledge Foundation</div>
+        <div class="value"><span class="pill {status_class(scores.get('knowledge_depth_proxy') >= 4 and scores.get('source_coverage') >= 4)}">ready</span></div>
+        <div class="sub">기초 KB/소스 커버리지 floor</div>
       </section>
       <section class="kpi">
         <div class="label">Readiness</div>
@@ -611,7 +771,7 @@ def render(snapshot: dict[str, Any]) -> str:
     <div class="grid visual-grid">
       <section>
         <div class="visual-title">
-          <h2>Expert Evidence Radar</h2>
+          <h2>Growth Evidence Radar</h2>
           <span class="pill {maturity_class}">{esc(maturity_verdict)}</span>
         </div>
         <div class="radar-wrap">{visuals['radar']}</div>
