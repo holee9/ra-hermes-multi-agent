@@ -94,6 +94,10 @@
     .support-details > summary { cursor: pointer; padding: 16px 18px; font-weight: 780; color: #27364b; list-style-position: inside; }
     .support-details > summary span { color: var(--muted); font-weight: 520; margin-left: 8px; }
     .support-body { padding: 0 18px 18px; }
+    .support-purpose { display:grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 10px; margin: 0 0 16px; }
+    .purpose-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfdff; }
+    .purpose-card strong { display:block; color: #27364b; margin-bottom: 6px; }
+    .purpose-card span { color: var(--muted); font-size: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 9px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { font-weight: 680; color: #27364b; }
@@ -145,7 +149,7 @@
     footer { padding: 0 32px 28px; max-width: 1280px; margin: 0 auto; color: var(--muted); font-size: 12px; }
     @media (max-width: 900px) {
       header, main, footer { padding-left: 16px; padding-right: 16px; }
-      .kpi-grid, .two, .visual-grid, .visual-grid-3, .growth-agent-grid, .growth-summary, .flow { grid-template-columns: 1fr; }
+      .kpi-grid, .two, .visual-grid, .visual-grid-3, .growth-agent-grid, .growth-summary, .flow, .support-purpose { grid-template-columns: 1fr; }
       .growth-bar-row { grid-template-columns: 1fr; }
       .growth-bar-row strong { text-align:left; }
       h1 { font-size: 23px; }
@@ -167,8 +171,14 @@
     <section><h2>Growth Signal Flow</h2><div class='flow'><div class='flow-node ok'><span>1</span><strong>Knowledge Base</strong><small>seed/depth ready</small></div><div class='flow-node bad'><span>2</span><strong>Operational Input</strong><small>messages scanned</small></div><div class='flow-node bad'><span>3</span><strong>Feedback Signal</strong><small>human review</small></div><div class='flow-node warn'><span>4</span><strong>Expert Growth</strong><small>trend verdict</small></div></div></section>
 
     <details class="support-details">
-      <summary>검증/감사 상세 보기 <span>일상 현황 판단에는 상단 3개 영역만 보면 됩니다.</span></summary>
+      <summary>검증/감사 상세 보기 <span>상단 결론을 검산하거나 이슈 근거가 필요할 때만 펼칩니다.</span></summary>
       <div class="support-body">
+        <div class="support-purpose">
+          <div class="purpose-card"><strong>결론 검산</strong><span>상단의 "성장 추세 미측정"이 실제 metrics 0건과 일치하는지 확인합니다.</span></div>
+          <div class="purpose-card"><strong>병목 위치 확인</strong><span>Operational Input이 막힌 것인지, 피드백/정확도 지표가 부족한 것인지 구분합니다.</span></div>
+          <div class="purpose-card"><strong>커버리지 오판 방지</strong><span>KB/source floor 통과를 전문가 성숙도와 혼동하지 않도록 근거를 확인합니다.</span></div>
+          <div class="purpose-card"><strong>이슈 기록 근거</strong><span>GitHub issue에 남길 수치, 파일명, readiness/cleanliness 상태를 확인합니다.</span></div>
+        </div>
         <div class="grid kpi-grid">
           <section class="kpi">
             <div class="label">Growth Trend Verdict</div>
@@ -312,7 +322,7 @@
     </details>
   </main>
   <footer>
-    Generated at 2026-06-16T16:42:12+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+    Generated at 2026-06-16T16:49:39+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
   </footer>
 </body>
 </html>

@@ -24,6 +24,10 @@ test.describe('growth dashboard', () => {
     await expect(page.locator('text=검증/감사 상세 보기')).toBeVisible();
     await expect(page.locator('text=Growth Trend Verdict')).toBeHidden();
     await page.locator('summary').click();
+    await expect(page.locator('text=결론 검산')).toBeVisible();
+    await expect(page.locator('text=병목 위치 확인')).toBeVisible();
+    await expect(page.locator('text=커버리지 오판 방지')).toBeVisible();
+    await expect(page.locator('text=이슈 기록 근거')).toBeVisible();
     await expect(page.locator('text=Growth Trend Verdict')).toBeVisible();
     await expect(page.locator('.kpi').filter({ hasText: 'Growth Trend Verdict' })).toContainText('측정 불충분');
     await expect(page.locator('text=Growth Evidence Radar')).toBeVisible();
