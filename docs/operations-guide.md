@@ -5,6 +5,22 @@
 
 ---
 
+## 0. 현재 운영 판정 (2026-06-16)
+
+자동성장 timer는 **OFF 유지**가 현재 기준이다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 자동성장 전환 전에는 아래 세 가지가 먼저 증명되어야 한다.
+
+| 선행 조건 | 현재 사실 | 이슈 |
+|---|---|---|
+| 성장 metrics ingestion 유효성 | `ra-growth-metrics.timer`는 active/enabled이나 최근 reports가 `sessions_scanned=0`, `messages_scanned=0` | #64 |
+| 운영 workflow 런타임 반영 | #43~#45 변경은 repo에 반영됐지만 RPi n8n import/E2E가 남음 | #43~#45 |
+| 실시간 규제 근거 주입 | Layer 4 API 서버는 준비됐지만 mail-triage n8n prompt 연결이 남음 | #37 |
+
+따라서 현재 작업 초점은 대시보드 열람이 아니라 **성장 입력이 발생하고, 그 입력이 올바른 peer에 기록되며, metrics가 이를 수집해 사람에게 판단 가능한 증거를 제공하는지** 확인하는 것이다.
+
+남은 작업의 실행 우선순위는 P0 metrics 보정(#64)과 RPi n8n E2E(#43~#45), P1 Layer 4 mail-triage 연결(#37), P1 threshold/notification 정책(#65), P2 infra vote-rules/broadcast(#39), P2 확장 조건 데이터화(#41), P3 form 이관(#40) 순서다.
+
+---
+
 ## 1. 운영 대 코딩 (경계 재확인)
 
 - 코딩 산출물: n8n 워크플로우·파싱·연동·투표 자리·가상 오피스(구현 명세서).
@@ -485,16 +501,17 @@ timer 실행 내용:
 
 **프로덕션은 새 기능이 아니라 성숙으로 도달한다.** 같은 골격이 학습·평가로 깊어진 상태. 아래는 "Hermes가 이만큼 성숙하면 무엇을 한다"는 성장 트리거 — 미리 일정으로 박지 않고, 조건이 충족되면 실행.
 
-### 5.0 현재 로드맵 (2026-06-13 기준)
+### 5.0 현재 로드맵 (2026-06-16 기준)
 
 | 단계 | 상태 | 이슈 |
 |------|------|------|
 | Phase 1: MVP 골격 | ✅ 완료 | #3~#33 |
 | Phase 2: T자형 가로획 구축 | ✅ 완료 | #34, #35, #36 |
-| Phase 3: 성장 루프 계장화 | 🔄 부분 완료 | #38, #42 완료 / #37 후속 |
+| Phase 3: 성장 루프 계장화 | 🔄 부분 완료 | #38, #42 완료 / #37, #64, #65 후속 |
 | Phase 4: 인프라 투표 활성화 | ⏳ 대기 | #39 |
 | Phase 5: 프랙탈 확장 | ⏳ 조건부·일부 진행 | #40, #41 |
 | Safety/QA 하드닝 | 🔄 레포 반영 | #43~#47 (#43~#45 운영 import/E2E 대기) |
+| Project status reconciliation | ✅ 완료 | #63 |
 
 ### 5.1 성숙 지표 (이게 오르면 프로덕션에 가까워짐)
 - 중복 WP 생성 빈도 ↓
@@ -509,12 +526,10 @@ timer 실행 내용:
 - `ra-growth-metrics.timer`는 active/enabled이며 매일 02:00 KST에 `ra-growth-metrics.service`를 실행한다.
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
 - 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
-- `scripts/auto-growth-readiness-report.py`는 자동성장 전환 가능성 점검용 4x4 readiness matrix다. 장기 성장 추세 지표가 아니라 activation safety/readiness snapshot이다.
-- `docs/growth-dashboard.html`은 GitHub Pages에서 바로 렌더링되는 standalone HTML snapshot이다. README의 "성장 대시보드 바로보기" 링크는 `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`을 가리킨다. RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow, Growth Trend Verdict, evidence radar, coverage guard basis, timer/cleanliness 상태등, growth trend sparkline을 표시한다.
-- `scripts/coverage-guards.json`은 source coverage와 self-doc depth floor의 근거 파일이다. 여기의 `kr_not_below_20pct_eu`는 `legacy_pre_activation_floor`로 기록하며, 전문가 성숙도 기준으로 표시하지 않는다.
-- `docs/growth-dashboard.md`는 dashboard 열람 방법, 갱신 절차, 데이터 출처, 판정 기준, 현재 한계를 설명하는 운영 문서다.
-- `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. 성장 모니터링 dashboard와 역할을 분리한다.
-- 실시간 dashboard, metrics ingestion 유효성 보정, threshold/webhook 운영 기준은 #62에서 계속 추적한다.
+- `scripts/auto-growth-readiness-report.py`는 activation safety/readiness snapshot이다. 장기 성장 추세 지표가 아니며, 자동성장 timer 활성화 승인을 대체하지 않는다.
+- `scripts/coverage-guards.json`의 `kr_not_below_20pct_eu`는 `legacy_pre_activation_floor`다. `ra_kr`이 빈 상태로 남지 않게 막는 사전 안전선일 뿐, 전문가 성숙도나 KR/EU 균형 목표가 아니다.
+- `docs/growth-dashboard.html`은 보조 snapshot이다. 프로젝트 운영 판단의 주 데이터는 reports JSON, Honcho activity records, n8n E2E 결과, 사람 평가 기록이다.
+- metrics ingestion 유효성 보정은 #64, threshold/webhook 운영 기준은 #65에서 분리 추적한다. #62는 기존 dashboard 산출물 유지·표시 보정용 이력으로만 본다.
 
 운영 확인 명령:
 
@@ -528,21 +543,14 @@ python3 scripts/auto-growth-readiness-report.py \
 python3 scripts/render-growth-dashboard.py
 ```
 
-정적 성장 대시보드 최소 위젯:
+성장 현황 판단에 필요한 최소 증거:
 
-- RA Growth Operations 요약: latest messages/sessions, 14-report messages/insights, 성장 추세 미측정 여부.
-- 담당자별 성장 카드: `ra_us`, `ra_eu`, `ra_kr`의 foundation, KB depth, source coverage, operational evidence.
-- Growth Signal Flow: Knowledge Base → Operational Input → Feedback Signal → Expert Growth.
-- Growth Trend Verdict: 행동/사람 평가 데이터가 없으면 "측정 불충분"으로 표시.
-- Growth Evidence Radar: Knowledge Depth Proxy, Source Coverage, Safety Cleanliness, Behavioral Metrics, Human Feedback.
-- Coverage Guard Basis: `scripts/coverage-guards.json`의 expected sources, depth floors, legacy relative guard 근거.
-- readiness matrix: 4x4 축별 점수와 `timer_operation_recommendation`.
-- 성장 지표: correction rate, first-pass match accuracy, confidence calibration, warmstart lift, escalation precision.
-- 자율 학습 지표: autonomous study sessions, study insights count.
-- 안전 지표 상태등: total pending, RA pending, wrong-peer/live contamination, active JSON envelope, hyphen peer.
-- timer 상태등: `hermes-auto-growth.timer`, `ra-growth-metrics.timer`.
-- 담당자 coverage bar: `ra_us`, `ra_eu`, `ra_kr` self-doc depth floor와 explicit source coverage.
-- growth trend sparkline: messages scanned, study insights.
+- 운영 입력: mail/form/manual/non-email growth case가 어떤 담당자에게 들어갔는가.
+- 담당자 기록: Honcho peer가 `ra_us`, `ra_eu`, `ra_kr` underscore 계약으로 기록됐는가.
+- 사람 평가: 3점 평가와 정정 근거가 다음 판단에 반영될 수 있게 기록됐는가.
+- metrics 수집: reports가 실제 sessions/messages/feedback/study insight를 스캔했는가.
+- 안전 상태: pending queue, wrong-peer contamination, JSON envelope, hyphen peer가 0으로 유지되는가.
+- 운영 E2E: RPi n8n import 후 Yellow gate, WP 상태 조회, alert/config 경로가 실제로 동작했는가.
 
 HTML 갱신 절차:
 
