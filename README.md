@@ -67,7 +67,7 @@
 | 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. RA Growth Operations 요약, 담당자별 성장 카드, growth signal flow, 성장 측정 상태, 커버리지 근거 포함 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, 실제 운영 중 각 RA 담당자의 성장 입력, KB foundation, 운영 evidence, feedback/growth signal 흐름을 먼저 보여준다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 상단에 "성장 추세 미측정"과 담당자별 "기초 KB 확보 / 운영 성장 데이터 없음"을 표시한다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, 실제 운영 중 각 RA 담당자의 성장 입력, KB foundation, 운영 evidence, feedback/growth signal 흐름을 먼저 보여준다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 상단에 "성장 추세 미측정"과 담당자별 "기초 KB 확보 / 운영 성장 데이터 없음"을 표시한다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 

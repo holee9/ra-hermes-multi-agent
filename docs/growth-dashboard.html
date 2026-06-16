@@ -90,6 +90,10 @@
     .flow-node span { display:inline-grid; place-items:center; width: 28px; height: 28px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-weight: 800; }
     .flow-node strong { display:block; margin-top: 12px; font-size: 15px; }
     .flow-node small { display:block; margin-top: 5px; color: var(--muted); }
+    .support-details { margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .support-details > summary { cursor: pointer; padding: 16px 18px; font-weight: 780; color: #27364b; list-style-position: inside; }
+    .support-details > summary span { color: var(--muted); font-weight: 520; margin-left: 8px; }
+    .support-body { padding: 0 18px 18px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 9px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { font-weight: 680; color: #27364b; }
@@ -154,7 +158,7 @@
     <p>실제 운영 중 각 RA 담당자의 성장 입력, 학습 근거, 피드백 신호, 성장 추세 측정 가능 여부를 확인하는 현황판입니다.</p>
   </header>
   <main>
-    <section class='growth-summary blocked'><div><div class='eyebrow'>RA Growth Operations</div><h2>성장 추세 미측정</h2><p>metrics ingestion이 성장/업무 이벤트를 읽지 못하고 있습니다. 먼저 scanned input 0건을 고쳐야 합니다.</p></div><div class='summary-metrics'><div><strong>0</strong><span>latest messages</span></div><div><strong>0</strong><span>latest sessions</span></div><div><strong>0</strong><span>14-report messages</span></div><div><strong>0</strong><span>14-report insights</span></div></div></section>
+    <section class='growth-summary blocked'><div><div class='eyebrow'>RA Growth Operations</div><h2>성장 추세 미측정</h2><p>결론: KB foundation은 준비됐지만 운영 성장 데이터가 0건입니다. 성장 신호는 Operational Input에서 끊겼고, 먼저 metrics ingestion을 고쳐야 합니다.</p></div><div class='summary-metrics'><div><strong>0</strong><span>latest messages</span></div><div><strong>0</strong><span>latest sessions</span></div><div><strong>0</strong><span>14-report messages</span></div><div><strong>0</strong><span>14-report insights</span></div></div></section>
 
     <div class="grid growth-agent-grid">
       <article class='growth-card warn'><div class='growth-card-head'><span>Mike / US FDA</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>9064/5000</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>48/48</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article><article class='growth-card warn'><div class='growth-card-head'><span>Theo / EU MDR</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>2956/2000</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>31/31</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article><article class='growth-card warn'><div class='growth-card-head'><span>Sam / MFDS</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>638/500</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>48/29</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article>
@@ -162,148 +166,153 @@
 
     <section><h2>Growth Signal Flow</h2><div class='flow'><div class='flow-node ok'><span>1</span><strong>Knowledge Base</strong><small>seed/depth ready</small></div><div class='flow-node bad'><span>2</span><strong>Operational Input</strong><small>messages scanned</small></div><div class='flow-node bad'><span>3</span><strong>Feedback Signal</strong><small>human review</small></div><div class='flow-node warn'><span>4</span><strong>Expert Growth</strong><small>trend verdict</small></div></div></section>
 
-    <div class="grid kpi-grid">
-      <section class="kpi">
-        <div class="label">Growth Trend Verdict</div>
-        <div class="value"><span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span></div>
-        <div class="sub">성장 추세는 운영 입력과 피드백 데이터가 있어야 판정합니다.</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Latest Growth Input</div>
-        <div class="value">0</div>
-        <div class="sub">최근 보고서의 scanned messages</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Metrics Collection</div>
-        <div class="value"><span class="pill ok">active/enabled</span></div>
-        <div class="sub">timer 상태. 입력 0건이면 수집 경로 장애</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Knowledge Foundation</div>
-        <div class="value"><span class="pill ok">ready</span></div>
-        <div class="sub">기초 KB/소스 커버리지 floor</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Readiness</div>
-        <div class="value"><span class="pill ok">16/16</span></div>
-        <div class="sub">approval_review_required</div>
-      </section>
-    </div>
-
-    <div class="grid visual-grid">
-      <section>
-        <div class="visual-title">
-          <h2>Growth Evidence Radar</h2>
-          <span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span>
+    <details class="support-details">
+      <summary>검증/감사 상세 보기 <span>일상 현황 판단에는 상단 3개 영역만 보면 됩니다.</span></summary>
+      <div class="support-body">
+        <div class="grid kpi-grid">
+          <section class="kpi">
+            <div class="label">Growth Trend Verdict</div>
+            <div class="value"><span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span></div>
+            <div class="sub">성장 추세는 운영 입력과 피드백 데이터가 있어야 판정합니다.</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Latest Growth Input</div>
+            <div class="value">0</div>
+            <div class="sub">최근 보고서의 scanned messages</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Metrics Collection</div>
+            <div class="value"><span class="pill ok">active/enabled</span></div>
+            <div class="sub">timer 상태. 입력 0건이면 수집 경로 장애</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Knowledge Foundation</div>
+            <div class="value"><span class="pill ok">ready</span></div>
+            <div class="sub">기초 KB/소스 커버리지 floor</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Readiness</div>
+            <div class="value"><span class="pill ok">16/16</span></div>
+            <div class="sub">approval_review_required</div>
+          </section>
         </div>
-        <div class="radar-wrap"><svg class='radar' viewBox='0 0 260 260' role='img' aria-label='expert evidence radar chart'><polygon points='130.0,108.5 150.4,123.4 142.6,147.4 117.4,147.4 109.6,123.4' class='radar-ring' /><polygon points='130.0,87.0 170.9,116.7 155.3,164.8 104.7,164.8 89.1,116.7' class='radar-ring' /><polygon points='130.0,65.5 191.3,110.1 167.9,182.2 92.1,182.2 68.7,110.1' class='radar-ring' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 79.5,199.6 48.2,103.4' class='radar-ring' /><line x1='130' y1='130' x2='130.0' y2='44.0' class='radar-axis' /><line x1='130' y1='130' x2='211.8' y2='103.4' class='radar-axis' /><line x1='130' y1='130' x2='180.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='79.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='48.2' y2='103.4' class='radar-axis' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0' class='radar-fill' /><polyline points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0 130.0,44.0' class='radar-line' /><text x='130.0' y='17.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Depth</text><text x='237.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Sources</text><text x='196.4' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Safety</text><text x='63.6' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Behavior</text><text x='22.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Feedback</text></svg></div>
-        <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
-        <table><tbody><tr><th>Knowledge Depth Proxy</th><td>4.000/4</td></tr>
+
+        <div class="grid visual-grid">
+          <section>
+            <div class="visual-title">
+              <h2>Growth Evidence Radar</h2>
+              <span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span>
+            </div>
+            <div class="radar-wrap"><svg class='radar' viewBox='0 0 260 260' role='img' aria-label='expert evidence radar chart'><polygon points='130.0,108.5 150.4,123.4 142.6,147.4 117.4,147.4 109.6,123.4' class='radar-ring' /><polygon points='130.0,87.0 170.9,116.7 155.3,164.8 104.7,164.8 89.1,116.7' class='radar-ring' /><polygon points='130.0,65.5 191.3,110.1 167.9,182.2 92.1,182.2 68.7,110.1' class='radar-ring' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 79.5,199.6 48.2,103.4' class='radar-ring' /><line x1='130' y1='130' x2='130.0' y2='44.0' class='radar-axis' /><line x1='130' y1='130' x2='211.8' y2='103.4' class='radar-axis' /><line x1='130' y1='130' x2='180.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='79.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='48.2' y2='103.4' class='radar-axis' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0' class='radar-fill' /><polyline points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0 130.0,44.0' class='radar-line' /><text x='130.0' y='17.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Depth</text><text x='237.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Sources</text><text x='196.4' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Safety</text><text x='63.6' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Behavior</text><text x='22.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Feedback</text></svg></div>
+            <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
+            <table><tbody><tr><th>Knowledge Depth Proxy</th><td>4.000/4</td></tr>
 <tr><th>Source Coverage</th><td>4.000/4</td></tr>
 <tr><th>Safety Cleanliness</th><td>4.000/4</td></tr>
 <tr><th>Behavioral Metrics</th><td>0.000/4</td></tr>
 <tr><th>Human Feedback</th><td>0.000/4</td></tr></tbody></table>
-      </section>
-      <section>
-        <h2>Depth Proxy & Source Coverage</h2>
-        <div class='agent-card'><div class='agent-name'>ra_eu</div><div class='agent-metric'><span>Depth Proxy</span><strong>2956/2000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>31/31</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_kr</div><div class='agent-metric'><span>Depth Proxy</span><strong>638/500</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/29</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_us</div><div class='agent-metric'><span>Depth Proxy</span><strong>9064/5000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/48</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='threshold-card'><div class='threshold-head'><span>kr_not_below_20pct_eu</span><strong>638/591</strong></div><div class='bar-track'><div class='bar-fill threshold-fill' style='width:100.0%'></div></div><p><code>legacy_pre_activation_floor</code> · Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity.</p></div>
-      </section>
-    </div>
+          </section>
+          <section>
+            <h2>Depth Proxy & Source Coverage</h2>
+            <div class='agent-card'><div class='agent-name'>ra_eu</div><div class='agent-metric'><span>Depth Proxy</span><strong>2956/2000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>31/31</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_kr</div><div class='agent-metric'><span>Depth Proxy</span><strong>638/500</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/29</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_us</div><div class='agent-metric'><span>Depth Proxy</span><strong>9064/5000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/48</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='threshold-card'><div class='threshold-head'><span>kr_not_below_20pct_eu</span><strong>638/591</strong></div><div class='bar-track'><div class='bar-fill threshold-fill' style='width:100.0%'></div></div><p><code>legacy_pre_activation_floor</code> · Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity.</p></div>
+          </section>
+        </div>
 
-    <section style="margin-top:16px">
-      <h2>Coverage Guard Basis</h2>
-      <p>Expected explicit source counts come from the source-level curriculum fast-track discovered in ra_knowledge. This is a coverage guard: each RA owner should have the known jurisdiction-specific source set seeded before automation review.</p><div class='grid two compact-tables'><div><h3>Source Coverage</h3><table><thead><tr><th>Agent</th><th>Expected</th><th>Current</th></tr></thead><tbody><tr><th>ra_us</th><td>48</td><td>48</td></tr>
+        <section style="margin-top:16px">
+          <h2>Coverage Guard Basis</h2>
+          <p>Expected explicit source counts come from the source-level curriculum fast-track discovered in ra_knowledge. This is a coverage guard: each RA owner should have the known jurisdiction-specific source set seeded before automation review.</p><div class='grid two compact-tables'><div><h3>Source Coverage</h3><table><thead><tr><th>Agent</th><th>Expected</th><th>Current</th></tr></thead><tbody><tr><th>ra_us</th><td>48</td><td>48</td></tr>
 <tr><th>ra_eu</th><td>31</td><td>31</td></tr>
 <tr><th>ra_kr</th><td>29</td><td>48</td></tr></tbody></table></div><div><h3>Depth Proxy Floors</h3><table><thead><tr><th>Agent</th><th>Floor</th><th>Current</th><th>Basis</th></tr></thead><tbody><tr><th>ra_us</th><td>5000</td><td>9064</td><td>Post-recovery US corpus has materially deeper memory volume; keep automation from running if this mature baseline collapses.</td></tr>
 <tr><th>ra_eu</th><td>2000</td><td>2956</td><td>Post-recovery EU corpus has enough MDR/IVDR memory depth for baseline automation review.</td></tr>
 <tr><th>ra_kr</th><td>500</td><td>638</td><td>#59 manual KR growth target; minimum viable KR memory depth before considering automation review.</td></tr></tbody></table></div></div><h3>Legacy Relative Guard</h3><table><thead><tr><th>Guard</th><th>Status</th><th>Rule</th><th>Basis</th></tr></thead><tbody><tr><th>kr_not_below_20pct_eu</th><td><code>legacy_pre_activation_floor</code></td><td>ra_kr >= ra_eu * 0.200</td><td>Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity.</td></tr></tbody></table><div class='note'>KR/EU 20% is a legacy_pre_activation_floor and not expert maturity. It only prevents a near-empty KR corpus before automation review.</div>
-    </section>
+        </section>
 
-    <div class="grid visual-grid-3">
-      <section><div class='status-panel'><h3>Cleanliness</h3><div class='status-row'><span class='dot ok'></span><span>pending_total_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>ra_pending_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>wrong_peer_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>active_json_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>hyphen_peer_zero</span><strong>True</strong></div></div></section>
-      <section><div class='status-panel'><h3>Activation Control</h3><div class='status-row'><span class='dot ok'></span><span>timer_inactive</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>timer_disabled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>not_scheduled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>persistent_false</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>activation_guard</span><strong>True</strong></div></div></section>
-      <section>
-        <h2>Growth Trend</h2>
-        <div class='spark-card'><div class='spark-head'><span>Messages scanned</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Messages scanned trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
-        <div class='spark-card'><div class='spark-head'><span>Study insights</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Study insights trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
-        <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
-      </section>
-    </div>
+        <div class="grid visual-grid-3">
+          <section><div class='status-panel'><h3>Cleanliness</h3><div class='status-row'><span class='dot ok'></span><span>pending_total_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>ra_pending_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>wrong_peer_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>active_json_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>hyphen_peer_zero</span><strong>True</strong></div></div></section>
+          <section><div class='status-panel'><h3>Activation Control</h3><div class='status-row'><span class='dot ok'></span><span>timer_inactive</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>timer_disabled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>not_scheduled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>persistent_false</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>activation_guard</span><strong>True</strong></div></div></section>
+          <section>
+            <h2>Growth Trend</h2>
+            <div class='spark-card'><div class='spark-head'><span>Messages scanned</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Messages scanned trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
+            <div class='spark-card'><div class='spark-head'><span>Study insights</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Study insights trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
+            <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
+          </section>
+        </div>
 
-    <div class="grid two">
-      <section>
-        <h2>Readiness Matrix</h2>
-        <table><tbody><tr><th>activation_control</th><td>4/4</td></tr>
+        <div class="grid two">
+          <section>
+            <h2>Readiness Matrix</h2>
+            <table><tbody><tr><th>activation_control</th><td>4/4</td></tr>
 <tr><th>data_cleanliness</th><td>4/4</td></tr>
 <tr><th>growth_input_quality</th><td>4/4</td></tr>
 <tr><th>agent_balance</th><td>4/4</td></tr></tbody></table>
-        <div class="note">Source: issue-60-final-readiness.json. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
-      </section>
-      <section>
-        <h2>Raw Agent Inputs</h2>
-        <table>
-          <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
-          <tbody><tr><th>ra_us</th><td>9064</td><td>48</td></tr>
+            <div class="note">Source: issue-60-final-readiness.json. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
+          </section>
+          <section>
+            <h2>Raw Agent Inputs</h2>
+            <table>
+              <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
+              <tbody><tr><th>ra_us</th><td>9064</td><td>48</td></tr>
 <tr><th>ra_eu</th><td>2956</td><td>31</td></tr>
 <tr><th>ra_kr</th><td>638</td><td>48</td></tr></tbody>
-        </table>
-      </section>
-    </div>
+            </table>
+          </section>
+        </div>
 
-    <div class="grid two">
-      <section>
-        <h2>Cleanliness</h2>
-        <table><tbody><tr><th>pending_total_zero</th><td><span class='pill ok'>True</span></td></tr>
+        <div class="grid two">
+          <section>
+            <h2>Cleanliness</h2>
+            <table><tbody><tr><th>pending_total_zero</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>ra_pending_zero</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>wrong_peer_zero</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>active_json_zero</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>hyphen_peer_zero</th><td><span class='pill ok'>True</span></td></tr></tbody></table>
-      </section>
-      <section>
-        <h2>Activation Control</h2>
-        <table><tbody><tr><th>timer_inactive</th><td><span class='pill ok'>True</span></td></tr>
+          </section>
+          <section>
+            <h2>Activation Control</h2>
+            <table><tbody><tr><th>timer_inactive</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>timer_disabled</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>not_scheduled</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>persistent_false</th><td><span class='pill ok'>True</span></td></tr>
 <tr><th>activation_guard</th><td><span class='pill ok'>True</span></td></tr></tbody></table>
-      </section>
-    </div>
+          </section>
+        </div>
 
-    <section style="margin-top:16px">
-      <h2>Latest Growth Metrics</h2>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>Metric</th><th>Value</th><th>Direction</th><th>Note</th></tr></thead>
-          <tbody><tr><th>correction_rate</th><td><span class='pill warn'>N/A</span></td><td>down</td><td>fraction of human-reviewed decisions where agent was overridden</td></tr>
+        <section style="margin-top:16px">
+          <h2>Latest Growth Metrics</h2>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Metric</th><th>Value</th><th>Direction</th><th>Note</th></tr></thead>
+              <tbody><tr><th>correction_rate</th><td><span class='pill warn'>N/A</span></td><td>down</td><td>fraction of human-reviewed decisions where agent was overridden</td></tr>
 <tr><th>first_pass_match_accuracy</th><td><span class='pill warn'>N/A</span></td><td>up</td><td>fraction of WP match decisions confirmed correct by human</td></tr>
 <tr><th>confidence_calibration</th><td><span class='pill warn'>N/A</span></td><td>zero</td><td>Brier score: mean((confidence - actual_correct)^2). Lower → better calibrated.</td></tr>
 <tr><th>warmstart_lift</th><td><span class='pill warn'>N/A</span></td><td>positive</td><td>warm_mean - cold_mean (1-3 scale). Positive → memory helps.</td></tr>
 <tr><th>escalation_precision</th><td><span class='pill warn'>N/A</span></td><td>up</td><td>fraction of escalations that required actual human correction (score=1)</td></tr>
 <tr><th>autonomous_study_sessions</th><td><span class='pill ok'>0</span></td><td>up</td><td>autonomous study sessions completed by all RA agents (higher = more self-study)</td></tr>
 <tr><th>study_insights_count</th><td><span class='pill ok'>0</span></td><td>up</td><td>knowledge insights extracted during autonomous study (higher = richer knowledge base)</td></tr></tbody>
-        </table>
-      </div>
-      <div class="note">Source: growth-2026-06-16.json. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
-    </section>
+            </table>
+          </div>
+          <div class="note">Source: growth-2026-06-16.json. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
+        </section>
 
-    <section style="margin-top:16px">
-      <h2>Growth Report Trend</h2>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr><th>File</th><th>Sessions</th><th>Messages</th><th>Correction</th><th>First Pass</th><th>Study Sessions</th><th>Insights</th></tr>
-          </thead>
-          <tbody><tr><td>growth-2026-06-12.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>-</td><td>-</td></tr>
+        <section style="margin-top:16px">
+          <h2>Growth Report Trend</h2>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr><th>File</th><th>Sessions</th><th>Messages</th><th>Correction</th><th>First Pass</th><th>Study Sessions</th><th>Insights</th></tr>
+              </thead>
+              <tbody><tr><td>growth-2026-06-12.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>-</td><td>-</td></tr>
 <tr><td>growth-2026-06-13.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
 <tr><td>growth-2026-06-14.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
 <tr><td>growth-2026-06-15.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
 <tr><td>growth-2026-06-16.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr></tbody>
-        </table>
+            </table>
+          </div>
+        </section>
       </div>
-    </section>
+    </details>
   </main>
   <footer>
-    Generated at 2026-06-16T16:34:22+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+    Generated at 2026-06-16T16:42:12+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
   </footer>
 </body>
 </html>

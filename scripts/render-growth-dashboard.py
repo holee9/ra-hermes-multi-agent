@@ -367,9 +367,9 @@ def growth_signal_strip(snapshot: dict[str, Any], maturity_measurable: bool) -> 
     state = "blocked" if not maturity_measurable else "running"
     verdict = "성장 추세 미측정" if not maturity_measurable else "성장 추세 측정 중"
     next_action = (
-        "metrics ingestion이 성장/업무 이벤트를 읽지 못하고 있습니다. 먼저 scanned input 0건을 고쳐야 합니다."
+        "결론: KB foundation은 준비됐지만 운영 성장 데이터가 0건입니다. 성장 신호는 Operational Input에서 끊겼고, 먼저 metrics ingestion을 고쳐야 합니다."
         if not maturity_measurable
-        else "7일/30일 추세와 사람 피드백 기준선을 확인합니다."
+        else "결론: 운영 성장 데이터가 들어오고 있습니다. 7일/30일 추세와 사람 피드백 기준선을 확인합니다."
     )
     return (
         f"<section class='growth-summary {state}'>"
@@ -668,6 +668,10 @@ def render(snapshot: dict[str, Any]) -> str:
     .flow-node span {{ display:inline-grid; place-items:center; width: 28px; height: 28px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-weight: 800; }}
     .flow-node strong {{ display:block; margin-top: 12px; font-size: 15px; }}
     .flow-node small {{ display:block; margin-top: 5px; color: var(--muted); }}
+    .support-details {{ margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }}
+    .support-details > summary {{ cursor: pointer; padding: 16px 18px; font-weight: 780; color: #27364b; list-style-position: inside; }}
+    .support-details > summary span {{ color: var(--muted); font-weight: 520; margin-left: 8px; }}
+    .support-body {{ padding: 0 18px 18px; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     th, td {{ padding: 9px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }}
     th {{ font-weight: 680; color: #27364b; }}
@@ -740,114 +744,119 @@ def render(snapshot: dict[str, Any]) -> str:
 
     {visuals['growth_flow']}
 
-    <div class="grid kpi-grid">
-      <section class="kpi">
-        <div class="label">Growth Trend Verdict</div>
-        <div class="value"><span class="pill {maturity_class}">{esc(maturity_verdict)}</span></div>
-        <div class="sub">성장 추세는 운영 입력과 피드백 데이터가 있어야 판정합니다.</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Latest Growth Input</div>
-        <div class="value">{esc(growth_latest.get('messages_scanned'))}</div>
-        <div class="sub">최근 보고서의 scanned messages</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Metrics Collection</div>
-        <div class="value"><span class="pill {status_class(timers['ra_growth_metrics']['active'] == 'active' and timers['ra_growth_metrics']['enabled'] == 'enabled')}">{esc(timers['ra_growth_metrics']['active'])}/{esc(timers['ra_growth_metrics']['enabled'])}</span></div>
-        <div class="sub">timer 상태. 입력 0건이면 수집 경로 장애</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Knowledge Foundation</div>
-        <div class="value"><span class="pill {status_class(scores.get('knowledge_depth_proxy') >= 4 and scores.get('source_coverage') >= 4)}">ready</span></div>
-        <div class="sub">기초 KB/소스 커버리지 floor</div>
-      </section>
-      <section class="kpi">
-        <div class="label">Readiness</div>
-        <div class="value"><span class="pill {status_class(bool(score_ok))}">{esc(readiness.get('total_score'))}/{esc(readiness.get('max_score'))}</span></div>
-        <div class="sub">{esc(readiness.get('recommendation'))}</div>
-      </section>
-    </div>
-
-    <div class="grid visual-grid">
-      <section>
-        <div class="visual-title">
-          <h2>Growth Evidence Radar</h2>
-          <span class="pill {maturity_class}">{esc(maturity_verdict)}</span>
+    <details class="support-details">
+      <summary>검증/감사 상세 보기 <span>일상 현황 판단에는 상단 3개 영역만 보면 됩니다.</span></summary>
+      <div class="support-body">
+        <div class="grid kpi-grid">
+          <section class="kpi">
+            <div class="label">Growth Trend Verdict</div>
+            <div class="value"><span class="pill {maturity_class}">{esc(maturity_verdict)}</span></div>
+            <div class="sub">성장 추세는 운영 입력과 피드백 데이터가 있어야 판정합니다.</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Latest Growth Input</div>
+            <div class="value">{esc(growth_latest.get('messages_scanned'))}</div>
+            <div class="sub">최근 보고서의 scanned messages</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Metrics Collection</div>
+            <div class="value"><span class="pill {status_class(timers['ra_growth_metrics']['active'] == 'active' and timers['ra_growth_metrics']['enabled'] == 'enabled')}">{esc(timers['ra_growth_metrics']['active'])}/{esc(timers['ra_growth_metrics']['enabled'])}</span></div>
+            <div class="sub">timer 상태. 입력 0건이면 수집 경로 장애</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Knowledge Foundation</div>
+            <div class="value"><span class="pill {status_class(scores.get('knowledge_depth_proxy') >= 4 and scores.get('source_coverage') >= 4)}">ready</span></div>
+            <div class="sub">기초 KB/소스 커버리지 floor</div>
+          </section>
+          <section class="kpi">
+            <div class="label">Readiness</div>
+            <div class="value"><span class="pill {status_class(bool(score_ok))}">{esc(readiness.get('total_score'))}/{esc(readiness.get('max_score'))}</span></div>
+            <div class="sub">{esc(readiness.get('recommendation'))}</div>
+          </section>
         </div>
-        <div class="radar-wrap">{visuals['radar']}</div>
-        <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
-        <table><tbody>{evidence_rows}</tbody></table>
-      </section>
-      <section>
-        <h2>Depth Proxy & Source Coverage</h2>
-        {visuals['agent_bars']}
-      </section>
-    </div>
 
-    <section style="margin-top:16px">
-      <h2>Coverage Guard Basis</h2>
-      {visuals['coverage_basis']}
-    </section>
+        <div class="grid visual-grid">
+          <section>
+            <div class="visual-title">
+              <h2>Growth Evidence Radar</h2>
+              <span class="pill {maturity_class}">{esc(maturity_verdict)}</span>
+            </div>
+            <div class="radar-wrap">{visuals['radar']}</div>
+            <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
+            <table><tbody>{evidence_rows}</tbody></table>
+          </section>
+          <section>
+            <h2>Depth Proxy & Source Coverage</h2>
+            {visuals['agent_bars']}
+          </section>
+        </div>
 
-    <div class="grid visual-grid-3">
-      <section>{visuals['cleanliness_lights']}</section>
-      <section>{visuals['activation_lights']}</section>
-      <section>
-        <h2>Growth Trend</h2>
-        {visuals['messages_spark']}
-        {visuals['insights_spark']}
-        <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
-      </section>
-    </div>
+        <section style="margin-top:16px">
+          <h2>Coverage Guard Basis</h2>
+          {visuals['coverage_basis']}
+        </section>
 
-    <div class="grid two">
-      <section>
-        <h2>Readiness Matrix</h2>
-        <table><tbody>{dimension_rows}</tbody></table>
-        <div class="note">Source: {esc(snapshot.get('readiness_file'))}. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
-      </section>
-      <section>
-        <h2>Raw Agent Inputs</h2>
-        <table>
-          <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
-          <tbody>{self_doc_rows}</tbody>
-        </table>
-      </section>
-    </div>
+        <div class="grid visual-grid-3">
+          <section>{visuals['cleanliness_lights']}</section>
+          <section>{visuals['activation_lights']}</section>
+          <section>
+            <h2>Growth Trend</h2>
+            {visuals['messages_spark']}
+            {visuals['insights_spark']}
+            <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
+          </section>
+        </div>
 
-    <div class="grid two">
-      <section>
-        <h2>Cleanliness</h2>
-        <table><tbody>{cleanliness_rows}</tbody></table>
-      </section>
-      <section>
-        <h2>Activation Control</h2>
-        <table><tbody>{activation_rows}</tbody></table>
-      </section>
-    </div>
+        <div class="grid two">
+          <section>
+            <h2>Readiness Matrix</h2>
+            <table><tbody>{dimension_rows}</tbody></table>
+            <div class="note">Source: {esc(snapshot.get('readiness_file'))}. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
+          </section>
+          <section>
+            <h2>Raw Agent Inputs</h2>
+            <table>
+              <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
+              <tbody>{self_doc_rows}</tbody>
+            </table>
+          </section>
+        </div>
 
-    <section style="margin-top:16px">
-      <h2>Latest Growth Metrics</h2>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>Metric</th><th>Value</th><th>Direction</th><th>Note</th></tr></thead>
-          <tbody>{metric_rows}</tbody>
-        </table>
+        <div class="grid two">
+          <section>
+            <h2>Cleanliness</h2>
+            <table><tbody>{cleanliness_rows}</tbody></table>
+          </section>
+          <section>
+            <h2>Activation Control</h2>
+            <table><tbody>{activation_rows}</tbody></table>
+          </section>
+        </div>
+
+        <section style="margin-top:16px">
+          <h2>Latest Growth Metrics</h2>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Metric</th><th>Value</th><th>Direction</th><th>Note</th></tr></thead>
+              <tbody>{metric_rows}</tbody>
+            </table>
+          </div>
+          <div class="note">Source: {esc(snapshot.get('growth_file'))}. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
+        </section>
+
+        <section style="margin-top:16px">
+          <h2>Growth Report Trend</h2>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr><th>File</th><th>Sessions</th><th>Messages</th><th>Correction</th><th>First Pass</th><th>Study Sessions</th><th>Insights</th></tr>
+              </thead>
+              <tbody>{trend_rows}</tbody>
+            </table>
+          </div>
+        </section>
       </div>
-      <div class="note">Source: {esc(snapshot.get('growth_file'))}. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
-    </section>
-
-    <section style="margin-top:16px">
-      <h2>Growth Report Trend</h2>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr><th>File</th><th>Sessions</th><th>Messages</th><th>Correction</th><th>First Pass</th><th>Study Sessions</th><th>Insights</th></tr>
-          </thead>
-          <tbody>{trend_rows}</tbody>
-        </table>
-      </div>
-    </section>
+    </details>
   </main>
   <footer>
     Generated at {esc(snapshot.get('generated_at'))}. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
