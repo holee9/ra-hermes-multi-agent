@@ -511,6 +511,7 @@ timer 실행 내용:
 - 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
 - `scripts/auto-growth-readiness-report.py`는 자동성장 전환 가능성 점검용 4x4 readiness matrix다. 장기 성장 추세 지표가 아니라 activation safety/readiness snapshot이다.
 - `docs/growth-dashboard.html`은 Git checkout에서 브라우저로 바로 여는 standalone HTML snapshot이다. readiness, timer, cleanliness, 담당자 균형, 최근 growth metrics를 한 화면에 표시한다.
+- `docs/growth-dashboard.md`는 dashboard 열람 방법, 갱신 절차, 데이터 출처, 판정 기준, 현재 한계를 설명하는 운영 문서다.
 - `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. 성장 모니터링 dashboard와 역할을 분리한다.
 - 실시간 dashboard, metrics ingestion 유효성 보정, threshold/webhook 운영 기준은 #62에서 계속 추적한다.
 
@@ -543,6 +544,8 @@ python3 scripts/verify-growth-dashboard.py
 ```
 
 생성된 [growth-dashboard.html](growth-dashboard.html)은 외부 JS/CSS/JSON fetch 없이 동작한다. GitHub 파일 화면에서는 소스가 보일 수 있으므로, 실제 화면 확인은 checkout 후 브라우저에서 열거나 GitHub Pages/raw HTML viewer를 사용한다.
+
+운영 문서: [growth-dashboard.md](growth-dashboard.md)
 
 ### 5.2 성장 트리거 (조건 → 실행)
 
