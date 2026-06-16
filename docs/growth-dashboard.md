@@ -8,14 +8,14 @@
 
 이 dashboard는 자동성장을 실행하지 않는다. 다음 상태를 사람이 검토하기 쉽게 보여주는 읽기 전용 보고서다.
 
-- 자동성장 readiness matrix
-- 자동성장 timer 상태
-- 성장 지표 timer 상태
-- pending / wrong-peer / JSON envelope / hyphen peer cleanliness
-- `ra_us`, `ra_eu`, `ra_kr` self-doc balance
+- 자동성장 readiness radar chart
+- 자동성장 timer 상태등
+- 성장 지표 timer 상태등
+- pending / wrong-peer / JSON envelope / hyphen peer cleanliness 상태등
+- `ra_us`, `ra_eu`, `ra_kr` self-doc balance bar
 - curriculum seed count
 - 최신 growth metrics
-- growth report trend
+- growth report trend sparkline
 
 ## 바로 보는 방법
 
@@ -66,7 +66,7 @@ git push origin main
 |---|---|
 | Readiness | `reports/auto-growth-readiness/*.json` 중 최신 파일 |
 | Growth metrics | `reports/growth-YYYY-MM-DD.json` 중 최신 파일 |
-| Growth trend | 최근 `reports/growth-*.json` |
+| Growth trend sparkline | 최근 `reports/growth-*.json` |
 | Timer status | `systemctl is-active/is-enabled hermes-auto-growth.timer` |
 | Metrics timer status | `systemctl is-active/is-enabled ra-growth-metrics.timer` |
 | Cleanliness | readiness report 내부 DB snapshot |
@@ -114,7 +114,7 @@ git push origin main
 |---|---|---|
 | 목적 | 성장/안전 상태 점검 | 활동 이벤트 시각화 |
 | 데이터 | reports + systemd snapshot | activity event stream |
-| 형태 | 정적 HTML snapshot | 파일럿 웹 대시보드 |
+| 형태 | radar/status light/bar/sparkline 기반 정적 HTML snapshot | 파일럿 웹 대시보드 |
 | 운영 영향 | 없음, 읽기 전용 | 없음, 읽기 전용 |
 | 현재 상태 | 구현됨 | 구현됨, 별도 목적 |
 
