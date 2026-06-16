@@ -6,14 +6,16 @@
 
 `docs/growth-dashboard.html`은 정적 HTML snapshot이다. 서버, 빌드, 외부 JavaScript, 외부 CSS, JSON fetch 없이 열린다.
 
-이 dashboard는 자동성장을 실행하지 않는다. 다음 상태를 사람이 검토하기 쉽게 보여주는 읽기 전용 보고서다.
+이 dashboard는 자동성장을 실행하지 않는다. 다음 상태를 사람이 검토하기 쉽게 보여주는 읽기 전용 보고서다. 첫 화면의 우선순위는 "자동화가 켜졌는가"가 아니라 "RA 담당자의 전문가 성장을 근거 있게 판정할 수 있는가"다.
 
-- 자동성장 readiness radar chart
+- RA 전문가 성장 verdict
+- expert evidence radar chart
+- 담당자별 Depth Proxy / Source Coverage
+- Coverage Guard Basis
+- 자동성장 readiness matrix
 - 자동성장 timer 상태등
 - 성장 지표 timer 상태등
 - pending / wrong-peer / JSON envelope / hyphen peer cleanliness 상태등
-- `ra_us`, `ra_eu`, `ra_kr` self-doc balance bar
-- curriculum seed count
 - 최신 growth metrics
 - growth report trend sparkline
 
@@ -70,12 +72,16 @@ git push origin main
 | Timer status | `systemctl is-active/is-enabled hermes-auto-growth.timer` |
 | Metrics timer status | `systemctl is-active/is-enabled ra-growth-metrics.timer` |
 | Cleanliness | readiness report 내부 DB snapshot |
-| Agent balance | readiness report 내부 `self_docs`, `seed_counts` |
+| Depth Proxy / Source Coverage | readiness report 내부 `self_docs`, `seed_counts` + `scripts/coverage-guards.json` |
+| Coverage Guard Basis | `scripts/coverage-guards.json` |
+| Expert maturity targets | `scripts/growth-targets.json` |
 
 ## 판정 기준
 
 | 항목 | 정상 판정 |
 |---|---|
+| Expert Growth Verdict | `sessions_scanned > 0` 및 `messages_scanned > 0`이고 행동/피드백 지표가 target range에 들어와야 판정 가능 |
+| Expert Evidence Radar | Depth/Source/Safety는 pre-activation proxy, Behavior/Feedback은 실제 행동/사람 평가 데이터 기반 |
 | Readiness | `16/16` |
 | Timer recommendation | `approval_review_required` |
 | Auto growth timer | `inactive/disabled` until explicit approval |
@@ -84,9 +90,13 @@ git push origin main
 | Wrong peer | 0 |
 | Active JSON envelope | 0 |
 | Hyphen peer | 0 |
-| `ra_kr` balance | `ra_kr >= int(ra_eu * 0.2)` |
+| Source Coverage | `scripts/coverage-guards.json`의 담당자별 expected explicit sources 이상 |
+| Depth Proxy | `scripts/coverage-guards.json`의 담당자별 self-doc floor 이상 |
+| Legacy KR/EU guard | `ra_kr >= int(ra_eu * 0.2)`는 legacy_pre_activation_floor일 뿐 전문가 성숙도 기준이 아님 |
 
 `approval_review_required`는 자동성장 production timer를 켰다는 뜻이 아니다. 명시 승인 후 activation guard를 통과해 켤 수 있는 상태라는 뜻이다.
+
+`scripts/coverage-guards.json`의 20% KR/EU relative guard는 #60에서 KR corpus가 EU 대비 거의 비어 있는 상태로 남지 않게 막기 위한 임시 pre-activation floor였다. 이 값은 규제 전문성, 업무 정확도, 사람 평가 통과율을 의미하지 않는다. 전문가 성숙도는 `correction_rate`, `first_pass_match_accuracy`, `warmstart_lift`, `confidence_calibration`, `escalation_precision`, human feedback coverage 같은 행동 지표와 사람 평가 데이터로만 판단한다.
 
 ## 현재 한계
 
@@ -96,12 +106,14 @@ git push origin main
 
 - readiness / safety 상태 확인
 - timer on/off 상태 확인
-- agent balance 확인
+- 담당자별 source coverage와 self-doc depth floor 확인
+- KR/EU legacy pre-activation floor가 전문가 성숙도 기준이 아님을 확인
 - reports 생성 여부 확인
 
 하지만 다음에는 아직 부족하다.
 
 - 실제 업무/학습 이벤트 기반 성장 추세 판단
+- RA 담당자별 "지구 최강 전문가" 근접도 판정
 - 7일/30일 moving average 판단
 - trigger threshold 자동 알림 판단
 - 실시간 자동 갱신 dashboard

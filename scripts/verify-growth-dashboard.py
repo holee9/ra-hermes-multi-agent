@@ -24,6 +24,8 @@ def main() -> None:
         "growth-*.json",
         "hermes-auto-growth.timer",
         "ra-growth-metrics.timer",
+        "coverage-guards.json",
+        "growth-targets.json",
         "standalone HTML growth dashboard",
     ]
     for term in required_script_terms:
@@ -31,11 +33,16 @@ def main() -> None:
             fail(f"dashboard renderer missing {term}")
 
     required_html_terms = [
-        "RA Hermes Growth Dashboard",
-        "Readiness Radar",
+        "RA Expert Growth Dashboard",
+        "Expert Growth Verdict",
+        "Expert Evidence Radar",
+        "측정 불충분",
+        "Coverage Guard Basis",
+        "legacy_pre_activation_floor",
+        "not expert maturity",
+        "Depth Proxy",
+        "Source Coverage",
         "Readiness Matrix",
-        "Agent Balance Bars",
-        "Agent Balance",
         "Cleanliness",
         "Activation Control",
         "Growth Trend",

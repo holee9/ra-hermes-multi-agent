@@ -22,6 +22,7 @@ REPORTS_DIR = REPO_ROOT / "reports" / "auto-growth-readiness"
 AGENT_PEERS = ("ra_us", "ra_eu", "ra_kr")
 EXPECTED_SEEDS = {"ra_us": 48, "ra_eu": 31, "ra_kr": 29}
 DEFAULT_OPERATION_TIMEZONE = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
+COVERAGE_GUARDS = REPO_ROOT / "scripts" / "coverage-guards.json"
 
 
 def fail(message: str) -> None:
@@ -40,6 +41,27 @@ def load_env_file(path: Path = ENV_FILE) -> dict[str, str]:
         key, value = line.split("=", 1)
         env.setdefault(key.strip(), value.strip().strip('"').strip("'"))
     return env
+
+
+def load_coverage_guards(path: Path = COVERAGE_GUARDS) -> dict[str, Any]:
+    if not path.exists():
+        return {
+            "source_coverage": {"expected_explicit_sources": EXPECTED_SEEDS},
+            "self_doc_depth_floors": {
+                "ra_us": {"min": 5000},
+                "ra_eu": {"min": 2000},
+                "ra_kr": {"min": 500},
+            },
+            "relative_depth_floors": [
+                {
+                    "id": "kr_not_below_20pct_eu",
+                    "agent": "ra_kr",
+                    "baseline": "ra_eu",
+                    "min_ratio": 0.2,
+                }
+            ],
+        }
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def run(cmd: list[str], timeout: int = 60) -> dict[str, Any]:
@@ -234,6 +256,7 @@ def score_matrix(report: dict[str, Any]) -> dict[str, Any]:
     db = report["db"]
     timer = report["timer"]
     daily_plan = report["daily_plan"]["plan"] or {}
+    coverage_guards = load_coverage_guards()
 
     scores: dict[str, dict[str, Any]] = {}
 
@@ -271,11 +294,12 @@ def score_matrix(report: dict[str, Any]) -> dict[str, Any]:
         peer: int((db["curriculum_seed"].get(peer) or {}).get("total") or 0)
         for peer in AGENT_PEERS
     }
+    expected_seeds = coverage_guards.get("source_coverage", {}).get("expected_explicit_sources", EXPECTED_SEEDS)
     growth_checks = {
         "operation_date_matches": daily_plan.get("run_date") == report["operation_date"],
         "daily_plan_available": int(daily_plan.get("planned_case_count") or 0) >= 3,
         "execute_gate_ready": bool((daily_plan.get("execute_gate") or {}).get("allowed")),
-        "curriculum_seed_complete": all(seed_counts.get(peer, 0) >= EXPECTED_SEEDS[peer] for peer in AGENT_PEERS),
+        "curriculum_seed_complete": all(seed_counts.get(peer, 0) >= int(expected_seeds[peer]) for peer in AGENT_PEERS),
     }
     scores["growth_input_quality"] = {
         "score": dimension_score(growth_checks),
@@ -284,16 +308,23 @@ def score_matrix(report: dict[str, Any]) -> dict[str, Any]:
     }
 
     self_docs = db["self_docs"]
+    depth_floors = coverage_guards.get("self_doc_depth_floors", {})
     balance_checks = {
-        "ra_us_has_depth": self_docs["ra_us"] >= 5000,
-        "ra_eu_has_depth": self_docs["ra_eu"] >= 2000,
-        "ra_kr_minimum_met": self_docs["ra_kr"] >= 500,
-        "kr_not_below_20pct_eu": self_docs["ra_kr"] >= int(self_docs["ra_eu"] * 0.2),
+        "ra_us_has_depth": self_docs["ra_us"] >= int((depth_floors.get("ra_us") or {}).get("min", 5000)),
+        "ra_eu_has_depth": self_docs["ra_eu"] >= int((depth_floors.get("ra_eu") or {}).get("min", 2000)),
+        "ra_kr_minimum_met": self_docs["ra_kr"] >= int((depth_floors.get("ra_kr") or {}).get("min", 500)),
     }
+    for guard in coverage_guards.get("relative_depth_floors", []):
+        guard_id = guard["id"]
+        agent = guard["agent"]
+        baseline = guard["baseline"]
+        min_ratio = float(guard["min_ratio"])
+        balance_checks[guard_id] = self_docs[agent] >= int(self_docs[baseline] * min_ratio)
     scores["agent_balance"] = {
         "score": dimension_score(balance_checks),
         "checks": balance_checks,
         "self_docs": self_docs,
+        "guard_source": str(COVERAGE_GUARDS.relative_to(REPO_ROOT)),
     }
 
     total_score = sum(item["score"] for item in scores.values())

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RA Hermes Growth Dashboard</title>
+  <title>RA Expert Growth Dashboard</title>
   <style>
     :root {
       color-scheme: light;
@@ -74,14 +74,23 @@
     .dot.ok { background: var(--ok); }
     .dot.warn { background: var(--warn); }
     .dot.bad { background: var(--bad); }
-    .agent-bar-row { display:grid; grid-template-columns: 74px 1fr 150px; gap: 10px; align-items:center; padding: 9px 0; border-top: 1px solid var(--line); }
+    .agent-card { padding: 12px 0; border-top: 1px solid var(--line); }
     .agent-name { font-weight: 720; color: #27364b; }
-    .agent-value { color: var(--muted); font-size: 12px; text-align:right; }
+    .agent-metric { display:flex; justify-content:space-between; gap: 12px; color: var(--muted); font-size: 12px; margin: 8px 0 5px; }
+    .agent-metric strong { color: var(--ink); }
     .bar-track { height: 12px; background: #e7edf5; border-radius: 999px; overflow:hidden; position:relative; }
     .bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: inherit; }
+    .source-fill { background: linear-gradient(90deg, var(--blue), var(--teal)); }
+    .depth-fill { background: linear-gradient(90deg, var(--teal), var(--ok)); }
     .threshold-card { margin-top: 14px; padding: 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }
     .threshold-head { display:flex; justify-content:space-between; gap: 12px; margin-bottom: 8px; font-size: 13px; }
     .threshold-fill { background: linear-gradient(90deg, var(--amber), var(--ok)); }
+    .threshold-card p { margin-top: 8px; font-size: 12px; }
+    .verdict { border-left: 5px solid var(--warn); }
+    .verdict.ok { border-left-color: var(--ok); }
+    .verdict .value { font-size: 20px; line-height: 1.25; }
+    .compact-tables { margin-top: 12px; }
+    h3 { margin: 10px 0 8px; font-size: 14px; }
     .spark-card { padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; }
     .spark-head { display:flex; justify-content:space-between; gap: 12px; align-items:center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
     .spark-head strong { color: var(--ink); font-size: 20px; }
@@ -91,23 +100,21 @@
     @media (max-width: 900px) {
       header, main, footer { padding-left: 16px; padding-right: 16px; }
       .kpi-grid, .two, .visual-grid, .visual-grid-3 { grid-template-columns: 1fr; }
-      .agent-bar-row { grid-template-columns: 1fr; }
-      .agent-value { text-align:left; }
       h1 { font-size: 23px; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>RA Hermes Growth Dashboard</h1>
-    <p>Git에서 바로 열어 보는 정적 HTML snapshot. 자동성장 실행 화면이 아니라 readiness, 성장 지표, 안전 상태를 확인하는 운영용 보고서입니다.</p>
+    <h1>RA Expert Growth Dashboard</h1>
+    <p>RA 담당자의 전문가 성장 근거를 먼저 보여주고, 자동화 readiness와 커버리지 가드는 별도 근거로 분리한 정적 HTML snapshot입니다.</p>
   </header>
   <main>
     <div class="grid kpi-grid">
       <section class="kpi">
-        <div class="label">Readiness</div>
-        <div class="value"><span class="pill ok">16/16</span></div>
-        <div class="sub">approval_review_required</div>
+        <div class="label">Expert Growth Verdict</div>
+        <div class="value"><span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span></div>
+        <div class="sub">전문가 성숙도는 행동/피드백 데이터가 있어야 판정합니다.</div>
       </section>
       <section class="kpi">
         <div class="label">Auto Growth Timer</div>
@@ -124,22 +131,41 @@
         <div class="value">0</div>
         <div class="sub">messages scanned; 0이면 ingestion 보정 필요</div>
       </section>
+      <section class="kpi">
+        <div class="label">Readiness</div>
+        <div class="value"><span class="pill ok">16/16</span></div>
+        <div class="sub">approval_review_required</div>
+      </section>
     </div>
 
     <div class="grid visual-grid">
       <section>
         <div class="visual-title">
-          <h2>Readiness Radar</h2>
-          <span class="pill ok">16/16</span>
+          <h2>Expert Evidence Radar</h2>
+          <span class="pill warn">측정 불충분: 행동/사람 평가 데이터 0건</span>
         </div>
-        <div class="radar-wrap"><svg class='radar' viewBox='0 0 260 260' role='img' aria-label='readiness radar chart'><polygon points='130.0,108.5 151.5,130.0 130.0,151.5 108.5,130.0' class='radar-ring' /><polygon points='130.0,87.0 173.0,130.0 130.0,173.0 87.0,130.0' class='radar-ring' /><polygon points='130.0,65.5 194.5,130.0 130.0,194.5 65.5,130.0' class='radar-ring' /><polygon points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0' class='radar-ring' /><line x1='130' y1='130' x2='130.0' y2='44.0' class='radar-axis' /><line x1='130' y1='130' x2='216.0' y2='130.0' class='radar-axis' /><line x1='130' y1='130' x2='130.0' y2='216.0' class='radar-axis' /><line x1='130' y1='130' x2='44.0' y2='130.0' class='radar-axis' /><polygon points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0' class='radar-fill' /><polyline points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0 130.0,44.0' class='radar-line' /><text x='130.0' y='17.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Activation</text><text x='243.0' y='130.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Cleanliness</text><text x='130.0' y='243.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Input</text><text x='17.0' y='130.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Balance</text></svg></div>
-        <div class="note">4개 축이 모두 바깥 링에 닿으면 자동성장 승인 검토 기준을 충족합니다.</div>
+        <div class="radar-wrap"><svg class='radar' viewBox='0 0 260 260' role='img' aria-label='expert evidence radar chart'><polygon points='130.0,108.5 150.4,123.4 142.6,147.4 117.4,147.4 109.6,123.4' class='radar-ring' /><polygon points='130.0,87.0 170.9,116.7 155.3,164.8 104.7,164.8 89.1,116.7' class='radar-ring' /><polygon points='130.0,65.5 191.3,110.1 167.9,182.2 92.1,182.2 68.7,110.1' class='radar-ring' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 79.5,199.6 48.2,103.4' class='radar-ring' /><line x1='130' y1='130' x2='130.0' y2='44.0' class='radar-axis' /><line x1='130' y1='130' x2='211.8' y2='103.4' class='radar-axis' /><line x1='130' y1='130' x2='180.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='79.5' y2='199.6' class='radar-axis' /><line x1='130' y1='130' x2='48.2' y2='103.4' class='radar-axis' /><polygon points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0' class='radar-fill' /><polyline points='130.0,44.0 211.8,103.4 180.5,199.6 130.0,130.0 130.0,130.0 130.0,44.0' class='radar-line' /><text x='130.0' y='17.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Depth</text><text x='237.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Sources</text><text x='196.4' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Safety</text><text x='63.6' y='221.4' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Behavior</text><text x='22.5' y='95.1' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Feedback</text></svg></div>
+        <div class="note">Depth와 Source는 사전 커버리지 proxy입니다. Behavior와 Feedback은 실제 행동/사람 평가 데이터가 없으면 0점이며, 이 상태에서는 전문가 수준을 판정하지 않습니다.</div>
+        <table><tbody><tr><th>Knowledge Depth Proxy</th><td>4.000/4</td></tr>
+<tr><th>Source Coverage</th><td>4.000/4</td></tr>
+<tr><th>Safety Cleanliness</th><td>4.000/4</td></tr>
+<tr><th>Behavioral Metrics</th><td>0.000/4</td></tr>
+<tr><th>Human Feedback</th><td>0.000/4</td></tr></tbody></table>
       </section>
       <section>
-        <h2>Agent Balance Bars</h2>
-        <div class='agent-bar-row'><div class='agent-name'>ra_us</div><div class='bar-track'><div class='bar-fill' style='width:100.0%'></div></div><div class='agent-value'>9064 docs · 48 seeds</div></div><div class='agent-bar-row'><div class='agent-name'>ra_eu</div><div class='bar-track'><div class='bar-fill' style='width:32.6%'></div></div><div class='agent-value'>2956 docs · 31 seeds</div></div><div class='agent-bar-row'><div class='agent-name'>ra_kr</div><div class='bar-track'><div class='bar-fill' style='width:7.0%'></div></div><div class='agent-value'>638 docs · 48 seeds</div></div><div class='threshold-card'><div class='threshold-head'><span>KR/EU 20% balance</span><strong>638/591</strong></div><div class='bar-track threshold'><div class='bar-fill threshold-fill' style='width:100.0%'></div></div></div>
+        <h2>Depth Proxy & Source Coverage</h2>
+        <div class='agent-card'><div class='agent-name'>ra_eu</div><div class='agent-metric'><span>Depth Proxy</span><strong>2956/2000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>31/31</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_kr</div><div class='agent-metric'><span>Depth Proxy</span><strong>638/500</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/29</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='agent-card'><div class='agent-name'>ra_us</div><div class='agent-metric'><span>Depth Proxy</span><strong>9064/5000</strong></div><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><div class='agent-metric'><span>Source Coverage</span><strong>48/48</strong></div><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div></div><div class='threshold-card'><div class='threshold-head'><span>kr_not_below_20pct_eu</span><strong>638/591</strong></div><div class='bar-track'><div class='bar-fill threshold-fill' style='width:100.0%'></div></div><p><code>legacy_pre_activation_floor</code> · Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity.</p></div>
       </section>
     </div>
+
+    <section style="margin-top:16px">
+      <h2>Coverage Guard Basis</h2>
+      <p>Expected explicit source counts come from the source-level curriculum fast-track discovered in ra_knowledge. This is a coverage guard: each RA owner should have the known jurisdiction-specific source set seeded before automation review.</p><div class='grid two compact-tables'><div><h3>Source Coverage</h3><table><thead><tr><th>Agent</th><th>Expected</th><th>Current</th></tr></thead><tbody><tr><th>ra_us</th><td>48</td><td>48</td></tr>
+<tr><th>ra_eu</th><td>31</td><td>31</td></tr>
+<tr><th>ra_kr</th><td>29</td><td>48</td></tr></tbody></table></div><div><h3>Depth Proxy Floors</h3><table><thead><tr><th>Agent</th><th>Floor</th><th>Current</th><th>Basis</th></tr></thead><tbody><tr><th>ra_us</th><td>5000</td><td>9064</td><td>Post-recovery US corpus has materially deeper memory volume; keep automation from running if this mature baseline collapses.</td></tr>
+<tr><th>ra_eu</th><td>2000</td><td>2956</td><td>Post-recovery EU corpus has enough MDR/IVDR memory depth for baseline automation review.</td></tr>
+<tr><th>ra_kr</th><td>500</td><td>638</td><td>#59 manual KR growth target; minimum viable KR memory depth before considering automation review.</td></tr></tbody></table></div></div><h3>Legacy Relative Guard</h3><table><thead><tr><th>Guard</th><th>Status</th><th>Rule</th><th>Basis</th></tr></thead><tbody><tr><th>kr_not_below_20pct_eu</th><td><code>legacy_pre_activation_floor</code></td><td>ra_kr >= ra_eu * 0.200</td><td>Temporary #60 guard to prevent KR from remaining near-empty compared with EU after asymmetric bootstrap/recovery. This is not a regulatory expertise benchmark and must not be presented as expert maturity.</td></tr></tbody></table><div class='note'>KR/EU 20% is a legacy_pre_activation_floor and not expert maturity. It only prevents a near-empty KR corpus before automation review.</div>
+    </section>
 
     <div class="grid visual-grid-3">
       <section><div class='status-panel'><h3>Cleanliness</h3><div class='status-row'><span class='dot ok'></span><span>pending_total_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>ra_pending_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>wrong_peer_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>active_json_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>hyphen_peer_zero</span><strong>True</strong></div></div></section>
@@ -159,10 +185,10 @@
 <tr><th>data_cleanliness</th><td>4/4</td></tr>
 <tr><th>growth_input_quality</th><td>4/4</td></tr>
 <tr><th>agent_balance</th><td>4/4</td></tr></tbody></table>
-        <div class="note">Source: issue-60-final-readiness.json. 16/16은 승인 검토 가능 상태이며, production timer 활성화 완료를 뜻하지 않습니다.</div>
+        <div class="note">Source: issue-60-final-readiness.json. 16/16은 자동화 승인 검토 가능 상태입니다. 전문가 성숙도 증명이나 production timer 활성화 완료를 뜻하지 않습니다.</div>
       </section>
       <section>
-        <h2>Agent Balance</h2>
+        <h2>Raw Agent Inputs</h2>
         <table>
           <thead><tr><th>Agent</th><th>Self Docs</th><th>Curriculum Seeds</th></tr></thead>
           <tbody><tr><th>ra_us</th><td>9064</td><td>48</td></tr>
@@ -225,7 +251,7 @@
     </section>
   </main>
   <footer>
-    Generated at 2026-06-16T15:56:41+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+    Generated at 2026-06-16T16:17:33+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
   </footer>
 </body>
 </html>

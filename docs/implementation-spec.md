@@ -295,7 +295,7 @@ npm test
 - activation safety: `scripts/install-auto-growth-timer.sh`는 `--confirm-auto-growth-activation` 없이는 `--enable`/`--start-now`를 거부한다. timer unit은 `Persistent=false`로 missed-run 보상 실행을 차단한다.
 - 2026-06-16 #57 보정 상태: 승인 없이 활성화된 timer는 stop/disable했으며, 현재 자동 실행 예약은 없다. 수동 readiness/service 실행은 가능하지만 운영 timer 승격은 승인 게이트 통과 후 별도 수행한다.
 - 2026-06-16 #58 보정 상태: 운영 timer 승격 전 대기하지 않고 `auto-growth-readiness-report.py`와 non-email/pre-auto dry-run을 반복해 readiness matrix를 측정하고, 낮은 축은 별도 이슈로 fix한다.
-- 2026-06-16 #60 보정 상태: `ra_kr` self-doc 균형을 638까지 보강해 `ra_kr >= int(ra_eu * 0.2)` 조건을 통과했다. 최종 readiness matrix는 16/16이고 pending/wrong-peer/live contamination은 0이다. 이 상태는 자동 timer 활성화가 아니라 운영 승인 검토 가능 상태다.
+- 2026-06-16 #60 보정 상태: `ra_kr` self-doc 균형을 638까지 보강해 `ra_kr >= int(ra_eu * 0.2)` legacy pre-activation floor를 통과했다. 최종 readiness matrix는 16/16이고 pending/wrong-peer/live contamination은 0이다. 이 20% floor는 `scripts/coverage-guards.json`에 근거와 함께 기록하며, 전문가 성숙도 기준이 아니다. 이 상태는 자동 timer 활성화가 아니라 운영 승인 검토 가능 상태다.
 
 ---
 
@@ -316,7 +316,7 @@ npm test
 - 결과 저장: `reports/growth-YYYY-MM-DD.json`
 - 트리거 임계값 설정: `feedback/config/growth-trigger-config.json` `[IF]`
 - 트리거 달성 시 n8n webhook → 사람 알림 (자동 실행 아님)
-- 정적 대시보드: `scripts/render-growth-dashboard.py`가 로컬 reports와 systemd 상태를 요약해 `docs/growth-dashboard.html`을 생성한다. HTML은 외부 fetch 없이 동작하는 standalone snapshot이며 `scripts/verify-growth-dashboard.py`로 계약을 검증한다. readiness radar chart, 상태등, 담당자 balance bar, growth trend sparkline은 inline SVG/CSS로 렌더링한다. 열람/갱신/판정 기준은 `docs/growth-dashboard.md`에 둔다.
+- 정적 대시보드: `scripts/render-growth-dashboard.py`가 로컬 reports와 systemd 상태를 요약해 `docs/growth-dashboard.html`을 생성한다. HTML은 외부 fetch 없이 동작하는 standalone snapshot이며 `scripts/verify-growth-dashboard.py`로 계약을 검증한다. Expert Growth Verdict, expert evidence radar chart, coverage guard basis, 상태등, 담당자 Depth Proxy/Source Coverage bar, growth trend sparkline은 inline SVG/CSS로 렌더링한다. 커버리지 가드의 단일 출처는 `scripts/coverage-guards.json`이고, 열람/갱신/판정 기준은 `docs/growth-dashboard.md`에 둔다.
 - 대시보드 역할 분리: `docs/growth-dashboard.html`은 성장 모니터링용이고, `virtual-office/`는 활동 이벤트 재생용 파일럿 웹 대시보드다.
 - 2026-06-16 운영 관측: `ra-growth-metrics.timer`는 active/enabled이고 `reports/growth-2026-06-16.json`까지 생성했다. 단, 최근 성장 보고서는 `sessions_scanned=0`, `messages_scanned=0`이라 Honcho 활동 데이터 집계 경로 보정이 필요하다.
 

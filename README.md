@@ -1,7 +1,7 @@
 # RA Hermes 멀티 에이전트 시스템
 
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
-> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-15.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-16.
 
 **[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
 
@@ -46,7 +46,7 @@
 | 자율 학습 peer_id 오염 복구 | ✅ 완료 (wrong-peer live messages/embeddings/queue refs/session peers 0, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, JSONL 감사 백업 보존) | [#48](https://github.com/holee9/ra-hermes-multi-agent/issues/48), [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49), [#56](https://github.com/holee9/ra-hermes-multi-agent/issues/56) (closed) |
 | source-level curriculum seed fast-track | ✅ 완료 (`ra_us` 48개, `ra_eu` 31개, `ra_kr` 48개 source seed processed, `curriculum_seed` JSON envelope 0, `ra_kr` all-scope idempotence `to_seed=0`) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
 | 비메일 성장 cadence loop | ✅ 구현 완료·운영 timer off (`hermes-auto-growth.timer` inactive/disabled, RA pending 0, 수동 readiness 16/16 확인, activation은 명시 승인 필요) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed), [#57](https://github.com/holee9/ra-hermes-multi-agent/issues/57) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
-| 자동성장 pre-production hardening | ✅ 목표치 완료 (`auto-growth-readiness-report.py` 4x4 matrix 16/16, timer OFF 유지, `ra_kr` self-doc 638로 `ra_eu` 20% 균형 기준 통과) | [#58](https://github.com/holee9/ra-hermes-multi-agent/issues/58) (closed), [#59](https://github.com/holee9/ra-hermes-multi-agent/issues/59) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
+| 자동성장 pre-production hardening | ✅ 목표치 완료 (`auto-growth-readiness-report.py` 4x4 matrix 16/16, timer OFF 유지, `ra_kr` self-doc 638로 legacy pre-activation floor 통과. 이 20% floor는 전문가 성숙도 기준이 아님) | [#58](https://github.com/holee9/ra-hermes-multi-agent/issues/58) (closed), [#59](https://github.com/holee9/ra-hermes-multi-agent/issues/59) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
@@ -64,10 +64,10 @@
 | 일일 성장 지표 timer | `ra-growth-metrics.timer` active/enabled, 매일 02:00 KST 실행 | ✅ 스케줄러 존재 |
 | 성장 지표 산출물 | `reports/growth-YYYY-MM-DD.json` 생성 (`correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`, `autonomous_study_sessions`, `study_insights_count`) | ⚠️ 파일 기반 |
 | 최근 지표 유효성 | 2026-06-14~16 보고서가 `sessions_scanned=0`, `messages_scanned=0` | ⚠️ 데이터 집계 보정 필요 |
-| 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. radar chart, 상태등, 담당자 balance bar, sparkline 포함 | ✅ README 클릭 렌더링 |
+| 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. 전문가 성장 verdict, evidence radar, 커버리지 가드 근거, readiness/safety 상태, growth trend 포함 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, readiness radar chart, timer 상태등, pending/오염 상태등, 담당자 balance bar, growth trend sparkline을 한 화면에 표시한다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, RA 전문가 성장 verdict, evidence radar, 담당자별 Depth Proxy/Source Coverage, 커버리지 가드 근거, timer/cleanliness 상태, growth trend sparkline을 한 화면에 표시한다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 전문가 성숙도를 "측정 불충분"으로 표시한다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 
@@ -99,7 +99,7 @@
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50/#60 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 48 processed) |
 | non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-readiness-report.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`, `scripts/verify-auto-growth-activation-policy.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, #57 이후 timer 활성화는 명시 승인 게이트 필요, #58 pre-production readiness loop로 지속 개선 |
-| static growth dashboard | `docs/growth-dashboard.html`, `docs/growth-dashboard.md`, `scripts/render-growth-dashboard.py`, `scripts/verify-growth-dashboard.py` | #62 GitHub Pages에서 바로 보는 standalone HTML snapshot. radar/status light/bar/sparkline 기반 시각화 |
+| static growth dashboard | `docs/growth-dashboard.html`, `docs/growth-dashboard.md`, `scripts/render-growth-dashboard.py`, `scripts/verify-growth-dashboard.py`, `scripts/coverage-guards.json` | #62 GitHub Pages에서 바로 보는 standalone HTML snapshot. 전문가 성장 evidence radar, coverage guard basis, safety/readiness, trend 시각화 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 
