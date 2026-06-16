@@ -510,7 +510,7 @@ timer 실행 내용:
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
 - 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
 - `scripts/auto-growth-readiness-report.py`는 자동성장 전환 가능성 점검용 4x4 readiness matrix다. 장기 성장 추세 지표가 아니라 activation safety/readiness snapshot이다.
-- `docs/growth-dashboard.html`은 GitHub Pages에서 바로 렌더링되는 standalone HTML snapshot이다. README의 "성장 대시보드 바로보기" 링크는 `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`을 가리킨다. RA 전문가 성장 verdict, evidence radar, 담당자별 Depth Proxy/Source Coverage, coverage guard basis, timer/cleanliness 상태등, growth trend sparkline을 한 화면에 표시한다.
+- `docs/growth-dashboard.html`은 GitHub Pages에서 바로 렌더링되는 standalone HTML snapshot이다. README의 "성장 대시보드 바로보기" 링크는 `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`을 가리킨다. RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow, Growth Trend Verdict, evidence radar, coverage guard basis, timer/cleanliness 상태등, growth trend sparkline을 표시한다.
 - `scripts/coverage-guards.json`은 source coverage와 self-doc depth floor의 근거 파일이다. 여기의 `kr_not_below_20pct_eu`는 `legacy_pre_activation_floor`로 기록하며, 전문가 성숙도 기준으로 표시하지 않는다.
 - `docs/growth-dashboard.md`는 dashboard 열람 방법, 갱신 절차, 데이터 출처, 판정 기준, 현재 한계를 설명하는 운영 문서다.
 - `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. 성장 모니터링 dashboard와 역할을 분리한다.
@@ -530,8 +530,11 @@ python3 scripts/render-growth-dashboard.py
 
 정적 성장 대시보드 최소 위젯:
 
-- Expert Growth Verdict: 행동/사람 평가 데이터가 없으면 "측정 불충분"으로 표시.
-- Expert Evidence Radar: Knowledge Depth Proxy, Source Coverage, Safety Cleanliness, Behavioral Metrics, Human Feedback.
+- RA Growth Operations 요약: latest messages/sessions, 14-report messages/insights, 성장 추세 미측정 여부.
+- 담당자별 성장 카드: `ra_us`, `ra_eu`, `ra_kr`의 foundation, KB depth, source coverage, operational evidence.
+- Growth Signal Flow: Knowledge Base → Operational Input → Feedback Signal → Expert Growth.
+- Growth Trend Verdict: 행동/사람 평가 데이터가 없으면 "측정 불충분"으로 표시.
+- Growth Evidence Radar: Knowledge Depth Proxy, Source Coverage, Safety Cleanliness, Behavioral Metrics, Human Feedback.
 - Coverage Guard Basis: `scripts/coverage-guards.json`의 expected sources, depth floors, legacy relative guard 근거.
 - readiness matrix: 4x4 축별 점수와 `timer_operation_recommendation`.
 - 성장 지표: correction rate, first-pass match accuracy, confidence calibration, warmstart lift, escalation precision.
