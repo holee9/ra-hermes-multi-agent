@@ -316,7 +316,8 @@ npm test
 - 결과 저장: `reports/growth-YYYY-MM-DD.json`
 - 트리거 임계값 설정: `feedback/config/growth-trigger-config.json` `[IF]`
 - 트리거 달성 시 n8n webhook → 사람 알림 (자동 실행 아님)
-- 대시보드 현황: `virtual-office/`는 활동 이벤트 재생용 파일럿 웹 대시보드다. `growth-metrics.py`, `auto-growth-readiness-report.py`, pending/wrong-peer/timer 상태를 통합 표시하는 지속 성장 모니터링 대시보드는 아직 별도 구현되지 않았다.
+- 정적 대시보드: `scripts/render-growth-dashboard.py`가 로컬 reports와 systemd 상태를 요약해 `docs/growth-dashboard.html`을 생성한다. HTML은 외부 fetch 없이 동작하는 standalone snapshot이며 `scripts/verify-growth-dashboard.py`로 계약을 검증한다.
+- 대시보드 역할 분리: `docs/growth-dashboard.html`은 성장 모니터링용이고, `virtual-office/`는 활동 이벤트 재생용 파일럿 웹 대시보드다.
 - 2026-06-16 운영 관측: `ra-growth-metrics.timer`는 active/enabled이고 `reports/growth-2026-06-16.json`까지 생성했다. 단, 최근 성장 보고서는 `sessions_scanned=0`, `messages_scanned=0`이라 Honcho 활동 데이터 집계 경로 보정이 필요하다.
 
 ---

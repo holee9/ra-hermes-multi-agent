@@ -79,6 +79,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-06-16 | ra-hermes 상태 갱신 — #62 정적 `docs/growth-dashboard.html` 추가, Git checkout에서 바로 보는 성장 모니터링 snapshot 제공 |
 | 2026-06-16 | ra-hermes 상태 갱신 — #61 지속 성장 모니터링 감사, `ra-growth-metrics.timer` active/enabled 확인, 통합 성장 대시보드 미구현 및 최근 metrics 데이터 0건 한계를 #62 후속으로 등록 |
 | 2026-06-16 | ra-hermes 상태 갱신 — #60 `ra_kr` 균형 보강 완료, 자동성장 readiness 16/16, timer는 명시 승인 전 OFF 유지 |
 | 2026-06-16 | ra-hermes 상태 갱신 — #56 live wrong-peer raw records 제거, 자동성장 전환 전 오염 원본 live DB 0 확인 |
