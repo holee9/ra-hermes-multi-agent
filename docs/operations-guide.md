@@ -510,7 +510,7 @@ timer 실행 내용:
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
 - 최근 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이다. 따라서 현 상태는 "스케줄러 정상"이지 "성장 추세 데이터 유효"가 아니다.
 - `scripts/auto-growth-readiness-report.py`는 자동성장 전환 가능성 점검용 4x4 readiness matrix다. 장기 성장 추세 지표가 아니라 activation safety/readiness snapshot이다.
-- `docs/growth-dashboard.html`은 GitHub Pages에서 바로 렌더링되는 standalone HTML snapshot이다. README의 "성장 대시보드 바로보기" 링크는 `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`을 가리킨다. readiness, timer, cleanliness, 담당자 균형, 최근 growth metrics를 한 화면에 표시한다.
+- `docs/growth-dashboard.html`은 GitHub Pages에서 바로 렌더링되는 standalone HTML snapshot이다. README의 "성장 대시보드 바로보기" 링크는 `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`을 가리킨다. readiness radar chart, timer/cleanliness 상태등, 담당자 balance bar, growth trend sparkline을 한 화면에 표시한다.
 - `docs/growth-dashboard.md`는 dashboard 열람 방법, 갱신 절차, 데이터 출처, 판정 기준, 현재 한계를 설명하는 운영 문서다.
 - `virtual-office/`는 읽기 전용 활동 이벤트 재생 대시보드다. 성장 모니터링 dashboard와 역할을 분리한다.
 - 실시간 dashboard, metrics ingestion 유효성 보정, threshold/webhook 운영 기준은 #62에서 계속 추적한다.
@@ -529,12 +529,13 @@ python3 scripts/render-growth-dashboard.py
 
 정적 성장 대시보드 최소 위젯:
 
-- readiness matrix: 16/16 유지 여부, `timer_operation_recommendation`.
+- readiness radar chart: 4x4 축별 점수와 `timer_operation_recommendation`.
 - 성장 지표: correction rate, first-pass match accuracy, confidence calibration, warmstart lift, escalation precision.
 - 자율 학습 지표: autonomous study sessions, study insights count.
-- 안전 지표: total pending, RA pending, wrong-peer/live contamination, active JSON envelope, hyphen peer.
-- timer 상태: `hermes-auto-growth.timer`, `ra-growth-metrics.timer`.
-- 담당자 균형: `ra_us`, `ra_eu`, `ra_kr` self-docs와 상대 균형 기준.
+- 안전 지표 상태등: total pending, RA pending, wrong-peer/live contamination, active JSON envelope, hyphen peer.
+- timer 상태등: `hermes-auto-growth.timer`, `ra-growth-metrics.timer`.
+- 담당자 balance bar: `ra_us`, `ra_eu`, `ra_kr` self-docs와 상대 균형 기준.
+- growth trend sparkline: messages scanned, study insights.
 
 HTML 갱신 절차:
 

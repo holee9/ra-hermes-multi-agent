@@ -17,6 +17,7 @@
       --bad: #b42318;
       --blue: #2563eb;
       --teal: #0f766e;
+      --amber: #d97706;
     }
     * { box-sizing: border-box; }
     body {
@@ -57,10 +58,41 @@
     .pill.bad { color: var(--bad); background: #feecec; }
     .note { margin-top: 14px; padding: 12px 14px; border-left: 4px solid var(--teal); background: #eef8f6; color: #17443f; }
     .scroll { overflow-x: auto; }
+    .visual-grid { grid-template-columns: 1.05fr .95fr; align-items: stretch; margin-top: 16px; }
+    .visual-grid-3 { grid-template-columns: repeat(3, minmax(220px, 1fr)); margin-top: 16px; }
+    .visual-title { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom: 10px; }
+    .radar-wrap { display:flex; align-items:center; justify-content:center; min-height: 292px; }
+    .radar { width: min(100%, 320px); height: auto; }
+    .radar-ring { fill: none; stroke: #dbe3ef; stroke-width: 1; }
+    .radar-axis { stroke: #c8d2df; stroke-width: 1; }
+    .radar-fill { fill: rgba(37, 99, 235, .20); }
+    .radar-line { fill: none; stroke: var(--blue); stroke-width: 3; stroke-linejoin: round; }
+    .radar-label { fill: #34435a; font-size: 12px; font-weight: 700; }
+    .status-panel h3 { margin: 0 0 10px; font-size: 14px; }
+    .status-row { display:grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items:center; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+    .dot { width: 11px; height: 11px; border-radius: 999px; display:inline-block; box-shadow: 0 0 0 4px rgba(0,0,0,.04); }
+    .dot.ok { background: var(--ok); }
+    .dot.warn { background: var(--warn); }
+    .dot.bad { background: var(--bad); }
+    .agent-bar-row { display:grid; grid-template-columns: 74px 1fr 150px; gap: 10px; align-items:center; padding: 9px 0; border-top: 1px solid var(--line); }
+    .agent-name { font-weight: 720; color: #27364b; }
+    .agent-value { color: var(--muted); font-size: 12px; text-align:right; }
+    .bar-track { height: 12px; background: #e7edf5; border-radius: 999px; overflow:hidden; position:relative; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: inherit; }
+    .threshold-card { margin-top: 14px; padding: 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }
+    .threshold-head { display:flex; justify-content:space-between; gap: 12px; margin-bottom: 8px; font-size: 13px; }
+    .threshold-fill { background: linear-gradient(90deg, var(--amber), var(--ok)); }
+    .spark-card { padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; }
+    .spark-head { display:flex; justify-content:space-between; gap: 12px; align-items:center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+    .spark-head strong { color: var(--ink); font-size: 20px; }
+    .sparkline { width:100%; height: 62px; }
+    .sparkline polyline { fill:none; stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
     footer { padding: 0 32px 28px; max-width: 1280px; margin: 0 auto; color: var(--muted); font-size: 12px; }
     @media (max-width: 900px) {
       header, main, footer { padding-left: 16px; padding-right: 16px; }
-      .kpi-grid, .two { grid-template-columns: 1fr; }
+      .kpi-grid, .two, .visual-grid, .visual-grid-3 { grid-template-columns: 1fr; }
+      .agent-bar-row { grid-template-columns: 1fr; }
+      .agent-value { text-align:left; }
       h1 { font-size: 23px; }
     }
   </style>
@@ -91,6 +123,32 @@
         <div class="label">Latest Growth Input</div>
         <div class="value">0</div>
         <div class="sub">messages scanned; 0이면 ingestion 보정 필요</div>
+      </section>
+    </div>
+
+    <div class="grid visual-grid">
+      <section>
+        <div class="visual-title">
+          <h2>Readiness Radar</h2>
+          <span class="pill ok">16/16</span>
+        </div>
+        <div class="radar-wrap"><svg class='radar' viewBox='0 0 260 260' role='img' aria-label='readiness radar chart'><polygon points='130.0,108.5 151.5,130.0 130.0,151.5 108.5,130.0' class='radar-ring' /><polygon points='130.0,87.0 173.0,130.0 130.0,173.0 87.0,130.0' class='radar-ring' /><polygon points='130.0,65.5 194.5,130.0 130.0,194.5 65.5,130.0' class='radar-ring' /><polygon points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0' class='radar-ring' /><line x1='130' y1='130' x2='130.0' y2='44.0' class='radar-axis' /><line x1='130' y1='130' x2='216.0' y2='130.0' class='radar-axis' /><line x1='130' y1='130' x2='130.0' y2='216.0' class='radar-axis' /><line x1='130' y1='130' x2='44.0' y2='130.0' class='radar-axis' /><polygon points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0' class='radar-fill' /><polyline points='130.0,44.0 216.0,130.0 130.0,216.0 44.0,130.0 130.0,44.0' class='radar-line' /><text x='130.0' y='17.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Activation</text><text x='243.0' y='130.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Cleanliness</text><text x='130.0' y='243.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Input</text><text x='17.0' y='130.0' class='radar-label' text-anchor='middle' dominant-baseline='middle'>Balance</text></svg></div>
+        <div class="note">4개 축이 모두 바깥 링에 닿으면 자동성장 승인 검토 기준을 충족합니다.</div>
+      </section>
+      <section>
+        <h2>Agent Balance Bars</h2>
+        <div class='agent-bar-row'><div class='agent-name'>ra_us</div><div class='bar-track'><div class='bar-fill' style='width:100.0%'></div></div><div class='agent-value'>9064 docs · 48 seeds</div></div><div class='agent-bar-row'><div class='agent-name'>ra_eu</div><div class='bar-track'><div class='bar-fill' style='width:32.6%'></div></div><div class='agent-value'>2956 docs · 31 seeds</div></div><div class='agent-bar-row'><div class='agent-name'>ra_kr</div><div class='bar-track'><div class='bar-fill' style='width:7.0%'></div></div><div class='agent-value'>638 docs · 48 seeds</div></div><div class='threshold-card'><div class='threshold-head'><span>KR/EU 20% balance</span><strong>638/591</strong></div><div class='bar-track threshold'><div class='bar-fill threshold-fill' style='width:100.0%'></div></div></div>
+      </section>
+    </div>
+
+    <div class="grid visual-grid-3">
+      <section><div class='status-panel'><h3>Cleanliness</h3><div class='status-row'><span class='dot ok'></span><span>pending_total_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>ra_pending_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>wrong_peer_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>active_json_zero</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>hyphen_peer_zero</span><strong>True</strong></div></div></section>
+      <section><div class='status-panel'><h3>Activation Control</h3><div class='status-row'><span class='dot ok'></span><span>timer_inactive</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>timer_disabled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>not_scheduled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>persistent_false</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>activation_guard</span><strong>True</strong></div></div></section>
+      <section>
+        <h2>Growth Trend</h2>
+        <div class='spark-card'><div class='spark-head'><span>Messages scanned</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Messages scanned trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
+        <div class='spark-card'><div class='spark-head'><span>Study insights</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Study insights trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
+        <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
       </section>
     </div>
 
@@ -167,7 +225,7 @@
     </section>
   </main>
   <footer>
-    Generated at 2026-06-16T15:39:19+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+    Generated at 2026-06-16T15:56:41+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
   </footer>
 </body>
 </html>
