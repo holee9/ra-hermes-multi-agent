@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · #50 source curriculum seed 완료 · #57 자동성장 timer off·승인 게이트 보완 중** | 최종 갱신: 2026-06-16
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 자동성장 readiness 16/16 · #57 승인 게이트 유지** | 최종 갱신: 2026-06-16
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -44,9 +44,9 @@
 | 팀장 에이전트 자리 예약 + 확장 가이드 초안 | 🔄 진행 중 (coordinator-SOUL.md 미활성 초안, agent-expansion-guide.md 작성 완료, growth-metrics 카테고리 분류는 운영 데이터 필요) | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
 | 자율 학습 peer_id 오염 복구 | ✅ 완료 (wrong-peer live messages/embeddings/queue refs/session peers 0, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, JSONL 감사 백업 보존) | [#48](https://github.com/holee9/ra-hermes-multi-agent/issues/48), [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49), [#56](https://github.com/holee9/ra-hermes-multi-agent/issues/56) (closed) |
-| source-level curriculum seed fast-track | ✅ 완료 (`ra_us` 48개, `ra_eu` 31개, `ra_kr` 29개 explicit source seed processed, `curriculum_seed` JSON envelope 0, idempotence `to_seed=0`) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed) |
-| 비메일 성장 cadence loop | 🔄 구현 완료·운영 timer off (승인 없이 활성화된 #57 오판 보정 중, `hermes-auto-growth.timer` inactive/disabled, RA pending 0, 수동 readiness 점검 가능) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed), [#57](https://github.com/holee9/ra-hermes-multi-agent/issues/57) |
-| 자동성장 pre-production hardening | ✅ 목표치 완료 (`auto-growth-readiness-report.py` 4x4 matrix 15/16, timer OFF 유지, `ra_kr` self-doc 530으로 500 목표 초과) | [#58](https://github.com/holee9/ra-hermes-multi-agent/issues/58) (closed), [#59](https://github.com/holee9/ra-hermes-multi-agent/issues/59) (closed) |
+| source-level curriculum seed fast-track | ✅ 완료 (`ra_us` 48개, `ra_eu` 31개, `ra_kr` 48개 source seed processed, `curriculum_seed` JSON envelope 0, `ra_kr` all-scope idempotence `to_seed=0`) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
+| 비메일 성장 cadence loop | ✅ 구현 완료·운영 timer off (`hermes-auto-growth.timer` inactive/disabled, RA pending 0, 수동 readiness 16/16 확인, activation은 명시 승인 필요) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed), [#57](https://github.com/holee9/ra-hermes-multi-agent/issues/57) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
+| 자동성장 pre-production hardening | ✅ 목표치 완료 (`auto-growth-readiness-report.py` 4x4 matrix 16/16, timer OFF 유지, `ra_kr` self-doc 638로 `ra_eu` 20% 균형 기준 통과) | [#58](https://github.com/holee9/ra-hermes-multi-agent/issues/58) (closed), [#59](https://github.com/holee9/ra-hermes-multi-agent/issues/59) (closed), [#60](https://github.com/holee9/ra-hermes-multi-agent/issues/60) (closed) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
@@ -83,7 +83,7 @@
 | 투표 집계 인터페이스 | `voting/vote-aggregator.js` (96줄), `voting/config/vote-rules.json` [IF] | 완료 — 규칙은 운영이 채움 |
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
-| source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 29 processed) |
+| source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50/#60 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 48 processed) |
 | non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-readiness-report.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`, `scripts/verify-auto-growth-activation-policy.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, #57 이후 timer 활성화는 명시 승인 게이트 필요, #58 pre-production readiness loop로 지속 개선 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.

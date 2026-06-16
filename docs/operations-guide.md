@@ -369,6 +369,15 @@ hardening loop에서 문제를 발견하면 timer를 켜지 말고 별도 이슈
 - deriver 처리 후 total pending 0, RA pending 0으로 회복했다.
 - readiness matrix는 15/16이다. 남은 1점은 `ra_kr >= ra_eu 20%` 상대 균형 조건이며, timer는 명시 승인 전까지 OFF를 유지한다.
 
+2026-06-16 #60 수행 결과:
+
+- 자동성장 timer를 켜지 않고 `ra_kr` all-scope curriculum seed 9건만 추가 실행했다.
+- `ra_kr` curriculum seed는 39건에서 48건으로 증가했고, 재실행 dry-run은 `already_seeded=21`, `to_seed=0`으로 idempotent했다.
+- deriver 처리 후 `ra_kr` self docs는 530에서 638로 증가했다.
+- `ra_eu=2956` 기준 `ra_kr >= int(ra_eu * 0.2)` 조건을 통과했다.
+- 최종 readiness matrix는 16/16이며, total pending 0, RA pending 0, wrong-peer/live contamination 0이다.
+- `hermes-auto-growth.timer`는 계속 `inactive/disabled` 상태다. 16/16은 운영 timer 자동 활성화가 아니라 승인 검토 가능 상태를 뜻한다.
+
 자동 timer 승격 전 readiness loop:
 
 ```bash

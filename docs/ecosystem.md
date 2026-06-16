@@ -79,7 +79,8 @@
 
 | 날짜 | 내용 |
 |------|------|
-| 2026-06-16 | ra-hermes 상태 갱신 — #56 live wrong-peer raw records 제거, 자동성장 전환 후 오염 원본 live DB 0 확인 |
+| 2026-06-16 | ra-hermes 상태 갱신 — #60 `ra_kr` 균형 보강 완료, 자동성장 readiness 16/16, timer는 명시 승인 전 OFF 유지 |
+| 2026-06-16 | ra-hermes 상태 갱신 — #56 live wrong-peer raw records 제거, 자동성장 전환 전 오염 원본 live DB 0 확인 |
 | 2026-06-15 | ra-hermes 상태 갱신 — #48/#49 incident 문서 사용자 발견 경로 추가, 전체 문서 전수 점검 완료, README/ecosystem 날짜 갱신 |
 | 2026-06-13 | ra-hermes 상태 갱신 — #43~#47 안전/QA/문서 하드닝, #49 autonomous study peer_id 오염 containment/replay/backlog 모니터링 반영 |
 | 2026-06-10 | 최초 작성 — 에코시스템 분석 및 AI 도구 전략 정리 |
