@@ -4,7 +4,7 @@
 > **원칙**: 인터페이스는 엄격히 고정, 내부 구현은 위임. 이 시스템은 *학습하며 성장*하므로, 평가로 수렴할 규칙(투표·가중치·임계)은 **의도적 공백**으로 둔다 — 미결이 아니라 설계다. 그 부분은 인터페이스만 만들고 내부는 운영·학습이 채운다.
 > **정확성 우선 원칙**: 의료기기 인허가 도메인에서 속도보다 정확성이 항상 우선한다. **Cold start(임계값 미설정) 상태에서는 모든 판단을 Yellow 게이트(사람 확인)로 처리한다.** 자동 처리 비중은 학습·평가 누적 이후에만 단계적으로 확대한다.
 > **성숙도 표기**: `[구현]` 코딩 가능 깊이로 명세 / `[IF]` 인터페이스만 — 내부는 PoC·학습이 채움(임의 구현 금지, 비워두거나 사람에게 질의).
-> 사실 기준일 2026-06-13. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
+> 사실 기준일 2026-06-16. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
 
 ---
 
@@ -310,7 +310,7 @@ npm test
 - 실패 시 graceful degradation (RA 호출은 계속)
 - 캐싱: Redis (동일 product code 중복 조회 방지)
 
-### P3.2 성장 트리거 자동화 `[구현 + IF]` (#38)
+### P3.2 성장 트리거 자동화 `[구현 + IF]` (#38, #64, #65)
 
 - systemd timer: `ra-growth-metrics.timer` (일 1회 02:00 KST)
 - 결과 저장: `reports/growth-YYYY-MM-DD.json`
@@ -319,6 +319,8 @@ npm test
 - 정적 대시보드: `scripts/render-growth-dashboard.py`가 로컬 reports와 systemd 상태를 요약해 `docs/growth-dashboard.html`을 생성한다. HTML은 외부 fetch 없이 동작하는 standalone snapshot이며 `scripts/verify-growth-dashboard.py`로 계약을 검증한다. RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow, Growth Trend Verdict, evidence radar chart, coverage guard basis, growth trend sparkline은 inline SVG/CSS로 렌더링한다. 커버리지 가드의 단일 출처는 `scripts/coverage-guards.json`이고, 열람/갱신/판정 기준은 `docs/growth-dashboard.md`에 둔다.
 - 대시보드 역할 분리: `docs/growth-dashboard.html`은 성장 모니터링용이고, `virtual-office/`는 활동 이벤트 재생용 파일럿 웹 대시보드다.
 - 2026-06-16 운영 관측: `ra-growth-metrics.timer`는 active/enabled이고 `reports/growth-2026-06-16.json`까지 생성했다. 단, 최근 성장 보고서는 `sessions_scanned=0`, `messages_scanned=0`이라 Honcho 활동 데이터 집계 경로 보정이 필요하다.
+- #64 기준: metrics collector는 "운영 활동 없음"과 "collector/API/data contract 오류"를 구분해야 한다. report에는 최소한 sessions listed, sessions with messages, API failure, empty-cause classification, workspace/peer coverage를 남긴다.
+- #65 기준: `growth-trigger-config.json`의 threshold/webhook null은 버그가 아니라 보류 상태다. #64로 유효 metrics가 증명되기 전에는 임의 threshold를 채우지 않는다.
 
 ---
 

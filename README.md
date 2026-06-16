@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 자동성장 readiness 16/16 · #57 승인 게이트 유지** | 최종 갱신: 2026-06-16
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 자동성장 timer OFF · 성장 지표 ingestion 보정 필요** | 최종 갱신: 2026-06-16
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -52,8 +52,37 @@
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
 | npm test 품질 게이트 복구 | ✅ 완료 (`test:static` + Playwright E2E 11건) | [#46](https://github.com/holee9/ra-hermes-multi-agent/issues/46) |
 | 문서 상태 불일치 정리 | ✅ 완료 (README·설계·운영·생태계·상태 문서 동기화) | [#47](https://github.com/holee9/ra-hermes-multi-agent/issues/47) |
+| 제로 베이스 프로젝트 상태 재정렬 | ✅ 완료 (목표·현황·잔여 작업을 대시보드가 아니라 RA 전문가 성장 운영 기준으로 재정렬) | [#63](https://github.com/holee9/ra-hermes-multi-agent/issues/63) |
+| 성장 지표 ingestion/data contract 보정 | 🔴 필수 (최근 reports가 `sessions_scanned=0`, `messages_scanned=0`; 성장 추세 판단 불가) | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
+| 자동성장 threshold/notification 정책 | ⏳ 대기 (#64로 유효 metrics 확보 후 임계값·알림 정책 확정) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
+
+### 제로 베이스 프로젝트 현황 (2026-06-16)
+
+이 프로젝트의 목표는 대시보드 구축이 아니라 **H&ABYZ의 의료기기 인허가 업무를 보조하는 학습형 RA 전문가 조직**을 만드는 것이다. 에이전트는 사람 RA 전문가를 대체하지 않고, 지식베이스와 실제 업무 피드백을 통해 정확성·신뢰성 우선으로 성장한다.
+
+| 축 | 현재 사실 | 판정 |
+|---|---|---|
+| 지식 토대 | `ra_knowledge` source curriculum seed와 Layer 4 API가 구축됨. `ra_us` 48, `ra_eu` 31, `ra_kr` 48 source seed 처리 완료 | ✅ foundation 존재 |
+| 개별 성장 입력 | 메일 비의존 daily/weekly/monthly/quarterly growth loop 구현, timer는 승인 전 OFF | ✅ 구현 완료·운영 보류 |
+| 성장 증명 데이터 | `ra-growth-metrics.timer`는 active/enabled이나 최근 reports가 sessions/messages 0 | 🔴 #64 선행 필요 |
+| 런타임 안전 게이트 | Yellow gate, WP 상태 검증, env/config 외부화가 repo에 반영됨 | 🔄 #43~#45 RPi import/E2E 필요 |
+| 실시간 규제 활용 | Layer 4 API 서버와 deploy-local은 repo에 편입됨 | 🔄 #37 mail-triage n8n 연결 필요 |
+| 인프라 의사결정 | vote aggregator 자리는 있으나 운영 규칙·브로드캐스트 미정 | ⏳ #39 |
+| 확장 | coordinator 자리와 확장 가이드 초안 존재 | ⏳ #41, 운영 데이터 필요 |
+
+### 남은 작업 우선순위
+
+| 우선순위 | 작업 | 왜 필요한가 | 이슈 |
+|---|---|---|---|
+| P0 | 성장 metrics ingestion/data contract 보정 | 자동성장 여부가 아니라 "성장하고 있음"을 증명하는 기본 계측이 0건 상태 | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
+| P0 | #43~#45 RPi n8n import 및 실제 E2E | repo 변경만으로는 운영 workflow가 바뀌지 않음 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43), [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44), [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
+| P1 | Layer 4 API → mail-triage 실시간 연결 | RA 분석 프롬프트가 최신 규제 DB 조회 결과를 직접 쓰게 해야 함 | [#37](https://github.com/holee9/ra-hermes-multi-agent/issues/37) |
+| P1 | 유효 metrics 기반 threshold/notification 정책 | 임의 20% 같은 proxy가 아니라 운영 데이터 기반 임계값이 필요 | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
+| P2 | infra vote-rules와 n8n broadcast | 인프라 workspace의 프랙탈 의사결정 루프 활성화 | [#39](https://github.com/holee9/ra-hermes-multi-agent/issues/39) |
+| P2 | 세부 전문가 확장 조건 데이터화 | 부재 기반 확장은 운영 데이터가 있어야 과잉 분화를 피함 | [#41](https://github.com/holee9/ra-hermes-multi-agent/issues/41) |
+| P3 | form workflow 이관 | mail-triage 30일 안정화와 성장 지표 달성 후 진행 | [#40](https://github.com/holee9/ra-hermes-multi-agent/issues/40) |
 
 ### 지속 성장 모니터링 현황 (2026-06-16)
 
@@ -67,9 +96,9 @@
 | 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. RA Growth Operations 요약, 담당자별 성장 카드, growth signal flow, 성장 측정 상태, 커버리지 근거 포함 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, 실제 운영 중 각 RA 담당자의 성장 입력, KB foundation, 운영 evidence, feedback/growth signal 흐름을 먼저 보여준다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 상단에 "성장 추세 미측정"과 담당자별 "기초 KB 확보 / 운영 성장 데이터 없음"을 표시한다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, 실제 운영 중 각 RA 담당자의 성장 입력, KB foundation, 운영 evidence, feedback/growth signal 흐름을 먼저 보여준다. 현재 growth reports가 `sessions_scanned=0`, `messages_scanned=0`이므로 dashboard는 상단에 "성장 추세 미측정"과 담당자별 "기초 KB 확보 / 운영 성장 데이터 없음"을 표시한다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. dashboard 표시 유지·보정은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62), metrics ingestion 0건 보정은 [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64), threshold/webhook 운영 기준은 [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)에서 각각 추적한다.
 
-### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
+### Hermes 프로파일 & Honcho 피어 현황 (2026-06-16 기준)
 
 | 프로파일 | Honcho 피어 ID | Workspace | 인물 | 상태 |
 |---------|--------------|-----------|-----|-----|

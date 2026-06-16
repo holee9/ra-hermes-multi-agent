@@ -5,6 +5,51 @@
 
 ---
 
+## 점검 기록 #6 — 2026-06-16
+
+### 제로 베이스 프로젝트 현황 재정렬
+
+#### 목표 재확인
+
+본 프로젝트의 목표는 대시보드 구축이 아니라 **학습하며 성장하는 RA 멀티 에이전트 운영 부서**다. `ra_us`, `ra_eu`, `ra_kr` 담당자는 공통 지식 토대(`ra_knowledge`, llm-wiki, ra-project, MD-process, Layer 4 API)를 참조하고, 실제 업무 처리·사람 피드백·비메일 성장 루프를 통해 자기 전문성을 Honcho에 누적한다. 정확성·신뢰성이 속도보다 우선이며, 불확실한 규제 판단은 Yellow gate로 사람에게 올린다.
+
+#### 현재 사실
+
+| 영역 | 사실 | 판정 |
+|------|------|------|
+| 지식 토대 | source curriculum seed와 Layer 4 API 기반 구축 완료. `ra_us` 48, `ra_eu` 31, `ra_kr` 48 source seed 처리 | foundation 존재 |
+| peer 오염 복구 | #48/#49 clean replay 완료, #56에서 live wrong-peer messages/embeddings/queue refs/session peers 0 확인 | 완료 |
+| 자동성장 timer | `hermes-auto-growth.timer` inactive/disabled. 명시 승인 전 자동 실행 없음 | 안전 |
+| readiness | #60 최종 readiness 16/16. 단 activation safety snapshot이며 성장 추세 증거가 아님 | 승인 검토 가능 수준 |
+| 성장 metrics | `ra-growth-metrics.timer` active/enabled이나 최근 reports가 `sessions_scanned=0`, `messages_scanned=0` | 보정 필요 |
+| n8n safety hardening | #43~#45 변경은 repo 반영. RPi n8n import/E2E는 미완 | 운영 반영 대기 |
+| Layer 4 mail-triage | API 서버와 배포 스크립트는 준비. n8n mail-triage prompt 연결은 미완 | 후속 |
+| 투표/확장 | vote-rules/broadcast와 세부 전문가 확장 조건은 운영 데이터 필요 | 후속 |
+
+#### 등록/정리한 이슈
+
+| 이슈 | 목적 |
+|------|------|
+| #63 | 프로젝트 목표·현황·잔여 작업을 RA 전문가 성장 운영 기준으로 재정렬 |
+| #64 | growth-metrics ingestion과 Honcho activity data contract 보정 |
+| #65 | 유효 metrics 확보 후 자동성장 threshold/notification 정책 확정 |
+
+#### 남은 작업 우선순위
+
+1. P0: #64 metrics ingestion 0건 원인 분리 및 report diagnostics 추가.
+2. P0: #43~#45 RPi n8n import 후 Yellow gate, WP 상태 조회, env/config, alert 경로 E2E.
+3. P1: #37 Layer 4 API 결과를 mail-triage RA prompt에 주입.
+4. P1: #65 유효 metrics 기반 threshold/webhook 정책 수립.
+5. P2: #39 vote-rules 초기값과 infra broadcast workflow 구현.
+6. P2: #41 운영 데이터 기반 세부 전문가 확장 조건 구체화.
+7. P3: #40 mail-triage 30일 안정화 이후 form workflow 이관.
+
+#### 정정 사항
+
+- 점검 기록 #5의 `#49 autonomous study peer_id 오염 데이터 cleanup/migration 방침 사람 승인`은 현재 상태가 아니다. #56 후속 정리까지 완료되어 live wrong-peer records는 0이다. 감사 증적은 `backups/issue-49/` JSONL과 SHA-256 해시로 보존한다.
+- `#50/#51 자동성장 timer 전환 완료`라는 표현은 부정확하다. 비메일 성장 루프와 timer unit은 구현됐지만, `hermes-auto-growth.timer`는 승인 전 OFF가 현재 기준이다.
+- 대시보드는 보조 snapshot이다. 프로젝트 현황 판단의 1차 근거는 growth reports, Honcho activity records, n8n runtime E2E, 사람 평가 기록이다.
+
 ## 점검 기록 #5 — 2026-06-13
 
 ### 관련 문서 상세화 및 push 준비
