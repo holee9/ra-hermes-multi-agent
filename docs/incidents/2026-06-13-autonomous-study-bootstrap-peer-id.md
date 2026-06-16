@@ -104,12 +104,36 @@ set -a; . scripts/.env; set +a
 python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 ```
 
+### Live DB Cleanup Follow-Up
+
+On 2026-06-16, follow-up issue #56 removed the remaining live wrong-peer raw
+records after confirming the clean replay and JSONL backups.
+
+| Removed from live DB | Count |
+| --- | ---: |
+| `ra-us` / `ra-eu` messages | 2,086 |
+| processed queue references | 639 |
+| message embeddings | 2,086 |
+| wrong-peer session memberships | 2 |
+
+Post-cleanup verification:
+
+| Check | Result |
+| --- | ---: |
+| Wrong-peer live messages | 0 |
+| Wrong-peer queue refs | 0 |
+| Wrong-peer embeddings | 0 |
+| Wrong-peer session memberships | 0 |
+| Wrong-peer active documents | 0 |
+| Clean replay records retained under canonical peers | 2,085 |
+
 ## Side-Effect Boundary
 
-The original wrong-peer messages are preserved as audit/source records. Derived
-wrong-peer documents were first soft-deleted; Honcho cleanup then removed those
-document rows from the active table. Pending wrong-peer queue rows were quarantined
-and marked processed, not physically removed.
+The original wrong-peer rows are no longer retained in the live Honcho database.
+Audit evidence is retained only in the JSONL backups under `backups/issue-49/`
+with documented SHA-256 hashes. Derived wrong-peer documents were previously
+removed from the active table. Pending wrong-peer queue rows were removed from
+the live queue after backup verification.
 
 ## Required Reflection For Future Claude Code Sessions
 

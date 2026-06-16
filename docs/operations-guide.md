@@ -149,8 +149,21 @@ python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
 | replay JSON envelope | 0 |
 | wrong-peer active documents 최종 확인 | 0 |
 | wrong-peer pending queue 최종 확인 | 0 |
+| wrong-peer live messages 최종 확인 (#56 후속 정리) | 0 |
+| wrong-peer live embeddings 최종 확인 (#56 후속 정리) | 0 |
+| wrong-peer live queue refs 최종 확인 (#56 후속 정리) | 0 |
+| wrong-peer live session peers 최종 확인 (#56 후속 정리) | 0 |
 
-원본 오염 메시지는 감사 증적으로 보존하되 활성 성장 material로 사용하지 않는다. #48/#49는 wrong-peer active docs 0, wrong-peer pending 0, canonical replay 2,085건 검증 후 종료했다.
+원본 오염 메시지는 live DB에 남기지 않는다. 감사 증적은 `backups/issue-49/` JSONL 파일과 SHA-256 해시로 보존한다. #48/#49는 wrong-peer active docs 0, wrong-peer pending 0, canonical replay 2,085건 검증 후 종료했고, #56에서 live wrong-peer messages/embeddings/queue refs/session peers를 제거했다.
+
+감사 백업 해시:
+
+| 파일 | SHA-256 |
+|---|---|
+| `backups/issue-49/wrong-peer-messages.jsonl` | `a6568d53fb8c65d61f4c785852e85ce194f8e04b3126877d590aa9a23f3b1392` |
+| `backups/issue-49/wrong-peer-queue.jsonl` | `011cd2bf88df2683c08e9f11c3a32f6147ea4d86275e4797d3ab5c00d15543b9` |
+| `backups/issue-49/wrong-peer-documents.jsonl` | `f7009a5f2f9cffbe494393340715ddea2bde61c531dd0bb2d0e1fbefd502de1a` |
+| `backups/issue-49/wrong-peer-sessions.jsonl` | `d365105dc786f14224ceeece309b3f0b07d70ed2a5fffba8d956eb240adbce46` |
 
 ### 3.2 기존 지식베이스 빠른 이식: source curriculum seed (#50)
 
