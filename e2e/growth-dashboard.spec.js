@@ -20,6 +20,10 @@ test.describe('growth dashboard', () => {
     await expect(page.locator('text=Theo / EU MDR')).toBeVisible();
     await expect(page.locator('text=Sam / MFDS')).toBeVisible();
     await expect(page.locator('text=Growth Signal Flow')).toBeVisible();
+    await expect(page.locator('.flow')).toContainText('Operational Input');
+    await expect(page.locator('text=검증/감사 상세 보기')).toBeVisible();
+    await expect(page.locator('text=Growth Trend Verdict')).toBeHidden();
+    await page.locator('summary').click();
     await expect(page.locator('text=Growth Trend Verdict')).toBeVisible();
     await expect(page.locator('.kpi').filter({ hasText: 'Growth Trend Verdict' })).toContainText('측정 불충분');
     await expect(page.locator('text=Growth Evidence Radar')).toBeVisible();
@@ -33,12 +37,14 @@ test.describe('growth dashboard', () => {
   });
 
   test('shows current growth measurement and readiness status', async ({ page }) => {
+    await page.locator('summary').click();
     await expect(page.locator('.kpi').filter({ hasText: 'Readiness' })).toContainText('16/16');
     await expect(page.locator('.kpi').filter({ hasText: 'Metrics Collection' })).toContainText('active/enabled');
     await expect(page.locator('.kpi').filter({ hasText: 'Latest Growth Input' })).toContainText('0');
   });
 
   test('renders visual charts and status indicators', async ({ page }) => {
+    await page.locator('summary').click();
     await expect(page.locator('svg.radar')).toBeVisible();
     await expect(page.locator('.radar-fill')).toBeVisible();
     await expect(page.locator('.bar-fill').first()).toBeVisible();

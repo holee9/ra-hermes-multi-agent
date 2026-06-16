@@ -20,6 +20,8 @@
 - 최신 growth metrics
 - growth report trend sparkline
 
+첫 화면에서 매일 확인할 필수 현황은 RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow 3개다. 그 아래의 readiness, coverage guard, raw metrics, trend table은 기본 접힘 상태의 "검증/감사 상세"이며, 결론을 검산하거나 이슈 기록에 근거가 필요할 때만 펼친다.
+
 ## 바로 보는 방법
 
 README에서 [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)를 클릭하면 GitHub Pages로 렌더링된 HTML이 열린다.
@@ -112,6 +114,8 @@ git push origin main
 - 성장 신호가 Knowledge Base 이후 Operational Input에서 끊겼는지 확인
 - KR/EU legacy pre-activation floor가 전문가 성숙도 기준이 아님을 확인
 - reports 생성 여부 확인
+
+현재 결론은 "기초 KB는 준비됐지만 운영 성장 데이터가 0건이라 성장 추세를 판단할 수 없다"이다. 사용자가 다음에 봐야 할 것은 자동성장 스위치가 아니라 metrics ingestion이 왜 성장/업무 이벤트를 읽지 못하는지다.
 
 하지만 다음에는 아직 부족하다.
 
