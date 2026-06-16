@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
+from zoneinfo import ZoneInfo
 
 import psycopg2
 import psycopg2.extras
@@ -30,6 +31,7 @@ PG_DSN = os.environ.get("POSTGRES_URL", "")
 GROWTH_VERSION = "daily_growth_v1"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = REPO_ROOT / "reports"
+DEFAULT_OPERATION_TIMEZONE = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
 
 
 @dataclass(frozen=True)
@@ -383,9 +385,16 @@ def post_messages(session_name: str, messages: list[dict[str, Any]]) -> None:
     )
 
 
-def parse_run_date(value: str | None) -> date:
+def operational_today(timezone_name: str = DEFAULT_OPERATION_TIMEZONE) -> date:
+    try:
+        return datetime.now(ZoneInfo(timezone_name)).date()
+    except Exception as exc:
+        fail(f"invalid operation timezone: {timezone_name}: {exc}")
+
+
+def parse_run_date(value: str | None, timezone_name: str = DEFAULT_OPERATION_TIMEZONE) -> date:
     if not value:
-        return datetime.now(timezone.utc).date()
+        return operational_today(timezone_name)
     return datetime.strptime(value, "%Y-%m-%d").date()
 
 
@@ -402,7 +411,7 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
     validate_agent_config()
     if not PG_DSN:
         fail("POSTGRES_URL is required")
-    run_date = parse_run_date(args.date)
+    run_date = parse_run_date(args.date, args.operation_timezone)
     agents = select_agents(args.agent)
 
     with psycopg2.connect(PG_DSN) as conn:
@@ -445,6 +454,7 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
     }
     return {
         "run_date": run_date.isoformat(),
+        "operation_timezone": args.operation_timezone,
         "growth_version": GROWTH_VERSION,
         "agent": args.agent,
         "execute_requested": bool(args.execute),
@@ -468,7 +478,7 @@ def execute_plan(args: argparse.Namespace, plan: dict[str, Any]) -> int:
         print(json.dumps(plan, indent=2, ensure_ascii=False))
         fail("execute gate is closed; finish manual growth/backlog and pass --manual-growth-complete")
 
-    run_date = parse_run_date(args.date)
+    run_date = parse_run_date(args.date, args.operation_timezone)
     agents = select_agents(args.agent)
     written = 0
     with psycopg2.connect(PG_DSN) as conn:
@@ -507,7 +517,8 @@ def write_report(plan: dict[str, Any], output: str | None) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--agent", default="all", choices=["ra-us", "ra-eu", "ra-kr", "all"])
-    parser.add_argument("--date", default=None, help="Run date YYYY-MM-DD, default UTC today")
+    parser.add_argument("--date", default=None, help="Run date YYYY-MM-DD, default operation-timezone today")
+    parser.add_argument("--operation-timezone", default=DEFAULT_OPERATION_TIMEZONE)
     parser.add_argument("--cases-per-agent", type=int, default=3)
     parser.add_argument("--source-pool", type=int, default=60)
     parser.add_argument("--max-chunks-per-case", type=int, default=3)

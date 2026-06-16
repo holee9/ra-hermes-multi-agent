@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · #50 source curriculum seed 완료 · #51 비메일 자동성장 timer 전환 완료 · 전체 문서 전수 점검 완료(2026-06-15)** | 최종 갱신: 2026-06-15
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · #50 source curriculum seed 완료 · #57 자동성장 timer off·승인 게이트 보완 중** | 최종 갱신: 2026-06-16
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -45,7 +45,7 @@
 | 에이전트 자율 학습 루프 (GROWTH-7) | ✅ 완료 (Layer 4 7소스, autonomous-study-scheduler.py Bootstrap/Delta 모드, 피어 교환, systemd 타이머, growth-metrics 지표 2개 추가) | [#42](https://github.com/holee9/ra-hermes-multi-agent/issues/42) (closed) |
 | 자율 학습 peer_id 오염 복구 | ✅ 완료 (wrong-peer live messages/embeddings/queue refs/session peers 0, raw payload 2,085건 `ra_us`/`ra_eu` clean replay, JSONL 감사 백업 보존) | [#48](https://github.com/holee9/ra-hermes-multi-agent/issues/48), [#49](https://github.com/holee9/ra-hermes-multi-agent/issues/49), [#56](https://github.com/holee9/ra-hermes-multi-agent/issues/56) (closed) |
 | source-level curriculum seed fast-track | ✅ 완료 (`ra_us` 48개, `ra_eu` 31개, `ra_kr` 29개 explicit source seed processed, `curriculum_seed` JSON envelope 0, idempotence `to_seed=0`) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed) |
-| 비메일 성장 cadence loop | ✅ 완료 (hermes-auto-growth.timer enable/start, service 수동 1회 `status=0/SUCCESS`, RA pending 0, `daily_growth_case` 3건 processed) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed) |
+| 비메일 성장 cadence loop | 🔄 구현 완료·운영 timer off (승인 없이 활성화된 #57 오판 보정 중, `hermes-auto-growth.timer` inactive/disabled, RA pending 0, 수동 readiness 점검 가능) | [#50](https://github.com/holee9/ra-hermes-multi-agent/issues/50) (closed), [#51](https://github.com/holee9/ra-hermes-multi-agent/issues/51) (closed), [#52](https://github.com/holee9/ra-hermes-multi-agent/issues/52) (closed), [#53](https://github.com/holee9/ra-hermes-multi-agent/issues/53) (closed), [#54](https://github.com/holee9/ra-hermes-multi-agent/issues/54) (closed), [#55](https://github.com/holee9/ra-hermes-multi-agent/issues/55) (closed), [#57](https://github.com/holee9/ra-hermes-multi-agent/issues/57) |
 | mail-triage Yellow 게이트·사람 알림 강화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#43](https://github.com/holee9/ra-hermes-multi-agent/issues/43) |
 | 기존 WP 매칭 시 OpenProject 상태 검증 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#44](https://github.com/holee9/ra-hermes-multi-agent/issues/44) |
 | n8n 워크플로우 env/config 외부화 | 🔄 레포 반영, RPi n8n import/E2E 대기 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
@@ -83,7 +83,7 @@
 | 가상오피스 | `virtual-office/virtual-office.html` + 어댑터 + Dockerfile | 완료, Playwright 11건 `npm test` 통합(#46) |
 | 자율 학습 scheduler guard | `scripts/verify-study-scheduler.py`, `scripts/replay-study-insights-issue49.py` | #49 peer_id 계약 검증·오염 payload clean replay 완료 |
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 29 processed) |
-| non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, timer 전환 및 수동 1회 실행 성공 |
+| non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`, `scripts/verify-auto-growth-activation-policy.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, #57 이후 timer 활성화는 명시 승인 게이트 필요 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 

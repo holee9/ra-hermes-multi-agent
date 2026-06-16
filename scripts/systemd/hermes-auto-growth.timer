@@ -6,7 +6,9 @@ Requires=hermes-auto-growth.service
 # Run after growth metrics and low-traffic study windows.
 OnCalendar=*-*-* 03:30:00
 RandomizedDelaySec=300
-Persistent=true
+# Do not catch up a missed run immediately on enable/start. Auto growth must
+# run only on the next scheduled window after explicit operator approval.
+Persistent=false
 
 [Install]
 WantedBy=timers.target

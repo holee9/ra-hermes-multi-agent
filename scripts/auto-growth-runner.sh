@@ -26,10 +26,12 @@ if [[ -f "$SCRIPT_DIR/.env" ]]; then
 fi
 
 RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
-WEEKDAY="$(date +%u)"
 REPORT_DIR="$REPO_ROOT/reports/auto-growth"
 mkdir -p "$REPORT_DIR"
 
+OPERATION_TZ="${AUTO_GROWTH_OPERATION_TZ:-Asia/Seoul}"
+RUN_DATE="$(TZ="$OPERATION_TZ" date +%F)"
+WEEKDAY="$(TZ="$OPERATION_TZ" date +%u)"
 PENDING_SCOPE="${AUTO_GROWTH_PENDING_SCOPE:-ra}"
 MAX_PENDING="${AUTO_GROWTH_MAX_PENDING:-0}"
 CASES_PER_AGENT="${AUTO_GROWTH_CASES_PER_AGENT:-1}"
@@ -38,6 +40,7 @@ MAX_CHUNKS_PER_CASE="${AUTO_GROWTH_MAX_CHUNKS_PER_CASE:-1}"
 EXECUTE_CURRICULUM_MODE="${AUTO_GROWTH_EXECUTE_CURRICULUM:-weekly}"
 
 echo "auto-growth started at ${RUN_TS}"
+echo "operation_timezone=${OPERATION_TZ} run_date=${RUN_DATE}"
 echo "pending_scope=${PENDING_SCOPE} max_pending=${MAX_PENDING}"
 
 python3 scripts/pre-auto-growth-loop.py \
@@ -47,6 +50,8 @@ python3 scripts/pre-auto-growth-loop.py \
   --cases-per-agent "$CASES_PER_AGENT" \
   --source-pool "$SOURCE_POOL" \
   --max-chunks-per-case "$MAX_CHUNKS_PER_CASE" \
+  --date "$RUN_DATE" \
+  --operation-timezone "$OPERATION_TZ" \
   --sleep-seconds 10 \
   --drain-timeout-seconds 900 \
   --execute-daily-growth \
@@ -59,6 +64,8 @@ NON_EMAIL_ARGS=(
   --cases-per-agent "$CASES_PER_AGENT"
   --source-pool "$SOURCE_POOL"
   --max-chunks-per-case "$MAX_CHUNKS_PER_CASE"
+  --date "$RUN_DATE"
+  --operation-timezone "$OPERATION_TZ"
   --output "$REPORT_DIR/non-email-${RUN_TS}.json"
 )
 
