@@ -31,6 +31,10 @@ def load_module() -> Any:
 def main() -> None:
     module = load_module()
     module.validate_agent_config()
+    if module.DEFAULT_OPERATION_TIMEZONE != "Asia/Seoul":
+        fail("default operation timezone must be Asia/Seoul")
+    if module.parse_run_date("2026-06-16").isoformat() != "2026-06-16":
+        fail("explicit run date parsing is broken")
 
     expected_peers = {"ra_us", "ra_eu", "ra_kr"}
     actual_peers = {agent.peer_id for agent in module.AGENTS.values()}

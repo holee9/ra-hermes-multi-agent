@@ -15,10 +15,28 @@ TIMER_FILE="$SYSTEMD_DIR/hermes-auto-growth.timer"
 
 ENABLE=false
 START_NOW=false
+CONFIRM_ACTIVATION=false
 for arg in "$@"; do
   [[ "$arg" == "--enable" ]] && ENABLE=true
   [[ "$arg" == "--start-now" ]] && START_NOW=true
+  [[ "$arg" == "--confirm-auto-growth-activation" ]] && CONFIRM_ACTIVATION=true
 done
+
+if { [[ "$ENABLE" == "true" ]] || [[ "$START_NOW" == "true" ]]; } && [[ "$CONFIRM_ACTIVATION" != "true" ]]; then
+  cat >&2 <<'EOF'
+Refusing to activate auto growth without explicit approval.
+
+Allowed safe install:
+  bash scripts/install-auto-growth-timer.sh
+
+Activation requires the approval marker:
+  bash scripts/install-auto-growth-timer.sh --enable --confirm-auto-growth-activation
+
+Immediate service execution also requires the marker:
+  bash scripts/install-auto-growth-timer.sh --start-now --confirm-auto-growth-activation
+EOF
+  exit 2
+fi
 
 echo "=== RA Hermes Auto Growth Timer Installer ==="
 echo "Repo root: $REPO_ROOT"
@@ -52,7 +70,7 @@ if [[ "$ENABLE" == "true" ]]; then
   sudo systemctl start hermes-auto-growth.timer
   sudo systemctl status hermes-auto-growth.timer --no-pager || true
 else
-  echo "[4/4] Enable skipped. Run with --enable after review."
+  echo "[4/4] Enable skipped. Run with --enable --confirm-auto-growth-activation after review."
 fi
 
 if [[ "$START_NOW" == "true" ]]; then

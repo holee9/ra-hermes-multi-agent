@@ -37,6 +37,10 @@ def main() -> None:
         fail("non-email growth verifier must be part of the pre-auto loop")
     if "scripts/verify-study-scheduler.py" not in module.VERIFY_SCRIPTS:
         fail("study scheduler verifier must be part of the pre-auto loop")
+    if "scripts/verify-auto-growth-activation-policy.py" not in module.VERIFY_SCRIPTS:
+        fail("activation policy verifier must be part of the pre-auto loop")
+    if module.DEFAULT_OPERATION_TIMEZONE != "Asia/Seoul":
+        fail("default operation timezone must be Asia/Seoul")
 
     parser = module.build_parser()
     args = parser.parse_args([])
@@ -48,6 +52,8 @@ def main() -> None:
         fail("default pending_scope must be all")
     if args.execute_daily_growth:
         fail("execute_daily_growth must be opt-in")
+    if args.operation_timezone != "Asia/Seoul":
+        fail("default operation timezone arg must be Asia/Seoul")
     if args.cases_per_agent != 1 or args.source_pool != 10 or args.max_chunks_per_case != 1:
         fail("default smoke size changed unexpectedly")
 

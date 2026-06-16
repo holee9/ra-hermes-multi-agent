@@ -214,6 +214,7 @@ def run_daily(env: dict[str, str], args: argparse.Namespace) -> dict[str, Any]:
     ]
     if args.date:
         cmd.extend(["--date", args.date])
+    cmd.extend(["--operation-timezone", args.operation_timezone])
     if args.execute_daily:
         cmd.append("--execute")
     return run_command("daily-kb-growth", cmd, env, timeout=600).to_report()
@@ -283,6 +284,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cadence", default="all", choices=["daily", "weekly", "monthly", "quarterly", "all"])
     parser.add_argument("--agent", default="all", choices=["ra-us", "ra-eu", "ra-kr", "all"])
     parser.add_argument("--date", default=None)
+    parser.add_argument("--operation-timezone", default=os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul"))
     parser.add_argument("--max-pending", type=int, default=0)
     parser.add_argument("--cases-per-agent", type=int, default=1)
     parser.add_argument("--source-pool", type=int, default=10)

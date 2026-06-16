@@ -290,8 +290,9 @@ npm test
 - 자동 timer 승격 조건: `pre-auto-growth-loop.py`가 local verifier, deriver flush, queue clean, daily runner idempotence, optional execute drain을 통과해야 한다. 일반 메일/Hermes 입력이 동시에 들어오는 시간에는 `--pending-scope ra`로 RA 담당자 큐를 strict gate로 두고 전체 pending은 감시값으로 분리한다.
 - 성장 루틴: `non-email-growth-loop.py --cadence all` 기준 daily KB case, weekly source curriculum seed, monthly autonomous study delta dry-run, quarterly source coverage/freshness audit.
 - 오염 판정: active growth record의 JSON envelope는 0이어야 한다. 과거 legacy test payload는 원본 백업 후 `metadata.quarantine_status=quarantined`로 표시하고 active gate에서 제외한다.
-- timer 정책: `hermes-auto-growth.timer`는 매일 03:30 KST 실행한다. `auto-growth-runner.sh`는 daily KB growth를 idempotent execute하고, 월요일에는 curriculum seed도 idempotent execute한다.
-- 2026-06-15 전환 상태: timer enable/start 완료, 수동 1회 `hermes-auto-growth.service` 실행 `status=0/SUCCESS`, pre-auto/non-email reports 모두 `ok=true`, 다음 timer 실행 2026-06-16 03:32:57 KST.
+- timer 정책: `hermes-auto-growth.timer`는 운영 승인 후 매일 03:30 KST 실행한다. `auto-growth-runner.sh`는 `AUTO_GROWTH_OPERATION_TZ=Asia/Seoul` 기본값으로 운영일을 계산하고, daily KB growth를 idempotent execute하며, 월요일에는 curriculum seed도 idempotent execute한다.
+- activation safety: `scripts/install-auto-growth-timer.sh`는 `--confirm-auto-growth-activation` 없이는 `--enable`/`--start-now`를 거부한다. timer unit은 `Persistent=false`로 missed-run 보상 실행을 차단한다.
+- 2026-06-16 #57 보정 상태: 승인 없이 활성화된 timer는 stop/disable했으며, 현재 자동 실행 예약은 없다. 수동 readiness/service 실행은 가능하지만 운영 timer 승격은 승인 게이트 통과 후 별도 수행한다.
 
 ---
 

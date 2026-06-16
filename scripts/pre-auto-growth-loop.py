@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import psycopg2
 import psycopg2.extras
@@ -28,12 +29,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = REPO_ROOT / "reports" / "pre-auto-growth"
 ENV_FILE = REPO_ROOT / "scripts" / ".env"
 AGENT_PEERS = ("ra_us", "ra_eu", "ra_kr")
+DEFAULT_OPERATION_TIMEZONE = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
 VERIFY_SCRIPTS = (
     "scripts/verify-study-scheduler.py",
     "scripts/verify-curriculum-seed.py",
     "scripts/verify-daily-growth-runner.py",
     "scripts/verify-non-email-growth-loop.py",
     "scripts/verify-pre-auto-growth-loop.py",
+    "scripts/verify-auto-growth-activation-policy.py",
 )
 
 
@@ -60,6 +63,13 @@ class CommandResult:
 def fail(message: str) -> None:
     print(f"FAIL: {message}", file=sys.stderr)
     raise SystemExit(2)
+
+
+def operation_date(timezone_name: str = DEFAULT_OPERATION_TIMEZONE) -> str:
+    try:
+        return datetime.now(ZoneInfo(timezone_name)).date().isoformat()
+    except Exception as exc:
+        fail(f"invalid operation timezone: {timezone_name}: {exc}")
 
 
 def load_env_file(path: Path = ENV_FILE) -> dict[str, str]:
@@ -224,6 +234,7 @@ def run_daily_growth(
     ]
     if args.date:
         cmd.extend(["--date", args.date])
+    cmd.extend(["--operation-timezone", args.operation_timezone])
     if execute:
         cmd.append("--execute")
     result = run_command(cmd, env, timeout=600)
@@ -303,7 +314,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-pending", type=int, default=0)
     parser.add_argument("--pending-scope", default="all", choices=["all", "ra"])
     parser.add_argument("--agent", default="all", choices=["ra-us", "ra-eu", "ra-kr", "all"])
-    parser.add_argument("--date", default=None, help="Run date YYYY-MM-DD, default daily-growth-runner UTC today")
+    parser.add_argument("--date", default=None, help="Run date YYYY-MM-DD, default operation-timezone today")
+    parser.add_argument("--operation-timezone", default=DEFAULT_OPERATION_TIMEZONE)
     parser.add_argument("--cases-per-agent", type=int, default=1)
     parser.add_argument("--source-pool", type=int, default=10)
     parser.add_argument("--max-chunks-per-case", type=int, default=1)
@@ -345,7 +357,7 @@ def main() -> None:
     for index in range(1, args.iterations + 1):
         iteration_dir = output_path.parent / f"{output_path.stem}-iteration-{index}"
         iteration_dir.mkdir(parents=True, exist_ok=True)
-        run_date_for_health = args.date or datetime.now(timezone.utc).date().isoformat()
+        run_date_for_health = args.date or operation_date(args.operation_timezone)
         with connect(env) as conn:
             queue_before = fetch_queue_snapshot(conn)
             docs_before = fetch_self_docs(conn)

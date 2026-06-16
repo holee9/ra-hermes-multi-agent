@@ -385,16 +385,22 @@ python3 scripts/pre-auto-growth-loop.py \
 - `daily_growth_case` JSON envelope 0, hyphen peer 0.
 - 같은 날짜 기존 케이스가 있으면 `skipped_existing`로 처리되고 중복 기록하지 않는다.
 
-자동 timer 설치:
+자동 timer unit 설치만 수행:
 
 ```bash
-bash scripts/install-auto-growth-timer.sh --enable
+bash scripts/install-auto-growth-timer.sh
 ```
 
-즉시 1회 실행까지 포함하려면:
+운영 승인 후 timer 활성화:
 
 ```bash
-bash scripts/install-auto-growth-timer.sh --enable --start-now
+bash scripts/install-auto-growth-timer.sh --enable --confirm-auto-growth-activation
+```
+
+승인 후 즉시 1회 실행까지 포함하려면:
+
+```bash
+bash scripts/install-auto-growth-timer.sh --enable --start-now --confirm-auto-growth-activation
 ```
 
 timer 실행 내용:
@@ -402,15 +408,20 @@ timer 실행 내용:
 - `auto-growth-runner.sh`가 `pre-auto-growth-loop.py --pending-scope ra --execute-daily-growth`를 먼저 실행한다.
 - 이후 `non-email-growth-loop.py --cadence all`을 실행한다.
 - 월요일에는 `--execute-curriculum`을 추가해 `ra_knowledge` 신규 source를 담당자별로 idempotent seed한다.
+- 운영일은 `AUTO_GROWTH_OPERATION_TZ` 기본값 `Asia/Seoul` 기준이다.
+- `hermes-auto-growth.timer`는 `Persistent=false`다. enable/start 시 놓친 실행을 즉시 보상 실행하지 않는다.
 - `reports/auto-growth/`에 pre-auto와 non-email 리포트를 남긴다.
 
-2026-06-15 운영 반영:
+2026-06-16 #57 보정 상태:
 
-- `hermes-auto-growth.timer` 설치 및 enable/start 완료.
-- 다음 실행 예정: 2026-06-16 03:32:57 KST.
+- `hermes-auto-growth.timer`는 승인 없이 활성화된 오판을 보정하기 위해 stop/disable했다.
+- 현재 상태 기준 `hermes-auto-growth.timer`: inactive/disabled, 다음 자동 실행 없음.
+- timer activation은 `--confirm-auto-growth-activation` 승인 마커 없이는 installer가 거부한다.
+- timer unit은 `Persistent=false`로 고정해 missed-run 보상 실행을 차단한다.
+- KST 운영일 기준을 적용해 `2026-06-16 03:30 KST` 실행이 UTC 전날로 기록되는 문제를 방지한다.
 - `ra_us` 48개, `ra_eu` 31개, `ra_kr` 29개 explicit source curriculum seed 실행 및 deriver 처리 완료.
 - timer service는 실행 시점마다 RA pending gate를 다시 검사한다.
-- 2026-06-15 22:05:50 KST 수동 1회 service 실행 성공: `status=0/SUCCESS`, pre-auto report `ok=true`, non-email report `ok=true`.
+- 2026-06-15 22:05:50 KST 수동 1회 service 실행은 성공했지만, 운영 timer 승격은 별도 승인 전까지 보류한다.
 
 2026-06-15 전환 점검 결과:
 
@@ -418,7 +429,7 @@ timer 실행 내용:
 - `DERIVER_FLUSH_ENABLED=true` 적용 후 pending representation queue 0으로 회복.
 - 같은 날짜 재실행 dry-run은 `skipped_existing=3`, `planned_case_count=0`으로 idempotence 확인.
 - `pre-auto-growth-loop.py` dry-run 및 execute smoke 모두 통과.
-- `hermes-auto-growth.service` 수동 1회 실행까지 성공했으므로 자동 timer 전환 조건을 충족했다.
+- `hermes-auto-growth.service` 수동 1회 실행까지 성공했으나, #57에서 승인 게이트/날짜 정책 보완 전까지 자동 timer 전환은 보류한다.
 
 ---
 
