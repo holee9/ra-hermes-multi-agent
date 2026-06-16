@@ -309,6 +309,8 @@ npm test
 - 조회 결과를 RA 에이전트 프롬프트에 컨텍스트로 주입
 - 실패 시 graceful degradation (RA 호출은 계속)
 - 캐싱: Redis (동일 product code 중복 조회 방지)
+- 2026-06-16 구현: `scripts/hermes-api-server.py`에 `POST /v1/knowledge/fetch` 추가. `mail-triage.json`에 `Layer 4 조회 준비` → `Layer 4 규제 DB 조회` → `Layer 4 컨텍스트 주입` 노드를 추가하고 RA prompt에 `layer4_context`를 주입한다.
+- Runtime 검증: `scripts/deploy-local.sh`로 `/opt/hermes-ra/` 동기화 후 `hermes-api-server` restart. RPi → T3610 `/v1/knowledge/fetch` smoke에서 openFDA `MQB` 510(k) 결과를 200 OK로 확인.
 
 ### P3.2 성장 트리거 자동화 `[구현 + IF]` (#38, #64, #65)
 
@@ -318,9 +320,11 @@ npm test
 - 트리거 달성 시 n8n webhook → 사람 알림 (자동 실행 아님)
 - 정적 대시보드: `scripts/render-growth-dashboard.py`가 로컬 reports와 systemd 상태를 요약해 `docs/growth-dashboard.html`을 생성한다. HTML은 외부 fetch 없이 동작하는 standalone snapshot이며 `scripts/verify-growth-dashboard.py`로 계약을 검증한다. RA Growth Operations 요약, 담당자별 성장 카드, Growth Signal Flow, Growth Trend Verdict, evidence radar chart, coverage guard basis, growth trend sparkline은 inline SVG/CSS로 렌더링한다. 커버리지 가드의 단일 출처는 `scripts/coverage-guards.json`이고, 열람/갱신/판정 기준은 `docs/growth-dashboard.md`에 둔다.
 - 대시보드 역할 분리: `docs/growth-dashboard.html`은 성장 모니터링용이고, `virtual-office/`는 활동 이벤트 재생용 파일럿 웹 대시보드다.
-- 2026-06-16 운영 관측: `ra-growth-metrics.timer`는 active/enabled이고 `reports/growth-2026-06-16.json`까지 생성했다. 단, 최근 성장 보고서는 `sessions_scanned=0`, `messages_scanned=0`이라 Honcho 활동 데이터 집계 경로 보정이 필요하다.
+- 2026-06-16 #64 보정: `growth-metrics.py`가 Honcho v0.15.1 list API를 `POST /sessions/list`, `POST /sessions/{id}/messages/list`로 호출한다. `ingestion_diagnostics`는 api status, sessions listed/with messages, message fetch failures, empty cause, record contract counts, actor/peer coverage를 기록한다.
+- Diagnostic report: `reports/growth-diagnostic-2026-06-16.json` 기준 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`.
 - #64 기준: metrics collector는 "운영 활동 없음"과 "collector/API/data contract 오류"를 구분해야 한다. report에는 최소한 sessions listed, sessions with messages, API failure, empty-cause classification, workspace/peer coverage를 남긴다.
 - #65 기준: `growth-trigger-config.json`의 threshold/webhook null은 버그가 아니라 보류 상태다. #64로 유효 metrics가 증명되기 전에는 임의 threshold를 채우지 않는다.
+- #65 구현: `feedback/config/growth-trigger-config.json`에 `policy.status=metrics_gated`, `minimum_valid_metric_days=30`, forbidden basis를 기록하고, `scripts/verify-workflows.js`에서 threshold/webhook schema를 검증한다.
 
 ---
 
@@ -328,6 +332,13 @@ npm test
 
 ### P4.1 vote-rules.json 초기값 + 브로드캐스트 `[구현]` (#39)
 
-- `voting/config/vote-rules.json` 초기값 채우기 (사람 결정 후)
-- n8n 브로드캐스트 노드: 인프라 이상 감지 → vote-aggregator 호출 → 브릿지
-- vote-aggregator.js: 외부 설정 파일 로드 검증
+- `voting/config/vote-rules.json` 초기값: quorum 2, equal weights, majority threshold 0.66, timeout 900s, abstain excluded from decisive ratio.
+- n8n 브로드캐스트 workflow: `n8n/workflows/infra-vote-broadcast.json`.
+- 흐름: `infra-vote-broadcast` webhook → 투표 요청 표준화 → 설정 기반 집계 → `infra-vote-result` bridge webhook 전달.
+- 검증: `scripts/verify-workflows.js`가 vote fixture를 실행해 quorum 미충족 pending, 2/3 approve 승인 경로를 확인한다. RPi n8n import/activate 후 infra-vote webhook smoke가 `Workflow was started`를 반환했다.
+
+### P5.1 form workflow draft `[구현 + gated]` (#40)
+
+- `n8n/workflows/form-triage-draft.json`을 추가한다.
+- 기본값은 `FORM_TRIAGE_ENABLED=false`다. 30일 valid metrics와 사람 승인 전에는 form intake를 mail-triage로 넘기지 않고 blocked response를 반환한다.
+- 활성화 시에는 form payload를 mail-triage test webhook 계약(`subject`, `text`, `id`, `date`)으로 변환해 기존 RA 분석 인터페이스를 재사용한다. 별도 RA parsing 로직을 중복 구현하지 않는다.

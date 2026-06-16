@@ -35,7 +35,7 @@
 |------|------|----------|----------|---------|
 | 1 | `ra-med-bot` | 60개 내외 | feat/issue-22-predicate 진행 중 | Wave 3 PREDICATE-001 구현 미완, 미결 이슈 최다 |
 | 2 | `hybrid-ra-saas` | 10개 내외 | 로컬 미클론, 원격만 존재 | 사전작업 이슈 진행 중, 최근 push 활발 |
-| 3 | `ra-hermes-multi-agent` | #37, #39~#45, #62~#65 등 | Phase 1~2 완료, 성장 루프/자율 학습/안전 하드닝 레포 반영. #48/#49 peer_id 오염은 2,085건 clean replay 완료, #56에서 live wrong-peer records 제거 완료. 비메일 성장 루프는 구현 완료이나 `hermes-auto-growth.timer`는 승인 전 OFF. 최근 growth reports가 sessions/messages 0이라 #64에서 ingestion/data contract 보정 필요. #43~#45는 운영 import/E2E 대기. | 에코시스템 오케스트레이터, Honcho/OpenProject/n8n 운영 계약 안정화 중 |
+| 3 | `ra-hermes-multi-agent` | #40~#45, #62, #65 등 | Phase 1~2 완료, 성장 루프/자율 학습/안전 하드닝 운영 반영. #48/#49 peer_id 오염은 2,085건 clean replay 완료, #56에서 live wrong-peer records 제거 완료. 비메일 성장 루프는 구현 완료이나 `hermes-auto-growth.timer`는 승인 전 OFF. #64 ingestion 보정 후 diagnostic report가 32 sessions / 302 messages를 스캔. #37 Layer 4 n8n 연결과 #39 infra vote skeleton은 RPi smoke 완료. | 에코시스템 오케스트레이터, Honcho/OpenProject/n8n 운영 계약 안정화 중 |
 | 4 | `regula-eval-suite` | 0개 | 초기 단계 | ra-med-bot 평가 인프라, 연계 개발 필요 |
 | 5 | `nas-llm` | 2개 | Phase 4 인제스트 진행 중 | Phase 4 전량 인제스트 미완 |
 
@@ -79,6 +79,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-06-16 | ra-hermes 상태 갱신 — P0~P3 일괄 보강. #64 metrics ingestion 복구, #37 Layer 4 n8n 연결/runtime 배포, #39 infra vote broadcast, #40 form draft gate, #41 absence metric, #43~#45 RPi import/smoke |
 | 2026-06-16 | ra-hermes 상태 갱신 — #63~#65 등록. 프로젝트 현황을 RA 전문가 성장 운영 기준으로 재정렬하고, metrics ingestion 0건 보정과 threshold/notification 정책을 별도 이슈로 분리 |
 | 2026-06-16 | ra-hermes 상태 갱신 — #62 정적 `docs/growth-dashboard.html` 추가, Git checkout에서 바로 보는 성장 모니터링 snapshot 제공 |
 | 2026-06-16 | ra-hermes 상태 갱신 — #61 지속 성장 모니터링 감사, `ra-growth-metrics.timer` active/enabled 확인, 통합 성장 대시보드 미구현 및 최근 metrics 데이터 0건 한계를 #62 후속으로 등록 |

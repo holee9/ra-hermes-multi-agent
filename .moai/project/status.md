@@ -5,6 +5,36 @@
 
 ---
 
+## 점검 기록 #7 — 2026-06-16
+
+### P0~P3 일괄 보강 실행
+
+#### 처리 결과
+
+| 우선순위 | 이슈 | 처리 상태 |
+|----------|------|-----------|
+| P0 | #64 growth metrics ingestion | 완료. Honcho v0.15.1 list API를 `POST /sessions/list`, `POST /messages/list`로 보정. diagnostic report 32 sessions / 302 messages scanned |
+| P0 | #43~#45 n8n safety/env | RPi n8n env/compose 보강, 4개 workflow import/activate, feedback webhook smoke, mail-triage Yellow smoke 완료 |
+| P1 | #37 Layer 4 mail-triage | `/v1/knowledge/fetch` endpoint 추가, `/opt/hermes-ra` runtime 배포/restart, n8n Layer 4 lookup/prompt injection 추가, RPi → T3610 smoke 200 OK |
+| P1 | #65 threshold policy | threshold null 정책과 validator 구현. 30일 valid metrics 전까지 webhook/threshold 비활성 유지 |
+| P2 | #39 infra vote | `vote-rules.json` 초기값(quorum 2, threshold 0.66)과 `infra-vote-broadcast` workflow 추가. RPi import/activate 및 webhook smoke 완료 |
+| P2 | #41 specialist expansion | `absence_pattern_signals` metric 추가, expansion guide 갱신. 현재 review signal 없음 |
+| P3 | #40 form transfer | `form-triage-draft` workflow 추가. `FORM_TRIAGE_ENABLED=false`로 운영 비활성, 30일 valid metrics 전까지 blocked |
+
+#### 실측 증거
+
+- `reports/growth-diagnostic-2026-06-16.json`: `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`.
+- `reports/growth-transition-readiness-2026-06-16.json`: threshold policy는 사람 정책 정의 가능, form transfer는 `valid_metrics_days=1/30`으로 blocked, specialist expansion은 signal 없음.
+- T3610 `hermes-api-server`: `/v1/knowledge/fetch` 배포 후 restart 완료, openFDA MQB smoke 200 OK.
+- RPi n8n: env/compose 보강 후 workflow import/activate 완료. feedback webhook과 infra-vote webhook은 `Workflow was started` 반환.
+
+#### 남은 조건
+
+- 자동성장 timer 전환은 여전히 별도 사람 승인 필요.
+- form workflow 운영 활성화는 30일 valid metrics와 사람 승인 전까지 금지.
+- threshold 값은 임의로 채우지 않는다. #65 policy에 따라 30일 valid metrics 이후 설정한다.
+- mail-triage Green 경로/OpenProject write E2E는 실제 WP 생성·코멘트 side effect가 있으므로 통제된 테스트 WP에서 별도 수행한다.
+
 ## 점검 기록 #6 — 2026-06-16
 
 ### 제로 베이스 프로젝트 현황 재정렬

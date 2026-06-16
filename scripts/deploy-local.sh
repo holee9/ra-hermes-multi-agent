@@ -14,6 +14,11 @@ TARGET=/opt/hermes-ra
 
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+INSTALL_BIN="/usr/bin/install"
+INSTALL_PREFIX=()
+if [[ ! -w "$TARGET" || ! -w "$TARGET/scripts" ]]; then
+    INSTALL_PREFIX=(sudo)
+fi
 
 if [[ ! -d "$TARGET" ]]; then
     echo "ERROR: $TARGET not found. This script is for T3610 only." >&2
@@ -49,18 +54,18 @@ for f in "${SCRIPTS_TO_SYNC[@]}"; do
         continue
     fi
     if $DRY_RUN; then
-        echo "  [dry-run] cp $src → $dst"
+        echo "  [dry-run] ${INSTALL_PREFIX[*]:-} $INSTALL_BIN -m 0644 $src → $dst"
     else
-        /bin/cp "$src" "$dst"
+        "${INSTALL_PREFIX[@]}" "$INSTALL_BIN" -m 0644 "$src" "$dst"
         echo "  OK: $f"
     fi
 done
 
 # hermes-api-server.py also lives at TARGET root (service entry point)
 if $DRY_RUN; then
-    echo "  [dry-run] cp hermes-api-server.py → $TARGET/hermes-api-server.py"
+    echo "  [dry-run] ${INSTALL_PREFIX[*]:-} $INSTALL_BIN -m 0644 hermes-api-server.py → $TARGET/hermes-api-server.py"
 else
-    /bin/cp "${SCRIPT_DIR}/hermes-api-server.py" "${TARGET}/hermes-api-server.py"
+    "${INSTALL_PREFIX[@]}" "$INSTALL_BIN" -m 0644 "${SCRIPT_DIR}/hermes-api-server.py" "${TARGET}/hermes-api-server.py"
     echo "  OK: hermes-api-server.py (root copy updated)"
 fi
 

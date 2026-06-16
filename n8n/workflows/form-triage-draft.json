@@ -1,0 +1,103 @@
+{
+  "id": "formTriageDraft001",
+  "name": "form-triage-draft",
+  "nodes": [
+    {
+      "id": "form-triage-webhook",
+      "name": "Form 접수 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "form-triage-draft-webhook",
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "form-triage-draft",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "form-triage-normalize",
+      "name": "Form 입력 표준화 및 활성화 게이트",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0],
+      "parameters": {
+        "jsCode": "const raw = $json.body || $json;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\nconst enabled = String(env.FORM_TRIAGE_ENABLED || '').toLowerCase() === 'true';\nconst subject = raw.subject || raw.title || raw.product || 'RA form intake';\nconst requester = raw.requester || raw.email || raw.from || 'form-intake';\nconst details = [\n  raw.description,\n  raw.device,\n  raw.intended_use,\n  raw.market,\n  raw.region,\n  raw.question\n].filter(Boolean).join('\\n');\nreturn [{ json: {\n  form_triage_enabled: enabled,\n  blocked_reason: enabled ? null : 'FORM_TRIAGE_ENABLED is not true; #40 remains gated by 30-day mail-triage stability and valid growth metrics',\n  mail_triage_payload: {\n    subject: 'Form: ' + subject,\n    text: 'From: ' + requester + '\\nSubject: ' + subject + '\\n\\n' + details,\n    id: raw.id || ('form-' + Date.now()),\n    date: raw.date || new Date().toISOString()\n  },\n  source: 'form-triage-draft'\n}}];"
+      }
+    },
+    {
+      "id": "form-enabled-if",
+      "name": "Form 이관 활성화 여부",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 0],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.form_triage_enabled }}",
+              "operator": { "type": "boolean", "operation": "true" },
+              "rightValue": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "relay-to-mail-triage",
+      "name": "mail-triage 계약으로 전달",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [720, -100],
+      "continueOnFail": true,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || 'http://localhost:5678') + '/webhook/mail-triage-test' }}",
+        "authentication": "none",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.mail_triage_payload) }}"
+      }
+    },
+    {
+      "id": "form-blocked-response",
+      "name": "Form 이관 보류 응답",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 120],
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'blocked', reason: $json.blocked_reason, source: $json.source } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Form 접수 Webhook": {
+      "main": [[{ "node": "Form 입력 표준화 및 활성화 게이트", "type": "main", "index": 0 }]]
+    },
+    "Form 입력 표준화 및 활성화 게이트": {
+      "main": [[{ "node": "Form 이관 활성화 여부", "type": "main", "index": 0 }]]
+    },
+    "Form 이관 활성화 여부": {
+      "main": [
+        [{ "node": "mail-triage 계약으로 전달", "type": "main", "index": 0 }],
+        [{ "node": "Form 이관 보류 응답", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "pinData": {}
+}

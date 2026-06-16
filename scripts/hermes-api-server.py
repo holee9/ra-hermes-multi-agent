@@ -288,6 +288,45 @@ def list_models():
     })
 
 
+@app.route("/v1/knowledge/fetch", methods=["POST"])
+def knowledge_fetch():
+    """Expose Layer 4 lookup for n8n preflight context injection.
+
+    The chat endpoint still performs its own Layer 4 lookup. This endpoint lets
+    n8n record and pass the same real-time evidence explicitly before the RA
+    call, while degrading safely to an empty result when upstream sources fail.
+    """
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(force=True, silent=True) or {}
+    query = str(data.get("query") or data.get("search_query") or "").strip()
+    model = str(data.get("model") or data.get("profile") or DEFAULT_PROFILE)
+    profile = PROFILE_MAP.get(model, model if model in PROFILE_MAP.values() else DEFAULT_PROFILE)
+    try:
+        top = int(data.get("top", 3))
+    except (TypeError, ValueError):
+        top = 3
+    top = max(1, min(top, 10))
+
+    if not query:
+        return jsonify({
+            "status": "skipped",
+            "reason": "empty_query",
+            "profile": profile,
+            "results": {},
+        })
+
+    results = _run_knowledge_fetch(query, profile, top=top)
+    return jsonify({
+        "status": "ok" if results else "empty_or_unavailable",
+        "profile": profile,
+        "query": query,
+        "top": top,
+        "results": results,
+    })
+
+
 @app.route("/v1/chat/completions", methods=["POST"])
 def chat_completions():
     if not check_auth():
