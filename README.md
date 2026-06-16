@@ -3,7 +3,7 @@
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
 > Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-15.
 
-**[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [성장 대시보드](docs/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
+**[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
 
 ---
 
@@ -64,10 +64,10 @@
 | 일일 성장 지표 timer | `ra-growth-metrics.timer` active/enabled, 매일 02:00 KST 실행 | ✅ 스케줄러 존재 |
 | 성장 지표 산출물 | `reports/growth-YYYY-MM-DD.json` 생성 (`correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`, `autonomous_study_sessions`, `study_insights_count`) | ⚠️ 파일 기반 |
 | 최근 지표 유효성 | 2026-06-14~16 보고서가 `sessions_scanned=0`, `messages_scanned=0` | ⚠️ 데이터 집계 보정 필요 |
-| 웹 대시보드 | `docs/growth-dashboard.html` 정적 snapshot 추가. `virtual-office/`는 별도 활동 이벤트 재생용 파일럿 | ✅ 정적 보기 가능 |
+| 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. `virtual-office/`는 별도 활동 이벤트 재생용 파일럿 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [growth-dashboard.html](docs/growth-dashboard.html)은 Git checkout에서 브라우저로 바로 열 수 있고, readiness·timer·pending/오염·담당자 균형·최근 growth metrics를 한 화면에 표시한다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열리며, readiness·timer·pending/오염·담당자 균형·최근 growth metrics를 한 화면에 표시한다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. 남은 실시간화, metrics ingestion 0건 보정, threshold/webhook 운영 기준은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 계속 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 

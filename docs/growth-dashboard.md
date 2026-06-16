@@ -19,6 +19,8 @@
 
 ## 바로 보는 방법
 
+README에서 [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)를 클릭하면 GitHub Pages로 렌더링된 HTML이 열린다.
+
 로컬 checkout에서:
 
 ```bash
@@ -27,19 +29,19 @@ xdg-open docs/growth-dashboard.html
 
 또는 파일 매니저/브라우저에서 `docs/growth-dashboard.html`을 직접 연다.
 
-GitHub 웹 화면에서 `docs/growth-dashboard.html`을 클릭하면 HTML이 렌더링되지 않고 소스가 보일 수 있다. 실제 화면으로 보려면 다음 중 하나를 사용한다.
+GitHub 웹 파일 화면에서 `docs/growth-dashboard.html`을 직접 클릭하면 HTML이 렌더링되지 않고 소스가 보일 수 있다. 실제 화면으로 보려면 다음 중 하나를 사용한다.
 
 - repo를 checkout한 뒤 브라우저에서 파일 열기
-- GitHub Pages를 `docs/` 기준으로 활성화
+- README의 GitHub Pages 링크 사용
 - raw HTML viewer를 통해 raw 파일 URL 렌더링
 
-GitHub Pages를 켠 경우 예상 경로:
+GitHub Pages 경로:
 
 ```text
 https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html
 ```
 
-Pages 활성화 자체는 GitHub repository 설정 작업이므로 이 문서에서는 절차만 정의하고, 실제 활성화는 사람 승인 후 수행한다.
+GitHub Pages는 `main` branch의 `/docs` path 기준으로 활성화되어 있다.
 
 ## 갱신 절차
 
