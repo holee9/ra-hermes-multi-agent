@@ -55,6 +55,20 @@
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
+### 지속 성장 모니터링 현황 (2026-06-16)
+
+| 구분 | 현재 상태 | 판정 |
+|---|---|---|
+| 자동성장 readiness | `scripts/auto-growth-readiness-report.py` 기준 4x4 matrix 16/16, `approval_review_required` | ✅ 승인 검토 가능 |
+| 자동성장 timer | `hermes-auto-growth.timer` inactive/disabled, 명시 승인 전 자동 실행 없음 | ✅ 안전 |
+| 일일 성장 지표 timer | `ra-growth-metrics.timer` active/enabled, 매일 02:00 KST 실행 | ✅ 스케줄러 존재 |
+| 성장 지표 산출물 | `reports/growth-YYYY-MM-DD.json` 생성 (`correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`, `autonomous_study_sessions`, `study_insights_count`) | ⚠️ 파일 기반 |
+| 최근 지표 유효성 | 2026-06-14~16 보고서가 `sessions_scanned=0`, `messages_scanned=0` | ⚠️ 데이터 집계 보정 필요 |
+| 웹 대시보드 | `virtual-office/` 파일럿 대시보드는 존재하나 활동 이벤트 재생용이며, 성장 지표·readiness 통합 대시보드는 아님 | ❌ 미구현 |
+| 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
+
+현재 존재하는 것은 **자동 리포트와 파일 기반 모니터링 인프라**다. 향후 지속 성장 추이를 한 화면에서 보는 **통합 성장 대시보드**는 아직 없다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 유지하고, 성장 추세·readiness·pending·오염 상태·timer 상태를 보는 대시보드는 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62)에서 별도 구현·검증한다.
+
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-13 기준)
 
 | 프로파일 | Honcho 피어 ID | Workspace | 인물 | 상태 |
