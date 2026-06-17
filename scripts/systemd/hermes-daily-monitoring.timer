@@ -1,0 +1,11 @@
+[Unit]
+Description=RA Hermes Daily Monitoring Timer
+Requires=hermes-daily-monitoring.service
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target
