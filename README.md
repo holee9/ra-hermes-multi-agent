@@ -9,7 +9,7 @@
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 자동성장 timer OFF · 성장 지표 ingestion 보정 필요** | 최종 갱신: 2026-06-16
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 자동성장 timer OFF · 성장 지표 ingestion 보정 필요 · 아키텍처 Codemaps + SPEC-ARCH-001 문서화 완료** | 최종 갱신: 2026-06-17
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -52,6 +52,7 @@
 | n8n 워크플로우 env/config 외부화 | ✅ RPi n8n env/compose 반영, workflow import/activate 완료 | [#45](https://github.com/holee9/ra-hermes-multi-agent/issues/45) |
 | npm test 품질 게이트 복구 | ✅ 완료 (`test:static` + Playwright E2E 11건) | [#46](https://github.com/holee9/ra-hermes-multi-agent/issues/46) |
 | 문서 상태 불일치 정리 | ✅ 완료 (README·설계·운영·생태계·상태 문서 동기화) | [#47](https://github.com/holee9/ra-hermes-multi-agent/issues/47) |
+| 아키텍처 문서화 (Codemaps + SPEC-ARCH-001) | ✅ 완료 (전체 시스템 아키텍처 분석, 4개 codemaps + SPEC-ARCH-001 생성) | Codemaps 완료 |
 | 제로 베이스 프로젝트 상태 재정렬 | ✅ 완료 (목표·현황·잔여 작업을 대시보드가 아니라 RA 전문가 성장 운영 기준으로 재정렬) | [#63](https://github.com/holee9/ra-hermes-multi-agent/issues/63) |
 | 성장 지표 ingestion/data contract 보정 | ✅ 완료 (Honcho v0.15.1 `POST /sessions/list`·`POST /messages/list` 계약 반영, diagnostic report 32 sessions/302 messages scanned) | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
 | 자동성장 threshold/notification 정책 | 🔄 정책 게이트 구현 (threshold null 정책·검증 추가, 30일 유효 metrics 전까지 자동 알림 비활성) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
@@ -71,6 +72,7 @@
 | 실시간 규제 활용 | `/v1/knowledge/fetch` 추가, T3610 runtime 배포/restart, RPi → Layer 4 smoke 200 OK | ✅ 운영 반영 |
 | 인프라 의사결정 | `vote-rules.json` 초기값 + `infra-vote-broadcast` workflow 추가/import/activate, webhook smoke 완료 | ✅ skeleton 운영 반영 |
 | 확장 | absence signal metric과 transition readiness report 추가. 현재 specialist/form 전환은 운영 데이터 부족으로 blocked | 🔄 데이터 대기 |
+| 아키텍처 문서화 | 전체 시스템에 대한 codemaps (4개 파일)과 SPEC-ARCH-001 (3개 파일) 생성 완료 | ✅ 문서화 완료 |
 
 ### 남은 작업 우선순위
 
@@ -129,6 +131,8 @@
 | source curriculum seed | `scripts/curriculum-seed.py`, `scripts/verify-curriculum-seed.py` | #50/#60 기존 `ra_knowledge` source를 clean text curriculum seed로 빠르게 이식 (`ra_us` 48, `ra_eu` 31, `ra_kr` 48 processed) |
 | non-email growth loop | `scripts/non-email-growth-loop.py`, `scripts/verify-non-email-growth-loop.py`, `scripts/pre-auto-growth-loop.py`, `scripts/auto-growth-readiness-report.py`, `scripts/auto-growth-runner.sh`, `scripts/systemd/hermes-auto-growth.{service,timer}`, `scripts/verify-auto-growth-activation-policy.py` | #51/#53/#54 메일 수신 없이 KB/source curriculum/autonomous study/coverage audit cadence 실행, #57 이후 timer 활성화는 명시 승인 게이트 필요, #58 pre-production readiness loop로 지속 개선 |
 | static growth dashboard | `docs/growth-dashboard.html`, `docs/growth-dashboard.md`, `scripts/render-growth-dashboard.py`, `scripts/verify-growth-dashboard.py`, `scripts/coverage-guards.json` | #62 GitHub Pages에서 바로 보는 standalone HTML snapshot. RA Growth Operations 요약, 담당자별 성장 카드, growth signal flow, trend/evidence 시각화 |
+| 아키텍처 Codemaps | `.moai/project/codemaps/` (overview.md, modules.md, dependencies.md, entry-points.md) | 전체 시스템 아키텍처 분석 완료. 30+ 모듈, 50+ 진입점, 내외부 의존성 그래프 문서화 |
+| 아키텍처 개선 SPEC | `.moai/specs/SPEC-ARCH-001/` (spec.md, plan.md, acceptance.md) | SPEC-ARCH-001 생성 완료. EARS 형식 요구사항 15개, 5단계 구현 계획, Given-When-Then 수용 기준 |
 
 > [IF] 표시 항목은 의도적 공백 — 운영·학습으로 채워지는 설계. 하드코딩 금지.
 
@@ -194,6 +198,19 @@ bash honcho/init-workspaces.sh
 
 ```
 ra-hermes-multi-agent/
+│
+├── .moai/                           # MoAI 프로젝트 관리
+│   ├── project/                      # 프로젝트 산출물
+│   │   └── codemaps/                # 아키텍처 Codemaps
+│   │       ├── overview.md           # 시스템 개요
+│   │       ├── modules.md            # 모듈 카탈로그 (30+ 모듈)
+│   │       ├── dependencies.md       # 의존성 그래프
+│   │       └── entry-points.md       # 진입점 매뉴얼 (50+ 진입점)
+│   └── specs/                        # SPEC 문서
+│       └── SPEC-ARCH-001/            # 전체 시스템 아키텍처 개선 SPEC
+│           ├── spec.md               # EARS 형식 요구사항 (15개)
+│           ├── plan.md               # 5단계 구현 계획
+│           └── acceptance.md        # Given-When-Then 수용 기준
 │
 ├── docs/                            # 설계·운영 문서
 │   ├── RA-multi-agent-master-design.md  # 마스터 설계서 (전체 그림·철학)
