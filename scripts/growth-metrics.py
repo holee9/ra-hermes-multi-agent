@@ -27,15 +27,35 @@ import argparse
 import json
 import os
 import sys
+import time
+import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any, Literal
 
 import requests
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration & Logging
 # ---------------------------------------------------------------------------
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/growth-metrics-errors.log'),
+        logging.StreamHandler(sys.stderr)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Retry configuration
+MAX_RETRIES = int(os.environ.get("GROWTH_METRICS_MAX_RETRIES", "3"))
+RETRY_DELAY = float(os.environ.get("GROWTH_METRICS_RETRY_DELAY", "1.0"))
+API_TIMEOUT = int(os.environ.get("GROWTH_METRICS_TIMEOUT", "30"))
+
+# Honcho configuration
 HONCHO_URL = os.environ.get("HONCHO_URL", "http://localhost:8000")
 HONCHO_WS = os.environ.get("HONCHO_WORKSPACE", "work")
 REPO_ROOT = Path(__file__).parent.parent
@@ -59,7 +79,31 @@ EXPECTED_ACTIVITY_TYPES = {
     "study_session_complete",
     "study_insight",
 }
+
+# Enhanced error tracking
 API_ERRORS: list[dict] = []
+
+# Error classification for better diagnostics
+class ErrorType:
+    TRANSIENT = "transient"  # Temporary network issues, timeouts
+    PERMANENT = "permanent"  # Auth errors, 404, invalid data
+    UNKNOWN = "unknown"  # Uncategorized errors
+
+def classify_error(exc: requests.RequestException) -> str:
+    """Classify error as transient, permanent, or unknown."""
+    if isinstance(exc, requests.Timeout):
+        return ErrorType.TRANSIENT
+    elif isinstance(exc, requests.ConnectionError):
+        return ErrorType.TRANSIENT
+    elif isinstance(exc, requests.HTTPError):
+        status_code = getattr(exc.response, 'status_code', 0)
+        if 500 <= status_code < 600:
+            return ErrorType.TRANSIENT  # Server errors - retry
+        elif 400 <= status_code < 500:
+            return ErrorType.PERMANENT  # Client errors - don't retry
+        return ErrorType.UNKNOWN
+    return ErrorType.UNKNOWN
+
 ABSENCE_DOMAINS = {
     "clinical_evaluation": ["cer", "clinical", "임상", "clinical evaluation", "clinical trial"],
     "quality_capa": ["qms", "capa", "audit", "kgmp", "품질", "시정", "예방조치", "감사"],
@@ -74,37 +118,91 @@ ABSENCE_DOMAINS = {
 # ---------------------------------------------------------------------------
 
 def honcho_get(path: str, params: dict | None = None) -> dict | list | None:
+    """GET request with retry logic for transient errors."""
     url = f"{HONCHO_URL}/v3/workspaces/{HONCHO_WS}{path}"
-    try:
-        resp = requests.get(url, params=params, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
-    except requests.RequestException as exc:
-        print(f"  [warn] GET {path} failed: {exc}", file=sys.stderr)
-        API_ERRORS.append({
-            "method": "GET",
-            "path": path,
-            "params": params or {},
-            "error": str(exc),
-        })
-        return None
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = requests.get(url, params=params, timeout=API_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json()
+        except requests.RequestException as exc:
+            error_type = classify_error(exc)
+
+            # Don't retry permanent errors
+            if error_type == ErrorType.PERMANENT:
+                logger.error(f"GET {path} failed (permanent): {exc}")
+                API_ERRORS.append({
+                    "method": "GET",
+                    "path": path,
+                    "params": params or {},
+                    "error": str(exc),
+                    "error_type": error_type,
+                    "attempts": attempt + 1,
+                })
+                return None
+
+            # Log and retry for transient errors
+            if attempt < MAX_RETRIES - 1:
+                logger.warning(f"GET {path} failed (attempt {attempt + 1}/{MAX_RETRIES}): {exc} - retrying...")
+                time.sleep(RETRY_DELAY * (2 ** attempt))  # Exponential backoff
+            else:
+                # Final attempt failed
+                logger.error(f"GET {path} failed after {MAX_RETRIES} attempts: {exc}")
+                API_ERRORS.append({
+                    "method": "GET",
+                    "path": path,
+                    "params": params or {},
+                    "error": str(exc),
+                    "error_type": error_type,
+                    "attempts": MAX_RETRIES,
+                })
+
+    return None
 
 
 def honcho_post(path: str, body: dict) -> dict | None:
+    """POST request with retry logic for transient errors."""
     url = f"{HONCHO_URL}/v3/workspaces/{HONCHO_WS}{path}"
-    try:
-        resp = requests.post(url, json=body, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
-    except requests.RequestException as exc:
-        print(f"  [warn] POST {path} failed: {exc}", file=sys.stderr)
-        API_ERRORS.append({
-            "method": "POST",
-            "path": path,
-            "body": body,
-            "error": str(exc),
-        })
-        return None
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = requests.post(url, json=body, timeout=API_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json()
+        except requests.RequestException as exc:
+            error_type = classify_error(exc)
+
+            # Don't retry permanent errors
+            if error_type == ErrorType.PERMANENT:
+                logger.error(f"POST {path} failed (permanent): {exc}")
+                API_ERRORS.append({
+                    "method": "POST",
+                    "path": path,
+                    "body": body,
+                    "error": str(exc),
+                    "error_type": error_type,
+                    "attempts": attempt + 1,
+                })
+                return None
+
+            # Log and retry for transient errors
+            if attempt < MAX_RETRIES - 1:
+                logger.warning(f"POST {path} failed (attempt {attempt + 1}/{MAX_RETRIES}): {exc} - retrying...")
+                time.sleep(RETRY_DELAY * (2 ** attempt))  # Exponential backoff
+            else:
+                # Final attempt failed
+                logger.error(f"POST {path} failed after {MAX_RETRIES} attempts: {exc}")
+                API_ERRORS.append({
+                    "method": "POST",
+                    "path": path,
+                    "body": body,
+                    "error": str(exc),
+                    "error_type": error_type,
+                    "attempts": MAX_RETRIES,
+                })
+
+    return None
 
 
 def list_sessions(limit: int = 200) -> list[dict]:
@@ -143,18 +241,38 @@ def parse_activity_log(msg: dict) -> dict | None:
     meta = msg.get("metadata") or {}
     if meta.get("type") != "activity_log":
         return None
-    try:
-        content = json.loads(msg.get("content", "{}"))
-    except (json.JSONDecodeError, TypeError):
+
+    content_raw = msg.get("content", "")
+    if not content_raw:
+        logger.debug(f"Empty content in activity_log message (session: {msg.get('peer_name', 'unknown')})")
         return None
-    return content
+
+    try:
+        content = json.loads(content_raw)
+        return content
+    except json.JSONDecodeError as exc:
+        logger.warning(f"JSON decode error in activity_log: {exc}")
+        logger.debug(f"Content preview: {content_raw[:200]}")
+        return None
+    except TypeError as exc:
+        logger.warning(f"Invalid content type in activity_log: {exc}")
+        return None
 
 
 def parse_content(msg: dict) -> dict:
+    """Parse message content with enhanced error tracking."""
+    content_raw = msg.get("content", "")
+    if not content_raw:
+        return {}
+
     try:
-        content = json.loads(msg.get("content", "{}"))
+        content = json.loads(content_raw)
         return content if isinstance(content, dict) else {}
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError as exc:
+        logger.debug(f"JSON decode error: {exc} in message from {msg.get('peer_name', 'unknown')}")
+        return {}
+    except TypeError as exc:
+        logger.debug(f"Invalid content type: {exc}")
         return {}
 
 
@@ -808,6 +926,12 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
         "ingestion_diagnostics": {
             "api_status": "failed" if API_ERRORS and len(sessions) == 0 else "partial_failure" if API_ERRORS else "ok",
             "api_errors": API_ERRORS[:10],
+            "api_error_summary": {
+                "total_errors": len(API_ERRORS),
+                "transient_errors": sum(1 for e in API_ERRORS if e.get("error_type") == ErrorType.TRANSIENT),
+                "permanent_errors": sum(1 for e in API_ERRORS if e.get("error_type") == ErrorType.PERMANENT),
+                "unknown_errors": sum(1 for e in API_ERRORS if e.get("error_type") == ErrorType.UNKNOWN),
+            },
             "sessions_listed": len(sessions),
             "sessions_without_id": sessions_without_id,
             "sessions_with_messages": len(messages_by_session),
@@ -836,10 +960,15 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
 def check_and_notify_triggers(metrics: dict) -> None:
     """Check growth-trigger-config.json thresholds and POST to n8n webhook if met."""
     if not TRIGGER_CONFIG.exists():
+        logger.debug(f"Trigger config not found: {TRIGGER_CONFIG}")
         return
 
-    with open(TRIGGER_CONFIG, encoding="utf-8") as f:
-        cfg = json.load(f)
+    try:
+        with open(TRIGGER_CONFIG, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (json.JSONDecodeError, IOError) as exc:
+        logger.error(f"Failed to load trigger config: {exc}")
+        return
 
     webhook_url: str | None = cfg.get("notification", {}).get("n8n_webhook_url")
     triggers = cfg.get("triggers", {})
@@ -875,22 +1004,41 @@ def check_and_notify_triggers(metrics: dict) -> None:
 
     if not webhook_url:
         print("  (n8n_webhook_url 미설정 — 알림 없음)", flush=True)
+        logger.warning("Webhook URL not configured - trigger notifications skipped")
         return
 
     payload = {
         "event": "growth_trigger_activated",
         "date": metrics.get("date", ""),
         "triggers": triggered,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    try:
-        resp = requests.post(webhook_url, json=payload, timeout=15)
-        resp.raise_for_status()
-        print(f"  n8n webhook 알림 전송: {webhook_url}", flush=True)
-    except requests.RequestException as e:
-        print(f"  Webhook 호출 실패: {e}", flush=True)
+
+    # Enhanced webhook error handling with retry
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = requests.post(webhook_url, json=payload, timeout=15)
+            resp.raise_for_status()
+            print(f"  n8n webhook 알림 전송: {webhook_url}", flush=True)
+            logger.info(f"Webhook notification sent successfully to {webhook_url}")
+            return
+        except requests.RequestException as exc:
+            error_type = classify_error(exc)
+
+            if attempt < MAX_RETRIES - 1 and error_type == ErrorType.TRANSIENT:
+                logger.warning(f"Webhook call failed (attempt {attempt + 1}/{MAX_RETRIES}): {exc} - retrying...")
+                time.sleep(RETRY_DELAY)
+            else:
+                logger.error(f"Webhook notification failed after {MAX_RETRIES} attempts: {exc}")
+                print(f"  Webhook 호출 실패 (영구적 오류 또는 재시도 초과): {exc}", flush=True)
+                return
 
 
 def main() -> None:
+    # Ensure logs directory exists
+    logs_dir = REPO_ROOT / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
     parser = argparse.ArgumentParser(
         description="Compute daily growth metrics from Honcho workspace."
     )
@@ -920,6 +1068,7 @@ def main() -> None:
 
     since = (until - timedelta(days=args.days)).replace(hour=0, minute=0, second=0)
 
+    logger.info(f"Starting growth metrics computation for window: {since.date()} → {until.date()}")
     metrics = compute_metrics(since, until)
 
     # Determine output path
@@ -930,9 +1079,18 @@ def main() -> None:
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         out_path = REPORTS_DIR / f"growth-{date_str}.json"
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, indent=2, ensure_ascii=False)
+    # Write output with error handling
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(metrics, f, indent=2, ensure_ascii=False)
+        logger.info(f"Metrics successfully written to: {out_path}")
+    except (IOError, OSError) as exc:
+        logger.error(f"Failed to write metrics to {out_path}: {exc}")
+        sys.exit(1)
+    except Exception as exc:
+        logger.error(f"Unexpected error writing metrics: {exc}")
+        sys.exit(1)
 
     print(f"\nOutput: {out_path}", flush=True)
 
