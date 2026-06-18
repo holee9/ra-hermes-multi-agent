@@ -5,11 +5,23 @@ from __future__ import annotations
 
 import html
 import json
+import logging
 import math
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/growth-dashboard-errors.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,9 +32,15 @@ GROWTH_TARGETS = ROOT / "scripts" / "growth-targets.json"
 
 
 def load_json(path: Path) -> dict[str, Any] | None:
+    """Load and parse JSON file with error handling."""
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        content = path.read_text(encoding="utf-8")
+        return json.loads(content)
+    except OSError as e:
+        logger.warning(f"File not found: {path} - {e}")
+        return None
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parsing failed for {path}: {e}")
         return None
 
 
@@ -35,8 +53,28 @@ def latest_json(paths: list[Path]) -> tuple[Path | None, dict[str, Any] | None]:
 
 
 def run(cmd: list[str]) -> str:
-    proc = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, check=False, timeout=30)
-    return (proc.stdout or proc.stderr).strip()
+    """Run subprocess command with enhanced error handling."""
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30
+        )
+        result = (proc.stdout or proc.stderr).strip()
+
+        if proc.returncode != 0:
+            logger.debug(f"Command failed: {' '.join(cmd)} - return code: {proc.returncode}")
+
+        return result
+    except subprocess.TimeoutExpired as e:
+        logger.error(f"Command timeout: {' '.join(cmd)} - {e}")
+        return "timeout"
+    except FileNotFoundError as e:
+        logger.error(f"Command not found: {' '.join(cmd)} - {e}")
+        return "not_found"
 
 
 def fmt(value: Any, fallback: str = "-") -> str:
@@ -60,74 +98,84 @@ def status_class(ok: bool | None) -> str:
 
 
 def collect_snapshot() -> dict[str, Any]:
-    readiness_path, readiness = latest_json(sorted((REPORTS / "auto-growth-readiness").glob("*.json")))
-    growth_paths = sorted(REPORTS.glob("growth-*.json"))
-    growth_reports = [(path, load_json(path)) for path in growth_paths]
-    growth_reports = [(path, data) for path, data in growth_reports if data]
-    latest_growth_path, latest_growth = latest_json(growth_paths)
+    """Collect dashboard data with validation and error handling."""
+    try:
+        # Ensure reports directory exists
+        if not REPORTS.exists():
+            logger.warning(f"Reports directory not found: {REPORTS}")
+            return {"error": "reports_directory_not_found", "generated_at": datetime.now().astimezone().isoformat()}
 
-    matrix = (readiness or {}).get("matrix", {})
-    scores = matrix.get("scores", {})
-    db = (readiness or {}).get("db", {})
-    growth_metrics = (latest_growth or {}).get("metrics", {})
-    coverage_guards = load_json(COVERAGE_GUARDS) or {}
-    growth_targets = load_json(GROWTH_TARGETS) or {}
+        readiness_path, readiness = latest_json(sorted((REPORTS / "auto-growth-readiness").glob("*.json")))
+        growth_paths = sorted(REPORTS.glob("growth-*.json"))
+        growth_reports = [(path, load_json(path)) for path in growth_paths]
+        growth_reports = [(path, data) for path, data in growth_reports if data]
+        latest_growth_path, latest_growth = latest_json(growth_paths)
 
-    hermes_timer_active = run(["systemctl", "is-active", "hermes-auto-growth.timer"])
-    hermes_timer_enabled = run(["systemctl", "is-enabled", "hermes-auto-growth.timer"])
-    metrics_timer_active = run(["systemctl", "is-active", "ra-growth-metrics.timer"])
-    metrics_timer_enabled = run(["systemctl", "is-enabled", "ra-growth-metrics.timer"])
+        matrix = (readiness or {}).get("matrix", {})
+        scores = matrix.get("scores", {})
+        db = (readiness or {}).get("db", {})
+        growth_metrics = (latest_growth or {}).get("metrics", {})
+        coverage_guards = load_json(COVERAGE_GUARDS) or {}
+        growth_targets = load_json(GROWTH_TARGETS) or {}
 
-    trend_rows: list[dict[str, Any]] = []
-    for path, data in growth_reports[-14:]:
-        metrics = data.get("metrics", {})
-        trend_rows.append({
-            "file": path.name,
-            "generated_at": data.get("generated_at"),
-            "sessions_scanned": data.get("sessions_scanned"),
-            "messages_scanned": data.get("messages_scanned"),
-            "correction_rate": (metrics.get("correction_rate") or {}).get("value"),
-            "first_pass_match_accuracy": (metrics.get("first_pass_match_accuracy") or {}).get("value"),
-            "autonomous_study_sessions": (metrics.get("autonomous_study_sessions") or {}).get("value"),
-            "study_insights_count": (metrics.get("study_insights_count") or {}).get("value"),
-        })
+        hermes_timer_active = run(["systemctl", "is-active", "hermes-auto-growth.timer"])
+        hermes_timer_enabled = run(["systemctl", "is-enabled", "hermes-auto-growth.timer"])
+        metrics_timer_active = run(["systemctl", "is-active", "ra-growth-metrics.timer"])
+        metrics_timer_enabled = run(["systemctl", "is-enabled", "ra-growth-metrics.timer"])
 
-    return {
-        "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "readiness_file": readiness_path.name if readiness_path else None,
-        "growth_file": latest_growth_path.name if latest_growth_path else None,
-        "readiness": {
-            "total_score": matrix.get("total_score"),
-            "max_score": matrix.get("max_score"),
-            "recommendation": matrix.get("timer_operation_recommendation"),
-            "dimension_scores": {key: value.get("score") for key, value in scores.items()},
-        },
-        "timers": {
-            "hermes_auto_growth": {"active": hermes_timer_active, "enabled": hermes_timer_enabled},
-            "ra_growth_metrics": {"active": metrics_timer_active, "enabled": metrics_timer_enabled},
-        },
-        "cleanliness": (scores.get("data_cleanliness") or {}).get("checks", {}),
-        "activation": (scores.get("activation_control") or {}).get("checks", {}),
-        "self_docs": ((scores.get("agent_balance") or {}).get("self_docs") or db.get("self_docs") or {}),
-        "seed_counts": (scores.get("growth_input_quality") or {}).get("seed_counts", {}),
-        "growth_latest": {
-            "generated_at": (latest_growth or {}).get("generated_at"),
-            "sessions_scanned": (latest_growth or {}).get("sessions_scanned"),
-            "messages_scanned": (latest_growth or {}).get("messages_scanned"),
-            "metrics": {
-                key: {
-                    "value": value.get("value"),
-                    "direction": value.get("direction"),
-                    "note": value.get("note"),
-                }
-                for key, value in growth_metrics.items()
-                if isinstance(value, dict)
+        trend_rows: list[dict[str, Any]] = []
+        for path, data in growth_reports[-14:]:
+            metrics = data.get("metrics", {})
+            trend_rows.append({
+                "file": path.name,
+                "generated_at": data.get("generated_at"),
+                "sessions_scanned": data.get("sessions_scanned"),
+                "messages_scanned": data.get("messages_scanned"),
+                "correction_rate": (metrics.get("correction_rate") or {}).get("value"),
+                "first_pass_match_accuracy": (metrics.get("first_pass_match_accuracy") or {}).get("value"),
+                "autonomous_study_sessions": (metrics.get("autonomous_study_sessions") or {}).get("value"),
+                "study_insights_count": (metrics.get("study_insights_count") or {}).get("value"),
+            })
+
+        return {
+            "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "readiness_file": readiness_path.name if readiness_path else None,
+            "growth_file": latest_growth_path.name if latest_growth_path else None,
+            "readiness": {
+                "total_score": matrix.get("total_score"),
+                "max_score": matrix.get("max_score"),
+                "recommendation": matrix.get("timer_operation_recommendation"),
+                "dimension_scores": {key: value.get("score") for key, value in scores.items()},
             },
-        },
-        "trend_rows": trend_rows,
-        "coverage_guards": coverage_guards,
-        "growth_targets": growth_targets,
-    }
+            "timers": {
+                "hermes_auto_growth": {"active": hermes_timer_active, "enabled": hermes_timer_enabled},
+                "ra_growth_metrics": {"active": metrics_timer_active, "enabled": metrics_timer_enabled},
+            },
+            "cleanliness": (scores.get("data_cleanliness") or {}).get("checks", {}),
+            "activation": (scores.get("activation_control") or {}).get("checks", {}),
+            "self_docs": ((scores.get("agent_balance") or {}).get("self_docs") or db.get("self_docs") or {}),
+            "seed_counts": (scores.get("growth_input_quality") or {}).get("seed_counts", {}),
+            "growth_latest": {
+                "generated_at": (latest_growth or {}).get("generated_at"),
+                "sessions_scanned": (latest_growth or {}).get("sessions_scanned"),
+                "messages_scanned": (latest_growth or {}).get("messages_scanned"),
+                "metrics": {
+                    key: {
+                        "value": value.get("value"),
+                        "direction": value.get("direction"),
+                        "note": value.get("note"),
+                    }
+                    for key, value in growth_metrics.items()
+                    if isinstance(value, dict)
+                },
+            },
+            "trend_rows": trend_rows,
+            "coverage_guards": coverage_guards,
+            "growth_targets": growth_targets,
+        }
+    except Exception as e:
+        logger.error(f"Failed to collect snapshot: {e}")
+        return {"error": "snapshot_collection_failed", "generated_at": datetime.now().astimezone().isoformat()}
 
 
 def render_metric_row(name: str, data: dict[str, Any]) -> str:
@@ -877,13 +925,52 @@ def render(snapshot: dict[str, Any]) -> str:
 
 
 def main() -> None:
-    snapshot = collect_snapshot()
-    OUTPUT.write_text(render(snapshot), encoding="utf-8")
-    print(json.dumps({
-        "output": str(OUTPUT.relative_to(ROOT)),
-        "readiness": snapshot["readiness"],
-        "growth_file": snapshot["growth_file"],
-    }, ensure_ascii=False))
+    """Main entry point with comprehensive error handling."""
+    try:
+        # Ensure logs directory exists
+        logs_dir = ROOT / "logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info("Starting dashboard generation...")
+        snapshot = collect_snapshot()
+
+        if "error" in snapshot:
+            error_type = snapshot["error"]
+            logger.error(f"Dashboard generation failed: {error_type}")
+            # Generate error dashboard
+            error_snapshot = {
+                "generated_at": snapshot["generated_at"],
+                "error": error_type,
+                "readiness": {"total_score": 0, "max_score": 16, "recommendation": "Data collection failed"},
+                "timers": {
+                    "hermes_auto_growth": {"active": "unknown", "enabled": "unknown"},
+                    "ra_growth_metrics": {"active": "unknown", "enabled": "unknown"},
+                },
+                "cleanliness": {},
+                "activation": {},
+                "self_docs": {},
+                "seed_counts": {},
+                "growth_latest": {},
+                "trend_rows": [],
+                "coverage_guards": {},
+                "growth_targets": {},
+            }
+            OUTPUT.write_text(render(error_snapshot), encoding="utf-8")
+            logger.info("Error dashboard generated")
+            return
+
+        OUTPUT.write_text(render(snapshot), encoding="utf-8")
+        logger.info(f"Dashboard generated: {OUTPUT.relative_to(ROOT)}")
+
+        print(json.dumps({
+            "output": str(OUTPUT.relative_to(ROOT)),
+            "readiness": snapshot["readiness"],
+            "growth_file": snapshot["growth_file"],
+        }, ensure_ascii=False))
+
+    except Exception as e:
+        logger.error(f"Dashboard generation failed: {e}")
+        raise
 
 
 if __name__ == "__main__":
