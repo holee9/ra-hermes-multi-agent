@@ -107,12 +107,12 @@ else
 fi
 
 # autonomous-study-scheduler
-if [ -f scripts/study-checkpoint.json ]; then
+if [ -f scripts/study-bootstrap-progress.json ]; then
     check_pass "Study scheduler checkpoint exists"
 
     if command -v jq > /dev/null 2>&1; then
-        LAST_RUN=$(jq -r '.last_run_ts // "N/A"' scripts/study-checkpoint.json)
-        echo "Last study run: $LAST_RUN" >> "$CHECKLIST_FILE"
+        LAST_RUN=$(jq -r '.last_bootstrap_ts // "N/A"' scripts/study-bootstrap-progress.json)
+        echo "Bootstrap progress: $LAST_RUN" >> "$CHECKLIST_FILE"
     fi
 else
     check_warn "Study scheduler checkpoint not found"
