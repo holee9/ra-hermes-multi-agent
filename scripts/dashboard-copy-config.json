@@ -1,0 +1,10 @@
+{
+  "dashboard_destinations": [
+    "/path/to/nas/ra-hermes/reports",
+    "/path/to/backup/location"
+  ],
+  "reports_backup_destinations": [
+    "/path/to/nas/ra-hermes/reports/backup"
+  ],
+  "note": "Edit these paths to match your environment"
+}
