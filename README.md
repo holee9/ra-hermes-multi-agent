@@ -5,11 +5,13 @@
 
 **[사용 가이드 →](docs/usage-guide.md)** | [마스터 설계서](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
 
+GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른다. 기본 운영 경로는 GX10 `gpt-oss:120b`이며, `scripts/configure-glm.sh`로 필요한 프로파일만 OpenAI-compatible GLM endpoint로 바꿀 수 있다.
+
 ---
 
 ## 현재 상태
 
-**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 점진적 자동화 7일 계획 진행 중 (Day 2-3 모니터링 활성화) · 아키텍처 Codemaps + SPEC-ARCH-001 문서화 완료** | 최종 갱신: 2026-06-17
+**Phase 1~2 완료 · 성장 루프/자율 학습 구현 · #48,#49 peer_id 복구 완료 · 점진적 자동화 7일 계획 진행 중 (Day 2-3 모니터링 활성화) · 아키텍처 Codemaps + SPEC-ARCH-001 문서화 완료** | 최종 갱신: 2026-06-18
 
 | 단계 | 상태 | 이슈 |
 |---|---|---|
@@ -55,7 +57,7 @@
 | 아키텍처 문서화 (Codemaps + SPEC-ARCH-001) | ✅ 완료 (전체 시스템 아키텍처 분석, 4개 codemaps + SPEC-ARCH-001 생성) | Codemaps 완료 |
 | 제로 베이스 프로젝트 상태 재정렬 | ✅ 완료 (목표·현황·잔여 작업을 대시보드가 아니라 RA 전문가 성장 운영 기준으로 재정렬) | [#63](https://github.com/holee9/ra-hermes-multi-agent/issues/63) |
 | 성장 지표 ingestion/data contract 보정 | ✅ 완료 (Honcho v0.15.1 `POST /sessions/list`·`POST /messages/list` 계약 반영, diagnostic report 32 sessions/302 messages scanned) | [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64) |
-| 자동성장 threshold/notification 정책 | 🔄 정책 게이트 구현 (threshold null 정책·검증 추가, 30일 유효 metrics 전까지 자동 알림 비활성) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
+| 자동성장 threshold/notification 정책 | ✅ 완료 (threshold null 정책·검증 추가, 30일 유효 metrics 전까지 자동 알림 비활성, error handling/dashboard/auto-copy/day15-checklist 구현) | [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65) |
 
 > **README 갱신 규칙**: 이슈 close 시마다 위 표 상태를 갱신한다. `⏸ 대기 → 🔄 진행 중 → ✅ 완료` 순서로 전환.
 
