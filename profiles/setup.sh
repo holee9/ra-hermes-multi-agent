@@ -24,6 +24,9 @@
 #   HERMES_CMD    hermes CLI binary (default: /home/abyz-lab/.local/bin/hermes)
 #   SOUL_DIR      dir with *-SOUL.md files (default: profiles/souls)
 #   HERMES_HOME   hermes default profile dir (default: ~/.hermes)
+#   MODEL_DEFAULT default chat model (default: gpt-oss:120b)
+#   MODEL_BASE_URL OpenAI-compatible chat endpoint (default: GX10_BASE_URL)
+#   MODEL_API_KEY optional API key for MODEL_BASE_URL (not printed)
 #   DRY_RUN       set to 1 to print commands without executing
 #
 # Prerequisites: Honcho stack running (verify-honcho.sh passes).
@@ -41,6 +44,9 @@ SOUL_DIR="${SOUL_DIR:-${REPO_ROOT}/profiles/souls}"
 HERMES_HOME="${HERMES_HOME:-${HOME}/.hermes}"
 DRY_RUN="${DRY_RUN:-0}"
 JQ=/usr/bin/jq
+MODEL_DEFAULT="${MODEL_DEFAULT:-gpt-oss:120b}"
+MODEL_BASE_URL="${MODEL_BASE_URL:-${GX10_BASE_URL:-http://192.168.100.1:11434/v1}}"
+MODEL_API_KEY="${MODEL_API_KEY:-}"
 
 OK=0
 SKIP=0
@@ -169,13 +175,19 @@ _create_profile() {
   local profile_dir="${HERMES_HOME}/profiles/${id}"
   if [ "${DRY_RUN}" = "1" ]; then
     echo "[DRY] HERMES_HOME=${profile_dir} hermes config set memory.provider honcho"
-    echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.default gpt-oss:120b"
+    echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.default ${MODEL_DEFAULT}"
+    echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.provider custom"
+    echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.base_url ${MODEL_BASE_URL}"
+    [ -n "${MODEL_API_KEY}" ] && echo "[DRY] HERMES_HOME=${profile_dir} hermes config set model.api_key <redacted>"
   elif [ -d "${profile_dir}" ]; then
     HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set memory.provider honcho 2>&1 | /usr/bin/grep -v "^$" || true
     # Model config must be set per-profile: profiles don't inherit from base ~/.hermes/config.yaml.
-    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.default "${MODEL_DEFAULT:-gpt-oss:120b}" 2>&1 | /usr/bin/grep -v "^$" || true
+    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.default "${MODEL_DEFAULT}" 2>&1 | /usr/bin/grep -v "^$" || true
     HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.provider custom 2>&1 | /usr/bin/grep -v "^$" || true
-    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.base_url "${GX10_BASE_URL:-http://192.168.100.1:11434/v1}" 2>&1 | /usr/bin/grep -v "^$" || true
+    HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.base_url "${MODEL_BASE_URL}" 2>&1 | /usr/bin/grep -v "^$" || true
+    if [ -n "${MODEL_API_KEY}" ]; then
+      HERMES_HOME="${profile_dir}" "${HERMES_CMD}" config set model.api_key "${MODEL_API_KEY}" 2>&1 | /usr/bin/grep -v "^$" || true
+    fi
   fi
 
   # Copy project SOUL.md over the freshly-created profile's default SOUL.md.

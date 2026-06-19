@@ -217,6 +217,42 @@ def pct(value: float, denominator: float) -> float:
     return max(0.0, min(100.0, (value / denominator) * 100.0))
 
 
+def observed_metric_value(metric: Any) -> bool:
+    if not isinstance(metric, dict) or metric.get("value") is None:
+        return False
+    if "denominator" in metric and number(metric.get("denominator")) <= 0:
+        return False
+    if "n_pairs" in metric and number(metric.get("n_pairs")) <= 0:
+        return False
+    if "warm_n" in metric or "cold_n" in metric:
+        return number(metric.get("warm_n")) > 0 and number(metric.get("cold_n")) > 0
+    return True
+
+
+def growth_input_available(snapshot: dict[str, Any]) -> bool:
+    growth_latest = snapshot.get("growth_latest", {})
+    return (
+        number(growth_latest.get("sessions_scanned")) > 0
+        and number(growth_latest.get("messages_scanned")) > 0
+    )
+
+
+def growth_maturity_measurable(snapshot: dict[str, Any]) -> bool:
+    if not growth_input_available(snapshot):
+        return False
+
+    growth_latest = snapshot.get("growth_latest", {})
+    metrics = growth_latest.get("metrics", {})
+    growth_targets = snapshot.get("growth_targets", {})
+    target_metrics = ((growth_targets.get("phase2_dynamic_learning") or {}).get("metrics") or {})
+    behavior_ready = bool(target_metrics) and all(
+        observed_metric_value(metrics.get(metric_name))
+        for metric_name in target_metrics
+    )
+    feedback_metric = metrics.get("human_feedback_coverage") or metrics.get("feedback_coverage")
+    return behavior_ready and observed_metric_value(feedback_metric)
+
+
 def evidence_scores(snapshot: dict[str, Any]) -> dict[str, float]:
     guards = snapshot.get("coverage_guards", {})
     expected_sources = (guards.get("source_coverage") or {}).get("expected_explicit_sources") or {}
@@ -412,13 +448,15 @@ def growth_signal_strip(snapshot: dict[str, Any], maturity_measurable: bool) -> 
     latest_sessions = int(number(growth_latest.get("sessions_scanned")))
     trend_messages = sum(int(number(row.get("messages_scanned"))) for row in snapshot.get("trend_rows", []))
     trend_insights = sum(int(number(row.get("study_insights_count"))) for row in snapshot.get("trend_rows", []))
-    state = "blocked" if not maturity_measurable else "running"
+    input_available = growth_input_available(snapshot)
+    state = "running" if maturity_measurable else ("warn" if input_available else "blocked")
     verdict = "성장 추세 미측정" if not maturity_measurable else "성장 추세 측정 중"
-    next_action = (
-        "결론: KB foundation은 준비됐지만 운영 성장 데이터가 0건입니다. 성장 신호는 Operational Input에서 끊겼고, 먼저 metrics ingestion을 고쳐야 합니다."
-        if not maturity_measurable
-        else "결론: 운영 성장 데이터가 들어오고 있습니다. 7일/30일 추세와 사람 피드백 기준선을 확인합니다."
-    )
+    if maturity_measurable:
+        next_action = "결론: 운영 성장 데이터가 들어오고 있습니다. 7일/30일 추세와 사람 피드백 기준선을 확인합니다."
+    elif input_available:
+        next_action = "결론: 운영 입력은 수집됐지만 행동/사람 피드백 지표 값이 아직 없습니다. 실제 피드백 metric 값이 들어올 때까지 trend verdict는 warning으로 유지합니다."
+    else:
+        next_action = "결론: KB foundation은 준비됐지만 운영 성장 데이터가 0건입니다. 성장 신호는 Operational Input에서 끊겼고, 먼저 metrics ingestion을 고쳐야 합니다."
     return (
         f"<section class='growth-summary {state}'>"
         "<div>"
@@ -436,10 +474,10 @@ def growth_signal_strip(snapshot: dict[str, Any], maturity_measurable: bool) -> 
     )
 
 
-def growth_flow(maturity_measurable: bool) -> str:
+def growth_flow(input_available: bool, maturity_measurable: bool) -> str:
     steps = [
         ("ok", "1", "Knowledge Base", "seed/depth ready"),
-        ("bad" if not maturity_measurable else "ok", "2", "Operational Input", "messages scanned"),
+        ("ok" if input_available else "bad", "2", "Operational Input", "messages scanned"),
         ("bad" if not maturity_measurable else "ok", "3", "Feedback Signal", "human review"),
         ("warn" if not maturity_measurable else "ok", "4", "Expert Growth", "trend verdict"),
     ]
@@ -532,7 +570,11 @@ def coverage_basis(snapshot: dict[str, Any]) -> str:
 
 
 def sparkline(rows: list[dict[str, Any]], key: str, label: str) -> str:
-    values = [number(row.get(key), 0.0) for row in rows]
+    values = [
+        number(row.get(key), 0.0)
+        for row in rows
+        if row.get(key) not in (None, "", "-")
+    ]
     width = 260
     height = 62
     pad = 8
@@ -565,15 +607,23 @@ def render(snapshot: dict[str, Any]) -> str:
     growth_latest = snapshot["growth_latest"]
     score_ok = readiness.get("total_score") == readiness.get("max_score") and readiness.get("max_score")
     scores = evidence_scores(snapshot)
-    sessions_scanned = number(growth_latest.get("sessions_scanned"))
-    messages_scanned = number(growth_latest.get("messages_scanned"))
-    maturity_measurable = sessions_scanned > 0 and messages_scanned > 0
+    input_available = growth_input_available(snapshot)
+    maturity_measurable = growth_maturity_measurable(snapshot)
     maturity_verdict = (
         "측정 가능: 행동/피드백 지표 기반으로 추세 판정 가능"
         if maturity_measurable
         else "측정 불충분: 행동/사람 평가 데이터 0건"
     )
     maturity_class = "ok" if maturity_measurable else "warn"
+    trend_note = (
+        "messages scanned와 피드백 metric 값이 모두 있어 성장 추세 해석이 가능합니다."
+        if maturity_measurable
+        else (
+            "messages scanned는 수집됐지만 행동/사람 피드백 metric 값이 없어 성장 추세 해석은 보류합니다."
+            if input_available
+            else "현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다."
+        )
+    )
     evidence_rows = "\n".join(
         f"<tr><th>{esc(evidence_label(name))}</th><td>{esc(score)}/4</td></tr>"
         for name, score in scores.items()
@@ -615,7 +665,7 @@ def render(snapshot: dict[str, Any]) -> str:
         "radar": radar_chart(scores, "expert evidence radar chart"),
         "growth_summary": growth_signal_strip(snapshot, maturity_measurable),
         "growth_cards": agent_growth_cards(snapshot),
-        "growth_flow": growth_flow(maturity_measurable),
+        "growth_flow": growth_flow(input_available, maturity_measurable),
         "agent_bars": agent_evidence_bars(snapshot),
         "coverage_basis": coverage_basis(snapshot),
         "cleanliness_lights": status_lights("Cleanliness", snapshot.get("cleanliness", {})),
@@ -687,6 +737,7 @@ def render(snapshot: dict[str, Any]) -> str:
       border-width: 2px;
     }}
     .growth-summary.blocked {{ background: var(--red-bg); border-color: #f5b5ae; }}
+    .growth-summary.warn {{ background: var(--yellow-bg); border-color: #f0ce80; }}
     .growth-summary.running {{ background: var(--green-bg); border-color: #9ad8b0; }}
     .eyebrow {{ color: var(--muted); font-size: 12px; font-weight: 780; text-transform: uppercase; letter-spacing: .08em; }}
     .growth-summary h2 {{ margin: 4px 0 8px; font-size: 30px; }}
@@ -800,7 +851,7 @@ def render(snapshot: dict[str, Any]) -> str:
       <summary>검증/감사 상세 보기 <span>상단 결론을 검산하거나 이슈 근거가 필요할 때만 펼칩니다.</span></summary>
       <div class="support-body">
         <div class="support-purpose">
-          <div class="purpose-card"><strong>결론 검산</strong><span>상단의 "성장 추세 미측정"이 실제 metrics 0건과 일치하는지 확인합니다.</span></div>
+          <div class="purpose-card"><strong>결론 검산</strong><span>상단의 "성장 추세 미측정"이 행동/피드백 metrics 0건과 일치하는지 확인합니다.</span></div>
           <div class="purpose-card"><strong>병목 위치 확인</strong><span>Operational Input이 막힌 것인지, 피드백/정확도 지표가 부족한 것인지 구분합니다.</span></div>
           <div class="purpose-card"><strong>커버리지 오판 방지</strong><span>KB/source floor 통과를 전문가 성숙도와 혼동하지 않도록 근거를 확인합니다.</span></div>
           <div class="purpose-card"><strong>이슈 기록 근거</strong><span>GitHub issue에 남길 수치, 파일명, readiness/cleanliness 상태를 확인합니다.</span></div>
@@ -861,7 +912,7 @@ def render(snapshot: dict[str, Any]) -> str:
             <h2>Growth Trend</h2>
             {visuals['messages_spark']}
             {visuals['insights_spark']}
-            <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
+            <div class="note">{esc(trend_note)}</div>
           </section>
         </div>
 
