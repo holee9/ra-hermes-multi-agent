@@ -522,12 +522,13 @@ timer 실행 내용:
 
 **측정 도구**: `scripts/growth-metrics.py` (systemd 타이머 구현 완료, 운영 활성화 상태는 배포 환경에서 확인).
 
-2026-06-16 모니터링 상태:
+2026-06-19 모니터링 상태:
 
 - `ra-growth-metrics.timer`는 active/enabled이며 매일 02:00 KST에 `ra-growth-metrics.service`를 실행한다.
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
 - #64 보정 전 `reports/growth-2026-06-14.json` ~ `reports/growth-2026-06-16.json`은 `sessions_scanned=0`, `messages_scanned=0`이었다. 원인은 Honcho v0.15.1 list API가 `GET /sessions`가 아니라 `POST /sessions/list`, `POST /sessions/{id}/messages/list`였기 때문이다.
-- 보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록한다. scheduled report는 다음 `ra-growth-metrics.timer` 실행부터 같은 collector 계약을 따른다.
+- 보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록했다. 2026-06-19 daily report도 `sessions_scanned=27`, `messages_scanned=302`를 기록한다.
+- 현재 행동/사람 피드백 metric은 N/A 또는 denominator 0이다. 따라서 dashboard의 Growth Trend Verdict는 `측정 불충분` warning이어야 하며, 메시지 스캔 수만으로 전문가 성장 추세를 판정하지 않는다.
 - `scripts/auto-growth-readiness-report.py`는 activation safety/readiness snapshot이다. 장기 성장 추세 지표가 아니며, 자동성장 timer 활성화 승인을 대체하지 않는다.
 - `scripts/coverage-guards.json`의 `kr_not_below_20pct_eu`는 `legacy_pre_activation_floor`다. `ra_kr`이 빈 상태로 남지 않게 막는 사전 안전선일 뿐, 전문가 성숙도나 KR/EU 균형 목표가 아니다.
 - `docs/growth-dashboard.html`은 보조 snapshot이다. 프로젝트 운영 판단의 주 데이터는 reports JSON, Honcho activity records, n8n E2E 결과, 사람 평가 기록이다.
