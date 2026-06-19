@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; color: #333; }
+    .screenshot-header { background: #27ae60; color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 5px 5px 0 0; }
+    .screenshot-content { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .status-indicator { display: inline-block; width: 10px; height: 10px; background: #27ae60; border-radius: 50%; margin-right: 5px; }
+    .agent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
+    .agent-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; }
+    .agent-card.lead { border-left-color: #e74c3c; }
+    .agent-card.support { border-left-color: #2ecc71; }
+    .metric-box { background: #e8f4f8; padding: 12px; border-radius: 5px; margin: 8px 0; text-align: center; }
+    .github-contribution { background: #24292e; color: white; padding: 15px; border-radius: 5px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="screenshot-header">
+    <h2>📊 Growth Dashboard - Agent Performance Tracking</h2>
+    <p><span class="status-indicator"></span> System Status: Active | GitHub Pages Deployed | Last Updated: 2026-06-19</p>
+  </div>
+  <div class="screenshot-content">
+    <div class="github-contribution">
+      <h3 style="color: white; margin-top: 0;">📈 GitHub Contribution Activity</h3>
+      <div style="display: flex; gap: 10px; margin: 15px 0;">
+        <div style="flex: 1; background: #1e6feb; height: 60px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #2ea44f; height: 80px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #8957e5; height: 45px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #db6d28; height: 70px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #1e6feb; height: 55px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #2ea44f; height: 90px; border-radius: 3px;"></div>
+        <div style="flex: 1; background: #db6d28; height: 40px; border-radius: 3px;"></div>
+      </div>
+      <p style="color: #7f8c8d; font-size: 12px;">Last 30 days activity | Daily commits | Issue resolution</p>
+    </div>
+
+    <div class="agent-grid">
+      <div class="agent-card lead">
+        <h4>🤖 Mike (ra_us)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #27ae60;">32</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Sessions Completed</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #2980b9;">27</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Messages Processed</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">FDA 510(k) Specialist | Confidence: 0.85</p>
+      </div>
+
+      <div class="agent-card lead">
+        <h4>👨‍⚕️ Theo (ra_eu)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #27ae60;">28</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Sessions Completed</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #2980b9;">22</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Messages Processed</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">EU MDR Specialist | Confidence: 0.82</p>
+      </div>
+
+      <div class="agent-card lead">
+        <h4>👨‍🔬 Sam (ra_kr)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #27ae60;">35</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Sessions Completed</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #2980b9;">31</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Messages Processed</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">MFDS/KGMP Specialist | Confidence: 0.88</p>
+      </div>
+
+      <div class="agent-card support">
+        <h4>👩‍💼 Margot (op_manager)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #f39c12;">18</div>
+          <div style="font-size: 12px; color: #7f8c8d;">WP Managed</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #2ecc71;">12</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Status Updates</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">OpenProject Manager</p>
+      </div>
+
+      <div class="agent-card support">
+        <h4>👨‍🔧 Olly (n8n-manager)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #8e44ad;">156</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Workflows Run</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #27ae60;">100%</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Success Rate</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">Automation Manager</p>
+      </div>
+
+      <div class="agent-card support">
+        <h4>👨‍💻 Finn (infra_t3610)</h4>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #16a085;">99.9%</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Uptime</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 24px; font-weight: bold; color: #27ae60;">Active</div>
+          <div style="font-size: 12px; color: #7f8c8d;">Monitoring</div>
+        </div>
+        <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0;">Infrastructure Monitor</p>
+      </div>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+      <h4 style="margin-top: 0;">📈 Growth Metrics Summary</h4>
+      <p><strong>Total Sessions:</strong> 142 | <strong>Messages Processed:</strong> 302 | <strong>Active Agents:</strong> 8/8</p>
+      <p><strong>Knowledge Sources:</strong> 1493 indexed | <strong>pgvector Dimensions:</strong> 4096 | <strong>API Response Time:</strong> < 200ms</p>
+      <p style="color: #7f8c8d; font-size: 12px; margin: 5px 0;">🔄 Auto-growth timer: INACTIVE | ✅ Manual growth: ACTIVE | 📊 Readiness: 16/16</p>
+    </div>
+  </div>
+</body>
+</html>
