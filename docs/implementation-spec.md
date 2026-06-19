@@ -22,16 +22,21 @@
 ## 1. 시스템 구성 (전체 골격)
 
 ```
-업무 workspace                          인프라 workspace
+업무 workspace (T3610 단일 운영)           인프라 workspace (T3610 단일 운영)
  ├ ra_us / ra_eu / ra_kr (Hermes 프로파일)  ├ infra_t3610 / infra_gx10 / infra_rpi
  ├ op_manager                              └ (셋이 투표로 종합 판단)
  └ n8n_manager
         │                                         │
    [n8n: mail-triage, 게이트, 출력]  ←브릿지(n8n)←┘
         │
-   OpenProject (WP)  ·  Honcho(T3610, 두 workspace)  ·  GX10 Qwen3(추론)
+   OpenProject (WP, RPi)  ·  Honcho(T3610)  ·  GX10 Qwen3(추론)
         │
    가상 오피스 웹앱 (Honcho 활동 기록 단방향 읽기)
+
+※ 2026-06-19: T3610 단일 n8n 운영으로 전환
+   - 이전: T3610(개발) → RPi(운영) 배포 방식
+   - 현재: T3610에서 Honcho + n8n 통합 운영
+   - RPi는 OpenProject 전담
 ```
 
 ---
