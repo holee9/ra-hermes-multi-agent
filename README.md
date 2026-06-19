@@ -3,7 +3,7 @@
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
 > Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-19.
 
-**[사용 가이드 →](docs/usage-guide.md)** | [📘 인터랙티브 사용 매뉴얼](docs/user-guide-korean.html) | [마스터 설계서 (Hermes v0.15.1)](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
+**[사용 가이드 →](docs/usage-guide.md)** | [📘 인터랙티브 사용 매뉴얼](docs/user-guide-korean.html) | [마스터 설계서 (Hermes v0.15.1)](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [🌐 원격 접속 가이드](docs/remote-access-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
 
 GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른다. 기본 운영 경로는 GX10 `gpt-oss:120b`이며, `scripts/configure-glm.sh`로 필요한 프로파일만 OpenAI-compatible GLM endpoint로 바꿀 수 있다.
 
