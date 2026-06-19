@@ -89,6 +89,8 @@ class ErrorType:
     PERMANENT = "permanent"  # Auth errors, 404, invalid data
     UNKNOWN = "unknown"  # Uncategorized errors
 
+# @MX:ANCHOR: Critical error classification function used by all retry logic
+# @MX:REASON: Called by honcho_get() and honcho_post() to determine retry strategy
 def classify_error(exc: requests.RequestException) -> str:
     """Classify error as transient, permanent, or unknown."""
     if isinstance(exc, requests.Timeout):
@@ -117,6 +119,8 @@ ABSENCE_DOMAINS = {
 # Honcho query helpers
 # ---------------------------------------------------------------------------
 
+# @MX:WARN: Retry logic with exponential backoff and error classification
+# @MX:REASON: Complex retry logic (Cyclomatic complexity > 15) with error type classification
 def honcho_get(path: str, params: dict | None = None) -> dict | list | None:
     """GET request with retry logic for transient errors."""
     url = f"{HONCHO_URL}/v3/workspaces/{HONCHO_WS}{path}"
@@ -161,6 +165,8 @@ def honcho_get(path: str, params: dict | None = None) -> dict | list | None:
     return None
 
 
+# @MX:WARN: POST retry logic with exponential backoff and error classification
+# @MX:REASON: Complex retry logic (Cyclomatic complexity > 15) with error type classification
 def honcho_post(path: str, body: dict) -> dict | None:
     """POST request with retry logic for transient errors."""
     url = f"{HONCHO_URL}/v3/workspaces/{HONCHO_WS}{path}"

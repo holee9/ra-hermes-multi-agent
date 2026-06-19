@@ -61,6 +61,7 @@
       border-width: 2px;
     }
     .growth-summary.blocked { background: var(--red-bg); border-color: #f5b5ae; }
+    .growth-summary.warn { background: var(--yellow-bg); border-color: #f0ce80; }
     .growth-summary.running { background: var(--green-bg); border-color: #9ad8b0; }
     .eyebrow { color: var(--muted); font-size: 12px; font-weight: 780; text-transform: uppercase; letter-spacing: .08em; }
     .growth-summary h2 { margin: 4px 0 8px; font-size: 30px; }
@@ -162,19 +163,19 @@
     <p>실제 운영 중 각 RA 담당자의 성장 입력, 학습 근거, 피드백 신호, 성장 추세 측정 가능 여부를 확인하는 현황판입니다.</p>
   </header>
   <main>
-    <section class='growth-summary blocked'><div><div class='eyebrow'>RA Growth Operations</div><h2>성장 추세 미측정</h2><p>결론: KB foundation은 준비됐지만 운영 성장 데이터가 0건입니다. 성장 신호는 Operational Input에서 끊겼고, 먼저 metrics ingestion을 고쳐야 합니다.</p></div><div class='summary-metrics'><div><strong>0</strong><span>latest messages</span></div><div><strong>0</strong><span>latest sessions</span></div><div><strong>0</strong><span>14-report messages</span></div><div><strong>0</strong><span>14-report insights</span></div></div></section>
+    <section class='growth-summary warn'><div><div class='eyebrow'>RA Growth Operations</div><h2>성장 추세 미측정</h2><p>결론: 운영 입력은 수집됐지만 행동/사람 피드백 지표 값이 아직 없습니다. 실제 피드백 metric 값이 들어올 때까지 trend verdict는 warning으로 유지합니다.</p></div><div class='summary-metrics'><div><strong>302</strong><span>latest messages</span></div><div><strong>27</strong><span>latest sessions</span></div><div><strong>1208</strong><span>14-report messages</span></div><div><strong>0</strong><span>14-report insights</span></div></div></section>
 
     <div class="grid growth-agent-grid">
       <article class='growth-card warn'><div class='growth-card-head'><span>Mike / US FDA</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>9064/5000</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>48/48</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article><article class='growth-card warn'><div class='growth-card-head'><span>Theo / EU MDR</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>2956/2000</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>31/31</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article><article class='growth-card warn'><div class='growth-card-head'><span>Sam / MFDS</span><strong>기초 KB 확보 / 운영 성장 데이터 없음</strong></div><div class='growth-score'><span>100%</span><small>foundation</small></div><div class='growth-bars'><div class='growth-bar-row'><span>KB Depth</span><div class='bar-track'><div class='bar-fill depth-fill' style='width:100.0%'></div></div><strong>638/500</strong></div><div class='growth-bar-row'><span>Sources</span><div class='bar-track'><div class='bar-fill source-fill' style='width:100.0%'></div></div><strong>48/29</strong></div><div class='growth-bar-row'><span>Ops Evidence</span><div class='bar-track'><div class='bar-fill ops-fill' style='width:0.0%'></div></div><strong>0 study / 0 insight</strong></div></div></article>
     </div>
 
-    <section><h2>Growth Signal Flow</h2><div class='flow'><div class='flow-node ok'><span>1</span><strong>Knowledge Base</strong><small>seed/depth ready</small></div><div class='flow-node bad'><span>2</span><strong>Operational Input</strong><small>messages scanned</small></div><div class='flow-node bad'><span>3</span><strong>Feedback Signal</strong><small>human review</small></div><div class='flow-node warn'><span>4</span><strong>Expert Growth</strong><small>trend verdict</small></div></div></section>
+    <section><h2>Growth Signal Flow</h2><div class='flow'><div class='flow-node ok'><span>1</span><strong>Knowledge Base</strong><small>seed/depth ready</small></div><div class='flow-node ok'><span>2</span><strong>Operational Input</strong><small>messages scanned</small></div><div class='flow-node bad'><span>3</span><strong>Feedback Signal</strong><small>human review</small></div><div class='flow-node warn'><span>4</span><strong>Expert Growth</strong><small>trend verdict</small></div></div></section>
 
     <details class="support-details">
       <summary>검증/감사 상세 보기 <span>상단 결론을 검산하거나 이슈 근거가 필요할 때만 펼칩니다.</span></summary>
       <div class="support-body">
         <div class="support-purpose">
-          <div class="purpose-card"><strong>결론 검산</strong><span>상단의 "성장 추세 미측정"이 실제 metrics 0건과 일치하는지 확인합니다.</span></div>
+          <div class="purpose-card"><strong>결론 검산</strong><span>상단의 "성장 추세 미측정"이 행동/피드백 metrics 0건과 일치하는지 확인합니다.</span></div>
           <div class="purpose-card"><strong>병목 위치 확인</strong><span>Operational Input이 막힌 것인지, 피드백/정확도 지표가 부족한 것인지 구분합니다.</span></div>
           <div class="purpose-card"><strong>커버리지 오판 방지</strong><span>KB/source floor 통과를 전문가 성숙도와 혼동하지 않도록 근거를 확인합니다.</span></div>
           <div class="purpose-card"><strong>이슈 기록 근거</strong><span>GitHub issue에 남길 수치, 파일명, readiness/cleanliness 상태를 확인합니다.</span></div>
@@ -187,7 +188,7 @@
           </section>
           <section class="kpi">
             <div class="label">Latest Growth Input</div>
-            <div class="value">0</div>
+            <div class="value">302</div>
             <div class="sub">최근 보고서의 scanned messages</div>
           </section>
           <section class="kpi">
@@ -241,9 +242,9 @@
           <section><div class='status-panel'><h3>Activation Control</h3><div class='status-row'><span class='dot ok'></span><span>timer_inactive</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>timer_disabled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>not_scheduled</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>persistent_false</span><strong>True</strong></div><div class='status-row'><span class='dot ok'></span><span>activation_guard</span><strong>True</strong></div></div></section>
           <section>
             <h2>Growth Trend</h2>
-            <div class='spark-card'><div class='spark-head'><span>Messages scanned</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Messages scanned trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
-            <div class='spark-card'><div class='spark-head'><span>Study insights</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Study insights trend'><polyline points='8.0,54.0 69.0,54.0 130.0,54.0 191.0,54.0 252.0,54.0' /></svg></div>
-            <div class="note">현재 messages scanned가 0이므로 ingestion 보정 전까지 성장 추세 해석은 보류합니다.</div>
+            <div class='spark-card'><div class='spark-head'><span>Messages scanned</span><strong>302.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Messages scanned trend'><polyline points='8.0,54.0 38.5,54.0 69.0,54.0 99.5,54.0 130.0,54.0 160.5,8.0 191.0,8.0 221.5,8.0 252.0,8.0' /></svg></div>
+            <div class='spark-card'><div class='spark-head'><span>Study insights</span><strong>0.000</strong></div><svg class='sparkline' viewBox='0 0 260 62' role='img' aria-label='Study insights trend'><polyline points='8.0,54.0 42.9,54.0 77.7,54.0 112.6,54.0 147.4,54.0 182.3,54.0 217.1,54.0 252.0,54.0' /></svg></div>
+            <div class="note">messages scanned는 수집됐지만 행동/사람 피드백 metric 값이 없어 성장 추세 해석은 보류합니다.</div>
           </section>
         </div>
 
@@ -297,10 +298,11 @@
 <tr><th>warmstart_lift</th><td><span class='pill warn'>N/A</span></td><td>positive</td><td>warm_mean - cold_mean (1-3 scale). Positive → memory helps.</td></tr>
 <tr><th>escalation_precision</th><td><span class='pill warn'>N/A</span></td><td>up</td><td>fraction of escalations that required actual human correction (score=1)</td></tr>
 <tr><th>autonomous_study_sessions</th><td><span class='pill ok'>0</span></td><td>up</td><td>autonomous study sessions completed by all RA agents (higher = more self-study)</td></tr>
-<tr><th>study_insights_count</th><td><span class='pill ok'>0</span></td><td>up</td><td>knowledge insights extracted during autonomous study (higher = richer knowledge base)</td></tr></tbody>
+<tr><th>study_insights_count</th><td><span class='pill ok'>0</span></td><td>up</td><td>knowledge insights extracted during autonomous study (higher = richer knowledge base)</td></tr>
+<tr><th>absence_pattern_signals</th><td><span class='pill ok'>0</span></td><td>diagnostic</td><td>early absence-pattern signal for specialist expansion; not an auto-create trigger</td></tr></tbody>
             </table>
           </div>
-          <div class="note">Source: growth-2026-06-16.json. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
+          <div class="note">Source: growth-2026-06-19.json. 최근 보고서가 sessions/messages 0건이면 timer는 돌고 있어도 성장 추세 집계는 아직 유효하지 않습니다.</div>
         </section>
 
         <section style="margin-top:16px">
@@ -314,7 +316,12 @@
 <tr><td>growth-2026-06-13.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
 <tr><td>growth-2026-06-14.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
 <tr><td>growth-2026-06-15.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
-<tr><td>growth-2026-06-16.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr></tbody>
+<tr><td>growth-2026-06-16.json</td><td>0</td><td>0</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-17.json</td><td>27</td><td>302</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-18.json</td><td>27</td><td>302</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-2026-06-19.json</td><td>27</td><td>302</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-diagnostic-2026-06-16.json</td><td>27</td><td>302</td><td>N/A</td><td>N/A</td><td>0</td><td>0</td></tr>
+<tr><td>growth-transition-readiness-2026-06-16.json</td><td>-</td><td>-</td><td>N/A</td><td>N/A</td><td>-</td><td>-</td></tr></tbody>
             </table>
           </div>
         </section>
@@ -322,7 +329,7 @@
     </details>
   </main>
   <footer>
-    Generated at 2026-06-16T16:49:39+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
+    Generated at 2026-06-19T22:37:14+09:00. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
   </footer>
 </body>
 </html>

@@ -44,7 +44,7 @@ test.describe('growth dashboard', () => {
     await page.locator('summary').click();
     await expect(page.locator('.kpi').filter({ hasText: 'Readiness' })).toContainText('16/16');
     await expect(page.locator('.kpi').filter({ hasText: 'Metrics Collection' })).toContainText('active/enabled');
-    await expect(page.locator('.kpi').filter({ hasText: 'Latest Growth Input' })).toContainText('0');
+    await expect(page.locator('.kpi').filter({ hasText: 'Latest Growth Input' })).toContainText('302');
   });
 
   test('renders visual charts and status indicators', async ({ page }) => {
