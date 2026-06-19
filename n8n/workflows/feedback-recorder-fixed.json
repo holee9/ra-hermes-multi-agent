@@ -1,0 +1,136 @@
+{
+  "id": "iBzjnDJ7KRb93EOF",
+  "name": "feedback-recorder",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-feedback",
+      "name": "평가 입력 수신",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "feedback-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// GROWTH-3: delta 페어링 포함 검증\n// score: 1(나쁨) | 2(보통) | 3(좋음)\n// rationale: 근거 (필수, 빈 값 거부)\n// decision_ref: 평가 대상 결정 ID\n// actor: 평가 대상 RA 에이전트 ID\n// agent_judgment: 원래 RA 결과 JSON (선택 — 있으면 delta 계산)\n// human_correction: 인간이 정정한 내용 (선택)\n//   { match, transition_proposed, comment } — 수정된 항목만 포함\n// dimensions: 차원별 평가 (선택)\n//   { match_correct: bool, reasoning_quality: 1-3, citation_valid: bool }\nconst raw = $json;\nconst input = raw.body || raw;\n\nconst score = parseInt(input.score);\nif (![1, 2, 3].includes(score)) {\n  throw new Error('score must be 1, 2, or 3. Got: ' + JSON.stringify(input.score));\n}\n\nconst validActors = ['ra_us', 'ra_eu', 'ra_kr', 'op_manager', 'n8n_manager', 'infra_t3610', 'infra_gx10', 'infra_rpi'];\nif (!validActors.includes(input.actor)) {\n  throw new Error('Unknown actor: ' + input.actor);\n}\n\n// rationale 필수화: 빈 값은 'ungrounded' 태그 부여\nconst rationale = (input.rationale || '').trim().slice(0, 500);\nconst rationaleTagged = rationale.length === 0 ? '[ungrounded]' : rationale;\n\n// dimensions 검증\nlet dimensions = null;\nif (input.dimensions) {\n  const d = input.dimensions;\n  const rq = parseInt(d.reasoning_quality);\n  if (d.match_correct !== undefined && typeof d.match_correct !== 'boolean') {\n    throw new Error('dimensions.match_correct must be boolean');\n  }\n  if (d.reasoning_quality !== undefined && ![1, 2, 3].includes(rq)) {\n    throw new Error('dimensions.reasoning_quality must be 1, 2, or 3');\n  }\n  dimensions = {\n    match_correct: typeof d.match_correct === 'boolean' ? d.match_correct : null,\n    reasoning_quality: d.reasoning_quality !== undefined ? rq : null,\n    citation_valid: typeof d.citation_valid === 'boolean' ? d.citation_valid : null\n  };\n}\n\n// delta 계산: agent_judgment와 human_correction 비교\nlet delta = null;\nconst aj = input.agent_judgment || null;\nconst hc = input.human_correction || null;\nif (aj && hc) {\n  const changed = {};\n  if (hc.match !== undefined && hc.match !== aj.match) {\n    changed.match = { agent: aj.match, human: hc.match };\n  }\n  if (hc.transition_proposed !== undefined && hc.transition_proposed !== aj.transition_proposed) {\n    changed.transition = { agent: aj.transition_proposed, human: hc.transition_proposed };\n  }\n  if (hc.comment !== undefined) {\n    changed.comment = { agent: (aj.comment || '').slice(0, 100), human: hc.comment.slice(0, 100) };\n  }\n  if (Object.keys(changed).length > 0) {\n    delta = { changed, self_correction: true };\n  } else {\n    delta = { changed: {}, self_correction: false };\n  }\n}\n\nreturn [{\n  json: {\n    score,\n    rationale: rationaleTagged,\n    rationale_ungrounded: rationale.length === 0,\n    decision_ref: input.decision_ref || null,\n    actor: input.actor,\n    agent_judgment: aj,\n    human_correction: hc,\n    delta,\n    dimensions,\n    evaluated_by: 'human',\n    evaluated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "validate-feedback",
+      "name": "평가 입력 검증",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ id: $now.toFormat('yyyyMMddHHmmssSSS') + '-feedback-' + $json.actor, peers: Object.fromEntries([[$json.actor, {}], ['human', {}]]), metadata: { type: 'feedback_session', target_actor: $json.actor } }) }}"
+      },
+      "id": "honcho-session-feedback",
+      "name": "Honcho 세션 생성 (AI peer)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $json.id }}/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify({ ts: $node['평가 입력 검증'].json.evaluated_at, type: 'score_given', actor: 'human', payload: { score: $node['평가 입력 검증'].json.score, rationale: $node['평가 입력 검증'].json.rationale, rationale_ungrounded: $node['평가 입력 검증'].json.rationale_ungrounded, decision_ref: $node['평가 입력 검증'].json.decision_ref, target_actor: $node['평가 입력 검증'].json.actor, agent_judgment: $node['평가 입력 검증'].json.agent_judgment, human_correction: $node['평가 입력 검증'].json.human_correction, delta: $node['평가 입력 검증'].json.delta, dimensions: $node['평가 입력 검증'].json.dimensions } }), peer_id: 'human', metadata: { type: 'activity_log', record_type: 'score_given', peer_target: 'ai', has_delta: $node['평가 입력 검증'].json.delta !== null && $node['평가 입력 검증'].json.delta.self_correction === true, has_dimensions: $node['평가 입력 검증'].json.dimensions !== null } }] }) }}"
+      },
+      "id": "honcho-record-feedback",
+      "name": "Honcho AI peer 평가 기록",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 가중치 반영 연결 자리 [IF]\n// 평가된 사안 영역별 가중치 조정 연결점\n// 조정 공식은 비워둠 — 학습이 정함\n// WEIGHT_ADJUSTMENT_CONFIG_JSON 또는 payload.weight_config_json에서 읽음\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\nconst feedback = $node['평가 입력 검증'].json;\n\nlet config = {};\nlet configStatus = 'empty';\nconst configRaw = env.WEIGHT_ADJUSTMENT_CONFIG_JSON || feedback.weight_config_json || null;\nif (configRaw) {\n  try {\n    config = typeof configRaw === 'string' ? JSON.parse(configRaw) : configRaw;\n    configStatus = 'loaded';\n  } catch (e) {\n    config = {};\n    configStatus = 'parse_error:' + e.message;\n  }\n}\n\nconst configMeta = {\n  source: configRaw ? 'env_or_payload' : 'empty_default',\n  status: configStatus,\n  has_formula: Boolean(config.adjustment_formula)\n};\n\n// 조정 공식이 비어 있으면 기록만 하고 패스\nif (!config.adjustment_formula) {\n  return [{\n    json: {\n      _weight_adjustment: 'skipped_formula_empty',\n      _weight_adjustment_config: configMeta,\n      feedback_recorded: true,\n      score: feedback.score,\n      actor: feedback.actor,\n      has_delta: feedback.delta !== null,\n      self_correction: feedback.delta ? feedback.delta.self_correction : false\n    }\n  }];\n}\n\n// 공식이 채워지면 여기서 가중치 조정 로직 실행 (운영·학습이 채움)\n// 현재는 interface만 존재 — 내부 구현 없음\nreturn [{\n  json: {\n    _weight_adjustment: 'formula_not_implemented',\n    _weight_adjustment_config: configMeta,\n    feedback_recorded: true,\n    score: feedback.score,\n    actor: feedback.actor\n  }\n}];"
+      },
+      "id": "weight-adjustment-slot",
+      "name": "가중치 조정 자리 [IF]",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "평가 입력 수신": {
+      "main": [
+        [
+          {
+            "node": "평가 입력 검증",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "평가 입력 검증": {
+      "main": [
+        [
+          {
+            "node": "Honcho 세션 생성 (AI peer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho 세션 생성 (AI peer)": {
+      "main": [
+        [
+          {
+            "node": "Honcho AI peer 평가 기록",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho AI peer 평가 기록": {
+      "main": [
+        [
+          {
+            "node": "가중치 조정 자리 [IF]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "staticData": null,
+  "pinData": {},
+  "versionId": "2"
+}
