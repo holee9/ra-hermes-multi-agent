@@ -1,0 +1,922 @@
+{
+  "id": "4B9bDkXgH0HFjP7o",
+  "name": "mail-triage",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "q": "is:unread"
+        },
+        "options": {}
+      },
+      "id": "gmail-trigger",
+      "name": "Gmail 수신 트리거",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "g84TMmDST8pNER2l",
+          "name": "Gmail account"
+        }
+      },
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 재전송 본문 파싱: 원 제목·원 발신자·사안 식별자 추출\n// 재전송으로 헤더(threadId/References) 파괴됨 → 본문 기반 매칭이 주력\n// webhook typeVersion 2: data in .body; Gmail: direct json\nconst rawJson = $input.item.json;\nconst inputData = rawJson.body || rawJson;\nconst body = inputData.text || inputData.snippet || '';\nconst subject = inputData.subject || '';\nconst emailId = inputData.id || inputData.messageId || ('test-' + Date.now());\nconst receivedAt = inputData.date || new Date().toISOString();\n\n// 원 제목 추출 (Fwd: / FW: 제거, 인용 헤더에서 Subject: 추출)\nconst fwdClean = subject.replace(/^(Fwd?:\\s*)+/i, '').trim();\nconst quotedSubject = body.match(/^Subject:\\s*(.+)$/mi)?.[1]?.trim();\nconst originalSubject = quotedSubject || fwdClean;\n\n// 원 발신자 추출 (인용 헤더 From: 패턴)\nconst originalFrom = body.match(/^From:\\s*(.+)$/mi)?.[1]?.trim() || '';\n\n// 사안 식별자 추출 (WP-번호, 접수번호 패턴)\nconst wpRef = body.match(/\\bWP-\\d+\\b/)?.[0] || null;\nconst caseRef = body.match(/\\b(접수|사안|case)[-_\\s]?\\d+\\b/i)?.[0] || null;\n\n// 규제기관 판별\nconst regions = [\n  { keywords: ['FDA', '510(k)', '510k', 'De Novo', 'CDRH', 'QMSR', '21 CFR'], region: 'US', actor: 'ra_us' },\n  { keywords: ['MDR', 'CE mark', 'IVDR', 'Notified Body', 'EUDAMED', 'CER', '2017/745'], region: 'EU', actor: 'ra_eu' },\n  { keywords: ['MFDS', 'KGMP', '식품의약품안전처', '의료기기', 'KFDA', '허가', '신고'], region: 'KR', actor: 'ra_kr' }\n];\n\nconst searchText = (originalSubject + ' ' + body).toLowerCase();\nlet matched = [];\nfor (const r of regions) {\n  if (r.keywords.some(k => searchText.includes(k.toLowerCase()))) {\n    matched.push(r);\n  }\n}\n\nconst matchingKey = [\n  originalSubject.toLowerCase().replace(/\\s+/g, '_').replace(/[^a-z0-9_가-힣]/g, '').slice(0, 60),\n  originalFrom.split('@')[0]?.replace(/[^a-z0-9가-힣]/g, '') || '',\n  wpRef || caseRef || ''\n].filter(Boolean).join('|');\n\nreturn [{\n  json: {\n    raw_subject: subject,\n    original_subject: originalSubject,\n    original_from: originalFrom,\n    wp_ref: wpRef,\n    case_ref: caseRef,\n    matching_key: matchingKey,\n    body_excerpt: body.slice(0, 500),\n    matched_regions: matched,\n    routing_status: matched.length === 1 ? 'green' : matched.length === 0 ? 'yellow_no_region' : 'yellow_multi_region',\n    primary_actor: matched.length === 1 ? matched[0].actor : null,\n    primary_region: matched.length === 1 ? matched[0].region : null,\n    email_id: $input.item.json.id,\n    received_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "parse-body",
+      "name": "본문 파싱 및 규제권 라우팅",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "conditions": [
+            {
+              "id": "cond-yellow",
+              "leftValue": "={{ $json.routing_status }}",
+              "rightValue": "green",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-routing",
+      "name": "라우팅 게이트",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HERMES_API_URL }}/v1/chat/completions",
+        "authentication": "none",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + ($env.API_SERVER_KEY || $env.HERMES_API_KEY || '') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyHeaders": "keypair",
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $json.primary_actor,\n  messages: [{\n    role: 'user',\n    content: [\n      'You are processing a forwarded regulatory affairs email.',\n      'Original subject: ' + $json.original_subject,\n      'Original from: ' + $json.original_from,\n      'Matching key: ' + $json.matching_key,\n      'Body excerpt: ' + $json.body_excerpt,\n      $json.warm_start_context || '',\n      $json.layer4_context || '',\n      '',\n      'Analyze this case and return ONLY a JSON object with these fields:',\n      '  actor: which RA agent handles this (ra_us, ra_eu, or ra_kr based on region)',\n      '  wp: work package ID if matched (e.g. WP-123), or null if new',\n      '  match: \\\"existing\\\" if wp found, \\\"new\\\" if not',\n      '  confidence: 0.0-1.0 confidence score',\n      '  region: primary region (US, EU, KR)',\n      '  comment: brief analysis comment',\n      '  transition_proposed: status transition if any, or null',\n      '',\n      'Return ONLY the JSON object, no other text.'\n    ].join('\\\\n')\n  }]\n}) }}"
+      },
+      "id": "call-ra-agent",
+      "name": "RA 에이전트 호출",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "credentials": {},
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// RA 분석 결과 JSON 파싱 및 검증\n// Hermes format: { wp_comment: { wp_title, summary, confidence, matched_wp_id, ... } }\n// Flat format: { actor, wp, match, confidence, region, comment, transition_proposed }\nconst raw = $input.item.json;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\nconst thresholdRaw = env.YELLOW_CONFIDENCE_THRESHOLD;\nconst threshold = Number(thresholdRaw);\nconst thresholdConfigured = thresholdRaw !== undefined\n  && String(thresholdRaw).trim() !== ''\n  && Number.isFinite(threshold)\n  && threshold >= 0\n  && threshold <= 1;\nconst yellowGate = {\n  threshold_configured: thresholdConfigured,\n  threshold: thresholdConfigured ? threshold : null,\n  threshold_raw: thresholdRaw || null\n};\n\nlet analysis;\ntry {\n  const content = raw.choices?.[0]?.message?.content || raw.content || '{}';\n  // Extract JSON block (model may wrap in markdown)\n  const jsonFence = /\\`\\`\\`json\\s*([\\s\\S]+?)\\s*\\`\\`\\`/;\n  const jsonMatch = content.match(jsonFence) || content.match(/({[\\s\\S]+})/s);\n  const parsed = JSON.parse(jsonMatch ? jsonMatch[1] : content.trim());\n\n  // Handle Hermes format (wp_comment structure)\n  if (parsed.wp_comment) {\n    const wpc = parsed.wp_comment;\n    const routing = $('본문 파싱 및 규제권 라우팅').first().json;\n    analysis = {\n      actor: routing.primary_actor || 'ra_us',\n      wp: wpc.matched_wp_id ? String(wpc.matched_wp_id) : null,\n      match: wpc.matched_wp_id ? 'existing' : 'new',\n      confidence: typeof wpc.confidence === 'number' ? wpc.confidence : 0.5,\n      region: routing.primary_region || 'US',\n      comment: [wpc.summary, wpc.recommendation].filter(Boolean).join(' | '),\n      transition_proposed: null\n    };\n  } else {\n    analysis = parsed;\n  }\n} catch (e) {\n  return [{ json: {\n    parse_error: true,\n    yellow_required: true,\n    yellow_reason: 'parse_error',\n    missing_fields: [],\n    analysis: {},\n    yellow_gate: yellowGate,\n    _error: e.message\n  } }];\n}\n\n// Validate required fields\nconst required = ['actor', 'match', 'confidence', 'region', 'comment'];\nconst missing = required.filter(k => !analysis[k] && analysis[k] !== 0);\nif (missing.length > 0) {\n  return [{ json: {\n    parse_error: true,\n    yellow_required: true,\n    yellow_reason: 'missing_fields',\n    missing_fields: missing,\n    analysis,\n    yellow_gate: yellowGate\n  } }];\n}\n\nconst confidence = Number(analysis.confidence);\nif (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {\n  return [{ json: {\n    parse_error: true,\n    yellow_required: true,\n    yellow_reason: 'invalid_confidence',\n    missing_fields: ['confidence'],\n    analysis,\n    yellow_gate: yellowGate\n  } }];\n}\n\nconst yellowRequired = !thresholdConfigured || confidence < threshold;\nconst yellowReason = !thresholdConfigured\n  ? 'threshold_unconfigured'\n  : confidence < threshold\n    ? 'low_confidence'\n    : null;\n\nreturn [{ json: {\n  parse_error: false,\n  ...analysis,\n  confidence,\n  yellow_required: yellowRequired,\n  yellow_reason: yellowReason,\n  yellow_gate: yellowGate\n} }];"
+      },
+      "id": "parse-ra-response",
+      "name": "RA 응답 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-needs-yellow",
+              "leftValue": "={{ Boolean($json.parse_error || $json.yellow_required) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-parse",
+      "name": "파싱 성공 게이트",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        400,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-existing",
+              "leftValue": "={{ $json.match }}",
+              "rightValue": "existing",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-match",
+      "name": "신규 vs 기존 WP 분기",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OPENPROJECT_API_URL }}/api/v3/work_packages/{{ ($json.wp || '').toString().replace('WP-', '') }}/activities",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ comment: { format: 'plain', raw: '[' + $json.actor.toUpperCase() + '] ' + $json.comment } }) }}",
+        "options": {
+          "timeout": 10000
+        },
+        "specifyBody": "json"
+      },
+      "id": "op-add-comment",
+      "name": "WP 코멘트 추가",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "S1K0DNp5LZmzpu4j",
+          "name": "OP Admin Auth"
+        }
+      },
+      "position": [
+        1200,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OPENPROJECT_API_URL }}/api/v3/projects/{{ $env.OPENPROJECT_DEFAULT_PROJECT_ID }}/work_packages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  subject: $json.region + ' RA: ' + $node['본문 파싱 및 규제권 라우팅'].json.original_subject,\n  description: {\n    format: 'plain',\n    raw: '자동 생성 — mail-triage\\n\\n분석 담당: ' + $json.actor + '\\n신뢰도: ' + Math.round($json.confidence*100) + '%\\n\\n' + $json.comment\n  },\n  _type: 'WorkPackage'\n}) }}",
+        "options": {
+          "timeout": 10000
+        },
+        "specifyBody": "json"
+      },
+      "id": "op-create-wp",
+      "name": "신규 WP 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "S1K0DNp5LZmzpu4j",
+          "name": "OP Admin Auth"
+        }
+      },
+      "position": [
+        0,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-transition",
+              "leftValue": "={{ $json.transition_proposed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-transition",
+      "name": "전이 제안 게이트",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        400,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OPENPROJECT_API_URL }}/api/v3/work_packages/{{  ($json.wp || $node['신규 WP 생성'].json.id || '').toString().replace('WP-', '')  }}/activities",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={\"comment\":{\"format\":\"plain\",\"raw\":\"={{ '[\\uc804\\uc774 \\uc81c\\uc548 \\u2014 \\uc0ac\\ub78c \\uc2b9\\uc778 \\ud544\\uc694] ' + $json.actor + ' \\u2192 ' + $json.transition_proposed + '\\\\n\\uadfc\\uac70: ' + $json.comment }}\"}}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "op-transition-comment",
+      "name": "전이 제안 코멘트 (Yellow)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "S1K0DNp5LZmzpu4j",
+          "name": "OP Admin Auth"
+        }
+      },
+      "position": [
+        800,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Honcho conclusion 기록: 사안↔WP 매핑\n// 활동 기록 계약 형식 (고정)\nconst analysis = $('RA 응답 파싱').first().json;\nconst parsed = $node['본문 파싱 및 규제권 라우팅'].json;\nlet layer4 = {};\ntry {\n  layer4 = $('Layer 4 컨텍스트 주입').first().json || {};\n} catch (e) {\n  layer4 = {};\n}\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: analysis.match === 'existing' ? 'matched' : 'matched',\n  actor: analysis.actor,\n  payload: {\n    wp: analysis.wp,\n    match: analysis.match,\n    confidence: analysis.confidence,\n    region: analysis.region,\n    matching_key: parsed.matching_key,\n    original_subject: parsed.original_subject,\n    email_id: parsed.email_id,\n    layer4_status: layer4.layer4_status || null,\n    layer4_result_counts: layer4.layer4_result_counts || null\n  }\n};\n\nconst mailRecord = {\n  ts: parsed.received_at,\n  type: 'mail_received',\n  actor: 'system',\n  payload: {\n    region: analysis.region,\n    subject: parsed.original_subject,\n    email_id: parsed.email_id,\n    target: analysis.actor,\n    layer4_status: layer4.layer4_status || null\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord, mail_record: mailRecord, analysis } }];"
+      },
+      "id": "prepare-honcho",
+      "name": "Honcho 기록 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ id: $now.toFormat(\"yyyyMMddHHmmssSSS\") + \"-\" + $json.analysis.actor, peers: { [$json.analysis.actor]: {} }, metadata: { type: \"mail_triage_session\", actor: $json.analysis.actor } }) }}"
+      },
+      "id": "honcho-create-session",
+      "name": "Honcho 세션 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $json.id }}/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify($node['Honcho 기록 준비'].json.activity_record), peer_id: $node['Honcho 기록 준비'].json.analysis.actor, metadata: { type: 'activity_log', record_type: 'matched' } }] }) }}"
+      },
+      "id": "honcho-record",
+      "name": "Honcho conclusion 기록",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Yellow 게이트: routing / parse / confidence 사유를 사람 검토 payload로 표준화\nconst parsed = $input.item.json;\nlet routing = {};\ntry {\n  routing = $('본문 파싱 및 규제권 라우팅').first().json || {};\n} catch (e) {\n  routing = {};\n}\n\nconst routingStatus = parsed.routing_status || routing.routing_status || 'unknown';\nconst matchedRegions = parsed.matched_regions || routing.matched_regions || [];\nlet yellowReason = parsed.yellow_reason || null;\nlet reason;\n\nif (parsed.parse_error) {\n  yellowReason = yellowReason || 'parse_error';\n  reason = yellowReason === 'missing_fields'\n    ? 'RA 응답 필수 필드 누락: ' + (parsed.missing_fields || []).join(', ')\n    : yellowReason === 'invalid_confidence'\n      ? 'RA 응답 confidence 값이 0.0-1.0 범위를 벗어남'\n      : 'RA 응답 JSON 파싱 실패 — 사람 검토 필요';\n} else if (yellowReason === 'low_confidence') {\n  reason = 'RA 분석 confidence가 Yellow 임계값 미만 — 사람 검토 필요';\n} else if (yellowReason === 'threshold_unconfigured') {\n  reason = 'YELLOW_CONFIDENCE_THRESHOLD 미설정/비정상 — 보수적으로 사람 검토 필요';\n} else if (yellowReason === 'wp_closed_or_done') {\n  reason = parsed.yellow_detail || '매칭된 WP가 완료/종결 상태 — 사람 검토 필요';\n} else if (yellowReason === 'wp_status_lookup_failed') {\n  reason = parsed.yellow_detail || 'OpenProject WP 상태 조회 실패 — 사람 검토 필요';\n} else if (yellowReason === 'wp_status_unknown') {\n  reason = parsed.yellow_detail || 'OpenProject WP 상태가 허용 목록에 없음 — 사람 검토 필요';\n} else if (yellowReason === 'wp_id_missing') {\n  reason = parsed.yellow_detail || '기존 WP 매칭 결과에 WP ID가 없음 — 사람 검토 필요';\n} else if (routingStatus === 'yellow_no_region') {\n  yellowReason = 'yellow_no_region';\n  reason = '규제기관 미판별 — 수동 배정 필요';\n} else if (routingStatus === 'yellow_multi_region') {\n  yellowReason = 'yellow_multi_region';\n  reason = '복수 규제권 감지(' + matchedRegions.map(r => r.region).join(', ') + ') — 담당 지정 필요';\n} else {\n  yellowReason = yellowReason || 'manual_review_required';\n  reason = '사람 검토 필요';\n}\n\nreturn [{\n  json: {\n    alert_type: 'yellow_gate',\n    yellow_reason: yellowReason,\n    reason,\n    routing_status: routingStatus,\n    original_subject: parsed.original_subject || routing.original_subject,\n    original_from: parsed.original_from || routing.original_from,\n    matching_key: parsed.matching_key || routing.matching_key,\n    body_excerpt: parsed.body_excerpt || routing.body_excerpt,\n    email_id: parsed.email_id || routing.email_id,\n    matched_regions: matchedRegions,\n    analysis: parsed.analysis || {\n      actor: parsed.actor,\n      wp: parsed.wp,\n      match: parsed.match,\n      confidence: parsed.confidence,\n      region: parsed.region,\n      comment: parsed.comment,\n      transition_proposed: parsed.transition_proposed\n    },\n    missing_fields: parsed.missing_fields || [],\n    parse_error: Boolean(parsed.parse_error),\n    error: parsed._error || null,\n    yellow_gate: parsed.yellow_gate || null,\n    op_wp_status: parsed.op_wp_status || null,\n    yellow_detail: parsed.yellow_detail || null,\n    requires_human: true\n  }\n}];"
+      },
+      "id": "yellow-gate",
+      "name": "Yellow 게이트 (사람 질의)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Yellow alert payload — 운영 채널 설정이 있으면 후속 전송 노드가 사용할 수 있게 표준화\nconst alert = $input.item.json;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\nconst targetEmail = env.HUMAN_ALERT_EMAIL || null;\nconst targetWebhook = env.HUMAN_ALERT_WEBHOOK_URL || null;\n\nconst humanAlert = {\n  ts: new Date().toISOString(),\n  type: 'yellow_gate',\n  actor: 'system',\n  payload: alert\n};\n\nconst delivery = {\n  email: targetEmail,\n  webhook: targetWebhook,\n  status: targetWebhook\n    ? 'webhook_configured'\n    : targetEmail\n      ? 'email_configured'\n      : 'no_alert_channel_configured'\n};\n\nconsole.warn('[YELLOW ALERT]', JSON.stringify({\n  reason: alert.yellow_reason,\n  subject: alert.original_subject,\n  delivery: delivery.status\n}));\n\nreturn [{\n  json: {\n    ...alert,\n    human_alert: humanAlert,\n    delivery,\n    _yellow_alert: true,\n    _yellow_alert_ready: Boolean(targetEmail || targetWebhook)\n  }\n}];"
+      },
+      "id": "yellow-notify",
+      "name": "Yellow 알림 발송",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "webhookId": "9ac7ba78-7789-4bd2-b8ec-bb32eb3aa8a9",
+      "position": [
+        1200,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mail-triage-test",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "test-webhook-trigger",
+      "name": "테스트 Webhook 트리거",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "mail-triage-test-webhook",
+      "position": [
+        0,
+        1000
+      ]
+    },
+    {
+      "id": "honcho-warmstart-ctx",
+      "name": "Honcho 과거 컨텍스트 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/peers/{{ $json.primary_actor }}/context",
+        "authentication": "none",
+        "options": {},
+        "sendHeaders": false,
+        "sendBody": false,
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "target",
+              "value": "ai"
+            },
+            {
+              "name": "search_query",
+              "value": "={{ $json.original_subject + ' ' + ($json.matching_key || '') }}"
+            },
+            {
+              "name": "search_top_k",
+              "value": "5"
+            },
+            {
+              "name": "max_conclusions",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "warmstart-inject",
+      "name": "컨텍스트 프롬프트 주입",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Merge Honcho AI peer context with routing data for warm-start\nconst routingData = $('라우팅 게이트').item.json;\nconst contextData = $input.item.json;\n\nconst peerRepresentation = contextData.representation || '';\n\nlet warmStartBlock = '';\nif (peerRepresentation && peerRepresentation.trim()) {\n  warmStartBlock = '\\n--- PAST EXPERIENCE (from memory) ---\\n' + peerRepresentation + '\\n--- END PAST EXPERIENCE ---';\n}\n\nreturn {\n  ...routingData,\n  warm_start_context: warmStartBlock,\n  has_past_context: warmStartBlock.length > 0\n};\n"
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.OPENPROJECT_API_URL }}/api/v3/work_packages/{{ ($json.wp || '').toString().replace('WP-', '') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "id": "op-existing-wp-status",
+      "name": "기존 WP 상태 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "continueOnFail": true,
+      "position": [
+        1200,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 기존 WP 상태 검증: 미완료 WP에만 자율 코멘트 허용\nconst analysis = $('RA 응답 파싱').first().json;\nconst wpResponse = $input.item.json || {};\nconst statusTitleRaw = (\n  wpResponse.status?.title\n  || wpResponse.status?.name\n  || wpResponse._embedded?.status?.title\n  || wpResponse._embedded?.status?.name\n  || wpResponse._links?.status?.title\n  || wpResponse._links?.status?.name\n  || ''\n);\nconst statusTitle = String(statusTitleRaw).toLowerCase();\nconst wpId = analysis.wp ? String(analysis.wp).replace('WP-', '') : null;\n\nconst closedPatterns = ['closed', 'done', 'complete', 'completed', '완료', '종결', '닫힘'];\nconst openPatterns = ['open', 'new', 'progress', 'review', '오픈', '진행', '리뷰', '검토'];\nconst lookupFailed = Boolean(wpResponse.error || wpResponse.message?.includes?.('error') || !wpResponse.id);\nconst isClosed = closedPatterns.some((p) => statusTitle.includes(p));\nconst isOpenLike = openPatterns.some((p) => statusTitle.includes(p));\n\nlet wpStatusAllowed = true;\nlet yellowReason = null;\nlet reason = null;\n\nif (!wpId) {\n  wpStatusAllowed = false;\n  yellowReason = 'wp_id_missing';\n  reason = '기존 WP 매칭 결과에 WP ID가 없어 사람 검토 필요';\n} else if (lookupFailed) {\n  wpStatusAllowed = false;\n  yellowReason = 'wp_status_lookup_failed';\n  reason = 'OpenProject WP 상태 조회 실패 — 신규 생성/코멘트 전 사람 검토 필요';\n} else if (isClosed) {\n  wpStatusAllowed = false;\n  yellowReason = 'wp_closed_or_done';\n  reason = '매칭된 WP가 완료/종결 상태 — 재오픈 또는 신규 처리 여부 사람 판단 필요';\n} else if (!isOpenLike) {\n  wpStatusAllowed = false;\n  yellowReason = 'wp_status_unknown';\n  reason = '매칭된 WP 상태가 허용 목록에 없어 사람 검토 필요: ' + (statusTitleRaw || 'unknown');\n}\n\nreturn [{\n  json: {\n    ...analysis,\n    wp_status_allowed: wpStatusAllowed,\n    yellow_required: !wpStatusAllowed,\n    yellow_reason: yellowReason,\n    yellow_detail: reason,\n    op_wp_status: {\n      wp_id: wpId,\n      status_title: statusTitleRaw || null,\n      lookup_failed: lookupFailed,\n      is_closed: isClosed,\n      is_open_like: isOpenLike,\n      allowed_patterns: openPatterns,\n      blocked_patterns: closedPatterns\n    }\n  }\n}];"
+      },
+      "id": "validate-existing-wp-status",
+      "name": "기존 WP 상태 검증",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1250
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-wp-status-allowed",
+              "leftValue": "={{ Boolean($json.wp_status_allowed) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-wp-status-allowed",
+      "name": "WP 상태 허용 게이트",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        400,
+        1250
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "cond-yellow-webhook-configured",
+              "leftValue": "={{ Boolean($json.delivery && $json.delivery.webhook) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "gate-yellow-alert-channel",
+      "name": "Yellow 알림 채널 게이트",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        1250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.delivery.webhook }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.human_alert) }}",
+        "options": {}
+      },
+      "id": "send-yellow-alert-webhook",
+      "name": "Yellow 알림 Webhook 전송",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "continueOnFail": true,
+      "position": [
+        1200,
+        1250
+      ]
+    },
+    {
+      "id": "layer4-lookup-prepare",
+      "name": "Layer 4 조회 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Prepare Layer 4 real-time regulatory lookup.\n// This node preserves warm-start data and builds a bounded query for hermes-api-server.\nconst data = $input.item.json;\nconst queryParts = [\n  data.original_subject,\n  data.matching_key,\n  data.body_excerpt\n].filter(Boolean);\nconst layer4Query = queryParts.join(' ').slice(0, 800);\nreturn [{\n  json: {\n    ...data,\n    layer4_query: layer4Query,\n    layer4_profile: data.primary_actor || data.actor || 'ra_us',\n    layer4_requested: Boolean(layer4Query)\n  }\n}];"
+      }
+    },
+    {
+      "id": "layer4-knowledge-fetch",
+      "name": "Layer 4 규제 DB 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        480,
+        0
+      ],
+      "continueOnFail": true,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HERMES_API_URL }}/v1/knowledge/fetch",
+        "authentication": "none",
+        "options": {
+          "timeout": 15000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + ($env.API_SERVER_KEY || $env.HERMES_API_KEY || '') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.layer4_query, model: $json.layer4_profile, top: 3 }) }}"
+      }
+    },
+    {
+      "id": "layer4-context-inject",
+      "name": "Layer 4 컨텍스트 주입",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Merge Layer 4 lookup result back into the RA prompt input.\n// Lookup failure must not stop RA processing; it becomes an explicit degraded context note.\nlet base = {};\ntry {\n  base = $('Layer 4 조회 준비').first().json || {};\n} catch (e) {\n  base = {};\n}\nconst lookup = $input.item.json || {};\nconst results = lookup.results || {};\nconst sections = [];\n\nfunction addList(title, items, formatter) {\n  if (!Array.isArray(items) || items.length === 0) return;\n  sections.push(title);\n  items.slice(0, 3).forEach((item, idx) => sections.push('[' + (idx + 1) + '] ' + formatter(item)));\n}\n\naddList('Layer 4 llm-wiki results', results.llm_wiki, (item) => {\n  return [item.path || item.source || '', item.excerpt || item.summary || ''].filter(Boolean).join(' — ').slice(0, 500);\n});\naddList('Layer 4 openFDA results', results.openfda, (item) => {\n  return [item.k_number, item.product_code, item.device_name, item.decision_code, item.decision_date].filter(Boolean).join(' | ');\n});\naddList('Layer 4 KR law/data.go.kr results', results.law_kr || results.data_go_kr, (item) => {\n  return [item.summary || item.title || '', item.law_name || item.service || ''].filter(Boolean).join(' — ').slice(0, 500);\n});\n\nlet layer4Context = '';\nif (sections.length > 0) {\n  layer4Context = '\\n--- REAL-TIME REGULATORY DATA (Layer 4, reference only) ---\\n' + sections.join('\\n') + '\\n--- END REAL-TIME REGULATORY DATA ---';\n} else {\n  const status = lookup.status || (lookup.error ? 'lookup_failed' : 'empty_or_unavailable');\n  layer4Context = '\\n--- REAL-TIME REGULATORY DATA (Layer 4) ---\\nNo live result available; continue with static KB and escalate uncertainty. status=' + status + '\\n--- END REAL-TIME REGULATORY DATA ---';\n}\n\nreturn [{\n  json: {\n    ...base,\n    layer4_context: layer4Context,\n    layer4_status: lookup.status || (lookup.error ? 'lookup_failed' : 'unknown'),\n    layer4_result_counts: {\n      llm_wiki: Array.isArray(results.llm_wiki) ? results.llm_wiki.length : 0,\n      openfda: Array.isArray(results.openfda) ? results.openfda.length : 0,\n      law_kr: Array.isArray(results.law_kr) ? results.law_kr.length : 0,\n      data_go_kr: Array.isArray(results.data_go_kr) ? results.data_go_kr.length : 0\n    }\n  }\n}];"
+      }
+    }
+  ],
+  "connections": {
+    "Gmail 수신 트리거": {
+      "main": [
+        [
+          {
+            "node": "본문 파싱 및 규제권 라우팅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "본문 파싱 및 규제권 라우팅": {
+      "main": [
+        [
+          {
+            "node": "라우팅 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "라우팅 게이트": {
+      "main": [
+        [
+          {
+            "node": "Yellow 게이트 (사람 질의)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Honcho 과거 컨텍스트 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RA 에이전트 호출": {
+      "main": [
+        [
+          {
+            "node": "RA 응답 파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RA 응답 파싱": {
+      "main": [
+        [
+          {
+            "node": "파싱 성공 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "파싱 성공 게이트": {
+      "main": [
+        [
+          {
+            "node": "Yellow 게이트 (사람 질의)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "신규 vs 기존 WP 분기",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "신규 vs 기존 WP 분기": {
+      "main": [
+        [
+          {
+            "node": "기존 WP 상태 조회",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "신규 WP 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WP 코멘트 추가": {
+      "main": [
+        [
+          {
+            "node": "전이 제안 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "신규 WP 생성": {
+      "main": [
+        [
+          {
+            "node": "전이 제안 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "전이 제안 게이트": {
+      "main": [
+        [
+          {
+            "node": "전이 제안 코멘트 (Yellow)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Honcho 기록 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "전이 제안 코멘트 (Yellow)": {
+      "main": [
+        [
+          {
+            "node": "Honcho 기록 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho 기록 준비": {
+      "main": [
+        [
+          {
+            "node": "Honcho 세션 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho 세션 생성": {
+      "main": [
+        [
+          {
+            "node": "Honcho conclusion 기록",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yellow 게이트 (사람 질의)": {
+      "main": [
+        [
+          {
+            "node": "Yellow 알림 발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "테스트 Webhook 트리거": {
+      "main": [
+        [
+          {
+            "node": "본문 파싱 및 규제권 라우팅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honcho 과거 컨텍스트 조회": {
+      "main": [
+        [
+          {
+            "node": "컨텍스트 프롬프트 주입",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "컨텍스트 프롬프트 주입": {
+      "main": [
+        [
+          {
+            "node": "Layer 4 조회 준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "기존 WP 상태 조회": {
+      "main": [
+        [
+          {
+            "node": "기존 WP 상태 검증",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "기존 WP 상태 검증": {
+      "main": [
+        [
+          {
+            "node": "WP 상태 허용 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WP 상태 허용 게이트": {
+      "main": [
+        [
+          {
+            "node": "WP 코멘트 추가",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Yellow 게이트 (사람 질의)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yellow 알림 발송": {
+      "main": [
+        [
+          {
+            "node": "Yellow 알림 채널 게이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yellow 알림 채널 게이트": {
+      "main": [
+        [
+          {
+            "node": "Yellow 알림 Webhook 전송",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Layer 4 조회 준비": {
+      "main": [
+        [
+          {
+            "node": "Layer 4 규제 DB 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Layer 4 규제 DB 조회": {
+      "main": [
+        [
+          {
+            "node": "Layer 4 컨텍스트 주입",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Layer 4 컨텍스트 주입": {
+      "main": [
+        [
+          {
+            "node": "RA 에이전트 호출",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": {
+    "node:Gmail 수신 트리거": {
+      "lastTimeChecked": 1780902214,
+      "possibleDuplicates": [
+        "19ea60b3cf597382"
+      ]
+    }
+  },
+  "pinData": null
+}
