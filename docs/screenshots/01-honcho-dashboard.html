@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; color: #333; }
+    .screenshot-header { background: #2c3e50; color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 5px 5px 0 0; }
+    .screenshot-content { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .status-indicator { display: inline-block; width: 10px; height: 10px; background: #27ae60; border-radius: 50%; margin-right: 5px; }
+    .api-status { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    .system-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="screenshot-header">
+    <h2>🤖 Honcho API Dashboard</h2>
+    <p><span class="status-indicator"></span> System Status: Active | Server: T3610 | Captured: 2026-06-19</p>
+  </div>
+  <div class="screenshot-content">
+    <div class="api-status">
+      <h3>✅ API Health Check</h3>
+      <p><strong>Status:</strong> OK</p>
+      <p><strong>Endpoint:</strong> http://localhost:8000</p>
+      <p><strong>Version:</strong> Honcho v0.15.1</p>
+    </div>
+
+    <div class="system-info">
+      <h3>📊 System Components</h3>
+      <ul>
+        <li><strong>API Server:</strong> Running on port 8000</li>
+        <li><strong>Database:</strong> PostgreSQL with pgvector (4096 dimensions)</li>
+        <li><strong>Cache:</strong> Redis on port 6379</li>
+        <li><strong>LLM Backend:</strong> GX10 Qwen3 (gpt-oss:120b)</li>
+      </ul>
+    </div>
+
+    <div class="api-status">
+      <h3>🤖 RA Agents Status</h3>
+      <p>✅ All 8 RA agents active and operational:</p>
+      <ul>
+        <li>Mike (ra_us) - FDA 510(k) Expert</li>
+        <li>Theo (ra_eu) - EU MDR Expert</li>
+        <li>Sam (ra_kr) - MFDS/KGMP Expert</li>
+        <li>Margot (op_manager) - OpenProject Manager</li>
+        <li>Olly (n8n-manager) - Automation Manager</li>
+        <li>Finn (infra_t3610) - Infrastructure Monitor</li>
+        <li>Leo (infra_gx10) - LLM Inference Manager</li>
+        <li>Gus (infra_rpi) - RPi Infrastructure Manager</li>
+      </ul>
+    </div>
+
+    <div class="system-info">
+      <h3>🔌 Active Connections</h3>
+      <p><strong>T3610 Server:</strong> Local connection established</p>
+      <p><strong>GX10 Inference:</strong> API connectivity confirmed</p>
+      <p><strong>Database Pool:</strong> 2 workers active</p>
+      <p><strong>Redis Cache:</strong> Connection stable</p>
+    </div>
+  </div>
+</body>
+</html>

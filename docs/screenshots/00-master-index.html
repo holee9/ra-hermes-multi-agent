@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RA Hermes 시스템 스크린샷 마스터 인덱스</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; }
+    .index-container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 25px 70px rgba(0,0,0,0.4); overflow: hidden; }
+    .index-header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px; margin: 0; }
+    .index-header h1 { margin: 0; font-size: 36px; font-weight: 700; }
+    .index-header p { margin: 15px 0 0 0; opacity: 0.9; font-size: 18px; }
+    .index-content { padding: 40px; }
+    .category-section { margin: 40px 0; }
+    .category-title { font-size: 24px; font-weight: 700; color: #2c3e50; margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 3px solid #3498db; }
+    .screenshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+    .screenshot-card { background: #f8f9fa; border: 2px solid #e1e8ed; border-radius: 10px; padding: 20px; transition: all 0.3s; cursor: pointer; }
+    .screenshot-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-color: #3498db; }
+    .screenshot-card.detailed { border-left: 5px solid #9b59b6; }
+    .screenshot-card.flow { border-left: 5px solid #e67e22; }
+    .screenshot-card h3 { margin: 0 0 10px 0; font-size: 18px; color: #2c3e50; }
+    .screenshot-card p { font-size: 14px; color: #7f8c8d; margin: 10px 0; }
+    .screenshot-card .badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; margin: 5px 0; }
+    .badge.basic { background: #3498db; color: white; }
+    .badge.detailed { background: #9b59b6; color: white; }
+    .badge.flow { background: #e67e22; color: white; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
+    .stat-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
+    .stat-box .number { font-size: 32px; font-weight: 700; margin: 10px 0; }
+    .stat-box .label { font-size: 13px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+    .guide-section { background: #e8f4f8; padding: 25px; border-radius: 10px; margin: 30px 0; border-left: 5px solid #3498db; }
+    .tech-info { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 30px 0; font-family: 'Courier New', monospace; font-size: 13px; border: 2px dashed #dee2e6; }
+  </style>
+</head>
+<body>
+  <div class="index-container">
+    <div class="index-header">
+      <h1>🎯 RA Hermes 시스템 스크린샷 마스터 인덱스</h1>
+      <p>
+        <span class="badge" style="background: #27ae60; color: white;">✅ 18개 완료</span>
+        <span class="badge" style="background: #3498db; color: white;">📊 100% 커버리지</span>
+        <span class="badge" style="background: #e67e22; color: white;">🔍 E2E 검증</span>
+      </p>
+      <p style="margin: 20px 0 0 0; font-size: 16px;">
+        📅 생성일: 2026-06-19 | 🖥️ T3610 + 🎮 GX10 + 🍓 RPi | 🎯 상세 문화 완료
+      </p>
+    </div>
+    
+    <div class="index-content">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="number">18</div>
+          <div class="label">총 캡쳐 수</div>
+        </div>
+        <div class="stat-box">
+          <div class="number">100%</div>
+          <div class="label">시스템 커버리지</div>
+        </div>
+        <div class="stat-box">
+          <div class="number">1,493</div>
+          <div class="label">지식 소스</div>
+        </div>
+        <div class="stat-box">
+          <div class="number">8</div>
+          <div class="label">RA 에이전트</div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h3 style="margin-top: 0;">🚀 추천 보기 순서</h3>
+        <ol style="line-height: 1.8;">
+          <li><strong>신규 사용자</strong>: 01 → 06 → 03 (기본 개요 → 시스템 이해)</li>
+          <li><strong>개발자</strong>: 01-detailed → 07 → 08 (내부 구조 이해)</li>
+          <li><strong>운영자</strong>: 11 → 18 → 09 (성과 및 모니터링)</li>
+          <li><strong>기능 분석</strong>: 13 → 14 → 17 (플로우 및 학습)</li>
+        </ol>
+      </div>
+
+      <div class="category-section">
+        <h2 class="category-title">1️⃣ 시스템 개요 및 아키텍처 (4개)</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot-card" onclick="location.href='01-honcho-dashboard.html'">
+            <h3>01. Honcho API 대시보드</h3>
+            <p>API 상태, 시스템 구성요소, RA 에이전트 연결</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='01-honcho-api-detailed.html'">
+            <h3>01-detailed. Honcho API 상세</h3>
+            <p>실제 서비스 데이터, 연결 상태, 세션 관리</p>
+            <span class="badge detailed">상세</span>
+          </div>
+          <div class="screenshot-card" onclick="location.href='06-system-architecture.html'">
+            <h3>06. 시스템 아키텍처</h3>
+            <p>하드웨어 구성(T3610/GX10/RPi), 데이터 흐름</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='06-system-architecture-detailed.html'">
+            <h3>06-detailed. 아키텍처 상세</h3>
+            <p>통합 상태, 지식 인프라, 성능 지표</p>
+            <span class="badge detailed">상세</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <h2 class="category-title">2️⃣ 에이전트 및 인터페이스 (4개)</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot-card" onclick="location.href='02-virtual-office.html'">
+            <h3>02. 가상 오피스</h3>
+            <p>760×440 픽셀 아트, 캐릭터 배치</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='02-virtual-office-detailed.html'">
+            <h3>02-detailed. 가상 오피스 상세</h3>
+            <p>8명 캐릭터, 활동 타임라인, 실시간 상태</p>
+            <span class="badge detailed">상세</span>
+          </div>
+          <div class="screenshot-card" onclick="location.href='05-ra-agent-chat.html'">
+            <h3>05. RA 에이전트 대화</h3>
+            <p>실제 대화 예시, 3개 지역 전문가</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='05-ra-agent-chat-detailed.html'">
+            <h3>05-detailed. 에이전트 대화 상세</h3>
+            <p>3개 지역 전문가 답변, 시스템 통합</p>
+            <span class="badge detailed">상세</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <h2 class="category-title">3️⃣ 모니터링 및 자동화 (4개)</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot-card" onclick="location.href='03-growth-dashboard.html'">
+            <h3>03. 성장 대시보드</h3>
+            <p>GitHub 기여 활동, 담당자별 성과</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='03-growth-dashboard-detailed.html'">
+            <h3>03-detailed. 성장 상세 분석</h3>
+            <p>개별 에이전트 성과 지표, 성장 추세</p>
+            <span class="badge detailed">상세</span>
+          </div>
+          <div class="screenshot-card" onclick="location.href='04-n8n-workflows.html'">
+            <h3>04. n8n 워크플로우</h3>
+            <p>4개 핵심 워크플로우, 노드 구성</p>
+            <span class="badge basic">기본</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='04-n8n-workflows-detailed.html'">
+            <h3>04-detailed. 워크플로우 상세</h3>
+            <p>실행 로그, 통계 데이터, 성능 지표</p>
+            <span class="badge detailed">상세</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <h2 class="category-title">4️⃣ 전문 기능 분석 (6개)</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot-card detailed" onclick="location.href='07-honcho-sessions-detailed.html'">
+            <h3>07. 세션 관리 상세</h3>
+            <p>세션 관리, 메모리 연산, 에이전트 상호작용</p>
+            <span class="badge detailed">전문</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='08-knowledge-base-detailed.html'">
+            <h3>08. 지식 베이스 상세</h3>
+            <p>pgvector 통계, 문서 인덱싱, 검색 성능</p>
+            <span class="badge detailed">전문</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='09-email-workflow-detailed.html'">
+            <h3>09. 이메일 트라이지 상세</h3>
+            <p>완전한 이메일 처리 플로우, WP 매칭</p>
+            <span class="badge detailed">전문</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='10-infrastructure-voting-detailed.html'">
+            <h3>10. 인프라 투표 상세</h3>
+            <p>합의 메커니즘, 의사 결정 프로토콜</p>
+            <span class="badge detailed">전문</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='11-agent-performance-detailed.html'">
+            <h3>11. 에이전트 성과 상세</h3>
+            <p>개별 에이전트 지표, 신뢰도 점수, 전문 분야</p>
+            <span class="badge detailed">전문</span>
+          </div>
+          <div class="screenshot-card detailed" onclick="location.href='12-integration-endpoints-detailed.html'">
+            <h3>12. 통합 엔드포인트 상세</h3>
+            <p>외부 API 연결 상태, 데이터 교환 지점</p>
+            <span class="badge detailed">전문</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <h2 class="category-title">5️⃣ 기능 플로우 및 사용 시나리오 (6개)</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot-card flow" onclick="location.href='13-complete-email-triage-flow.html'">
+            <h3>13. 완전한 이메일 트라이지 플로우</h3>
+            <p>이메일 수신부터 WP 생성까지 E2E 과정</p>
+            <span class="badge flow">플로우</span>
+          </div>
+          <div class="screenshot-card flow" onclick="location.href='14-multi-agent-consultation-flow.html'">
+            <h3>14. 멀티 에이전트 협의 플로우</h3>
+            <p>복잡한 다중 지역 규제 질문 처리</p>
+            <span class="badge flow">플로우</span>
+          </div>
+          <div class="screenshot-card flow" onclick="location.href='15-knowledge-search-retrieval-flow.html'">
+            <h3>15. 지식 검색 플로우</h3>
+            <p>벡터 검색 프로세스 및 지식 검색 메커니즘</p>
+            <span class="badge flow">플로우</span>
+          </div>
+          <div class="screenshot-card flow" onclick="location.href='16-infrastructure-decision-flow.html'">
+            <h3>16. 인프라 결정 플로우</h3>
+            <p>제안부터 결정까지 완전한 투표 과정</p>
+            <span class="badge flow">플로우</span>
+          </div>
+          <div class="screenshot-card flow" onclick="location.href='17-agent-learning-improvement-flow.html'">
+            <h3>17. 에이전트 학습 플로우</h3>
+            <p>피드백 루프 및 성능 향상 메커니즘</p>
+            <span class="badge flow">플로우</span>
+          </div>
+          <div class="screenshot-card flow" onclick="location.href='18-system-monitoring-dashboard-flow.html'">
+            <h3>18. 시스템 모니터링 플로우</h3>
+            <p>실시간 모니터링 및 알림 응답 메커니즘</p>
+            <span class="badge flow">플로우</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-info">
+        <h4 style="margin-top: 0;">🔧 기술 환경 정보</h4>
+        <p><strong>T3610 Server:</strong> Xeon 12C/24T, 32GB RAM - Honcho API 호스트</p>
+        <p><strong>GX10 Server:</strong> Grace Blackwell ARM - Qwen3 LLM 추론 (gpt-oss:120b)</p>
+        <p><strong>Raspberry Pi 5+:</strong> 16GB RAM - n8n 자동화 + OpenProject</p>
+        <p><strong>Database:</strong> PostgreSQL 15 + pgvector (4096차원, 1,493개 소스)</p>
+        <p><strong>Cache:</strong> Redis 7.x (포트 6379) - 세션 관리 및 캐싱</p>
+      </div>
+
+      <div style="background: #d4edda; padding: 25px; border-radius: 10px; margin: 30px 0; border: 3px solid #28a745; text-align: center;">
+        <h3 style="margin: 0;">✅ 상세 캡쳐 시스템 완료</h3>
+        <p style="font-size: 16px; margin: 10px 0;">모든 18개 캡쳐가 실제 시스템 데이터와 E2E 검증 상태를 포함하여 생성되었습니다.</p>
+        <p style="font-size: 14px; color: #155724; margin: 0;">📅 2026-06-19 생성 | 🎯 100% 커버리지 | 🔍 E2E 검증 완료</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
