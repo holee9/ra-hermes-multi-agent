@@ -114,17 +114,19 @@ git push origin main
 
 2026-06-16 #64 보정 전에는 `reports/growth-2026-06-16.json`까지 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이었다. 원인은 collector가 Honcho v0.15.1 list API를 `GET /sessions`로 호출한 것이다. 실제 API 계약은 `POST /sessions/list`, `POST /sessions/{id}/messages/list`다.
 
-보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록한다. scheduled daily report는 다음 `ra-growth-metrics.timer` 실행부터 같은 collector 계약을 따른다.
+보정 후 `reports/growth-diagnostic-2026-06-16.json`은 `sessions_listed=32`, `sessions_with_messages=27`, `messages_scanned=302`, `empty_cause=metrics_input_available`을 기록했다. 2026-06-19 daily report도 `sessions_scanned=27`, `messages_scanned=302`를 기록하므로 collector 입력 수집은 복구된 상태다.
+
+다만 `growth-2026-06-19.json`의 `correction_rate`, `first_pass_match_accuracy`, `confidence_calibration`, `warmstart_lift`, `escalation_precision`은 아직 값이 없거나 denominator가 0이다. `autonomous_study_sessions`와 `study_insights_count`도 0이므로, dashboard의 Growth Trend Verdict는 `측정 불충분` warning으로 남아야 한다.
 
 따라서 현재 dashboard는 다음에는 충분하다.
 
 - 담당자별 KB foundation과 source coverage 확인
 - 운영 성장 데이터가 실제로 들어오고 있는지 확인
-- 성장 신호가 Knowledge Base 이후 Operational Input에서 끊겼는지 확인
+- 성장 신호가 Operational Input 이후 Feedback Signal에서 끊겼는지 확인
 - KR/EU legacy pre-activation floor가 전문가 성숙도 기준이 아님을 확인
 - reports 생성 여부 확인
 
-현재 결론은 "metrics ingestion은 복구됐지만, 30일 유효 metrics와 충분한 사람 평가 coverage가 없어 자동성장 threshold나 form 이관을 아직 확정할 수 없다"이다.
+현재 결론은 "metrics ingestion은 복구됐지만, 행동/사람 피드백 metric 값과 30일 유효 metrics coverage가 없어 자동성장 threshold나 form 이관을 아직 확정할 수 없다"이다.
 
 하지만 다음에는 아직 부족하다.
 

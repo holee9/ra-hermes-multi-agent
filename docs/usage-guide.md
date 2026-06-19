@@ -651,4 +651,4 @@ curl -s -X POST "http://localhost:8000/v3/workspaces/work/peers" \
 
 ---
 
-*최종 갱신: 2026-06-16 | Hermes v0.15.1 / Honcho v0.15.1 기준*
+*최종 갱신: 2026-06-19 | Hermes v0.15.1 / Honcho v0.15.1 기준*
