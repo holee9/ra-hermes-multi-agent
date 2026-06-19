@@ -10,21 +10,27 @@
         "options": {}
       },
       "id": "webhook-wp-close",
-      "name": "WP 종결 웹훅 수신",
+      "name": "WP \uc885\uacb0 \uc6f9\ud6c5 \uc218\uc2e0",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 300],
+      "position": [
+        200,
+        300
+      ],
       "webhookId": "wp-close-webhook"
     },
     {
       "parameters": {
-        "jsCode": "// GROWTH-4: OpenProject WP 종결 이벤트 검증 및 정보 추출\n// OpenProject webhook payload: { action, work_package: {...} }\n// action: 'work_package:updated', 'work_package:closed' 등\n\nconst raw = $json;\nconst body = raw.body || raw;\n\nconst action = body.action || '';\nconst wp = body.work_package || body.workPackage || null;\n\nif (!wp) {\n  throw new Error('No work_package in payload. action=' + action);\n}\n\nconst wpId = wp.id;\nif (!wpId) {\n  throw new Error('work_package.id missing');\n}\n\n// 종결 상태 확인: status.title이 Closed/종결/완료 포함이거나 action이 closed\nconst statusTitle = ((wp.status || {}).title || '').toLowerCase();\nconst isClosed = statusTitle.includes('clos') || statusTitle.includes('종결') || statusTitle.includes('완료') || action.includes('clos');\nif (!isClosed) {\n  throw new Error('Not a close event. status=' + statusTitle + ' action=' + action);\n}\n\n// WP 기본 정보 추출\nconst subject = wp.subject || '';\nconst desc = typeof wp.description === 'object' ? (wp.description.raw || wp.description.html || '') : (wp.description || '');\nconst closedAt = wp.updatedAt || wp.closedAt || new Date().toISOString();\nconst createdAt = wp.createdAt || closedAt;\n\n// 지역 추출 (backfill 로직과 동일)\nlet region = 'UNKNOWN';\nconst subjectUpper = subject.toUpperCase();\nfor (const r of ['US', 'EU', 'KR']) {\n  if (subjectUpper.includes(r)) { region = r; break; }\n}\nconst cfs = wp.customFields || {};\nfor (const [, v] of Object.entries(cfs)) {\n  const raw2 = (typeof v === 'object' ? v.raw : String(v)) || '';\n  if (['US', 'EU', 'KR'].includes(raw2)) { region = raw2; break; }\n}\n\n// 프로젝트명 추출\nconst project = (typeof wp._links === 'object') ? ((wp._links.project || {}).title || '') : '';\n\n// Case digest 구성 (구조적 추출 — backfill format 호환)\n// device: 제목 첫 부분에서 추출, intended_use: description 첫 문단\nconst subjectParts = subject.split(/[:\\-–]/).map((s) => s.trim());\nconst device = subjectParts[0] || subject.slice(0, 80);\nconst descLines = desc.split('\\n').filter((l) => l.trim().length > 0);\nconst intendedUse = descLines[0] ? descLines[0].slice(0, 200) : '';\n\n// RA 경로 추출: 제목에서 510(k)/PMA/CE/MFDS 키워드 검색\nlet pathway = null;\nconst subjectLower = subject.toLowerCase();\nconst descLower = desc.toLowerCase();\nconst pathwayKeywords = ['510(k)', '510k', 'pma', 'de novo', 'ce marking', 'mfds', 'kfda', 'class ii', 'class iii', 'exempt'];\nfor (const kw of pathwayKeywords) {\n  if (subjectLower.includes(kw) || descLower.includes(kw)) {\n    pathway = kw.toUpperCase();\n    break;\n  }\n}\n\n// predicate 추출: 제목/설명에서 K-number, 기존 디바이스 참조\nconst predicateMatch = (subject + ' ' + desc).match(/K\\d{6}|predicate[:\\s]+([^\\n,]+)|similar to[:\\s]+([^\\n,]+)/i);\nconst chosenPredicate = predicateMatch ? predicateMatch[0].slice(0, 100) : null;\n\n// 결과: 종결 = 승인 완료로 간주 (OP에서 Closed = successful completion)\nconst outcome = 'closed';\n\nconst digest = {\n  device,\n  intended_use: intendedUse,\n  chosen_predicate: chosenPredicate,\n  pathway,\n  outcome,\n  region,\n  what_worked: null,\n  what_didnt: null,\n  _source: 'wp_close_webhook',\n  _extractedAt: new Date().toISOString()\n};\n\nreturn [{\n  json: {\n    wp_id: wpId,\n    session_id: 'wp-' + wpId,\n    subject,\n    region,\n    project,\n    closed_at: closedAt,\n    created_at: createdAt,\n    status: statusTitle,\n    digest\n  }\n}];"
+        "jsCode": "// GROWTH-4: OpenProject WP \uc885\uacb0 \uc774\ubca4\ud2b8 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c\n// OpenProject webhook payload: { action, work_package: {...} }\n// action: 'work_package:updated', 'work_package:closed' \ub4f1\n\nconst raw = $json;\nconst body = raw.body || raw;\n\nconst action = body.action || '';\nconst wp = body.work_package || body.workPackage || null;\n\nif (!wp) {\n  throw new Error('No work_package in payload. action=' + action);\n}\n\nconst wpId = wp.id;\nif (!wpId) {\n  throw new Error('work_package.id missing');\n}\n\n// \uc885\uacb0 \uc0c1\ud0dc \ud655\uc778: status.title\uc774 Closed/\uc885\uacb0/\uc644\ub8cc \ud3ec\ud568\uc774\uac70\ub098 action\uc774 closed\nconst statusTitle = ((wp.status || {}).title || '').toLowerCase();\nconst isClosed = statusTitle.includes('clos') || statusTitle.includes('\uc885\uacb0') || statusTitle.includes('\uc644\ub8cc') || action.includes('clos');\nif (!isClosed) {\n  throw new Error('Not a close event. status=' + statusTitle + ' action=' + action);\n}\n\n// WP \uae30\ubcf8 \uc815\ubcf4 \ucd94\ucd9c\nconst subject = wp.subject || '';\nconst desc = typeof wp.description === 'object' ? (wp.description.raw || wp.description.html || '') : (wp.description || '');\nconst closedAt = wp.updatedAt || wp.closedAt || new Date().toISOString();\nconst createdAt = wp.createdAt || closedAt;\n\n// \uc9c0\uc5ed \ucd94\ucd9c (backfill \ub85c\uc9c1\uacfc \ub3d9\uc77c)\nlet region = 'UNKNOWN';\nconst subjectUpper = subject.toUpperCase();\nfor (const r of ['US', 'EU', 'KR']) {\n  if (subjectUpper.includes(r)) { region = r; break; }\n}\nconst cfs = wp.customFields || {};\nfor (const [, v] of Object.entries(cfs)) {\n  const raw2 = (typeof v === 'object' ? v.raw : String(v)) || '';\n  if (['US', 'EU', 'KR'].includes(raw2)) { region = raw2; break; }\n}\n\n// \ud504\ub85c\uc81d\ud2b8\uba85 \ucd94\ucd9c\nconst project = (typeof wp._links === 'object') ? ((wp._links.project || {}).title || '') : '';\n\n// Case digest \uad6c\uc131 (\uad6c\uc870\uc801 \ucd94\ucd9c \u2014 backfill format \ud638\ud658)\n// device: \uc81c\ubaa9 \uccab \ubd80\ubd84\uc5d0\uc11c \ucd94\ucd9c, intended_use: description \uccab \ubb38\ub2e8\nconst subjectParts = subject.split(/[:\\-\u2013]/).map((s) => s.trim());\nconst device = subjectParts[0] || subject.slice(0, 80);\nconst descLines = desc.split('\\n').filter((l) => l.trim().length > 0);\nconst intendedUse = descLines[0] ? descLines[0].slice(0, 200) : '';\n\n// RA \uacbd\ub85c \ucd94\ucd9c: \uc81c\ubaa9\uc5d0\uc11c 510(k)/PMA/CE/MFDS \ud0a4\uc6cc\ub4dc \uac80\uc0c9\nlet pathway = null;\nconst subjectLower = subject.toLowerCase();\nconst descLower = desc.toLowerCase();\nconst pathwayKeywords = ['510(k)', '510k', 'pma', 'de novo', 'ce marking', 'mfds', 'kfda', 'class ii', 'class iii', 'exempt'];\nfor (const kw of pathwayKeywords) {\n  if (subjectLower.includes(kw) || descLower.includes(kw)) {\n    pathway = kw.toUpperCase();\n    break;\n  }\n}\n\n// predicate \ucd94\ucd9c: \uc81c\ubaa9/\uc124\uba85\uc5d0\uc11c K-number, \uae30\uc874 \ub514\ubc14\uc774\uc2a4 \ucc38\uc870\nconst predicateMatch = (subject + ' ' + desc).match(/K\\d{6}|predicate[:\\s]+([^\\n,]+)|similar to[:\\s]+([^\\n,]+)/i);\nconst chosenPredicate = predicateMatch ? predicateMatch[0].slice(0, 100) : null;\n\n// \uacb0\uacfc: \uc885\uacb0 = \uc2b9\uc778 \uc644\ub8cc\ub85c \uac04\uc8fc (OP\uc5d0\uc11c Closed = successful completion)\nconst outcome = 'closed';\n\nconst digest = {\n  device,\n  intended_use: intendedUse,\n  chosen_predicate: chosenPredicate,\n  pathway,\n  outcome,\n  region,\n  what_worked: null,\n  what_didnt: null,\n  _source: 'wp_close_webhook',\n  _extractedAt: new Date().toISOString()\n};\n\nreturn [{\n  json: {\n    wp_id: wpId,\n    session_id: 'wp-' + wpId,\n    subject,\n    region,\n    project,\n    closed_at: closedAt,\n    created_at: createdAt,\n    status: statusTitle,\n    digest\n  }\n}];"
       },
       "id": "validate-wp-close",
-      "name": "WP 종결 검증 및 정보 추출",
+      "name": "WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -42,79 +48,88 @@
         }
       },
       "id": "honcho-session-ensure",
-      "name": "Honcho 세션 확보 (이미 있으면 409 무시)",
+      "name": "Honcho \uc138\uc158 \ud655\ubcf4 (\uc774\ubbf8 \uc788\uc73c\uba74 409 \ubb34\uc2dc)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $node['WP 종결 검증 및 정보 추출'].json.session_id }}/messages",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.session_id }}/messages",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify({ ts: $node['WP 종결 검증 및 정보 추출'].json.closed_at, type: 'wp_closed', actor: 'system', payload: { wp_id: $node['WP 종결 검증 및 정보 추출'].json.wp_id, subject: $node['WP 종결 검증 및 정보 추출'].json.subject, region: $node['WP 종결 검증 및 정보 추출'].json.region, project: $node['WP 종결 검증 및 정보 추출'].json.project, digest: $node['WP 종결 검증 및 정보 추출'].json.digest } }), peer_id: 'human', metadata: { type: 'activity_log', record_type: 'wp_closed', wp_id: $node['WP 종결 검증 및 정보 추출'].json.wp_id } }] }) }}"
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify({ ts: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.closed_at, type: 'wp_closed', actor: 'system', payload: { wp_id: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.wp_id, subject: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.subject, region: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.region, project: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.project, digest: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.digest } }), peer_id: 'human', metadata: { type: 'activity_log', record_type: 'wp_closed', wp_id: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.wp_id } }] }) }}"
       },
       "id": "honcho-record-close",
-      "name": "Honcho 세션에 종결 기록",
+      "name": "Honcho \uc138\uc158\uc5d0 \uc885\uacb0 \uae30\ub85d",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [880, 300]
+      "position": [
+        880,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $node['WP 종결 검증 및 정보 추출'].json.session_id }}/messages",
+        "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.session_id }}/messages",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify({ ts: $node['WP 종결 검증 및 정보 추출'].json.closed_at, type: 'case_digest', actor: 'system', payload: { wp_id: $node['WP 종결 검증 및 정보 추출'].json.wp_id, digest: $node['WP 종결 검증 및 정보 추출'].json.digest, label: 'CLOSED_CASE_DIGEST', warm_start_eligible: true } }), peer_id: 'ai', metadata: { type: 'case_digest', record_type: 'case_digest', wp_id: $node['WP 종결 검증 및 정보 추출'].json.wp_id, peer_target: 'ai', warm_start_eligible: true } }] }) }}"
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify({ ts: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.closed_at, type: 'case_digest', actor: 'system', payload: { wp_id: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.wp_id, digest: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.digest, label: 'CLOSED_CASE_DIGEST', warm_start_eligible: true } }), peer_id: 'ai', metadata: { type: 'case_digest', record_type: 'case_digest', wp_id: $node['WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c'].json.wp_id, peer_target: 'ai', warm_start_eligible: true } }] }) }}"
       },
       "id": "honcho-record-digest-ai",
-      "name": "Honcho AI peer에 case digest 기록",
+      "name": "Honcho AI peer\uc5d0 case digest \uae30\ub85d",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1100, 300]
+      "position": [
+        1100,
+        300
+      ]
     }
   ],
   "connections": {
-    "WP 종결 웹훅 수신": {
+    "WP \uc885\uacb0 \uc6f9\ud6c5 \uc218\uc2e0": {
       "main": [
         [
           {
-            "node": "WP 종결 검증 및 정보 추출",
+            "node": "WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "WP 종결 검증 및 정보 추출": {
+    "WP \uc885\uacb0 \uac80\uc99d \ubc0f \uc815\ubcf4 \ucd94\ucd9c": {
       "main": [
         [
           {
-            "node": "Honcho 세션 확보 (이미 있으면 409 무시)",
+            "node": "Honcho \uc138\uc158 \ud655\ubcf4 (\uc774\ubbf8 \uc788\uc73c\uba74 409 \ubb34\uc2dc)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Honcho 세션 확보 (이미 있으면 409 무시)": {
+    "Honcho \uc138\uc158 \ud655\ubcf4 (\uc774\ubbf8 \uc788\uc73c\uba74 409 \ubb34\uc2dc)": {
       "main": [
         [
           {
-            "node": "Honcho 세션에 종결 기록",
+            "node": "Honcho \uc138\uc158\uc5d0 \uc885\uacb0 \uae30\ub85d",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Honcho 세션에 종결 기록": {
+    "Honcho \uc138\uc158\uc5d0 \uc885\uacb0 \uae30\ub85d": {
       "main": [
         [
           {
-            "node": "Honcho AI peer에 case digest 기록",
+            "node": "Honcho AI peer\uc5d0 case digest \uae30\ub85d",
             "type": "main",
             "index": 0
           }
@@ -125,7 +140,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "active": false,
+  "active": true,
   "staticData": null,
   "pinData": {},
   "versionId": "1"
