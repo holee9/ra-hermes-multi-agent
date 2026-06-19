@@ -10,7 +10,7 @@
         "options": {}
       },
       "id": "webhook-trigger",
-      "name": "인프라 투표 결과 수신",
+      "name": "\uc778\ud504\ub77c \ud22c\ud45c \uacb0\uacfc \uc218\uc2e0",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -21,10 +21,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// 전달 임계 조건 확인 [IF]\n// relay_conditions 비어 있으면 모두 전달 (초기 운영). 운영 팀이 규칙 주입 시 동작.\n// webhook typeVersion 2: body in $json.body\nconst raw = $json;\nconst input = raw.body || raw;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\n\nlet config = {};\nlet configStatus = 'empty';\nconst configRaw = env.BRIDGE_RELAY_CONFIG_JSON || input.bridge_config_json || null;\nif (configRaw) {\n  try {\n    config = typeof configRaw === 'string' ? JSON.parse(configRaw) : configRaw;\n    configStatus = 'loaded';\n  } catch (e) {\n    config = {};\n    configStatus = 'parse_error:' + e.message;\n  }\n}\n\nconst relayConditions = Array.isArray(config.relay_conditions) ? config.relay_conditions : [];\nconst relayThreshold = Number.isFinite(Number(config.relay_threshold)) ? Number(config.relay_threshold) : null;\n\nlet shouldRelay = true;\nlet rejectReason = null;\n\nif (relayThreshold !== null && Number(input.approve_ratio || 0) < relayThreshold) {\n  shouldRelay = false;\n  rejectReason = 'relay_threshold_not_met';\n}\n\nif (shouldRelay && relayConditions.length > 0) {\n  const matchesSomeCondition = relayConditions.some(cond => {\n    if (cond.result && input.result !== cond.result) return false;\n    if (cond.min_approve_ratio && (input.approve_ratio || 0) < cond.min_approve_ratio) return false;\n    return true;\n  });\n  if (!matchesSomeCondition) {\n    shouldRelay = false;\n    rejectReason = 'relay_condition_not_met';\n  }\n}\n\nreturn [{\n  json: {\n    ...input,\n    _bridge_decision: shouldRelay ? 'relay' : 'drop',\n    _bridge_reject_reason: rejectReason,\n    _bridge_config: {\n      source: configRaw ? 'env_or_payload' : 'empty_default',\n      status: configStatus,\n      relay_threshold: relayThreshold,\n      relay_conditions_count: relayConditions.length\n    },\n    _bridge_ts: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// \uc804\ub2ec \uc784\uacc4 \uc870\uac74 \ud655\uc778 [IF]\n// relay_conditions \ube44\uc5b4 \uc788\uc73c\uba74 \ubaa8\ub450 \uc804\ub2ec (\ucd08\uae30 \uc6b4\uc601). \uc6b4\uc601 \ud300\uc774 \uaddc\uce59 \uc8fc\uc785 \uc2dc \ub3d9\uc791.\n// webhook typeVersion 2: body in $json.body\nconst raw = $json;\nconst input = raw.body || raw;\nconst env = (typeof process !== 'undefined' && process.env) ? process.env : {};\n\nlet config = {};\nlet configStatus = 'empty';\nconst configRaw = env.BRIDGE_RELAY_CONFIG_JSON || input.bridge_config_json || null;\nif (configRaw) {\n  try {\n    config = typeof configRaw === 'string' ? JSON.parse(configRaw) : configRaw;\n    configStatus = 'loaded';\n  } catch (e) {\n    config = {};\n    configStatus = 'parse_error:' + e.message;\n  }\n}\n\nconst relayConditions = Array.isArray(config.relay_conditions) ? config.relay_conditions : [];\nconst relayThreshold = Number.isFinite(Number(config.relay_threshold)) ? Number(config.relay_threshold) : null;\n\nlet shouldRelay = true;\nlet rejectReason = null;\n\nif (relayThreshold !== null && Number(input.approve_ratio || 0) < relayThreshold) {\n  shouldRelay = false;\n  rejectReason = 'relay_threshold_not_met';\n}\n\nif (shouldRelay && relayConditions.length > 0) {\n  const matchesSomeCondition = relayConditions.some(cond => {\n    if (cond.result && input.result !== cond.result) return false;\n    if (cond.min_approve_ratio && (input.approve_ratio || 0) < cond.min_approve_ratio) return false;\n    return true;\n  });\n  if (!matchesSomeCondition) {\n    shouldRelay = false;\n    rejectReason = 'relay_condition_not_met';\n  }\n}\n\nreturn [{\n  json: {\n    ...input,\n    _bridge_decision: shouldRelay ? 'relay' : 'drop',\n    _bridge_reject_reason: rejectReason,\n    _bridge_config: {\n      source: configRaw ? 'env_or_payload' : 'empty_default',\n      status: configStatus,\n      relay_threshold: relayThreshold,\n      relay_conditions_count: relayConditions.length\n    },\n    _bridge_ts: new Date().toISOString()\n  }\n}];"
       },
       "id": "filter-relay",
-      "name": "전달 조건 필터 [IF]",
+      "name": "\uc804\ub2ec \uc870\uac74 \ud544\ud130 [IF]",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -49,7 +49,7 @@
         }
       },
       "id": "gate-relay",
-      "name": "전달 여부 게이트",
+      "name": "\uc804\ub2ec \uc5ec\ubd80 \uac8c\uc774\ud2b8",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -66,7 +66,7 @@
         }
       },
       "id": "honcho-health",
-      "name": "Honcho 헬스체크",
+      "name": "Honcho \ud5ec\uc2a4\uccb4\ud06c",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
@@ -92,7 +92,7 @@
         }
       },
       "id": "gate-honcho",
-      "name": "Honcho 정상 여부",
+      "name": "Honcho \uc815\uc0c1 \uc5ec\ubd80",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -102,10 +102,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// Honcho DOWN fallback — log to console (email alert requires SMTP credentials)\nconst decision = $('전달 조건 필터 [IF]').first().json;\nconsole.error('[HONCHO DOWN] 인프라 결정 전달 불가:', JSON.stringify(decision));\nreturn [{ json: { _honcho_down: true, ts: new Date().toISOString(), decision } }];"
+        "jsCode": "// Honcho DOWN fallback \u2014 log to console (email alert requires SMTP credentials)\nconst decision = $('\uc804\ub2ec \uc870\uac74 \ud544\ud130 [IF]').first().json;\nconsole.error('[HONCHO DOWN] \uc778\ud504\ub77c \uacb0\uc815 \uc804\ub2ec \ubd88\uac00:', JSON.stringify(decision));\nreturn [{ json: { _honcho_down: true, ts: new Date().toISOString(), decision } }];"
       },
       "id": "honcho-down-alert",
-      "name": "Honcho 장애 직접 경보",
+      "name": "Honcho \uc7a5\uc560 \uc9c1\uc811 \uacbd\ubcf4",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -115,10 +115,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// 업무 workspace에 인프라 결정 기록\n// 활동 기록 계약 형식 (고정)\n// n8n v1: $('nodeName').first().json 으로 이전 노드 데이터 접근\nconst decision = $('전달 조건 필터 [IF]').first().json;\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: 'infra_decision_relayed',\n  actor: decision.actor || 'system',\n  payload: {\n    topic: decision.topic,\n    result: decision.result,\n    method: decision.method,\n    tally: decision.tally,\n    approve_ratio: decision.approve_ratio,\n    bridge_ts: decision._bridge_ts\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord } }];"
+        "jsCode": "// \uc5c5\ubb34 workspace\uc5d0 \uc778\ud504\ub77c \uacb0\uc815 \uae30\ub85d\n// \ud65c\ub3d9 \uae30\ub85d \uacc4\uc57d \ud615\uc2dd (\uace0\uc815)\n// n8n v1: $('nodeName').first().json \uc73c\ub85c \uc774\uc804 \ub178\ub4dc \ub370\uc774\ud130 \uc811\uadfc\nconst decision = $('\uc804\ub2ec \uc870\uac74 \ud544\ud130 [IF]').first().json;\n\nconst activityRecord = {\n  ts: new Date().toISOString(),\n  type: 'infra_decision_relayed',\n  actor: decision.actor || 'system',\n  payload: {\n    topic: decision.topic,\n    result: decision.result,\n    method: decision.method,\n    tally: decision.tally,\n    approve_ratio: decision.approve_ratio,\n    bridge_ts: decision._bridge_ts\n  }\n};\n\nreturn [{ json: { activity_record: activityRecord } }];"
       },
       "id": "prepare-work-record",
-      "name": "업무 workspace 기록 준비",
+      "name": "\uc5c5\ubb34 workspace \uae30\ub85d \uc900\ube44",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -135,7 +135,7 @@
         "jsonBody": "={{ JSON.stringify({ id: $now.toFormat('yyyyMMddHHmmssSSS') + '-infra-bridge', peers: { system: {} }, metadata: { type: 'infra_bridge_session' } }) }}"
       },
       "id": "honcho-session-work",
-      "name": "업무 workspace 세션 생성",
+      "name": "\uc5c5\ubb34 workspace \uc138\uc158 \uc0dd\uc131",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
@@ -149,10 +149,10 @@
         "url": "={{ $env.HONCHO_API_URL }}/v3/workspaces/{{ $env.HONCHO_WORK_WORKSPACE }}/sessions/{{ $json.id }}/messages",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify($node['업무 workspace 기록 준비'].json.activity_record), peer_id: 'system', metadata: { type: 'activity_log', record_type: 'infra_bridge' } }] }) }}"
+        "jsonBody": "={{ JSON.stringify({ messages: [{ content: JSON.stringify($node['\uc5c5\ubb34 workspace \uae30\ub85d \uc900\ube44'].json.activity_record), peer_id: 'system', metadata: { type: 'activity_log', record_type: 'infra_bridge' } }] }) }}"
       },
       "id": "honcho-relay-record",
-      "name": "Honcho 업무 workspace 기록",
+      "name": "Honcho \uc5c5\ubb34 workspace \uae30\ub85d",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
@@ -162,10 +162,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// 드롭된 결정 기록 (감사 로그용)\nconst input = $input.item.json;\nreturn [{\n  json: {\n    _dropped: true,\n    reason: input._bridge_reject_reason,\n    original: input,\n    ts: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// \ub4dc\ub86d\ub41c \uacb0\uc815 \uae30\ub85d (\uac10\uc0ac \ub85c\uadf8\uc6a9)\nconst input = $input.item.json;\nreturn [{\n  json: {\n    _dropped: true,\n    reason: input._bridge_reject_reason,\n    original: input,\n    ts: new Date().toISOString()\n  }\n}];"
       },
       "id": "log-dropped",
-      "name": "드롭 기록",
+      "name": "\ub4dc\ub86d \uae30\ub85d",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -175,91 +175,91 @@
     }
   ],
   "connections": {
-    "인프라 투표 결과 수신": {
+    "\uc778\ud504\ub77c \ud22c\ud45c \uacb0\uacfc \uc218\uc2e0": {
       "main": [
         [
           {
-            "node": "전달 조건 필터 [IF]",
+            "node": "\uc804\ub2ec \uc870\uac74 \ud544\ud130 [IF]",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "전달 조건 필터 [IF]": {
+    "\uc804\ub2ec \uc870\uac74 \ud544\ud130 [IF]": {
       "main": [
         [
           {
-            "node": "전달 여부 게이트",
+            "node": "\uc804\ub2ec \uc5ec\ubd80 \uac8c\uc774\ud2b8",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "전달 여부 게이트": {
+    "\uc804\ub2ec \uc5ec\ubd80 \uac8c\uc774\ud2b8": {
       "main": [
         [
           {
-            "node": "Honcho 헬스체크",
+            "node": "Honcho \ud5ec\uc2a4\uccb4\ud06c",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "드롭 기록",
+            "node": "\ub4dc\ub86d \uae30\ub85d",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Honcho 헬스체크": {
+    "Honcho \ud5ec\uc2a4\uccb4\ud06c": {
       "main": [
         [
           {
-            "node": "Honcho 정상 여부",
+            "node": "Honcho \uc815\uc0c1 \uc5ec\ubd80",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Honcho 정상 여부": {
+    "Honcho \uc815\uc0c1 \uc5ec\ubd80": {
       "main": [
         [
           {
-            "node": "Honcho 장애 직접 경보",
+            "node": "Honcho \uc7a5\uc560 \uc9c1\uc811 \uacbd\ubcf4",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "업무 workspace 기록 준비",
+            "node": "\uc5c5\ubb34 workspace \uae30\ub85d \uc900\ube44",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "업무 workspace 기록 준비": {
+    "\uc5c5\ubb34 workspace \uae30\ub85d \uc900\ube44": {
       "main": [
         [
           {
-            "node": "업무 workspace 세션 생성",
+            "node": "\uc5c5\ubb34 workspace \uc138\uc158 \uc0dd\uc131",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "업무 workspace 세션 생성": {
+    "\uc5c5\ubb34 workspace \uc138\uc158 \uc0dd\uc131": {
       "main": [
         [
           {
-            "node": "Honcho 업무 workspace 기록",
+            "node": "Honcho \uc5c5\ubb34 workspace \uae30\ub85d",
             "type": "main",
             "index": 0
           }
@@ -272,5 +272,6 @@
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "1"
+  "versionId": "1",
+  "active": true
 }
