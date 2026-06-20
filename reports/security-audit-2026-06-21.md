@@ -20,28 +20,27 @@
 
 ## 🔧 B. 사용자 수작업 체크리스트 (한 번에 처리)
 
-### B1. N8N_API_KEY 재발급 — `scripts/.env`
-- **현재**: `scripts/.env`의 `N8N_API_KEY`가 길이 269(JWT)이나 **만료됨** (JWT_SECRET 변경으로 서명 검증 실패)
+### B1. N8N_API_KEY 재발급 — `scripts/.env`  ★ 남은 유일 수작업
+- **현재**: `scripts/.env`의 `N8N_API_KEY`가 **HTTP 401(무효)** 확정. 이전 n8n 인스턴스 user ID 기반 JWT라 현재 인스턴스에서 검증 안 됨
+- **방식**: (A) 직접 편집 선택 (키를 채팅에 올리지 않아 안전)
 - **조치**:
-  - [ ] n8n UI 접속: `http://192.168.100.200:5678` (또는 T3610 `localhost:5678`)
-  - [ ] 로그인 후 Settings → API → **New API Key** 생성
-  - [ ] `scripts/.env`의 `N8N_API_KEY` 값을 새 키로 교체
-- **검증**: `curl -H "X-N8N-API-KEY:<새키>" http://localhost:5678/api/v1/workflows` 가 200 반환
+  - [ ] **발급**: n8n UI `http://192.168.100.200:5678` 로그인 → 좌측 하단 사용자 아이콘 → **Settings → API → "Add an API key"** → 키 복사(라벨 `cli`)
+  - [ ] **적용**: T3610에서 `nano scripts/.env` → `N8N_API_KEY=` 뒤에 키 붙여넣기 → 저장
+  - (원격 PC라면 SSH: `raspi5p`/T3610 접속 후 동일 편집, 또는 T3610 Claude 세션에서 "방금 발급한 키로 N8N_API_KEY 교체해줘" 요청)
+- **검증** (적용 후 T3610에서):
+  ```bash
+  set -a && . scripts/.env && set +a
+  curl -s -o /dev/null -w "%{http_code}\n" -H "X-N8N-API-KEY: $N8N_API_KEY" http://localhost:5678/api/v1/workflows
+  # 200 이면 완료
 
-### B2. honcho POSTGRES_PASSWORD 교체 — `honcho/.env`
-- **현재**: `honcho/.env`의 `POSTGRES_PASSWORD`가 **길이 14** (placeholder `change_me_in_production` 또는 약한값 의심)
-- **조치**:
-  - [ ] `honcho/.env`에서 `POSTGRES_PASSWORD` 현재값 확인 (placeholder면 필수 교체)
-  - [ ] 강력값으로 교체: `openssl rand -hex 24`
-  - [ ] **주의**: honcho postgres 볼륨이 이미 초기화된 경우, 새값 적용하려면 볼륨 재초기화 또는 `ALTER USER` 필요. Hermes 런타임 영역이므로 교체 영향도 사전 확인 필수
-- **검증**: 교체 후 `honcho-api-1` 헬스 정상 (`curl localhost:8000/health`)
+### B2. honcho POSTGRES_PASSWORD — `honcho/.env`  ✅ 수용 결정 (2026-06-21)
+- **현재**: 길이 14 짧은값이지만 **현재 동작 중인 실제 DB 비밀번호** (honcho 정상 가동 중)
+- **결정**: **수용(유지)**. T3610 내부망 전용이고 외부 노출 아니면 위험도 낮음. 교체 시 DB `ALTER USER` + `.env` 동기화 + Hermes 재기동(일시 장애)이 수반되어 비용이 더 큼
+- [x] 수용 완료 — 교체 불필요
 
-### B3. honcho SECRET_KEY 확인 — `honcho/.env`
-- **현재**: `honcho/.env.example`에 `SECRET_KEY=change_me_in_production` (placeholder). 실제 `honcho/.env` 값 확인 필요
-- **조치**:
-  - [ ] `honcho/.env`의 `SECRET_KEY` 값 확인
-  - [ ] `change_me_in_production` 또는 약한값이면 `openssl rand -hex 32`로 교체
-- **검증**: honcho 컨테이너 재기동 후 헬스 정상
+### B3. honcho SECRET_KEY — `honcho/.env`  ✅ OK (조치 불필요)
+- **현재**: 길이 27 강한값 확인 → `.env.example`의 `change_me_in_production` placeholder와 무관하게 실제값은 강함
+- [x] 교체 불필요
 
 ### B4. DATA_GO_KR_API_KEY 발급 (선택) — `scripts/.env`
 - **현재**: `DATA_GO_KR_API_KEY` 길이 2 (사실상 미설정)
