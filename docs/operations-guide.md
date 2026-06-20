@@ -15,10 +15,11 @@
 | 운영 workflow 런타임 반영 | #43~#45 workflow 4개 RPi n8n import/activate, feedback webhook + mail-triage Yellow smoke 완료 | #43~#45 |
 | 실시간 규제 근거 주입 | `/v1/knowledge/fetch` endpoint 추가, T3610 runtime 배포/restart, n8n Layer 4 조회/프롬프트 주입 추가 | #37 |
 | 자동성장 threshold 정책 | threshold null 정책과 validator 구현. 30일 valid metrics 전까지 자동 알림 비활성 | #65 |
+| KB 기반 사람 채점 증거 | 2026-06-20 `docs/kb-eval-checksheets/`에 6회차/90건 채점지 생성. 체크 후 `score_given`으로 ingest 가능 | 운영 |
 
 따라서 현재 작업 초점은 대시보드 열람이 아니라 **성장 입력이 발생하고, 그 입력이 올바른 peer에 기록되며, metrics가 이를 수집해 사람에게 판단 가능한 증거를 제공하는지** 확인하는 것이다.
 
-남은 실행 우선순위는 `ra-growth-metrics.timer`의 다음 scheduled run 확인, 30일 valid metrics 누적, 사람 평가 coverage 확보, 그리고 Green 경로/OpenProject side-effect E2E를 통제 조건에서 추가 확인하는 순서다.
+남은 실행 우선순위는 `ra-growth-metrics.timer`의 다음 scheduled run 확인, 30일 valid metrics 누적, KB 평가 채점지 기반 사람 평가 coverage 확보, 그리고 Green 경로/OpenProject side-effect E2E를 통제 조건에서 추가 확인하는 순서다.
 
 ---
 
@@ -377,6 +378,78 @@ python3 scripts/non-email-growth-loop.py \
 ```
 
 hardening loop에서 문제를 발견하면 timer를 켜지 말고 별도 이슈로 분리해 fix한다. 특히 readiness matrix의 `agent_balance`가 낮으면 `ra_kr` 성장 보강처럼 품질 개선 작업을 먼저 수행한다.
+
+### 3.3a KB 평가 채점지 기반 fast evidence
+
+30일 valid metrics 기준은 production threshold/webhook/form transfer를 위한 운영 성숙도 기준이다. 이 기준을 완료 처리하지 않으면서도 controlled pilot 판단에 필요한 사람 채점 denominator는 KB 평가 채점지로 빠르게 확보한다.
+
+채점지 생성:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/kb-eval-checksheet.py \
+  --date 2026-06-20 \
+  --iterations 3 \
+  --cases-per-agent 5
+```
+
+랜덤 iteration 추가:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/kb-eval-checksheet.py \
+  --date 2026-06-20 \
+  --start-iteration 4 \
+  --iterations 3 \
+  --cases-per-agent 5 \
+  --randomize \
+  --random-seed 2026-06-20-random-a
+```
+
+2026-06-20 기준 생성 상태:
+
+- 경로: `docs/kb-eval-checksheets/2026-06-20/`
+- iteration 파일: 6개
+- 총 케이스: 90개
+- 기본 채점 방식: 케이스마다 score 1개와 fast check box를 사람이 체크한다.
+- git 이력에 체크 상태를 남긴 뒤 ingest한다.
+
+체크 전 dry-run:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/kb-eval-feedback-ingest.py \
+  --input docs/kb-eval-checksheets/2026-06-20
+```
+
+Honcho feedback 반영:
+
+```bash
+set -a && . scripts/.env && set +a
+python3 scripts/kb-eval-feedback-ingest.py \
+  --input docs/kb-eval-checksheets/2026-06-20 \
+  --execute
+```
+
+반영되는 feedback 계약:
+
+- `record_type=score_given`
+- `peer_id=human`
+- `payload.decision_ref=kb-eval-YYYYMMDD-itNN-ra_xx-NNN`
+- `payload.score=1|2|3`
+- `payload.dimensions.match_correct`
+- `payload.dimensions.evidence_supported`
+- `payload.dimensions.source_cited`
+- `payload.dimensions.no_hallucination`
+- `payload.dimensions.escalation_appropriate`
+- `payload.delta.self_correction`
+
+주의:
+
+- 이 루프는 controlled pilot evidence 확보용이다.
+- 30일 production maturity 조건을 대체하지 않는다.
+- 체크되지 않은 케이스는 ingest하지 않는다.
+- score가 여러 개 체크된 케이스는 ingest가 실패해야 정상이다.
 
 2026-06-16 #59 수행 결과:
 

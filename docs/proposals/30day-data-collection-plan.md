@@ -39,6 +39,32 @@
 
 ## 📅 단계별 실행 계획
 
+### Phase 0: KB 평가 채점지 fast evidence (Day 0-2)
+
+**목표**: 30일 production 기준을 유지하면서 pilot 판단용 사람 채점 denominator를 빠르게 확보한다.
+
+| 작업 | 주기 | 빈도 | 책임자 |
+|------|------|------|---------|
+| KB 평가 채점지 생성 | 수동 | 필요 시 3~6회 iteration | 시스템 엔지니어 |
+| 체크박스 기반 사람 채점 | 수시 | 50~100 cases/day | RA 전문가 |
+| `score_given` dry-run 검산 | 채점 후 | 매번 | 시스템 엔지니어 |
+| Honcho feedback ingest | 승인 후 | 배치 단위 | 시스템 엔지니어 |
+
+**2026-06-20 초기 상태**:
+- [x] `docs/kb-eval-checksheets/2026-06-20/` 생성
+- [x] 6 iterations / 90 cases 생성
+- [x] ingest dry-run checked 0건 확인
+- [ ] 사람 체크 완료
+- [ ] `score_given` execute 반영
+- [ ] growth metrics 재계산
+
+**성공 기준**:
+- [ ] `score_given` denominator 50건 이상
+- [ ] RA별 최소 15건 이상 채점
+- [ ] score 1/2/3 중복 체크 없음
+- [ ] `first_pass_match_accuracy` 값 생성
+- [ ] `correction_rate` 값 생성
+
 ### Phase 1: 기반 강화 (Day 4-10)
 
 **목표**: 안정적인 데이터 수집 기반 마련

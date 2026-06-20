@@ -128,6 +128,8 @@ git push origin main
 
 현재 결론은 "metrics ingestion은 복구됐지만, 행동/사람 피드백 metric 값과 30일 유효 metrics coverage가 없어 자동성장 threshold나 form 이관을 아직 확정할 수 없다"이다.
 
+2026-06-20부터 KB 평가 채점지를 통해 사람 feedback denominator를 빠르게 확보하는 controlled pilot evidence 루프를 추가했다. 채점지는 `docs/kb-eval-checksheets/YYYY-MM-DD/`에 git 이력으로 보관하며, 체크된 결과만 `scripts/kb-eval-feedback-ingest.py --execute`로 Honcho `score_given`에 반영한다. 이 경로는 Growth Trend Verdict의 denominator를 채우기 위한 입력 수집이며, 30일 production maturity 조건을 완료 처리하지 않는다.
+
 하지만 다음에는 아직 부족하다.
 
 - 30일 유효 metrics 기반 성장 추세 판단
