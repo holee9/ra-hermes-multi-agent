@@ -20,9 +20,9 @@
 
 ## 🔧 B. 사용자 수작업 체크리스트 (한 번에 처리)
 
-### B1. N8N_API_KEY 재발급 — `scripts/.env`  ★ 남은 유일 수작업
-- **현재**: `scripts/.env`의 `N8N_API_KEY`가 **HTTP 401(무효)** 확정. 이전 n8n 인스턴스 user ID 기반 JWT라 현재 인스턴스에서 검증 안 됨
-- **방식**: (A) 직접 편집 선택 (키를 채팅에 올리지 않아 안전)
+### B1. N8N_API_KEY 재발급 — `scripts/.env`  ✅ 완료 (2026-06-21, 키 ...5rH8)
+- **완료**: 기존 무효 키(...7R4, 401) → 새 키(...5rH8) 교체. n8n UI에서 기존 auto-session 키 삭제 후 신규 1개 등록(cli-hermes)
+- **검증 결과**: API 호출 **HTTP 200**, 워크플로우 4개 active 조회 성공, `cold-start-verify.sh` AC1 경로 도달 성공 (자동화 정상화)
 - **조치**:
   - [ ] **발급**: n8n UI 로그인 → 좌측 하단 사용자 아이콘 → **Settings → API → "Add an API key"** → 키 복사(라벨 `cli`)
     - 접속 URL: `http://192.168.100.200:5678` (내부망) **또는** `http://100.119.79.28:5678` (Tailscale)
