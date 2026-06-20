@@ -161,6 +161,84 @@
     opacity:0; transition:opacity .3s;
   }
   .stamp.show{opacity:1; animation:pop .3s;}
+
+  /* 메인 컨테이너 (POC 시각화 통합) */
+  .main-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  /* 시각화 패널 */
+  .viz-panel {
+    width: 300px;
+    height: 440px;
+    background: var(--card);
+    border: 4px solid var(--wall);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 0 4px var(--bg), 0 10px 30px rgba(0,0,0,.5);
+  }
+
+  .viz-header {
+    padding: 8px;
+    background: var(--kanban);
+    border-bottom: 2px solid var(--line);
+    text-align: center;
+  }
+
+  .viz-title {
+    font-family: 'Press Start 2P';
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .viz-updated {
+    font-size: 12px;
+    color: #8b8ba7;
+  }
+
+  /* Heat Map */
+  .viz-content {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+  }
+
+  .heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    margin-top: 8px;
+  }
+
+  .heatmap-table th {
+    color: var(--accent);
+    padding: 6px 4px;
+    border-bottom: 2px solid var(--line);
+    font-family: 'Press Start 2P';
+    font-size: 8px;
+    text-align: center;
+  }
+
+  .heatmap-table td {
+    text-align: center;
+    padding: 8px 4px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 18px;
+  }
+
+  .heatmap-high { color: var(--green); }
+  .heatmap-mid { color: var(--accent); }
+  .heatmap-low { color: var(--red); }
+
+  .region-header {
+    font-family: 'Press Start 2P';
+    font-size: 8px;
+    color: #9aa5e0;
+  }
 </style>
 </head>
 <body>
@@ -179,21 +257,71 @@
     </select>
   </div>
 
-  <div class="stage">
-    <div class="room work" id="work">
-      <div class="roomlabel">WORK OFFICE</div>
-      <div class="kanban" id="kanban">
-        <div class="kcol"><div class="t">오픈</div></div>
-        <div class="kcol"><div class="t">진행중</div></div>
-        <div class="kcol"><div class="t">리뷰중</div></div>
-        <div class="kcol"><div class="t">완료</div></div>
+  <div class="main-container">
+    <div class="stage">
+      <div class="room work" id="work">
+        <div class="roomlabel">WORK OFFICE</div>
+        <div class="kanban" id="kanban">
+          <div class="kcol"><div class="t">오픈</div></div>
+          <div class="kcol"><div class="t">진행중</div></div>
+          <div class="kcol"><div class="t">리뷰중</div></div>
+          <div class="kcol"><div class="t">완료</div></div>
+        </div>
+      </div>
+      <div class="room infra" id="infra">
+        <div class="roomlabel">INFRA ROOM</div>
+        <div class="votezone" id="votezone"></div>
+      </div>
+      <div class="stamp" id="stamp"></div>
+    </div>
+
+    <!-- 시각화 패널 (POC) -->
+    <div class="viz-panel">
+      <div class="viz-header">
+        <div class="viz-title">🔥 HEAT MAP</div>
+        <div class="viz-updated" id="viz-updated">Last updated: --:--:--</div>
+      </div>
+      <div class="viz-content">
+        <table class="heatmap-table">
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>High</th>
+              <th>Mid</th>
+              <th>Low</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th class="region-header">FDA</th>
+              <td class="heatmap-high" id="fda-high">-</td>
+              <td class="heatmap-mid" id="fda-mid">-</td>
+              <td class="heatmap-low" id="fda-low">-</td>
+            </tr>
+            <tr>
+              <th class="region-header">EU</th>
+              <td class="heatmap-high" id="eu-high">-</td>
+              <td class="heatmap-mid" id="eu-mid">-</td>
+              <td class="heatmap-low" id="eu-low">-</td>
+            </tr>
+            <tr>
+              <th class="region-header">KR</th>
+              <td class="heatmap-high" id="kr-high">-</td>
+              <td class="heatmap-mid" id="kr-mid">-</td>
+              <td class="heatmap-low" id="kr-low">-</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top: 16px; padding: 8px; background: var(--wall); border: 2px solid var(--line);">
+          <div style="font-family: 'Press Start 2P'; font-size: 8px; color: var(--accent); margin-bottom: 4px;">📊 실시간 Confidence</div>
+          <div style="font-size: 12px; color: #9aa5e0; line-height: 1.4;">
+            Green: 0.8-1.0 (자동)<br>
+            Yellow: 0.5-0.8 (수동)<br>
+            Red: 0.0-0.5 (사람)
+          </div>
+        </div>
       </div>
     </div>
-    <div class="room infra" id="infra">
-      <div class="roomlabel">INFRA ROOM</div>
-      <div class="votezone" id="votezone"></div>
-    </div>
-    <div class="stamp" id="stamp"></div>
   </div>
 
   <div class="log" id="log"></div>
@@ -454,7 +582,63 @@ async function initDataSource(){
   }catch(_){}
   setTimeout(play,500);
 }
+
+/* ===== POC: Heat Map Mock 데이터 ===== */
+const MOCK_HEATMAP_DATA = {
+  FDA: { high: 42, mid: 18, low: 5 },
+  EU:  { high: 35, mid: 22, low: 8 },
+  KR:  { high: 28, mid: 15, low: 12 }
+};
+
+/* Heat Map 렌더링 */
+function renderHeatMap() {
+  const regions = ['FDA', 'EU', 'KR'];
+  const levels = ['high', 'mid', 'low'];
+
+  regions.forEach(region => {
+    levels.forEach(level => {
+      const cell = document.getElementById(`${region.toLowerCase()}-${level}`);
+      if (cell) {
+        const value = MOCK_HEATMAP_DATA[region][level];
+        cell.textContent = value;
+
+        // 값이 0일 경우 "-" 표시
+        if (value === 0) {
+          cell.textContent = '-';
+        }
+      }
+    });
+  });
+
+  // 갱신 시각 표시
+  document.getElementById('viz-updated').textContent =
+    `Last updated: ${new Date().toLocaleTimeString()}`;
+}
+
+/* Mock 데이터 랜덤 변화 (실시간성 시뮬레이션) */
+function updateMockData() {
+  // 각 지역별로 랜덤하게 -2 ~ +2 변화
+  Object.keys(MOCK_HEATMAP_DATA).forEach(region => {
+    Object.keys(MOCK_HEATMAP_DATA[region]).forEach(level => {
+      const change = Math.floor(Math.random() * 5) - 2; // -2 ~ +2
+      MOCK_HEATMAP_DATA[region][level] = Math.max(0, MOCK_HEATMAP_DATA[region][level] + change);
+    });
+  });
+
+  renderHeatMap();
+}
+
+/* POC 시각화 초기화 */
+function initVisualization() {
+  renderHeatMap();
+
+  // 5분마다 데이터 갱신 (300,000ms)
+  setInterval(updateMockData, 5 * 60 * 1000);
+}
+
+// 전체 초기화
 initDataSource();
+initVisualization();
 </script>
 </body>
 </html>
