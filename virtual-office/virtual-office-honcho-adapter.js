@@ -39,25 +39,33 @@ const MOCK_EVENTS = [
 
 // Honcho 메시지를 가상 오피스 이벤트 형식으로 변환
 function adaptHonchoMessage(msg) {
-  let record;
+  // activity_log 타입의 메시지만 처리 (n8n mail-triage가 남기는 활동 기록)
+  if (msg.metadata?.type !== 'activity_log') {
+    return null;
+  }
+
+  let activityRecord;
   try {
-    record = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+    activityRecord = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
   } catch {
     return null;
   }
-  if (!record || !record.type || !record.actor) return null;
+
+  if (!activityRecord || !activityRecord.type || !activityRecord.actor) {
+    return null;
+  }
 
   // 활동 기록 계약 형식 → 가상 오피스 이벤트 형식 매핑
   const event = {
-    ts: record.ts,
-    type: record.type,
-    actor: record.actor,
-    payload: record.payload || {}
+    ts: activityRecord.ts || msg.created_at,
+    type: activityRecord.type,
+    actor: activityRecord.actor,
+    payload: activityRecord.payload || {}
   };
 
   // mail_received 이벤트에 target 필드 복원
-  if (record.type === 'mail_received' && record.payload?.target) {
-    event.target = record.payload.target;
+  if (activityRecord.type === 'mail_received' && activityRecord.payload?.target) {
+    event.target = activityRecord.payload.target;
   }
 
   return event;
