@@ -7,6 +7,7 @@ import html
 import json
 import logging
 import math
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -54,9 +55,17 @@ def latest_json(paths: list[Path]) -> tuple[Path | None, dict[str, Any] | None]:
 
 def run(cmd: list[str]) -> str:
     """Run subprocess command with enhanced error handling."""
+    # @MX:NOTE: resolve bare binaries (e.g. systemctl) via PATH; some non-login shells lack /usr/bin on PATH.
+    executable = shutil.which(cmd[0])
+    if executable is None:
+        for candidate in (f"/usr/bin/{cmd[0]}", f"/bin/{cmd[0]}", f"/usr/sbin/{cmd[0]}", f"/sbin/{cmd[0]}"):
+            if Path(candidate).exists():
+                executable = candidate
+                break
+    executable = executable or cmd[0]
     try:
         proc = subprocess.run(
-            cmd,
+            [executable, *cmd[1:]],
             cwd=ROOT,
             text=True,
             capture_output=True,

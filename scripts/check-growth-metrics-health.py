@@ -51,7 +51,9 @@ def check_growth_metrics_health():
         issues.append(f"⚠️  리포트가 오래됨 ({report_age.days}일 전)")
         recommendations.append("조치: 최신 데이터 확인 후 growth-metrics.py 재실행")
 
-    print(f"📊 최신 리포트: {latest_report_path.name} ({report_age.hours}시간 전)")
+    # @MX:NOTE: timedelta exposes only days/seconds/microseconds; derive hours explicitly.
+    report_age_hours = report_age.total_seconds() / 3600
+    print(f"📊 최신 리포트: {latest_report_path.name} ({report_age_hours:.1f}시간 전)")
 
     # 2. ingestion diagnostics 체크
     try:
