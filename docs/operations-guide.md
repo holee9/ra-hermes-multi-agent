@@ -5,7 +5,7 @@
 
 ---
 
-## 0. 현재 운영 판정 (2026-06-16)
+## 0. 현재 운영 판정 (2026-06-21)
 
 자동성장 timer는 **OFF 유지**가 현재 기준이다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 2026-06-16 일괄 보강으로 P0/P1/P2/P3의 repo-side 구현과 RPi smoke는 진행했지만, 자동성장 timer 전환에는 30일 유효 metrics와 사람 승인 조건이 남아 있다.
 
