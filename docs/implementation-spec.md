@@ -302,6 +302,20 @@ npm test
 - 2026-06-16 #58 보정 상태: 운영 timer 승격 전 대기하지 않고 `auto-growth-readiness-report.py`와 non-email/pre-auto dry-run을 반복해 readiness matrix를 측정하고, 낮은 축은 별도 이슈로 fix한다.
 - 2026-06-16 #60 보정 상태: `ra_kr` self-doc 균형을 638까지 보강해 `ra_kr >= int(ra_eu * 0.2)` legacy pre-activation floor를 통과했다. 최종 readiness matrix는 16/16이고 pending/wrong-peer/live contamination은 0이다. 이 20% floor는 `scripts/coverage-guards.json`에 근거와 함께 기록하며, 전문가 성숙도 기준이 아니다. 이 상태는 자동 timer 활성화가 아니라 운영 승인 검토 가능 상태다.
 
+### P2.6 KB evaluation checksheets `[구현]`
+
+- 목적: 30일 production maturity 기준을 유지하면서, controlled pilot 판단에 필요한 human-scored denominator를 빠르게 확보한다.
+- 생성 스크립트: `scripts/kb-eval-checksheet.py`
+- ingest 스크립트: `scripts/kb-eval-feedback-ingest.py`
+- 보관 위치: `docs/kb-eval-checksheets/YYYY-MM-DD/`
+- 입력: `ra_knowledge` source path/chunk. `daily-growth-runner.py`의 RA별 agent routing, source hashing, excerpt formatting 계약을 재사용한다.
+- 출력: 사람이 체크할 Markdown 채점지. 각 케이스는 hidden HTML comment에 `decision_ref`, `agent`, `scenario_id`, `source`, `source_hash`, `iteration` metadata를 포함한다.
+- 체크 항목: score 1/2/3 중 하나, `match_correct`, `evidence_supported`, `source_cited`, `no_hallucination`, `escalation_appropriate`, `human_correction_needed`.
+- feedback 계약: ingest 시 Honcho `messages`에 `record_type=score_given`, `peer_id=human`, `metadata.has_dimensions=true`를 기록한다.
+- idempotence: ingest는 기존 `score_given` content의 `payload.decision_ref`를 검사해 중복 반영을 건너뛴다.
+- 안전 장치: 기본은 dry-run이며 `--execute`를 명시해야 Honcho에 기록한다. score가 0개인 케이스는 건너뛰고, score가 2개 이상인 케이스는 실패한다.
+- 2026-06-20 상태: 6 iterations / 90 cases 생성. 아직 체크 전이므로 ingest dry-run 결과는 `checked_records=0`이다.
+
 ---
 
 ## Phase 3: 성장 루프 계장화
