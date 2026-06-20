@@ -1,0 +1,11 @@
+# n8n runtime secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Security-sensitive workflow artifacts
+# These enable unauthenticated API-key issuance / contain DB exports.
+# API keys must be issued manually via n8n UI (Settings -> API), not via these.
+workflows/bootstrap-apikey.json
+workflows/entities.zip
+workflows/api-import/
