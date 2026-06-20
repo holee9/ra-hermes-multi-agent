@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -52,7 +53,24 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
-def parse_file(path: Path) -> list[dict[str, Any]]:
+def run(cmd: list[str]) -> str:
+    result = subprocess.run(
+        cmd,
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"command failed ({result.returncode}): {' '.join(cmd)}\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
+    return result.stdout.strip()
+
+
+def parse_text(source: str, text: str) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
     checks: dict[str, bool] = {}
@@ -71,7 +89,7 @@ def parse_file(path: Path) -> list[dict[str, Any]]:
             in_note = False
             return
         if len(score_checks) > 1:
-            raise ValueError(f"{path}: {current['decision_ref']} has multiple score boxes checked")
+            raise ValueError(f"{source}: {current['decision_ref']} has multiple score boxes checked")
         score = score_checks[0]
         dimensions = {key: bool(checks.get(label)) for label, key in DIMENSION_LABELS.items()}
         human_correction = bool(checks.get("Human correction needed")) or score == 1
@@ -90,7 +108,7 @@ def parse_file(path: Path) -> list[dict[str, Any]]:
                 "base_date": current["base_date"],
                 "iteration": current["iteration"],
                 "scenario_id": current["scenario_id"],
-                "checksheet": display_path(path),
+                "checksheet": source,
             },
         }
         records.append(payload)
@@ -99,7 +117,7 @@ def parse_file(path: Path) -> list[dict[str, Any]]:
         correction_note = None
         in_note = False
 
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         case_match = CASE_RE.match(line)
         if case_match:
             flush()
@@ -122,6 +140,38 @@ def parse_file(path: Path) -> list[dict[str, Any]]:
             if note:
                 correction_note = note
     flush()
+    return records
+
+
+def parse_file(path: Path) -> list[dict[str, Any]]:
+    return parse_text(display_path(path), path.read_text(encoding="utf-8"))
+
+
+def fetch_github_issue_records(search: str, limit: int) -> list[dict[str, Any]]:
+    out = run([
+        "gh",
+        "issue",
+        "list",
+        "--state",
+        "all",
+        "--search",
+        search,
+        "--json",
+        "number,title,body,url",
+        "--limit",
+        str(limit),
+    ])
+    issues = json.loads(out or "[]")
+    records: list[dict[str, Any]] = []
+    for issue in issues:
+        source = f"github_issue:{issue['url']}"
+        for record in parse_text(source, issue.get("body") or ""):
+            record["kb_eval"]["github_issue"] = {
+                "number": issue["number"],
+                "title": issue["title"],
+                "url": issue["url"],
+            }
+            records.append(record)
     return records
 
 
@@ -204,14 +254,20 @@ def build_message(payload: dict[str, Any]) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", default=str(DEFAULT_INPUT), help="File or directory to scan.")
+    parser.add_argument("--github-search", default=None, help="Read checked GitHub issue bodies matching this search query.")
+    parser.add_argument("--github-limit", type=int, default=100)
     parser.add_argument("--execute", action="store_true", help="Write parsed score_given feedback to Honcho.")
     args = parser.parse_args()
 
-    input_path = Path(args.input)
-    files = [input_path] if input_path.is_file() else sorted(input_path.glob("**/iteration-*.md"))
     records: list[dict[str, Any]] = []
-    for path in files:
-        records.extend(parse_file(path))
+    files: list[Path] = []
+    if args.github_search:
+        records.extend(fetch_github_issue_records(args.github_search, args.github_limit))
+    else:
+        input_path = Path(args.input)
+        files = [input_path] if input_path.is_file() else sorted(input_path.glob("**/iteration-*.md"))
+        for path in files:
+            records.extend(parse_file(path))
 
     pg_dsn = os.environ.get("POSTGRES_URL")
     if not pg_dsn:
@@ -221,6 +277,7 @@ def main() -> None:
 
     summary = {
         "files_scanned": len(files),
+        "github_search": args.github_search,
         "checked_records": len(records),
         "already_ingested": len(existing),
         "new_records": len(new_records),
