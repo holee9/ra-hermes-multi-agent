@@ -1,20 +1,13 @@
 === Daily Monitoring Report ===
 Date: 2026-06-20
-Timestamp: 2026-06-20T14:00:00+09:00
+Timestamp: 2026-06-20T08:00:00+09:00
 
 ## 1. System Status
 =================
 - [x] Honcho API healthy
-- [x] PostgreSQL ready ✅ RESTORED
+- [ ] PostgreSQL not ready ❌ FAILED
 - [x] Redis responsive
 - [x] Honcho deriver running
-
-## Recovery Actions Taken
-=================
-- PostgreSQL container restored via docker compose (Up 16 seconds, healthy)
-- All containers verified: honcho-api, honcho-deriver (3 workers), honcho-postgres, honcho-redis
-- Connection tested: pg_isready accepting connections
-- Honcho API responding normally
 
 ## 2. Growth Metrics
 =================
@@ -86,22 +79,11 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
-## 4. n8n Workflow Status
-======================
-- [x] n8n container running (restarted 14:00 KST)
-- [x] 4 workflows published and active (via n8n publish:workflow CLI):
-  - mail-triage (ID: 4B9bDkXgH0HFjP7o) ✅ ACTIVE
-  - infra-to-work-bridge (ID: DVldSLZ7lKwcBXML) ✅ ACTIVE
-  - feedback-recorder (ID: iBzjnDJ7KRb93EOF) ✅ ACTIVE
-  - wp-close-recorder (ID: wpCloseRecorder001) ✅ ACTIVE
-- [x] All workflows using fixed JSON with valid node positions
-- ⚠️ mail-triage Gmail 트리거 'undefined' 오류 존재 (credential 미설정 — 기존 문제)
-
-## 5. Summary
+## 4. Summary
 =========
-- **PASS**: 11
-- **WARN**: 0
-- **FAIL**: 0
+- **PASS**: 6
+- **WARN**: 1
+- **FAIL**: 1
 
-## 6. Status
-🟢 **READY FOR MVP VALIDATION** - All systems operational, workflows activated, ready for actual usage testing
+## 5. Status
+🟡 **ATTENTION** - Some issues detected, review required
