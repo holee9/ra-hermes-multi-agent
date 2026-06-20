@@ -7,12 +7,13 @@ services:
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=changeme_in_production
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
       - N8N_HOST=localhost
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=http://localhost:5678/
       - N8N_SECURE_COOKIE=false
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
     env_file:
       - .env
     volumes:
@@ -28,7 +29,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=n8n
-      - POSTGRES_PASSWORD=n8n_ra_2026
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=n8n
     volumes:
       - postgres_data:/var/lib/postgresql/data
