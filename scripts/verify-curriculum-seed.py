@@ -27,6 +27,8 @@ def load_module() -> Any:
     return module
 
 
+# @MX:WARN: [AUTO] main — curriculum-seed verification; assertion branching
+# @MX:REASON: Cyclomatic complexity 15; multiple verification assertions guard curriculum-seed invariants. Skipping a branch can mask a real curriculum-seed regression.
 def main() -> None:
     module = load_module()
     module.validate_agent_config()

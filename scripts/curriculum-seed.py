@@ -404,6 +404,8 @@ def select_agents(agent_arg: str) -> list[Agent]:
     return [agent]
 
 
+# @MX:WARN: [AUTO] run — curriculum seeding orchestration; near-threshold complexity + large file
+# @MX:REASON: Cyclomatic complexity 14 (near 15 threshold) within a 506-line file; branches across agent/region/source/limit logic. Re-verify the peer_id contract (ra_us/ra_eu/ra_kr, never hyphen) on schema changes — see autonomous-study-bootstrap-safety.
 def run(args: argparse.Namespace) -> None:
     validate_agent_config()
     if args.limit_sources < 1:

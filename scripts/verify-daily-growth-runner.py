@@ -28,6 +28,8 @@ def load_module() -> Any:
     return module
 
 
+# @MX:WARN: [AUTO] main — daily-growth-runner verification; assertion branching
+# @MX:REASON: Cyclomatic complexity 16; guards daily-growth invariants (peer_id/agent config). Incorrect branching hides growth-loop regressions.
 def main() -> None:
     module = load_module()
     module.validate_agent_config()

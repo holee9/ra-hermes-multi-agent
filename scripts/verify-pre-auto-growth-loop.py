@@ -27,6 +27,8 @@ def load_module() -> Any:
     return module
 
 
+# @MX:WARN: [AUTO] main — pre-auto-growth-loop verification; high assertion branching
+# @MX:REASON: Cyclomatic complexity 19; guards the auto-growth gate invariants (AGENT_PEERS, VERIFY_SCRIPTS). Incorrect branching risks unguarded autonomous-growth activation.
 def main() -> None:
     module = load_module()
     if module.AGENT_PEERS != ("ra_us", "ra_eu", "ra_kr"):

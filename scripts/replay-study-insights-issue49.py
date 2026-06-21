@@ -185,6 +185,8 @@ def post_batch(agent: Agent, messages: list[dict[str, Any]]) -> None:
     )
 
 
+# @MX:WARN: [AUTO] main — issue #49 wrong-peer recovery replay; high branching
+# @MX:REASON: Cyclomatic complexity 15; replays study_insight payloads into the correct underscore peers (ra_us/ra_eu/ra_kr). MUST honor bootstrap-safety: never hyphen peer_id, dry-run default, no direct DB rename. See docs/incidents/2026-06-13-autonomous-study-bootstrap-peer-id.md.
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true", help="Write recovered messages")

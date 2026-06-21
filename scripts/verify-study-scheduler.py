@@ -30,6 +30,8 @@ def load_scheduler() -> Any:
     return module
 
 
+# @MX:WARN: [AUTO] main — study-scheduler verification; highest assertion branching
+# @MX:REASON: Cyclomatic complexity 20 (highest in the verify suite); guards the scheduler peer_id/profile_id contract (bootstrap-safety). Incorrect branching hides autonomous-study bootstrap regressions.
 def main() -> None:
     scheduler = load_scheduler()
     scheduler.validate_agent_config()

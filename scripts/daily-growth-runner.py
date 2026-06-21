@@ -102,6 +102,8 @@ def fail(message: str) -> None:
     raise SystemExit(2)
 
 
+# @MX:WARN: [AUTO] daily-growth-runner — large file; config invariants centralized here
+# @MX:REASON: 554-line script (line_count_warn threshold). Per-function complexity is low, but validate_agent_config is the shared peer_id/agent-config gate also exercised by ra-kr-growth-plan and autonomous-study-scheduler — changes ripple across the growth loop.
 def validate_agent_config() -> None:
     peer_ids: set[str] = set()
     for key, agent in AGENTS.items():

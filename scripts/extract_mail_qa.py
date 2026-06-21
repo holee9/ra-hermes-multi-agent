@@ -122,6 +122,8 @@ def decode_mime_words(s: Optional[str]) -> str:
     return "".join(decoded)
 
 
+# @MX:WARN: [AUTO] get_text_body — high-complexity MIME body extraction
+# @MX:REASON: Cyclomatic complexity 19; branches over multipart/alternative/html and encoding fallbacks. Incorrect handling yields wrong QA extraction, which feeds mail-triage correctness — handle carefully on email-format edge cases.
 def get_text_body(msg) -> str:
     """
     Extract plain-text body from an email.message.Message object.
