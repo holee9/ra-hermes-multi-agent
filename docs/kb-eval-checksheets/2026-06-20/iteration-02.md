@@ -22,6 +22,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: QMSR
 
+**Source Summary**
+
+- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고, 한국 KGMP, 미국 FDA QMSR, EU MDR의 추가 요구사항을 지역별 layer/appendix로 통합 관리하는 전략 문서입니다.
+- 현재 excerpt 핵심: ISO 13485 7.4~8.5 조항에서 FDA QMSR은 service records, complaint investigation 완료 시점 기록, 내부감사 실사 가능성 등을 강화하고, EU MDR은 PMS/PSUR/PMSR 및 vigilance 연계를 요구한다는 비교표입니다. MDSAP은 FDA/MFDS 동시 대응에서 실사 부담을 줄일 수 있지만 EU MDR을 직접 대체하지는 않는 맥락입니다.
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 문서가 아닙니다. 좋은 답변은 predicate/IFU 동등성 판단을 이 문서만으로 단정하지 않고, QMSR/design-control/complaint/PMS evidence gap이 510(k) submission readiness에 어떤 영향을 주는지로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 이 문서를 predicate evidence로 오용하면 낮게 평가하고, QMSR evidence readiness 또는 추가 확인 필요 사항으로 구분하면 높게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
