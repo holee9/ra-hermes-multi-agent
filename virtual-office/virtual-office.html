@@ -32,19 +32,9 @@
   }
   .sub{font-size:18px;color:#8b8ba7;margin-bottom:14px;}
 
-  .controls{
-    display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; justify-content:center;
+  .status{
+    font-size:16px; color:var(--accent); margin-bottom:14px; min-height:20px; text-align:center;
   }
-  button{
-    font-family:'Press Start 2P',monospace; font-size:9px;
-    background:var(--card); color:var(--accent);
-    border:2px solid var(--accent); padding:8px 12px;
-    cursor:pointer; transition:.1s;
-  }
-  button:hover{background:var(--accent);color:var(--ink);}
-  button:active{transform:translate(1px,1px);}
-  .speed{font-size:16px;color:#8b8ba7;}
-  select{font-family:'VT323';font-size:16px;background:var(--card);color:#e4e4ef;border:2px solid var(--line);padding:3px;}
 
   .stage{
     position:relative; width:760px; height:440px;
@@ -243,19 +233,8 @@
 </head>
 <body>
   <h1>RA VIRTUAL OFFICE</h1>
-  <div class="sub">파일럿 대시보드 · 목업 이벤트 재생 (뼈대 무관)</div>
-
-  <div class="controls">
-    <button id="play">▶ 재생</button>
-    <button id="pause">⏸ 정지</button>
-    <button id="reset">↺ 처음</button>
-    <span class="speed">속도</span>
-    <select id="speed">
-      <option value="1500">1x</option>
-      <option value="900" selected>1.6x</option>
-      <option value="450">3x</option>
-    </select>
-  </div>
+  <div class="sub">파일럿 대시보드 · 실시간 활동 관측</div>
+  <div class="status" id="status">활동 불러오는 중…</div>
 
   <div class="main-container">
     <div class="stage">
@@ -384,7 +363,7 @@ const CHARS = {
 };
 const WORK_W = 760*0.62;
 
-/* ===== 목업 이벤트 (= 뼈대 출력 계약. 추후 Honcho로 교체) ===== */
+/* ===== fallback 목업 이벤트 (DATA_SOURCE=mock 시 사용. honcho 모드는 /api/events 사용) ===== */
 const EVENTS = [
   {type:"mail_received", actor:"system", target:"ra_us", payload:{region:"US", subject:"510(k) follow-up"}},
   {type:"matched",       actor:"ra_us", payload:{wp:"WP-123", confidence:0.91, existing:true}},
@@ -463,31 +442,48 @@ function floatIcon(fromRoomX,fromY,toId,icon){
   requestAnimationFrame(()=>{ f.style.left=(t.home.x)+'px'; f.style.top=(t.home.y-20)+'px'; });
   setTimeout(()=>f.remove(),1400);
 }
-function log(ev){
+/* 타임스탬프 → 상대시간(짧은 절대시간 fallback) */
+function fmtTs(ts){
+  if(!ts) return '';
+  const d=new Date(ts), now=new Date();
+  const sec=(now-d)/1000;
+  if(isNaN(sec)) return String(ts).slice(0,16);
+  if(sec<0) return '방금 전';
+  if(sec<60) return Math.floor(sec)+'초 전';
+  if(sec<3600) return Math.floor(sec/60)+'분 전';
+  if(sec<86400) return Math.floor(sec/3600)+'시간 전';
+  if(sec<86400*30) return Math.floor(sec/86400)+'일 전';
+  return String(ts).slice(5,16).replace('T',' ');
+}
+function log(ev,live=false){
   const names={...Object.fromEntries(Object.entries(CHARS).map(([k,v])=>[k,v.name])),system:"SYS",human:"YOU"};
   let msg="";
   const p=ev.payload||{};
   switch(ev.type){
-    case"mail_received":msg=`📩 메일 수신 → ${CHARS[ev.target].name} (${p.region}: ${p.subject})`;break;
+    case"mail_received":msg=`📩 메일 수신 → ${CHARS[ev.target]?.name||ev.target} (${p.region}: ${p.subject})`;break;
     case"matched":msg=`🔍 매칭 ${p.wp} (신뢰도 ${(p.confidence*100)|0}%, ${p.existing?"기존":"신규"})`;break;
     case"comment_added":msg=`📝 덧글→${p.wp}: ${p.note}`;break;
     case"transition_proposed":msg=`⏩ 전이 제안 ${p.wp} → ${p.to} (사람 승인 대기)`;break;
     case"vote_opened":msg=`🔔 투표 소집: ${p.topic}`;break;
     case"vote_cast":msg=`🗳 투표: ${p.vote}`;break;
     case"vote_result":msg=`✅ 결정: ${p.result}`;break;
-    case"score_given":msg=`⭐ 평가 ${"★".repeat(p.score)}${"☆".repeat(3-p.score)} (${p.target})`;break;
+    case"score_given":msg=`⭐ 평가 ${"★".repeat(p.score)}${"☆".repeat(3-(p.score||0))} (${p.target})`;break;
+    default:msg=`${ev.type}`;break;
   }
   const who=names[ev.actor]||ev.actor;
   const div=document.createElement('div');
-  div.innerHTML=`<span class="who">[${who}]</span> <span class="new">${msg}</span>`;
+  div.innerHTML=`<span class="ts">${fmtTs(ev.ts)}</span> <span class="who">[${who}]</span> <span class="msg">${msg}</span>`;
   logEl.appendChild(div);
   logEl.scrollTop=logEl.scrollHeight;
-  setTimeout(()=>div.querySelector('.new')?.classList.remove('new'),600);
+  if(live){
+    const m=div.querySelector('.msg'); m.classList.add('new');
+    setTimeout(()=>m.classList.remove('new'),600);
+  }
 }
 
 /* ===== 이벤트 처리 ===== */
 function handle(ev){
-  log(ev);
+  log(ev,true);
   const p=ev.payload||{};
   switch(ev.type){
     case"mail_received":
@@ -544,101 +540,86 @@ function handle(ev){
   }
 }
 
-/* ===== 재생 제어 ===== */
-let ACTIVE_EVENTS = EVENTS; // 기본값: 목업
-let idx=0, timer=null, speed=900;
-function step(){
-  if(idx>=ACTIVE_EVENTS.length){stop();return;}
-  handle(ACTIVE_EVENTS[idx]); idx++;
-  timer=setTimeout(step,speed);
-}
-function play(){ if(timer)return; if(idx>=ACTIVE_EVENTS.length)resetAll(); step(); }
-function stop(){ clearTimeout(timer); timer=null; }
-function resetAll(){
-  stop(); idx=0; logEl.innerHTML="";
-  kanban.querySelectorAll('.kcard').forEach(c=>c.remove());
-  votezone.classList.remove('show'); stamp.classList.remove('show');
-}
-document.getElementById('play').onclick=play;
-document.getElementById('pause').onclick=stop;
-document.getElementById('reset').onclick=resetAll;
-document.getElementById('speed').onchange=e=>{speed=+e.target.value; if(timer){stop();step();}};
+/* ===== 관측 모델 (재생 메타포 폐지) =====
+   - 로드 시: 과거를 재생하지 않고 최근 활동을 로그에 시간순 정적 표시 + 상태 헤더 + Heat Map.
+   - 폴링: 새 이벤트(증분)만 실시간 handle() 애니메이션. 활동 없으면 조용한 게 정상 신호. */
+let knownEvents = [];           // 마지막으로 관측한 이벤트(증분 추적 기준)
+const HISTORY_LIMIT = 50;       // 로그에 표시할 최근 이벤트 수
 
-/* DATA_SOURCE: /api/config → honcho 시 /api/events에서 실데이터 로드 */
+async function fetchEvents(){
+  const evts = await fetch('/api/events').then(r=>r.json()).catch(()=>null);
+  return Array.isArray(evts) ? evts : [];
+}
+
+/* 과거 활동을 정적으로 로그에 채움(애니메이션/하이라이트 없음, 시간순) */
+function renderHistory(evts){
+  logEl.innerHTML='';
+  evts.slice(-HISTORY_LIMIT).forEach(ev=>log(ev,false));
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+/* 상태 헤더: 마지막 활동 시각 또는 "최근 활동 없음" */
+function renderStatusHeader(evts){
+  const el=document.getElementById('status'); if(!el) return;
+  if(!evts.length){ el.textContent='최근 활동 없음'; return; }
+  const last=evts[evts.length-1];
+  el.textContent = last.ts ? `마지막 활동: ${fmtTs(last.ts)}` : '활동 관측 중';
+}
+
 async function initDataSource(){
   try{
-    const cfg=await fetch('/api/config').then(r=>r.json()).catch(()=>null);
-    if(cfg?.data_source==='honcho'){
-      document.querySelector('.sub').textContent='실시간 Honcho 활동 기록 재생';
-      const evts=await fetch('/api/events').then(r=>r.json()).catch(()=>null);
-      if(evts&&evts.length>0){ ACTIVE_EVENTS=evts; }
-      // 폴링: 지정 주기마다 새 이벤트 갱신
-      const pollMs=cfg.poll_interval_ms||30000;
-      setInterval(async()=>{
-        const fresh=await fetch('/api/events').then(r=>r.json()).catch(()=>null);
-        if(fresh&&fresh.length>ACTIVE_EVENTS.length){ ACTIVE_EVENTS=fresh; }
-      },pollMs);
-    }
-  }catch(_){}
-  setTimeout(play,500);
+    const cfg = await fetch('/api/config').then(r=>r.json()).catch(()=>null);
+    const live = cfg?.data_source === 'honcho';
+    document.querySelector('.sub').textContent =
+      live ? '파일럿 대시보드 · 실시간 활동 관측 (Honcho)' : '파일럿 대시보드 · 목업 활동 관측';
+    knownEvents = await fetchEvents();
+    renderHistory(knownEvents);
+    renderStatusHeader(knownEvents);
+    renderHeatMapFromEvents(knownEvents);
+    const pollMs = cfg?.poll_interval_ms || 30000;
+    setInterval(pollNew, pollMs);
+  }catch(_){
+    const el=document.getElementById('status'); if(el) el.textContent='활동 로드 실패';
+  }
 }
 
-/* ===== POC: Heat Map Mock 데이터 ===== */
-const MOCK_HEATMAP_DATA = {
-  FDA: { high: 42, mid: 18, low: 5 },
-  EU:  { high: 35, mid: 22, low: 8 },
-  KR:  { high: 28, mid: 15, low: 12 }
-};
+/* 폴링: 증분(새 이벤트)만 실시간 handle() */
+async function pollNew(){
+  const fresh = await fetchEvents();
+  if(fresh.length > knownEvents.length){
+    const newOnes = fresh.slice(knownEvents.length);
+    knownEvents = fresh;
+    newOnes.forEach(ev=>handle(ev));   // handle() → log(ev,true) 실시간 하이라이트
+    renderStatusHeader(fresh);
+    renderHeatMapFromEvents(fresh);
+  }
+}
 
-/* Heat Map 렌더링 */
-function renderHeatMap() {
-  const regions = ['FDA', 'EU', 'KR'];
-  const levels = ['high', 'mid', 'low'];
-
-  regions.forEach(region => {
-    levels.forEach(level => {
-      const cell = document.getElementById(`${region.toLowerCase()}-${level}`);
-      if (cell) {
-        const value = MOCK_HEATMAP_DATA[region][level];
-        cell.textContent = value;
-
-        // 값이 0일 경우 "-" 표시
-        if (value === 0) {
-          cell.textContent = '-';
-        }
-      }
+/* ===== Heat Map: matched 이벤트 기반 실데이터 (목업/랜덤 변화 제거) =====
+   region: ra_us→FDA, ra_eu→EU, ra_kr→KR / level: confidence high(≥0.8)·mid(0.5-0.8)·low(<0.5) */
+const REGION_BY_ACTOR = { ra_us:'FDA', ra_eu:'EU', ra_kr:'KR' };
+function renderHeatMapFromEvents(evts){
+  const data = { FDA:{high:0,mid:0,low:0}, EU:{high:0,mid:0,low:0}, KR:{high:0,mid:0,low:0} };
+  evts.forEach(ev=>{
+    if(ev.type !== 'matched') return;
+    const region = REGION_BY_ACTOR[ev.actor];
+    const c = ev.payload?.confidence;
+    if(!region || typeof c !== 'number') return;
+    const level = c>=0.8 ? 'high' : (c>=0.5 ? 'mid' : 'low');
+    data[region][level]++;
+  });
+  Object.keys(data).forEach(R=>{
+    ['high','mid','low'].forEach(l=>{
+      const cell = document.getElementById(`${R.toLowerCase()}-${l}`);
+      if(cell) cell.textContent = data[R][l] || '-';
     });
   });
-
-  // 갱신 시각 표시
-  document.getElementById('viz-updated').textContent =
-    `Last updated: ${new Date().toLocaleTimeString()}`;
+  const upd = document.getElementById('viz-updated');
+  if(upd) upd.textContent = evts.length ? `기반 활동: ${evts.length}건` : '데이터 없음';
 }
 
-/* Mock 데이터 랜덤 변화 (실시간성 시뮬레이션) */
-function updateMockData() {
-  // 각 지역별로 랜덤하게 -2 ~ +2 변화
-  Object.keys(MOCK_HEATMAP_DATA).forEach(region => {
-    Object.keys(MOCK_HEATMAP_DATA[region]).forEach(level => {
-      const change = Math.floor(Math.random() * 5) - 2; // -2 ~ +2
-      MOCK_HEATMAP_DATA[region][level] = Math.max(0, MOCK_HEATMAP_DATA[region][level] + change);
-    });
-  });
-
-  renderHeatMap();
-}
-
-/* POC 시각화 초기화 */
-function initVisualization() {
-  renderHeatMap();
-
-  // 5분마다 데이터 갱신 (300,000ms)
-  setInterval(updateMockData, 5 * 60 * 1000);
-}
-
-// 전체 초기화
+// 전체 초기화 (관측 모델)
 initDataSource();
-initVisualization();
 </script>
 </body>
 </html>

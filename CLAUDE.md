@@ -38,9 +38,9 @@ gh pr create --title "title" --body "body"
 `gh` is at `/c/Users/drake/bin/gh`, authenticated as `holee9` (repo + workflow scope).
 Remote: `https://github.com/holee9/ra-hermes-multi-agent.git`
 
-### Virtual Office Prototype
+### Virtual Office Observer
 
-`virtual-office/virtual-office.html` is a self-contained file. Open directly in a browser — no build step required.
+`virtual-office/virtual-office.html` is a read-only activity observer that visualizes Honcho activity logs as pixel-art characters. Runs in Docker (`virtual-office/docker-compose.yml`, port 3001) with `DATA_SOURCE=honcho`. The HTML is baked into the image — rebuild with `docker compose up -d --build` after edits. Observes current state only: past activity shows as a static (time-ordered) log, new events animate live.
 
 ---
 
@@ -150,7 +150,7 @@ Format and checklist: `.claude/rules/session-handoff-protocol.md`
 | `docs/implementation-spec.md` | Implementation spec for coding tools — what to build vs what Hermes handles |
 | `docs/operations-guide.md` | Operations guide for humans + Hermes runtime configuration |
 | `ECOSYSTEM.md` | Ecosystem map across all related projects (injected into every repo) |
-| `virtual-office/virtual-office.html` | Pixel-art visualization prototype (mockup data, no build needed) |
+| `virtual-office/virtual-office.html` | Pixel-art real-time activity observer (Honcho activity log, read-only, Docker-served) |
 | `virtual-office/virtual-office-org-chart.md` | Character-to-agent mapping for the virtual office |
 | `virtual-office/pixel-character-guide.md` | Sprite swap guide (code-drawn → Kenney CC0 PNG) |
 | `virtual-office/virtual-office-mvp.md` | Virtual office MVP design spec |
