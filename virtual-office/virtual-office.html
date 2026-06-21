@@ -507,7 +507,7 @@ function handle(ev){
       break;}
     case"transition_proposed":
       moveKanban(p.wp,"진행중");
-      bubble("ra_us","⏩ "+p.to+"?");
+      bubble(ev.actor,"⏩ "+p.to+"?");
       break;
     case"vote_opened":
       votezone.classList.add('show');
