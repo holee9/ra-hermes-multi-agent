@@ -24,14 +24,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
-- Review primarily:
-  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
-  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.
+  - FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -75,14 +75,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
-- Review primarily:
-  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
-  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.
+  - FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -126,14 +126,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
-- Review primarily:
-  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
-  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.
+  - FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -177,14 +177,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
-- Review primarily:
-  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
-  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.
+  - FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -228,14 +228,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
-- Review primarily:
-  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
-  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.
+  - FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -281,14 +281,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
-- Review primarily:
-  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
-  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.
+  - EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -332,14 +332,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
-- Review primarily:
-  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
-  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.
+  - EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -383,14 +383,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
-- Review primarily:
-  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
-  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.
+  - EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -430,14 +430,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
-- Review primarily:
-  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
-  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.
+  - EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -481,14 +481,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
-- Review primarily:
-  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
-  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.
+  - EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -534,14 +534,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
-- Review primarily:
-  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
-  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - 디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.
+  - MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -585,14 +585,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
-- Review primarily:
-  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
-  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - 디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.
+  - MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -636,14 +636,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
-- Review primarily:
-  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
-  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - 디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.
+  - MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -687,14 +687,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
-- Review primarily:
-  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
-  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - 디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.
+  - MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
@@ -738,14 +738,14 @@ Total cases: 15
 
 **Evaluation Target**
 
-- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
-- Review primarily:
-  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
-  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
-  - Uses the cited source excerpts, not generic regulatory memory.
-  - States the required regulatory judgment, evidence gap, or action clearly.
-  - Separates confirmed source facts from assumptions or missing information.
-  - Identifies when human escalation is needed because the source is insufficient.
+- 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
+- 주요 확인 기준:
+  - 디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.
+  - MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.
+  - 제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.
+  - 필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.
+  - source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.
+  - source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.
 
 **Reviewer Score**
 
