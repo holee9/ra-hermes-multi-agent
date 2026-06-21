@@ -18,6 +18,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `acd22701c477f3a6`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/510k_PMA_가이던스/README.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/510k_PMA_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/README.md)
 - Source hash: `f6a2c1ada430e6553587ff0dec2d0d4a5c2f07d9d5324d083fb4cbfb7dc3d256`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
@@ -76,6 +77,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `ff4810d805139cb9`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/510k_PMA_가이던스/eSTAR_03_Performance_Testing_Bench_Test.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/510k_PMA_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/eSTAR_03_Performance_Testing_Bench_Test.md)
 - Source hash: `9f94737b713dbd5c6fa5242761b479fa1ec962b8561d7e2afccf2ec9f884e7fc`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
@@ -134,6 +136,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `1c88f209f2d71f6d`
 - Source: `gitea:DR_RnD/ra-llm-wiki/wiki/concepts/fda-premarket-cybersecurity-guidance-2023.md`
+- Source link: [Open source document](http://diskstation:7001/DR_RnD/ra-llm-wiki/src/branch/main/wiki/concepts/fda-premarket-cybersecurity-guidance-2023.md)
 - Source hash: `8cce89162a47f3c0ae05f96e6d4f93d20e6969ec2dec9e665a364e26a96ad213`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA
@@ -192,6 +195,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `c3fdcb056429e992`
 - Source: `github:holee9/MD-process/issue-drafts/157_08_SOP-FSCA-001_v0.3_QMSR_EUDAMED_FSCA.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/157_08_SOP-FSCA-001_v0.3_QMSR_EUDAMED_FSCA.md)
 - Source hash: `7ceead695690f1ea2c83bf679e8114b768ad7b4b8dbab95eccc08d70d1be9f02`
 - Focus: QMSR and design-control readiness
 - Matched keywords: QMSR
@@ -250,6 +254,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `064219d3c0ed7ffe`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/510k_PMA_가이던스/eSTAR_01_Device_Description_IFU.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/510k_PMA_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/eSTAR_01_Device_Description_IFU.md)
 - Source hash: `5efbe22295bef8ba002a4a98b9810b1add07c3de15e6e35a2236ecceda3f5fc2`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
@@ -310,6 +315,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `ac643302b9b690aa`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/MDCG_가이던스/Clinical_Evaluation_MDR_동등성_충분성_기준.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/MDCG_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/Clinical_Evaluation_MDR_%EB%8F%99%EB%93%B1%EC%84%B1_%EC%B6%A9%EB%B6%84%EC%84%B1_%EA%B8%B0%EC%A4%80.md)
 - Source hash: `07766aa926d3be57b6bf2d75f4605289efab7c283eadd6841a001afa2d8987be`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
@@ -368,6 +374,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `c72d0ced7824b130`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/NB_심사자료/NB_Deficiency_Letter_대응전략.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/NB_%EC%8B%AC%EC%82%AC%EC%9E%90%EB%A3%8C/NB_Deficiency_Letter_%EB%8C%80%EC%9D%91%EC%A0%84%EB%9E%B5.md)
 - Source hash: `a15dac973609fe746d7da46354e047b528ec5e8df970abafcb115620bea402ba`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
@@ -426,6 +433,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `06a4948c0723b020`
 - Source: `github:holee9/MD-process/issue-drafts/147_02_SOP-CC-001_v0.3_EUDAMED_변경통제.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/147_02_SOP-CC-001_v0.3_EUDAMED_%EB%B3%80%EA%B2%BD%ED%86%B5%EC%A0%9C.md)
 - Source hash: `fc0e54ecdc1c1c11682572837470660b240448e2fff735983c531e09ea0c4c83`
 - Focus: PMS and PMCF planning
 - Matched keywords: EUDAMED
@@ -480,6 +488,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `245f13448c3d95e3`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/MDCG_가이던스/README.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/MDCG_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/README.md)
 - Source hash: `71c0d67fb6fa7c6ec5b92f4aeea270911ed9f7094081e3008d2b6b6bbdf37a2a`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
@@ -538,6 +547,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `3eade4215aa4ce58`
 - Source: `github:holee9/MD-process/01_법규_규제/04_유럽_MDR/EU_AI_Act_MDR_중첩적용_매핑.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/01_%EB%B2%95%EA%B7%9C_%EA%B7%9C%EC%A0%9C/04_%EC%9C%A0%EB%9F%BD_MDR/EU_AI_Act_MDR_%EC%A4%91%EC%B2%A9%EC%A0%81%EC%9A%A9_%EB%A7%A4%ED%95%91.md)
 - Source hash: `e58a514ed0c819866f9eb094ca113d09dad260f22054cadd6a7b17a7302724ef`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
@@ -598,6 +608,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `10827e12b09f4e90`
 - Source: `github:holee9/MD-process/issue-drafts/016_02_디지털의료제품법_요구사항_매트릭스.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/016_02_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EC%A0%9C%ED%92%88%EB%B2%95_%EC%9A%94%EA%B5%AC%EC%82%AC%ED%95%AD_%EB%A7%A4%ED%8A%B8%EB%A6%AD%EC%8A%A4.md)
 - Source hash: `1ca0054d754d312b28d0a37c0c01b90e9aee20167474ad514e422cd863b3c653`
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
@@ -656,6 +667,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `15c1bc3b177d5ade`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국내_MFDS/법령_고시_가이드라인/MFDS_디지털의료기기_6종_가이드라인_요약.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EB%82%B4_MFDS/%EB%B2%95%EB%A0%B9_%EA%B3%A0%EC%8B%9C_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8/MFDS_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EA%B8%B0%EA%B8%B0_6%EC%A2%85_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8_%EC%9A%94%EC%95%BD.md)
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS
@@ -714,6 +726,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `116503046c3b4537`
 - Source: `gitea:DR_RnD/ra-llm-wiki/wiki/concepts/mfds-simple-change-notification-for-low-risk-accessory-change.md`
+- Source link: [Open source document](http://diskstation:7001/DR_RnD/ra-llm-wiki/src/branch/main/wiki/concepts/mfds-simple-change-notification-for-low-risk-accessory-change.md)
 - Source hash: `c6d0d4a5d02f873fa092229c96e78635cc89f16c13bc8d255846ccdee9cca50b`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS
@@ -772,6 +785,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `87f5b2f6bc9b8e12`
 - Source: `github:holee9/MD-process/11_일일_리서치로그/2026-04-22_SBOM_SOP_디지털의료제품법_방사선규칙.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/11_%EC%9D%BC%EC%9D%BC_%EB%A6%AC%EC%84%9C%EC%B9%98%EB%A1%9C%EA%B7%B8/2026-04-22_SBOM_SOP_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EC%A0%9C%ED%92%88%EB%B2%95_%EB%B0%A9%EC%82%AC%EC%84%A0%EA%B7%9C%EC%B9%99.md)
 - Source hash: `97d5ec93550108c32c415b428001b852fe4b5155602d1f7d37d2282afd2b529f`
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
@@ -830,6 +844,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `b11a7b10e1688ee9`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국내_MFDS/법령_고시_가이드라인/MFDS_디지털의료제품법_하위고시_추적.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EB%82%B4_MFDS/%EB%B2%95%EB%A0%B9_%EA%B3%A0%EC%8B%9C_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8/MFDS_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EC%A0%9C%ED%92%88%EB%B2%95_%ED%95%98%EC%9C%84%EA%B3%A0%EC%8B%9C_%EC%B6%94%EC%A0%81.md)
 - Source hash: `fea1a1e441cf787fd39d9734c1e90c658fef8dc7f0c2e0522a9a6e101555afce`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS, 디지털의료제품법

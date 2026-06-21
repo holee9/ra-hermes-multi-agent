@@ -18,6 +18,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `f0586ff2f2d79db5`
 - Source: `gitea:DR_RnD/ra-llm-wiki/wiki/comparisons/hnvue-domestic-fda-eu-document-mapping.md`
+- Source link: [Open source document](http://diskstation:7001/DR_RnD/ra-llm-wiki/src/branch/main/wiki/comparisons/hnvue-domestic-fda-eu-document-mapping.md)
 - Source hash: `5c59e6441d5d9be631628e27a975239d44bd37588f99842da530687b198d7aff`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
@@ -76,6 +77,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `c0330d37329d81fc`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/FDA_Threat_Model_STRIDE_가이드.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/FDA_Threat_Model_STRIDE_%EA%B0%80%EC%9D%B4%EB%93%9C.md)
 - Source hash: `f6cd656dce2527909f6e09f1befda964ccd3a78dfad81b725a69a2d8909efe44`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
@@ -134,6 +136,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `bf9ba1ece4ea0a37`
 - Source: `github:holee9/MD-process/issue-drafts/009_03_SW_사이버보안_IEC81001_5_1_FDA.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/009_03_SW_%EC%82%AC%EC%9D%B4%EB%B2%84%EB%B3%B4%EC%95%88_IEC81001_5_1_FDA.md)
 - Source hash: `bfde8ccac162058d143af5ce7e6e0ec7f9d3f13456d947bcf5780e1b7e49e1e1`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
@@ -192,6 +195,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `df04137342bfdcc6`
 - Source: `github:holee9/ra-project/01_규제지식베이스/경쟁제품_510k_Summary_분석DB.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B2%BD%EC%9F%81%EC%A0%9C%ED%92%88_510k_Summary_%EB%B6%84%EC%84%9DDB.md)
 - Source hash: `b5ba2e7d8e325fccda4dbe56432c75660eb8f450d4ed1bfcc29941bd772522ec`
 - Focus: 510(k) predicate strategy
 - Matched keywords: 510k
@@ -250,6 +254,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `dcdff75e976099e1`
 - Source: `github:holee9/MD-process/issue-drafts/148_02_SOP-CVD-001_v0.3_FDA_사이버보안_QMSR.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/148_02_SOP-CVD-001_v0.3_FDA_%EC%82%AC%EC%9D%B4%EB%B2%84%EB%B3%B4%EC%95%88_QMSR.md)
 - Source hash: `644b975c641649f3ff1706bf813a3d1a74d8103137add6b8fdf02469f58eb1a4`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA, QMSR
@@ -306,6 +311,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `daf429915c54298c`
 - Source: `github:holee9/ra-project/01_규제지식베이스/EUDAMED_모듈별_등록_실무가이드.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/EUDAMED_%EB%AA%A8%EB%93%88%EB%B3%84_%EB%93%B1%EB%A1%9D_%EC%8B%A4%EB%AC%B4%EA%B0%80%EC%9D%B4%EB%93%9C.md)
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: MDR classification and conformity route
 - Matched keywords: EUDAMED
@@ -364,6 +370,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `7db814277c776bf8`
 - Source: `github:holee9/MD-process/01_법규_규제/04_유럽_MDR/EU_AI_Act_MDR_중첩적용_매핑.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/01_%EB%B2%95%EA%B7%9C_%EA%B7%9C%EC%A0%9C/04_%EC%9C%A0%EB%9F%BD_MDR/EU_AI_Act_MDR_%EC%A4%91%EC%B2%A9%EC%A0%81%EC%9A%A9_%EB%A7%A4%ED%95%91.md)
 - Source hash: `e58a514ed0c819866f9eb094ca113d09dad260f22054cadd6a7b17a7302724ef`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
@@ -422,6 +429,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `1690befa42f6f162`
 - Source: `github:holee9/MD-process/issue-drafts/004_01_EU_AI_Act_MDR_중첩매핑.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/004_01_EU_AI_Act_MDR_%EC%A4%91%EC%B2%A9%EB%A7%A4%ED%95%91.md)
 - Source hash: `72ade98066fdbf0bf4c58031c9c00ef73a816c300c96ec3a6de724543bc72784`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
@@ -480,6 +488,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `432f4c2b5530b507`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/NB_심사자료/README.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/NB_%EC%8B%AC%EC%82%AC%EC%9E%90%EB%A3%8C/README.md)
 - Source hash: `4cb97bf8d7868e0622da138cff3d1090ee30d676c3d355b3739240448e8cb796`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
@@ -538,6 +547,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `501ed642434a0e70`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/MDCG_가이던스/MDCG_2019-16_Rev1_Cybersecurity_대응_체크리스트.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/MDCG_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/MDCG_2019-16_Rev1_Cybersecurity_%EB%8C%80%EC%9D%91_%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8.md)
 - Source hash: `73cd35ce968999ac597a2ffd2cc0e9de93103ba5c45edee078877a0e708818ce`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR, MDCG
@@ -598,6 +608,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `8470b8314ec6498c`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국제표준_IEC_ISO/KGMP_QMSR_ISO13485_비교_통합전략.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EC%A0%9C%ED%91%9C%EC%A4%80_IEC_ISO/KGMP_QMSR_ISO13485_%EB%B9%84%EA%B5%90_%ED%86%B5%ED%95%A9%EC%A0%84%EB%9E%B5.md)
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: MFDS classification and licensing route
 - Matched keywords: KGMP
@@ -656,6 +667,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `e4213b377c160f4d`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국내_MFDS/법령_고시_가이드라인/MFDS_디지털의료기기_6종_가이드라인_요약.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EB%82%B4_MFDS/%EB%B2%95%EB%A0%B9_%EA%B3%A0%EC%8B%9C_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8/MFDS_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EA%B8%B0%EA%B8%B0_6%EC%A2%85_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8_%EC%9A%94%EC%95%BD.md)
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
@@ -714,6 +726,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `20fada09b49a42a2`
 - Source: `github:holee9/ra-project/06_심사_QA이력/MFDS인허가/Acts_QA이력.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/06_%EC%8B%AC%EC%82%AC_QA%EC%9D%B4%EB%A0%A5/MFDS%EC%9D%B8%ED%97%88%EA%B0%80/Acts_QA%EC%9D%B4%EB%A0%A5.md)
 - Source hash: `15a68c6c759e84d380e48841a71026a22f4bf3c240a638853cec2ede1e29c21c`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS
@@ -772,6 +785,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `9a1672d7f0a0180d`
 - Source: `github:holee9/MD-process/issue-drafts/014_01_디지털의료제품법_SaMD_AI_요구.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/issue-drafts/014_01_%EB%94%94%EC%A7%80%ED%84%B8%EC%9D%98%EB%A3%8C%EC%A0%9C%ED%92%88%EB%B2%95_SaMD_AI_%EC%9A%94%EA%B5%AC.md)
 - Source hash: `e04e706c60f55f027094f4df25e8a69f48c033e127c7b277a6932e340c42161c`
 - Focus: MFDS classification and licensing route
 - Matched keywords: 디지털의료제품법
@@ -830,6 +844,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `2559c7b9e1a8bbca`
 - Source: `github:holee9/MD-process/01_법규_규제/01_국내_MFDS/진단용방사선_안전관리규칙_개정이력.md`
+- Source link: [Open source document](https://github.com/holee9/MD-process/blob/main/01_%EB%B2%95%EA%B7%9C_%EA%B7%9C%EC%A0%9C/01_%EA%B5%AD%EB%82%B4_MFDS/%EC%A7%84%EB%8B%A8%EC%9A%A9%EB%B0%A9%EC%82%AC%EC%84%A0_%EC%95%88%EC%A0%84%EA%B4%80%EB%A6%AC%EA%B7%9C%EC%B9%99_%EA%B0%9C%EC%A0%95%EC%9D%B4%EB%A0%A5.md)
 - Source hash: `72535c6d3f96f4fd7b79cd95bf14f95cd1f97e599100fb5e2131a61187ba9847`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS

@@ -18,6 +18,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `b7d8f3eb9826bf77`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/510k_PMA_가이던스/FDA_PreSubmission_QSub_가이드.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/510k_PMA_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/FDA_PreSubmission_QSub_%EA%B0%80%EC%9D%B4%EB%93%9C.md)
 - Source hash: `fbfe9d4434189486cbf95473de1fb7dd88a4389c38104338f644c9d81b80d340`
 - Focus: SaMD change impact
 - Matched keywords: FDA, 510k, PMA
@@ -58,6 +59,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `3e76574fed791bb6`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국제표준_IEC_ISO/KGMP_QMSR_ISO13485_비교_통합전략.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EC%A0%9C%ED%91%9C%EC%A4%80_IEC_ISO/KGMP_QMSR_ISO13485_%EB%B9%84%EA%B5%90_%ED%86%B5%ED%95%A9%EC%A0%84%EB%9E%B5.md)
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: SaMD change impact
 - Matched keywords: QMSR
@@ -98,6 +100,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `a35221e222fc66ac`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/510k_PMA_가이던스/eSTAR_02_Substantial_Equivalence.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/510k_PMA_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/eSTAR_02_Substantial_Equivalence.md)
 - Source hash: `0ae1ab039639874633d1d56b38c299dfa9beb69da719e10871d3288430442dce`
 - Focus: SaMD change impact
 - Matched keywords: FDA, 510k, PMA
@@ -138,6 +141,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `ac12783db1ba344d`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/FDA_AI_Additional_Information_대응_전략.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/FDA_AI_Additional_Information_%EB%8C%80%EC%9D%91_%EC%A0%84%EB%9E%B5.md)
 - Source hash: `c016b9b71c421bbff191427c089029b85d25aab55e122f03e3dabbff564b8880`
 - Focus: SaMD change impact
 - Matched keywords: FDA
@@ -178,6 +182,7 @@ Total cases: 15
 - Agent: `ra_us` / Mike (US)
 - Scenario: `36760853117e4d9a`
 - Source: `github:holee9/ra-project/01_규제지식베이스/미국_FDA/FDA_Threat_Model_STRIDE_가이드.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EB%AF%B8%EA%B5%AD_FDA/FDA_Threat_Model_STRIDE_%EA%B0%80%EC%9D%B4%EB%93%9C.md)
 - Source hash: `f6cd656dce2527909f6e09f1befda964ccd3a78dfad81b725a69a2d8909efe44`
 - Focus: SaMD change impact
 - Matched keywords: FDA
@@ -220,6 +225,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `d708d703a00bed90`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/MDR_2017_745/MDR_AnnexI_GSPR_Checklist.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/MDR_2017_745/MDR_AnnexI_GSPR_Checklist.md)
 - Source hash: `96ff2d334aa377f194a63cd731ca742bb703e9899411086b8065e85bdf4bd94a`
 - Focus: Notified Body question response
 - Matched keywords: MDR
@@ -260,6 +266,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `88f7757a1ddf83fa`
 - Source: `github:holee9/ra-project/01_규제지식베이스/유럽_CE_MDR/MDCG_가이던스/Clinical_Evaluation_MDR_동등성_충분성_기준.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EC%9C%A0%EB%9F%BD_CE_MDR/MDCG_%EA%B0%80%EC%9D%B4%EB%8D%98%EC%8A%A4/Clinical_Evaluation_MDR_%EB%8F%99%EB%93%B1%EC%84%B1_%EC%B6%A9%EB%B6%84%EC%84%B1_%EA%B8%B0%EC%A4%80.md)
 - Source hash: `07766aa926d3be57b6bf2d75f4605289efab7c283eadd6841a001afa2d8987be`
 - Focus: Notified Body question response
 - Matched keywords: MDR, MDCG
@@ -300,6 +307,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `d85ec4923b4b79ae`
 - Source: `github:holee9/ra-project/05_전문가교육/Week04_MDR_EU_체계_상세.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/05_%EC%A0%84%EB%AC%B8%EA%B0%80%EA%B5%90%EC%9C%A1/Week04_MDR_EU_%EC%B2%B4%EA%B3%84_%EC%83%81%EC%84%B8.md)
 - Source hash: `83fe77d38e73c00b0d546abfffb6985d20fda1d3f898e6532af93bd999c6b8ae`
 - Focus: Notified Body question response
 - Matched keywords: MDR
@@ -340,6 +348,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `69266dd4e0791114`
 - Source: `github:holee9/ra-project/01_규제지식베이스/EUDAMED_모듈별_등록_실무가이드.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/EUDAMED_%EB%AA%A8%EB%93%88%EB%B3%84_%EB%93%B1%EB%A1%9D_%EC%8B%A4%EB%AC%B4%EA%B0%80%EC%9D%B4%EB%93%9C.md)
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: Notified Body question response
 - Matched keywords: EUDAMED
@@ -380,6 +389,7 @@ Total cases: 15
 - Agent: `ra_eu` / Theo (EU)
 - Scenario: `1b4ba476229dd6bf`
 - Source: `github:holee9/ra-project/02_제품별_기술파일/공통/공통_Clinical_Evaluation_Plan_Report_MDR_템플릿.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/02_%EC%A0%9C%ED%92%88%EB%B3%84_%EA%B8%B0%EC%88%A0%ED%8C%8C%EC%9D%BC/%EA%B3%B5%ED%86%B5/%EA%B3%B5%ED%86%B5_Clinical_Evaluation_Plan_Report_MDR_%ED%85%9C%ED%94%8C%EB%A6%BF.md)
 - Source hash: `42a1e924df04a6bd384129cf252ae2226963b2fc69f0cbc788f8af162d0f61fd`
 - Focus: Notified Body question response
 - Matched keywords: MDR
@@ -422,6 +432,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `7b24fcebcb22ec47`
 - Source: `gitea:DR_RnD/ra-llm-wiki/wiki/concepts/mfds-simple-change-notification-for-low-risk-accessory-change.md`
+- Source link: [Open source document](http://diskstation:7001/DR_RnD/ra-llm-wiki/src/branch/main/wiki/concepts/mfds-simple-change-notification-for-low-risk-accessory-change.md)
 - Source hash: `c6d0d4a5d02f873fa092229c96e78635cc89f16c13bc8d255846ccdee9cca50b`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS
@@ -462,6 +473,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `4ab30bce1354dffe`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국내_MFDS/GMP_심사자료/README.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EB%82%B4_MFDS/GMP_%EC%8B%AC%EC%82%AC%EC%9E%90%EB%A3%8C/README.md)
 - Source hash: `2e7b3445532256c7af22162f99242dd84b6e8d369ec1b701f1e4c95da2bcbf02`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS
@@ -502,6 +514,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `2f116841a66aab22`
 - Source: `github:holee9/ra-project/01_규제지식베이스/국내_MFDS/법령_고시_가이드라인/README.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/01_%EA%B7%9C%EC%A0%9C%EC%A7%80%EC%8B%9D%EB%B2%A0%EC%9D%B4%EC%8A%A4/%EA%B5%AD%EB%82%B4_MFDS/%EB%B2%95%EB%A0%B9_%EA%B3%A0%EC%8B%9C_%EA%B0%80%EC%9D%B4%EB%93%9C%EB%9D%BC%EC%9D%B8/README.md)
 - Source hash: `955a83a25d265db55798a04d0d7968a79f47ac36e05a19a9321ef64a0749ffab`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS
@@ -542,6 +555,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `def27c9f4dd8c62f`
 - Source: `github:holee9/ra-project/06_심사_QA이력/MFDS인허가/Acts_QA이력.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/06_%EC%8B%AC%EC%82%AC_QA%EC%9D%B4%EB%A0%A5/MFDS%EC%9D%B8%ED%97%88%EA%B0%80/Acts_QA%EC%9D%B4%EB%A0%A5.md)
 - Source hash: `15a68c6c759e84d380e48841a71026a22f4bf3c240a638853cec2ede1e29c21c`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS
@@ -582,6 +596,7 @@ Total cases: 15
 - Agent: `ra_kr` / Sam (KR)
 - Scenario: `d33ba30b2f60abb4`
 - Source: `github:holee9/ra-project/06_심사_QA이력/MFDS컨설팅/Medi-Guide_QA이력.md`
+- Source link: [Open source document](https://github.com/holee9/ra-project/blob/main/06_%EC%8B%AC%EC%82%AC_QA%EC%9D%B4%EB%A0%A5/MFDS%EC%BB%A8%EC%84%A4%ED%8C%85/Medi-Guide_QA%EC%9D%B4%EB%A0%A5.md)
 - Source hash: `4368ee399d24c7be329a1b42b455a18741b89d05d6538f70f709cbe49daaad93`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS
