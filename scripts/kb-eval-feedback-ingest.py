@@ -70,6 +70,8 @@ def run(cmd: list[str]) -> str:
     return result.stdout.strip()
 
 
+# @MX:WARN: [AUTO] parse_text — multi-section sheet parser; stateful section tracking
+# @MX:REASON: Cyclomatic complexity 16; in_note state-machine parsing. Fixed in f3aca88 (section-header reset + multi-line note accumulation) after a regression where correction notes overwrote source excerpts. High regression risk on sheet-format changes; writes only Honcho messages, never knowledge repos.
 def parse_text(source: str, text: str) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None

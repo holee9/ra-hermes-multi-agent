@@ -43,6 +43,8 @@ def metric_value(report: dict[str, Any], name: str) -> Any:
     return ((report.get("metrics") or {}).get(name) or {}).get("value")
 
 
+# @MX:WARN: [AUTO] main — growth-transition readiness evaluation; high branching
+# @MX:REASON: Cyclomatic complexity 18; evaluates multiple metric thresholds to decide transition readiness. Incorrect branching yields a wrong readiness verdict (false go/no-go on autonomous growth).
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate growth transition readiness.")
     parser.add_argument("--output", help="Optional output JSON path.")

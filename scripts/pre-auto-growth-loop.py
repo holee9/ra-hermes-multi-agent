@@ -277,6 +277,8 @@ def wait_for_drain(
         time.sleep(sleep_seconds)
 
 
+# @MX:WARN: [AUTO] evaluate_iteration — auto-growth gate evaluation; high branching
+# @MX:REASON: Cyclomatic complexity 17; inspects deriver_flush / pending-queue / backlog signals to decide loop continuation. An incorrect verdict risks a runaway or premature stop of autonomous growth.
 def evaluate_iteration(report: dict[str, Any], max_pending: int, pending_scope: str) -> list[str]:
     failures: list[str] = []
     if not report["deriver_flush"]["ok"]:
