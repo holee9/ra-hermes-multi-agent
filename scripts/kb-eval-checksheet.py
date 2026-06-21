@@ -69,37 +69,37 @@ def case_metadata(base_date: date, iteration: int, agent: Any, case_index: int, 
 
 def review_lens(agent: Any, focus: str) -> list[str]:
     common = [
-        "Uses the cited source excerpts, not generic regulatory memory.",
-        "States the required regulatory judgment, evidence gap, or action clearly.",
-        "Separates confirmed source facts from assumptions or missing information.",
-        "Identifies when human escalation is needed because the source is insufficient.",
+        "제시된 source excerpt를 근거로 판단했는지 확인합니다. 일반 규제 지식만으로 답한 경우는 낮게 평가합니다.",
+        "필요한 RA 판단, evidence gap, 후속 조치가 명확히 드러나는지 확인합니다.",
+        "source에서 확인된 사실과 추정/추가 확인 필요 사항을 구분했는지 확인합니다.",
+        "source만으로 판단이 부족한 경우 human escalation 필요성을 표시했는지 확인합니다.",
     ]
     by_region = {
         "US": [
-            "For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.",
+            "FDA 업무에서는 predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, submission evidence 영향을 해당되는 범위에서 확인합니다.",
         ],
         "EU": [
-            "For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.",
+            "EU MDR 업무에서는 classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, MDR evidence traceability를 해당되는 범위에서 확인합니다.",
         ],
         "KR": [
-            "For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.",
+            "MFDS 업무에서는 licensing/classification, KGMP, digital medical product 의무, supplementary-response strategy, 한국 규제 evidence readiness를 해당되는 범위에서 확인합니다.",
         ],
     }
     focus_lens = {
-        "510(k) predicate strategy": "Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.",
-        "submission evidence gaps": "Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.",
-        "QMSR and design-control readiness": "Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.",
-        "SaMD change impact": "Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.",
-        "MDR classification and conformity route": "Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.",
-        "clinical evaluation gap analysis": "Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.",
-        "PMS and PMCF planning": "Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.",
-        "Notified Body question response": "Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.",
-        "MFDS classification and licensing route": "Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.",
-        "KGMP evidence readiness": "Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.",
-        "digital medical products act impact": "Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.",
-        "supplementary-response strategy": "Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.",
+        "510(k) predicate strategy": "predicate 선정, IFU 범위, 기술적 차이, substantial equivalence를 입증할 data 필요성을 중심으로 확인합니다.",
+        "submission evidence gaps": "submission에 필요한 bench, clinical, software, cybersecurity, AI, QMS, labeling evidence의 누락 여부를 중심으로 확인합니다.",
+        "QMSR and design-control readiness": "design controls, complaint/CAPA/records, purchasing/service controls, QMSR transition evidence를 중심으로 확인합니다.",
+        "SaMD change impact": "software/AI/cyber 변경이 submission route, PCCP/change control, validation, risk controls에 미치는 영향을 중심으로 확인합니다.",
+        "MDR classification and conformity route": "MDR rule/class, conformity assessment route, NB involvement, technical documentation evidence를 중심으로 확인합니다.",
+        "clinical evaluation gap analysis": "CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, MDCG expectation을 중심으로 확인합니다.",
+        "PMS and PMCF planning": "PMS/PMCF obligation, feedback loop, EUDAMED/PSUR/PMSR evidence, surveillance trigger를 중심으로 확인합니다.",
+        "Notified Body question response": "NB deficiency에 직접 답했는지, evidence와 annex reference가 추적 가능하게 연결됐는지 확인합니다.",
+        "MFDS classification and licensing route": "한국 classification/licensing route, technical document 필요사항, KGMP 연계, MFDS-specific evidence를 중심으로 확인합니다.",
+        "KGMP evidence readiness": "KGMP/ISO/QMSR evidence mapping, audit readiness, procedure, record, 한국 적용성을 중심으로 확인합니다.",
+        "digital medical products act impact": "디지털의료제품법 적용 여부, SaMD/AI/SBOM/cyber 의무, 전환 리스크를 중심으로 확인합니다.",
+        "supplementary-response strategy": "보완 요청 대응 구조, 요청 evidence, rationale, 한국어 표현, escalation 필요성을 중심으로 확인합니다.",
     }
-    return [focus_lens.get(focus, f"Focus on {focus}.")] + by_region.get(agent.region, []) + common
+    return [focus_lens.get(focus, f"{focus} 관점에서 필요한 RA 판단이 드러나는지 확인합니다.")] + by_region.get(agent.region, []) + common
 
 
 def render_case(base_date: date, iteration: int, agent: Any, case_index: int, case: Any) -> str:
@@ -119,8 +119,8 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         "",
         "**Evaluation Target**",
         "",
-        f"- Expected work product: concise RA judgment for `{focus}` based on this source.",
-        "- Review primarily:",
+        f"- 기대 산출물: 이 source를 근거로 `{focus}`에 대한 간결한 RA 판단을 확인합니다.",
+        "- 주요 확인 기준:",
         *[f"  - {item}" for item in review_lens(agent, focus)],
         "",
         "**Reviewer Score**",
