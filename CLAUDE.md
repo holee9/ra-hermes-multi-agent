@@ -97,14 +97,31 @@ Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G 
 
 ### Data Contracts (Fixed)
 
-**RA analysis result JSON** (mail-triage output, frozen):
+**Contract A — Hermes API output** (`parse_wp_comment()` in `scripts/hermes-api-server.py`, frozen):
 ```json
-{ "actor":"ra_us", "wp":"WP-123|null", "match":"existing|new",
-  "confidence":0.0-1.0, "region":"US|EU|KR",
-  "comment":"...", "transition_proposed":"리뷰중|null" }
+{ "wp_comment": {
+    "email_type": "완료통보|액션필요|정보수신",
+    "wp_title": "...",
+    "summary": "...",
+    "recommendation": "...",
+    "confidence": 0.0-1.0,
+    "deadline": "ISO8601 date|null",
+    "product": "...|null",
+    "org": "...|null",
+    "matched_wp_id": 123,
+    "market_analysis": {"mfds": "...|null", "ce_mdr": "...|null", "fda": "...|null"},
+    "flags": [],
+    "source_docs": [{"file": "...", "score": 0.0, "excerpt": "..."}]
+}}
 ```
 
-`confidence` below `YELLOW_CONFIDENCE_THRESHOLD`, invalid/missing fields, ambiguous routing, existing WP closed/done state, or OpenProject lookup failure must route to Yellow/human review.
+**Contract B — n8n routing metadata** (added by `parse-ra-response` node after processing Contract A):
+```json
+{ "actor": "ra_us", "wp": "WP-123|null", "match": "existing|new",
+  "region": "US|EU|KR", "comment": "...", "transition_proposed": "리뷰중|null" }
+```
+
+`confidence` (Contract A) below `YELLOW_CONFIDENCE_THRESHOLD`, invalid/missing fields, ambiguous routing, existing WP closed/done state, or OpenProject lookup failure must route to Yellow/human review.
 
 **Activity log format** (Honcho output = Virtual Office input, frozen):
 ```json
