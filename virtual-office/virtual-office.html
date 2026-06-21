@@ -467,7 +467,7 @@ function log(ev,live=false){
     case"vote_opened":msg=`🔔 투표 소집: ${p.topic}`;break;
     case"vote_cast":msg=`🗳 투표: ${p.vote}`;break;
     case"vote_result":msg=`✅ 결정: ${p.result}`;break;
-    case"score_given":msg=`⭐ 평가 ${"★".repeat(p.score)}${"☆".repeat(3-(p.score||0))} (${p.target})`;break;
+    case"score_given":{const sc=p.score||0,tgt=p.target||p.target_actor||'대상 미상';msg=`⭐ 평가 ${"★".repeat(sc)}${"☆".repeat(3-sc)} (${tgt})`;break;}
     default:msg=`${ev.type}`;break;
   }
   const who=names[ev.actor]||ev.actor;
@@ -551,10 +551,14 @@ async function fetchEvents(){
   return Array.isArray(evts) ? evts : [];
 }
 
-/* 과거 활동을 정적으로 로그에 채움(애니메이션/하이라이트 없음, 시간순) */
+/* 과거 활동을 정적으로 로그에 채움(애니메이션/하이라이트 없음, 시간순)
+   표시 범위: 최근 30일 이내 & 최대 HISTORY_LIMIT개 (plan 싱크) */
 function renderHistory(evts){
   logEl.innerHTML='';
-  evts.slice(-HISTORY_LIMIT).forEach(ev=>log(ev,false));
+  const cutoff = Date.now() - 30*24*60*60*1000; // 최근 30일
+  evts.filter(ev => !ev.ts || new Date(ev.ts).getTime() >= cutoff)
+      .slice(-HISTORY_LIMIT)
+      .forEach(ev=>log(ev,false));
   logEl.scrollTop = logEl.scrollHeight;
 }
 
