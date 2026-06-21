@@ -17,6 +17,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import psycopg2
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DAILY_RUNNER = ROOT / "scripts" / "daily-growth-runner.py"
 DEFAULT_OUTPUT = ROOT / "docs" / "kb-eval-checksheets"
 DEFAULT_TZ = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
+DEFAULT_GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001").rstrip("/")
 
 
 def load_daily_runner() -> Any:
@@ -112,6 +114,27 @@ def review_lens(agent: Any, focus: str) -> list[str]:
 
 def source_basename(source_path: str) -> str:
     return source_path.rsplit("/", 1)[-1]
+
+
+def source_document_url(source_path: str) -> str | None:
+    match = re.fullmatch(r"github:([^/]+)/([^/]+)/(.+)", source_path)
+    if match:
+        owner, repo, path = match.groups()
+        return f"https://github.com/{owner}/{repo}/blob/main/{quote(path, safe='/')}"
+
+    match = re.fullmatch(r"gitea:([^/]+)/([^/]+)/(.+)", source_path)
+    if match:
+        owner, repo, path = match.groups()
+        return f"{DEFAULT_GITEA_URL}/{owner}/{repo}/src/branch/main/{quote(path, safe='/')}"
+
+    return None
+
+
+def source_document_link(source_path: str) -> str:
+    url = source_document_url(source_path)
+    if not url:
+        return "`unavailable`"
+    return f"[Open source document]({url})"
 
 
 def infer_source_topic(source_path: str) -> str:
@@ -253,6 +276,7 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         f"- Agent: `{agent.peer_id}` / {agent.name} ({agent.region})",
         f"- Scenario: `{case.scenario_id}`",
         f"- Source: `{case.source_path}`",
+        f"- Source link: {source_document_link(case.source_path)}",
         f"- Source hash: `{case.source_hash}`",
         f"- Focus: {focus}",
         f"- Matched keywords: {', '.join(case.matched_keywords) or 'source routing match'}",
