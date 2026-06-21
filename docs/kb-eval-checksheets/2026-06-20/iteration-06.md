@@ -22,6 +22,17 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `510(k) predicate strategy` based on this source.
+- Review primarily:
+  - Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -61,6 +72,17 @@ Total cases: 15
 - Source hash: `f6cd656dce2527909f6e09f1befda964ccd3a78dfad81b725a69a2d8909efe44`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `510(k) predicate strategy` based on this source.
+- Review primarily:
+  - Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -102,6 +124,17 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `510(k) predicate strategy` based on this source.
+- Review primarily:
+  - Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -141,6 +174,17 @@ Total cases: 15
 - Source hash: `b5ba2e7d8e325fccda4dbe56432c75660eb8f450d4ed1bfcc29941bd772522ec`
 - Focus: 510(k) predicate strategy
 - Matched keywords: 510k
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `510(k) predicate strategy` based on this source.
+- Review primarily:
+  - Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -182,6 +226,17 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA, QMSR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `510(k) predicate strategy` based on this source.
+- Review primarily:
+  - Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -219,6 +274,17 @@ Total cases: 15
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: MDR classification and conformity route
 - Matched keywords: EUDAMED
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MDR classification and conformity route` based on this source.
+- Review primarily:
+  - Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -260,6 +326,17 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MDR classification and conformity route` based on this source.
+- Review primarily:
+  - Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -299,6 +376,17 @@ Total cases: 15
 - Source hash: `72ade98066fdbf0bf4c58031c9c00ef73a816c300c96ec3a6de724543bc72784`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MDR classification and conformity route` based on this source.
+- Review primarily:
+  - Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -340,6 +428,17 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MDR classification and conformity route` based on this source.
+- Review primarily:
+  - Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -379,6 +478,17 @@ Total cases: 15
 - Source hash: `73cd35ce968999ac597a2ffd2cc0e9de93103ba5c45edee078877a0e708818ce`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR, MDCG
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MDR classification and conformity route` based on this source.
+- Review primarily:
+  - Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -422,6 +532,17 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: KGMP
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MFDS classification and licensing route` based on this source.
+- Review primarily:
+  - Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -461,6 +582,17 @@ Total cases: 15
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MFDS classification and licensing route` based on this source.
+- Review primarily:
+  - Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -502,6 +634,17 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MFDS classification and licensing route` based on this source.
+- Review primarily:
+  - Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -542,6 +685,17 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: 디지털의료제품법
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MFDS classification and licensing route` based on this source.
+- Review primarily:
+  - Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -581,6 +735,17 @@ Total cases: 15
 - Source hash: `72535c6d3f96f4fd7b79cd95bf14f95cd1f97e599100fb5e2131a61187ba9847`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `MFDS classification and licensing route` based on this source.
+- Review primarily:
+  - Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 

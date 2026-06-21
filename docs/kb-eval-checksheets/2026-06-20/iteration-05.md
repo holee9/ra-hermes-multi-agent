@@ -22,6 +22,17 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: FDA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `SaMD change impact` based on this source.
+- Review primarily:
+  - Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -61,6 +72,17 @@ Total cases: 15
 - Source hash: `d5412d37b42151a55d00d8ebb4711becdd2240ca934acae093691cb40fe3c58b`
 - Focus: SaMD change impact
 - Matched keywords: FDA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `SaMD change impact` based on this source.
+- Review primarily:
+  - Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -102,6 +124,17 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: QMSR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `SaMD change impact` based on this source.
+- Review primarily:
+  - Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -142,6 +175,17 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: FDA, 510k, PMA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `SaMD change impact` based on this source.
+- Review primarily:
+  - Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -181,6 +225,17 @@ Total cases: 15
 - Source hash: `bfde8ccac162058d143af5ce7e6e0ec7f9d3f13456d947bcf5780e1b7e49e1e1`
 - Focus: SaMD change impact
 - Matched keywords: FDA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `SaMD change impact` based on this source.
+- Review primarily:
+  - Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -224,6 +279,17 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: MDR, MDCG
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `Notified Body question response` based on this source.
+- Review primarily:
+  - Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -263,6 +329,17 @@ Total cases: 15
 - Source hash: `73cd35ce968999ac597a2ffd2cc0e9de93103ba5c45edee078877a0e708818ce`
 - Focus: Notified Body question response
 - Matched keywords: MDR, MDCG
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `Notified Body question response` based on this source.
+- Review primarily:
+  - Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -304,6 +381,17 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `Notified Body question response` based on this source.
+- Review primarily:
+  - Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -344,6 +432,17 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: EUDAMED
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `Notified Body question response` based on this source.
+- Review primarily:
+  - Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -379,6 +478,17 @@ Total cases: 15
 - Source hash: `83fe77d38e73c00b0d546abfffb6985d20fda1d3f898e6532af93bd999c6b8ae`
 - Focus: Notified Body question response
 - Matched keywords: MDR
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `Notified Body question response` based on this source.
+- Review primarily:
+  - Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -422,6 +532,17 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: 디지털의료제품법
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `supplementary-response strategy` based on this source.
+- Review primarily:
+  - Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -461,6 +582,17 @@ Total cases: 15
 - Source hash: `fe21b220c92090300334febc505ac3e1af4cc3c647d04fe11961d30402702598`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `supplementary-response strategy` based on this source.
+- Review primarily:
+  - Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -502,6 +634,17 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS, 디지털의료제품법
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `supplementary-response strategy` based on this source.
+- Review primarily:
+  - Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -542,6 +685,17 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `supplementary-response strategy` based on this source.
+- Review primarily:
+  - Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -581,6 +735,17 @@ Total cases: 15
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: supplementary-response strategy
 - Matched keywords: KGMP
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `supplementary-response strategy` based on this source.
+- Review primarily:
+  - Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 

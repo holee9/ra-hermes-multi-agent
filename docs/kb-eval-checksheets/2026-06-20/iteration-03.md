@@ -22,6 +22,17 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA, 510k, PMA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `submission evidence gaps` based on this source.
+- Review primarily:
+  - Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -61,6 +72,17 @@ Total cases: 15
 - Source hash: `c016b9b71c421bbff191427c089029b85d25aab55e122f03e3dabbff564b8880`
 - Focus: submission evidence gaps
 - Matched keywords: FDA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `submission evidence gaps` based on this source.
+- Review primarily:
+  - Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -102,6 +124,17 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `submission evidence gaps` based on this source.
+- Review primarily:
+  - Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -142,6 +175,17 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA, QMSR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `submission evidence gaps` based on this source.
+- Review primarily:
+  - Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -181,6 +225,17 @@ Total cases: 15
 - Source hash: `5efbe22295bef8ba002a4a98b9810b1add07c3de15e6e35a2236ecceda3f5fc2`
 - Focus: submission evidence gaps
 - Matched keywords: FDA, 510k, PMA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `submission evidence gaps` based on this source.
+- Review primarily:
+  - Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -224,6 +279,17 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `clinical evaluation gap analysis` based on this source.
+- Review primarily:
+  - Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -263,6 +329,17 @@ Total cases: 15
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: clinical evaluation gap analysis
 - Matched keywords: EUDAMED
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `clinical evaluation gap analysis` based on this source.
+- Review primarily:
+  - Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -304,6 +381,17 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `clinical evaluation gap analysis` based on this source.
+- Review primarily:
+  - Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -344,6 +432,17 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `clinical evaluation gap analysis` based on this source.
+- Review primarily:
+  - Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -383,6 +482,17 @@ Total cases: 15
 - Source hash: `a15dac973609fe746d7da46354e047b528ec5e8df970abafcb115620bea402ba`
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `clinical evaluation gap analysis` based on this source.
+- Review primarily:
+  - Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -426,6 +536,17 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS, 국내_MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `KGMP evidence readiness` based on this source.
+- Review primarily:
+  - Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -465,6 +586,17 @@ Total cases: 15
 - Source hash: `15a68c6c759e84d380e48841a71026a22f4bf3c240a638853cec2ede1e29c21c`
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `KGMP evidence readiness` based on this source.
+- Review primarily:
+  - Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -506,6 +638,17 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `KGMP evidence readiness` based on this source.
+- Review primarily:
+  - Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -546,6 +689,17 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS, 국내_MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `KGMP evidence readiness` based on this source.
+- Review primarily:
+  - Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -585,6 +739,17 @@ Total cases: 15
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: KGMP evidence readiness
 - Matched keywords: KGMP
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `KGMP evidence readiness` based on this source.
+- Review primarily:
+  - Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 

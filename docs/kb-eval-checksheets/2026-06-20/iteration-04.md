@@ -22,6 +22,17 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
+- Review primarily:
+  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -61,6 +72,17 @@ Total cases: 15
 - Source hash: `9f94737b713dbd5c6fa5242761b479fa1ec962b8561d7e2afccf2ec9f884e7fc`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
+- Review primarily:
+  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -102,6 +124,17 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
+- Review primarily:
+  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -142,6 +175,17 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: QMSR
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
+- Review primarily:
+  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -181,6 +225,17 @@ Total cases: 15
 - Source hash: `5efbe22295bef8ba002a4a98b9810b1add07c3de15e6e35a2236ecceda3f5fc2`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `QMSR and design-control readiness` based on this source.
+- Review primarily:
+  - Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.
+  - For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -224,6 +279,17 @@ Total cases: 15
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
+- Review primarily:
+  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -263,6 +329,17 @@ Total cases: 15
 - Source hash: `a15dac973609fe746d7da46354e047b528ec5e8df970abafcb115620bea402ba`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
+- Review primarily:
+  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -304,6 +381,17 @@ Total cases: 15
 - Focus: PMS and PMCF planning
 - Matched keywords: EUDAMED
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
+- Review primarily:
+  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -339,6 +427,17 @@ Total cases: 15
 - Source hash: `71c0d67fb6fa7c6ec5b92f4aeea270911ed9f7094081e3008d2b6b6bbdf37a2a`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
+- Review primarily:
+  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -379,6 +478,17 @@ Total cases: 15
 - Source hash: `e58a514ed0c819866f9eb094ca113d09dad260f22054cadd6a7b17a7302724ef`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `PMS and PMCF planning` based on this source.
+- Review primarily:
+  - Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.
+  - For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -422,6 +532,17 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
+- Review primarily:
+  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -461,6 +582,17 @@ Total cases: 15
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
+- Review primarily:
+  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 
@@ -502,6 +634,17 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: MFDS
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
+- Review primarily:
+  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -542,6 +685,17 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
 
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
+- Review primarily:
+  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -581,6 +735,17 @@ Total cases: 15
 - Source hash: `fea1a1e441cf787fd39d9734c1e90c658fef8dc7f0c2e0522a9a6e101555afce`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS, 디지털의료제품법
+
+**Evaluation Target**
+
+- Expected work product: concise RA judgment for `digital medical products act impact` based on this source.
+- Review primarily:
+  - Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.
+  - For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.
+  - Uses the cited source excerpts, not generic regulatory memory.
+  - States the required regulatory judgment, evidence gap, or action clearly.
+  - Separates confirmed source facts from assumptions or missing information.
+  - Identifies when human escalation is needed because the source is insufficient.
 
 **Reviewer Score**
 

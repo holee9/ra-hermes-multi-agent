@@ -67,6 +67,41 @@ def case_metadata(base_date: date, iteration: int, agent: Any, case_index: int, 
     }
 
 
+def review_lens(agent: Any, focus: str) -> list[str]:
+    common = [
+        "Uses the cited source excerpts, not generic regulatory memory.",
+        "States the required regulatory judgment, evidence gap, or action clearly.",
+        "Separates confirmed source facts from assumptions or missing information.",
+        "Identifies when human escalation is needed because the source is insufficient.",
+    ]
+    by_region = {
+        "US": [
+            "For FDA work, check predicate/IFU, substantial equivalence, QMSR/design-control, AI/cybersecurity, and submission evidence impact as applicable.",
+        ],
+        "EU": [
+            "For EU MDR work, check classification/conformity route, CER/PMS/PMCF/NB response, EUDAMED, and MDR evidence traceability as applicable.",
+        ],
+        "KR": [
+            "For MFDS work, check licensing/classification, KGMP, digital medical product obligations, supplementary-response strategy, and Korean evidence readiness as applicable.",
+        ],
+    }
+    focus_lens = {
+        "510(k) predicate strategy": "Focus on predicate selection, IFU scope, technical differences, and data needed to justify substantial equivalence.",
+        "submission evidence gaps": "Focus on missing bench, clinical, software, cybersecurity, AI, QMS, or labeling evidence needed for submission.",
+        "QMSR and design-control readiness": "Focus on design controls, complaint/CAPA/records, purchasing/service controls, and QMSR transition evidence.",
+        "SaMD change impact": "Focus on whether software/AI/cyber changes affect submission route, PCCP/change control, validation, or risk controls.",
+        "MDR classification and conformity route": "Focus on MDR rule/class, conformity assessment route, NB involvement, and technical documentation evidence.",
+        "clinical evaluation gap analysis": "Focus on CER/CER plan, equivalence, clinical data sufficiency, PMCF/PMS linkage, and MDCG expectations.",
+        "PMS and PMCF planning": "Focus on PMS/PMCF obligations, feedback loops, EUDAMED/PSUR/PMSR evidence, and surveillance triggers.",
+        "Notified Body question response": "Focus on whether the response directly answers NB deficiencies with traceable evidence and clear annex references.",
+        "MFDS classification and licensing route": "Focus on Korean classification/licensing route, technical document needs, KGMP linkage, and MFDS-specific evidence.",
+        "KGMP evidence readiness": "Focus on KGMP/ISO/QMSR evidence mapping, audit readiness, procedures, records, and Korean applicability.",
+        "digital medical products act impact": "Focus on digital medical product law applicability, SaMD/AI/SBOM/cyber obligations, and transition risks.",
+        "supplementary-response strategy": "Focus on deficiency response structure, requested evidence, rationale, Korean wording, and escalation needs.",
+    }
+    return [focus_lens.get(focus, f"Focus on {focus}.")] + by_region.get(agent.region, []) + common
+
+
 def render_case(base_date: date, iteration: int, agent: Any, case_index: int, case: Any) -> str:
     meta = case_metadata(base_date, iteration, agent, case_index, case)
     focus = agent.daily_focus[(base_date.toordinal() + iteration - 1) % len(agent.daily_focus)]
@@ -81,6 +116,12 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         f"- Source hash: `{case.source_hash}`",
         f"- Focus: {focus}",
         f"- Matched keywords: {', '.join(case.matched_keywords) or 'source routing match'}",
+        "",
+        "**Evaluation Target**",
+        "",
+        f"- Expected work product: concise RA judgment for `{focus}` based on this source.",
+        "- Review primarily:",
+        *[f"  - {item}" for item in review_lens(agent, focus)],
         "",
         "**Reviewer Score**",
         "",
