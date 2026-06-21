@@ -1,130 +1,117 @@
-# RA Hermes Multi-Agent Architecture Overview
+# RA Hermes Multi-Agent - Architecture Overview
 
 ## System Purpose
 
-RA Hermes is a learning multi-agent system for medical device regulatory affairs (RA) automation. It provides AI-powered assistance to human RA experts, prioritizing accuracy and reliability over speed.
+RA Hermes Multi-Agent is a learning multi-agent system for medical device regulatory affairs (RA). It automates email triage and work package management through AI agents that grow smarter through human feedback. The system prioritizes accuracy and reliability over speed—agents assist human RA experts but never replace them. When uncertain, the system escalates to human review rather than making low-confidence regulatory judgments.
 
-## Design Philosophy
+## Component Architecture
 
-**정확성·신뢰성 우선, 사람 보조 집중** — This system handles medical device regulatory affairs where incorrect judgments impact patient safety.
-
-- Accuracy always takes priority over speed
-- Agents assist human RA experts, not replace them
-- Human decision authority remains final
-- Uncertain cases escalate to human review
-- Human-in-the-loop is by design, not a weakness
-
-## System Architecture
-
+```mermaid
+graph TB
+    subgraph "Business Workspace"
+        Hermes[Hermes API Server :8643<br/>Flask + hermes binary]
+        n8n[n8n Workflow Engine<br/>:5678]
+        Virtual[Virtual Office Observer<br/>:3001]
+        Vote[Voting System<br/>vote-aggregator.js]
+        Bridge[Bridge Config<br/>empty relay conditions]
+    end
+    
+    subgraph "Infrastructure Workspace"
+        GX10[GX10 Qwen3 Inference<br/>OpenAI-compatible]
+        T3610[T3610 Honcho Stack<br/>API :8000]
+        RPi[Raspberry Pi 5+<br/>OpenProject + n8n]
+    end
+    
+    subgraph "Data Stores"
+        PG[(PostgreSQL + pgvector<br/>:5433)]
+        Redis[(Redis Cache<br/>:6379)]
+        Qdrant[(Qdrant Vector DB<br/>NAS :6333)]
+        OP[(OpenProject<br/>WP Management)]
+    end
+    
+    subgraph "External Systems"
+        Gmail[Gmail IMAP]
+        NAS[NAS Doc Sources]
+    end
+    
+    Gmail -->|email| n8n
+    n8n -->|RA classification| Hermes
+    Hermes -->|inference| GX10
+    Hermes -->|RAG search| Qdrant
+    Hermes -->|knowledge fetch| NAS
+    Hermes -->|record activity| T3610
+    T3610 -->|sessions/messages| PG
+    T3610 -->|cache| Redis
+    n8n -->|WP operations| OP
+    T3610 -->|activity log| Virtual
+    n8n -->|infra votes| Vote
+    Vote -->|broadcast| n8n
+    n8n -->|relay to work| Bridge
 ```
-Business Workspace                    Infrastructure Workspace
-├─ RA Agents (ra_us, ra_eu, ra_kr)      ├─ infra_t3610 (Honcho server)
-├─ op_manager                          ├─ infra_gx10 (LLM inference)
-└─ n8n_manager                         └─ infra_rpi (OpenProject + n8n)
-       │                                          │
-   [n8n workflows]                       [bridge]─────┘
-       │
-   [Honcho T3610] ──→ [GX10 Qwen3]
-       │
-   [OpenProject]
-       │
-   [Virtual Office] (read-only observer)
-```
 
-## Hardware Components
+## Module Summary
 
-| Machine | Spec | Role |
-|---------|------|------|
-| T3610 | Xeon 12C/24T, 32GB, Linux | Honcho server (FastAPI + PostgreSQL/pgvector + Redis) + RA experts |
-| GX10 | Grace Blackwell ARM, Qwen3 | LLM inference backend (tool-calling required) |
-| Raspberry Pi 5+ | 16GB | OpenProject + n8n workflows |
+| Component | Responsibility | Language | Key Entry Points |
+|-----------|---------------|----------|------------------|
+| **Hermes API Server** | OpenAI-compatible RA classification bridge | Python 3.13 / Flask | `/v1/chat/completions`, `/v1/knowledge/fetch` |
+| **n8n Workflows** | Email triage, WP operations, infra coordination | Node.js / n8n JSON | `mail-triage.json`, `infra-vote-broadcast.json` |
+| **Virtual Office** | Read-only activity observer (pixel-art UI) | Node.js / Express | `/api/events` endpoint |
+| **Voting System** | Infra decision aggregation (config-driven) | Node.js (ES2024+) | `vote-aggregator.js` |
+| **Bridge Config** | Human relay conditions (intentionally empty) | JSON | `bridge-config.json` |
+| **Growth Loop** | Autonomous study, daily growth, metrics | Python 3.13 | `autonomous-study-scheduler.py`, `daily-growth-runner.py` |
+| **Knowledge Indexing** | pgvector population from NAS/repos | Python 3.13 | `index_ra_knowledge.py`, `nas_indexer_v2.py` |
+| **Honcho Stack** | Session management, memory, deriver | Python 3.15 / FastAPI | `:8000` API |
+| **E2E Tests** | Playwright validation of dashboards | JavaScript / Playwright | `growth-dashboard.spec.js` |
 
-## Core Technologies
+## Tech Stack
 
-- **Honcho**: FastAPI-based memory and social cognition layer (v0.15.1)
-- **n8n**: Workflow automation for email triage and routing
-- **OpenProject**: Work package management system
-- **PostgreSQL/pgvector**: Vector database for knowledge and memories
-- **Redis**: Cache layer for Honcho
-- **Hermes Agents**: RA expert personas with learning capabilities
+**Backend Core:**
+- Python 3.13+ (Flask, psycopg2, requests)
+- Node.js 22 LTS (Express, n8n workflows)
+- PostgreSQL 15 with pgvector extension
+- Redis 7 (cache layer)
 
-## Key Modules
+**AI/ML:**
+- Hermes Agent v0.15.1 (hermes binary)
+- GX10 Qwen3 inference backend (OpenAI-compatible API)
+- Qdrant vector database (NAS RAG)
 
-### Business Workspace (ra-hermes-multi-agent)
+**Infrastructure:**
+- Docker Compose (Honcho stack, virtual office)
+- systemd timers (daily growth metrics at 02:00)
+- Playwright (E2E testing)
 
-#### Honcho Server (`honcho-src/`)
-- **Purpose**: Infrastructure layer for AI agents with memory and social cognition
-- **Technology**: FastAPI, SQLAlchemy 2.0, Pydantic v2
-- **Entry Point**: `src/main.py`
-- **Key Components**:
-  - Dialectic Agent: Chat endpoint with personal context injection
-  - Deriver: Background memory formation processor
-  - Dreamer: Memory consolidation and self-improvement
-  - Vector Store: pgvector-based knowledge management
-  - Telemetry: Prometheus metrics + CloudEvents
+**Integration:**
+- OpenProject REST API (WP management)
+- Gmail IMAP OAuth (email source)
+- HTTP/JSON (all inter-service communication)
 
-#### RA Agent Profiles (`profiles/`)
-- **ra_us**: US regulatory affairs expert
-- **ra_eu**: EU regulatory affairs expert  
-- **ra_kr**: Korea regulatory affairs expert
-- **Structure**: Each profile contains SOUL.md persona definition and configuration
+## Critical Ports
 
-#### Python Scripts (`scripts/`)
-- **Growth Automation**: `autonomous-study-scheduler.py`, `daily-growth-runner.py`
-- **Knowledge Management**: `index_ra_knowledge.py`, `curriculum-seed.py`
-- **Metrics & Reporting**: `growth-metrics.py`, `auto-growth-readiness-report.py`
-- **Data Integration**: `extract_mail_qa.py`, `op_honcho_backfill.py`
+| Service | Port | Protocol | Purpose |
+|---------|------|----------|---------|
+| Hermes API Server | 8643 | HTTP | RA classification endpoint |
+| Honcho API | 8000 | HTTP | Session/memory management |
+| PostgreSQL | 5433 | TCP | pgvector + Honcho data |
+| Redis | 6379 | TCP | Cache layer |
+| n8n | 5678 | HTTP | Workflow engine UI |
+| Virtual Office (container) | 3000 | HTTP | Adapter server |
+| Virtual Office (host) | 3001 | HTTP | Exposed to user |
+| Qdrant (NAS) | 6333 | HTTP | Vector DB for RAG |
 
-#### n8n Workflows (`n8n/workflows/`)
-- **mail-triage.json**: Email classification and routing
-- **feedback-recorder.json**: Human feedback capture
-- **wp-close-recorder.json**: Work package closure automation
-- **infra-vote-broadcast.json**: Infrastructure consensus voting
-- **infra-to-work-bridge.json**: Infrastructure-to-business communication
+> **⚠️ Drift Warning:** CLAUDE.md states virtual-office runs on `:3001`. The adapter container runs on `:3000` internally, but Docker Compose maps it to `:3001` on the host. Both ports are correct—`:3000` is container-internal, `:3001` is host-exposed.
 
-#### Integration Components
-- **bridge/**: Infrastructure-to-business communication layer
-- **voting/**: Vote-based consensus for infrastructure decisions
-- **virtual-office/**: HTML-based read-only visualization
+## Key Environment Variables
 
-### External Dependencies
-
-- **OpenProject API**: Work package and project management
-- **Layer 4 APIs**: Real-time regulatory knowledge (law.go.kr, openFDA, data.go.kr)
-- **GX10 Inference**: Remote LLM endpoint via OpenAI-compatible API
-- **pgvector**: Vector similarity search for knowledge retrieval
-
-## Data Flow Patterns
-
-1. **Email Processing**: Email → n8n mail-triage → RA agents → OpenProject
-2. **Memory Formation**: Interactions → Honcho deriver → pgvector → Dialectic recall
-3. **Growth Loop**: Performance → growth-metrics → autonomous-study-scheduler → improved competence
-4. **Infrastructure Consensus**: Infra decisions → voting system → broadcast to business workspace
-
-## Architecture Patterns
-
-- **Peer Paradigm**: Humans and AI agents unified as "Peers" in Honcho
-- **Multi-Process**: API server + deriver worker + Dreamer specialist system
-- **Event-Driven**: n8n workflows triggered by emails and webhooks
-- **Vector Search**: pgvector HNSW indexes for semantic knowledge retrieval
-- **Provider Agnostic**: LLM abstraction layer supporting multiple providers
-
-## Safety & Quality
-
-- **Yellow Gate**: Low-confidence decisions route to human review
-- **State Verification**: Existing work package status validation before routing
-- **Graceful Degradation**: Layer 4 API failures don't crash core operations
-- **Immutable Data Contracts**: Fixed JSON schemas for RA analysis results
-- **Human Supervision**: Final authority on all regulatory decisions
-
-## Scalability Considerations
-
-- **Horizontal Scaling**: Multiple deriver workers for memory processing
-- **Caching**: Redis layer for frequently accessed peer representations
-- **Batch Processing**: Up to 100 messages per batch in deriver
-- **Connection Pooling**: PostgreSQL connection pool management
-- **Async I/O**: Non-blocking operations for external API calls
-
----
-Generated: 2026-06-17
-System Status: MVP deployed, growth loop implemented, safety/QA hardening complete
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `HONCHO_URL` | `http://localhost:8000` | Honcho API endpoint |
+| `HERMES_API_URL` | `http://localhost:8643` | Hermes API server |
+| `API_SERVER_KEY` | (required) | Bearer token for Hermes API |
+| `POSTGRES_URL` | (required) | PostgreSQL DSN with pgvector |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant vector DB (NAS) |
+| `GX10_URL` | `http://gx10:11434` | Qwen3 inference backend |
+| `HONCHO_WS` | `work` | Honcho workspace name |
+| `YELLOW_CONFIDENCE_THRESHOLD` | 0.75 | Minimum confidence for auto-routing |
+| `STUDY_BATCH_SIZE` | 5 | Chunks per autonomous study session |
+| `AUTO_GROWTH_OPERATION_TZ` | `Asia/Seoul` | Growth metrics timezone |

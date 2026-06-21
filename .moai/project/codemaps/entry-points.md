@@ -1,366 +1,450 @@
-# Entry Points Catalog
+# RA Hermes Multi-Agent - Entry Points
 
-## Server & Service Entry Points
+## Python CLI Scripts
 
-### Honcho Server
-- **Location**: `honcho-src/src/main.py`
-- **Purpose**: FastAPI application entry point
-- **Technology**: Python 3.13+, FastAPI 0.115+
-- **Invocation**: `uv run fastapi dev src/main.py`
-- **Port**: 8000 (default)
-- **Responsibilities**:
-  - Application initialization and middleware setup
-  - Router registration (/v3 API endpoints)
-  - Lifespan management (startup/shutdown hooks)
-  - Global exception handlers
-  - Telemetry and monitoring setup
-- **Key Components**:
-  - FastAPI app creation
-  - CORS middleware configuration
-  - Router inclusion: workspaces, peers, sessions, messages, conclusions, keys, webhooks
-  - Sentry error tracking integration
-  - Prometheus metrics endpoint
-  - Database and cache initialization
-- **Environment Variables**:
-  - `DATABASE_URL`: PostgreSQL connection string
-  - `REDIS_URL`: Redis connection string
-  - `HONCHO_ENV`: Environment (development/production)
-  - `EMBEDDING_MODEL_CONFIG`: Embedding provider configuration
-  - `LLM_API_KEY`: LLM provider authentication
+### Growth & Learning
 
-### Deriver Worker
-- **Location**: `honcho-src/src/deriver/__main__.py`
-- **Purpose**: Background queue consumer for memory formation
-- **Technology**: Python 3.13+, uvloop
-- **Invocation**: `uv run python -m src.deriver`
-- **Responsibilities**:
-  - Queue management and message processing
-  - Deriver execution (memory formation)
-  - Reconciler scheduling (embedding sync, queue cleanup)
-  - Background task coordination
-- **Key Components**:
-  - QueueManager lifecycle
-  - Representation task processing
-  - Deriver batch processing
-  - Reconciler scheduler integration
-  - Error handling and retry logic
-- **Scalability**: Multiple instances via `DERIVER_WORKERS` environment variable
+**autonomous-study-scheduler.py**
+```bash
+# Bootstrap mode (first run, all chunks)
+python3 scripts/autonomous-study-scheduler.py --mode bootstrap --agent ra-us
+python3 scripts/autonomous-study-scheduler.py --mode bootstrap --agent ra-eu
+python3 scripts/autonomous-study-scheduler.py --mode bootstrap --agent ra-kr
 
-## Python Script Entry Points
+# Delta mode (incremental since last checkpoint)
+python3 scripts/autonomous-study-scheduler.py --mode delta
 
-### Growth & Learning Automation
+# Dry-run (inspect what would be studied)
+STUDY_MAX=1 python3 scripts/autonomous-study-scheduler.py --mode bootstrap --agent ra-us
+```
+Flags: `--mode` (bootstrap|delta), `--agent` (ra-us|ra-eu|ra-kr), `--dry-run`
+Environment: `HONCHO_URL`, `HERMES_API_URL`, `API_SERVER_KEY`, `POSTGRES_URL`, `STUDY_BATCH_SIZE`, `STUDY_MAX_CHUNKS`
 
-#### autonomous-study-scheduler.py
-- **Location**: `scripts/autonomous-study-scheduler.py`
-- **Purpose**: Bootstrap and delta study scheduling for RA agents
-- **Technology**: Python 3.13+, FastAPI, Honcho SDK
-- **Invocation**: `python scripts/autonomous-study-scheduler.py --mode [bootstrap|delta]`
-- **Parameters**:
-  - `--mode bootstrap`: Initial curriculum seeding from source materials
-  - `--mode delta`: Incremental learning from new cases
-  - `--peer_id`: Target peer (ra_us, ra_eu, ra_kr)
-  - `--max_cases`: Maximum cases to process (default: 10)
-- **Dependencies**: Honcho API, PostgreSQL/pgvector, Layer 4 APIs
-- **Output**: Study insights recorded in Honcho peer memory
+**daily-growth-runner.py**
+```bash
+# Plan mode (dry-run, inspect what would be generated)
+python3 scripts/daily-growth-runner.py --plan --date 2026-06-20
 
-#### daily-growth-runner.py
-- **Location**: `scripts/daily-growth-runner.py`
-- **Purpose**: Daily growth loop automation for non-email cases
-- **Technology**: Python 3.13+, Honcho SDK
-- **Invocation**: `python scripts/daily-growth-runner.py`
-- **Parameters**:
-  - `--dry-run`: Simulate without execution
-  - `--peer_id`: Target peer for growth
-  - `--source`: Source type (non-email, qa, document)
-- **Dependencies**: Honcho API, PostgreSQL/pgvector
-- **Output**: Growth metrics and performance reports
+# Execute mode (run actual growth cycles)
+python3 scripts/daily-growth-runner.py --run --date 2026-06-20
+```
+Flags: `--plan`|`--run`, `--date` (YYYY-MM-DD), `--agent` (ra-us|ra-eu|ra-kr|all)
+Environment: `HONCHO_URL`, `HONCHO_WS`, `POSTGRES_URL`
 
-#### growth-metrics.py
-- **Location**: `scripts/growth-metrics.py`
--**Purpose**: Calculate and report growth performance metrics
-- **Technology**: Python 3.13+, PostgreSQL
-- **Invocation**: `python scripts/growth-metrics.py`
-- **Metrics Calculated**:
-  - Correction rate (human feedback / total decisions)
-  - First-pass match accuracy (correct WP matching / total attempts)
-  - Confidence calibration (prediction confidence vs actual accuracy)
-  - Warmstart lift (improvement from cold start)
-  - Escalation precision (appropriate human reviews)
-- **Dependencies**: Honcho API, PostgreSQL
-- **Output**: JSON report to `reports/growth-YYYY-MM-DD.json`
+**growth-metrics.py**
+```bash
+python3 scripts/growth-metrics.py --date 2026-06-20
+```
+Flags: `--date` (YYYY-MM-DD), `--output` (JSON file path)
+Environment: `HONCHO_URL`, `HONCHO_WS`, `POSTGRES_URL`
 
-#### auto-growth-readiness-report.py
-- **Location**: `scripts/auto-growth-readiness-report.py`
-- **Purpose**: Generate 4x4 readiness matrix for auto-growth
-- **Technology**: Python 3.13+, PostgreSQL
-- **Invocation**: `python scripts/auto-growth-readiness-report.py`
-- **Readiness Dimensions**:
-  - Knowledge foundation (curriculum seeds, Layer 4 APIs)
-  - Individual growth inputs (growth loops, timer status)
-  - Growth proof data (sessions, messages, metrics)
-  - Runtime safety gates (Yellow gates, validation)
-  - Infrastructure consensus (vote rules, broadcast)
-- **Output**: Readiness matrix JSON report
+**curriculum-seed.py**
+```bash
+python3 scripts/curriculum-seed.py --source-dir /path/to/curriculum
+```
+Flags: `--source-dir`, `--batch-size`
 
-### Knowledge Management
+**pre-auto-growth-loop.py**
+```bash
+python3 scripts/pre-auto-growth-loop.py --verify
+```
+Flags: `--verify`, `--check-activation-policy`
 
-#### index_ra_knowledge.py
-- **Location**: `scripts/index_ra_knowledge.py`
-- **Purpose**: Index regulatory knowledge into pgvector
-- **Technology**: Python 3.13+, pgvector, Gitea API
-- **Invocation**: `python scripts/index_ra_knowledge.py --source [github|local]`
-- **Parameters**:
-  - `--source github`: Index from GitHub repositories
-  - `--source local`: Index from local files
-  - `--repo`: Repository name (for GitHub source)
-- **Dependencies**: PostgreSQL/pgvector, Gitea API
-- **Output**: Vector embeddings in `ra_knowledge` table
+**non-email-growth-loop.py**
+```bash
+python3 scripts/non-email-growth-loop.py --dry-run
+python3 scripts/non-email-growth-loop.py --execute
+```
+Flags: `--dry-run`, `--execute`, `--agent`
 
-#### curriculum-seed.py
-- **Location**: `scripts/curriculum-seed.py`
-- **Purpose**: Seed source-level curriculum for RA agents
-- **Technology**: Python 3.13+, Honcho SDK
-- **Invocation**: `python scripts/curriculum-seed.py --peer_id [ra_us|ra_eu|ra_kr]`
-- **Parameters**:
-  - `--peer_id`: Target peer for curriculum seeding
-  - `--source`: Source directory or repository
-  - `--max_cases`: Maximum cases to process
-- **Dependencies**: Honcho API, PostgreSQL
-- **Output**: Curriculum seeds in peer memory
+**ra-kr-growth-plan.py**
+```bash
+python3 scripts/ra-kr-growth-plan.py --plan
+```
+Flags: `--plan`, `--prioritize`
 
-#### knowledge_fetch.py
-- **Location**: `scripts/knowledge_fetch.py`
-- **Purpose**: Fetch real-time regulatory knowledge from Layer 4 APIs
-- **Technology**: Python 3.13+, HTTP requests
-- **Invocation**: `python scripts/knowledge_fetch.py --api [lawgokr|openFDA|datagokr]`
-- **APIs**:
-  - `lawgokr`: Korean legal framework search
-  - `openFDA`: US regulatory database lookup
-  - `datagokr`: Korean MFDS device information
-- **Dependencies**: Layer 4 API endpoints
-- **Output**: Structured knowledge data for LLM context
+**growth-transition-readiness.py**
+```bash
+python3 scripts/growth-transition-readiness.py --assess
+```
+Flags: `--assess`, `--report`
 
-### Data Integration
+**auto-growth-readiness-report.py**
+```bash
+python3 scripts/auto-growth-readiness-report.py --compile
+```
+Flags: `--compile`, `--evidence`
 
-#### op_honcho_backfill.py
-- **Location**: `scripts/op_honcho_backfill.py`
-- **Purpose**: Backfill Honcho memory from OpenProject historical data
-- **Technology**: Python 3.13+, OpenProject API, Honcho SDK
-- **Invocation**: `python scripts/op_honcho_backfill.py --days [N]`
-- **Parameters**:
-  - `--days`: Number of days to backfill
-  - `--workspace`: Target Honcho workspace
-  - `--peer_id`: Target peer for memory storage
-- **Dependencies**: OpenProject API, Honcho API
-- **Output**: Historical work packages as peer memories
+**render-growth-dashboard.py**
+```bash
+python3 scripts/render-growth-dashboard.py --input reports/metrics.json
+```
+Flags: `--input`, `--output` (HTML file)
 
-#### extract_mail_qa.py
-- **Location**: `scripts/extract_mail_qa.py`
-- **Purpose**: Extract QA pairs from email history for training
-- **Technology**: Python 3.13+, Email parsing
-- **Invocation**: `python scripts/extract_mail_qa.py --source [mbox|eml]`
-- **Parameters**:
-  - `--source`: Email format (mbox or eml)
-  - `--output`: Output directory for extracted data
-- **Dependencies**: Email parsing libraries
-- **Output**: Structured QA pairs for knowledge base
+**replay-study-insights-issue49.py**
+```bash
+# Dry-run (verify replay)
+python3 scripts/replay-study-insights-issue49.py --backup /path/to/insights.jsonl
 
-#### nas_indexer_v2.py
-- **Location**: `scripts/nas_indexer_v2.py`
-- **Purpose**: Index Gitea repositories from NAS storage
-- **Technology**: Python 3.13+, Gitea API
-- **Invocation**: `python scripts/nas_indexer_v2.py --repo [name]`
-- **Dependencies**: Gitea API, PostgreSQL/pgvector
--**Output**: Vector embeddings in knowledge base
+# Execute replay (batch size 50)
+python3 scripts/replay-study-insights-issue49.py --execute --batch-size 50
+```
+Flags: `--backup`, `--execute`, `--batch-size`
 
-### Verification & Recovery
+### Knowledge Indexing
 
-#### replay-study-insights-issue49.py
-- **Location**: `scripts/replay-study-insights-issue49.py`
-- **Purpose**: Replay study insights after peer_id correction (Issue #49)
-- **Technology**: Python 3.13+, PostgreSQL
-- **Invocation**: `python scripts/replay-study-insights-issue49.py --execute --batch-size 50`
-- **Parameters**:
-  - `--execute`: Execute replay (default: dry-run)
-  - `--batch-size`: Number of insights per batch
-- **Dependencies**: PostgreSQL, Honcho API
-- **Output**: Corrected peer memories with `ra_us`/`ra_eu` peer IDs
+**index_ra_knowledge.py**
+```bash
+python3 scripts/index_ra_knowledge.py --source /path/to/llm-wiki
+python3 scripts/index_ra_knowledge.py --source /path/to/ra-project
+python3 scripts/index_ra_knowledge.py --source /path/to/MD-process
+```
+Flags: `--source` (path to markdown repo)
+Environment: `POSTGRES_URL`
+> **[HARD]** Read-only indexing: NEVER write to source repos
 
-## n8n Workflow Entry Points
+**index_github_repos.py**
+```bash
+python3 scripts/index_github_repos.py --repo https://github.com/user/repo
+```
+Flags: `--repo`, `--branch`
 
-### Business Workflows
+**knowledge_fetch.py**
+```bash
+# Called by hermes-api-server.py as subprocess
+python3 scripts/knowledge_fetch.py --query "FDA 510(k) requirements" --profile ra-us --top 3
+```
+Flags: `--query`, `--profile` (ra-us|ra-eu|ra-kr), `--top`
 
-#### mail-triage.json
-- **Location**: `n8n/workflows/mail-triage.json`
-- **Purpose**: Email triage and routing to RA agents
-- **Trigger**: Incoming email webhook
-- **Key Processing Steps**:
-  1. Email parsing and content extraction
-  2. OpenProject work package lookup
-  3. RA agent consultation via Honcho API
-  4. Confidence threshold validation
-  5. Yellow gate escalation if low confidence
-  6. Work package routing/creation
-- **Dependencies**: OpenProject API, Honcho API
-- **Output**: RA analysis result JSON, routing decision
+**nas_indexer_v2.py**
+```bash
+python3 scripts/nas_indexer_v2.py --scan /path/to/nas/documents
+```
+Flags: `--scan`, `--embed`, `--upload`
+Environment: `QDRANT_URL`, `OLLAMA_URL`, `EMBED_MODEL`
 
-#### feedback-recorder.json
-- **Location**: `n8n/workflows/feedback-recorder.json`
-- **Purpose**: Capture human feedback on agent decisions
-- **Trigger**: Human feedback submission
-- **Key Processing Steps**:
-  1. Feedback validation and normalization
-  2. Agent judgment recording in Honcho
-  3. Human correction storage
-  4. Growth metrics calculation
-- **Dependencies**: Honcho API
-- **Output**: Feedback records in peer memory
+### Operations Tools
 
-#### wp-close-recorder.json
-- **Location**: `n8n/workflows/wp-close-recorder.json`
-- **Purpose**: Record work package closure events
-- **Trigger**: OpenProject status webhook
-- **Key Processing Steps**:
-  1. Closure event detection
-  2. Case digest generation
-  3. Honcho memory storage
-  4. Growth metrics update
-- **Dependencies**: OpenProject API, Honcho API
-- **Output**: Closure records and performance metrics
+**extract_mail_qa.py**
+```bash
+python3 scripts/extract_mail_qa.py --input /path/to/emails.mbox
+```
+Flags: `--input`, `--output` (JSON pairs)
 
-### Infrastructure Workflows
+**meta_extractor.py**
+```bash
+python3 scripts/meta_extractor.py --file /path/to/document.pdf
+```
+Flags: `--file`, `--output`
 
-#### infra-vote-broadcast.json
-- **Location**: `n8n/workflows/infra-vote-broadcast.json`
-- **Purpose**: Aggregate and broadcast infrastructure votes
-- **Trigger**: Vote submission from infrastructure agents
-- **Key Processing Steps**:
-  1. Vote collection (2/3 quorum rule)
-  2. Result aggregation
-  3. Broadcast to business workspace
-  4. Consensus decision tracking
-- **Dependencies**: Voting system APIs, bridge/
-- **Output**: Consensus results broadcast
+**op_honcho_backfill.py**
+```bash
+python3 scripts/op_honcho_backfill.py --import /path/to/export.json
+```
+Flags: `--import`, `--workspace`
 
-#### infra-to-work-bridge.json
-- **Location**: `n8n/workflows/infra-to-work-bridge.json`
-- **Purpose**: Translate infrastructure events to business workspace
-- **Trigger**: Infrastructure events
-- **Key Processing Steps**:
-  1. Event receipt from infrastructure
-  2. Event translation and routing
-  3. Business workspace delivery
-  4. Error handling and retry
-- **Dependencies**: bridge/, Honcho API
-- **Output**: Business-readable events
+### Verification Suite
 
-## Command-Line Interfaces
+**verify-*.py** (all verify scripts)
+```bash
+python3 scripts/verify-auto-growth-activation-policy.py
+python3 scripts/verify-daily-growth-runner.py
+python3 scripts/verify-growth-metrics.py
+python3 scripts/verify-growth-dashboard.py
+python3 scripts/verify-curriculum-seed.py
+python3 scripts/verify-non-email-growth-loop.py
+python3 scripts/verify-pre-auto-growth-loop.py
+python3 scripts/verify-ra-kr-growth-plan.py
+python3 scripts/verify-study-scheduler.py
+```
 
-### Honcho CLI
-- **Entry Point**: `honcho-src/honcho-cli/`
-- **Purpose**: Command-line interface for Honcho workspace management
-- **Technology**: Python 3.13+, Click
-- **Commands**:
-  - `honcho peers list`: List all peers
-  - `honcho sessions create`: Create new session
-  - `honcho messages send`: Send messages to peers
-  - `honcho conclusions query`: Query peer conclusions
-- **Dependencies**: Honcho API
+**scripts/tests/ (pytest)**
+```bash
+pytest scripts/tests/
+pytest scripts/tests/test_growth_metrics_error_handling.py
+```
 
-### System Service Entry Points
+## Shell Entry Points
 
-#### systemd Services
-- **Location**: `systemd/`
-- **Services**:
-  - `ra-growth-metrics.service`: Daily growth metrics timer
-  - `ra-growth-metrics.timer`: Daily execution at 02:00 KST
-  - `hermes-auto-growth.service`: Auto-growth scheduler
-  - `hermes-auto-growth.timer`: Scheduled growth loop
-- **Invocation**: `systemctl start/enable/disable [service]`
-- **Dependencies**: Python scripts, Honcho API
+**auto-growth-runner.sh**
+```bash
+bash scripts/auto-growth-runner.sh --start
+bash scripts/auto-growth-runner.sh --stop
+bash scripts/auto-growth-runner.sh --status
+```
 
-## Web Interface Entry Points
+**daily-monitoring.sh**
+```bash
+bash scripts/daily-monitoring.sh
+```
 
-### Virtual Office
-- **Location**: `virtual-office/virtual-office.html`
-- **Purpose**: Read-only visualization of Honcho activity
-- **Technology**: Self-contained HTML (no build step)
-- **Access**: Direct file open in browser
-- **Features**:
-  - Pixel-art character visualization
-  - Real-time activity monitoring
-  - Honcho event log display
-- **Data Source**: Honcho Activity Log API (`GET /v1/activity`)
-- **Dependencies**: Honcho server (read-only access)
+**growth-metrics-cron.sh**
+```bash
+bash scripts/growth-metrics-cron.sh
+```
 
-### Growth Dashboard
-- **Location**: GitHub Pages (published via `render-growth-dashboard.py`)
-- **Purpose**: HTML-based growth operations dashboard
-- **Technology**: Static HTML with embedded JSON data
-- **Access**: `https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html`
-- **Features**:
-  - RA Growth Operations summary
-  - Per-agent growth cards
-  - Growth signal flow diagram
-  - Growth measurement status
-  - Coverage evidence
-- **Data Source**: `reports/growth-*.json` files
-- **Dependencies**: Growth metrics JSON reports
+**cold-start-verify.sh**
+```bash
+bash scripts/cold-start-verify.sh
+```
 
-## API Entry Points (REST)
+**deploy-local.sh**
+```bash
+bash scripts/deploy-local.sh --stack honcho
+bash scripts/deploy-local.sh --stack virtual-office
+```
 
-### Honcho API (`/v3/`)
+**deploy-n8n-rpi.sh**
+```bash
+bash scripts/deploy-n8n-rpi.sh --host raspi5p
+```
 
-#### Workspace Operations
-- `POST /v3/workspaces`: Create workspace
-- `POST /v3/workspaces/list`: List workspaces
-- `POST /v3/workspaces/search`: Search workspaces
-- `POST /v3/workspaces/{id}`: Get workspace details
+**detect-device.sh**
+```bash
+bash scripts/detect-device.sh --print
+# Output: t3610 | gx10 | raspi5
+```
 
-#### Peer Operations
-- `POST /v3/peers`: Create peer
-- `POST /v3/peers/list`: List peers
-- `POST /v3/peers/{peer_id}/chat`: Chat with peer (Dialectic)
-- `POST /v3/peers/{peer_id}/messages`: List peer messages
+**configure-glm.sh**
+```bash
+bash scripts/configure-glm.sh --backend gx10
+```
 
-#### Session Operations
-- `POST /v3/sessions`: Create session
-- `POST /v3/sessions/list`: List sessions
-- `POST /v3/sessions/{session_id}/peers`: Manage session participants
+**verify-honcho.sh**
+```bash
+bash scripts/verify-honcho.sh --quick
+bash scripts/verify-honcho.sh --full
+```
 
-#### Message Operations
-- `POST /v3/messages`: Create messages (batch up to 100)
-- `POST /v3/messages/list`: List messages
-- `POST /v3/messages/{id}`: Get message details
+**install-auto-growth-timer.sh**
+```bash
+bash scripts/install-auto-growth-timer.sh
+```
 
-#### Conclusion Operations
-- `POST /v3/conclusions`: Create conclusions
-- `POST /v3/conclusions/query`: Semantic search
-- `POST /v3/conclusions/list`: List conclusions
+**install-study-scheduler.sh**
+```bash
+bash scripts/install-study-scheduler.sh
+```
 
-#### Utility Operations
-- `POST /v3/keys`: Create scoped JWT keys
-- `POST /v3/webhooks`: Register webhook
-- `GET /metrics`: Prometheus metrics
+**day1-baseline-simple.sh**
+```bash
+bash scripts/day1-baseline-simple.sh
+```
 
-## Development Entry Points
+## systemd Services & Timers
 
-### Testing
-- **Unit Tests**: `pytest tests/`
-- **Integration Tests**: `pytest tests/integration/`
-- **Live LLM Tests**: `pytest tests/live_llm/` (requires `--live-llm` flag)
-- **Benchmark Tests**: `pytest tests/bench/`
+**ra-growth-metrics.service + timer**
+```bash
+# Timer: Daily at 02:00
+# Service: Oneshot → runs growth-metrics-cron.sh
+systemctl status ra-growth-metrics.timer
+systemctl start ra-growth-metrics.timer
+systemctl enable ra-growth-metrics.timer
+journalctl -u ra-growth-metrics.service -f
+```
+Schedule: `OnCalendar=*-*-* 02:00:00` (daily 2 AM)
+Persistent: true (runs on boot if missed)
 
-### Code Quality
-- **Linting**: `uv run ruff check src/`
-- **Formatting**: `uv run ruff format src/`
-- **Type Checking**: `uv run basedpyright`
+**hermes-auto-growth.service + timer**
+```bash
+systemctl status hermes-auto-growth.timer
+systemctl start hermes-auto-growth.timer
+systemctl enable hermes-auto-growth.timer
+```
+Schedule: Configurable interval (typically daily)
 
-### Build & Package
-- **Installation**: `uv sync`
-- **Package Build**: `uv build`
-- **Distribution**: `uv publish`
+**hermes-study.service + timer**
+```bash
+systemctl status hermes-study.timer
+systemctl start hermes-study.timer
+systemctl enable hermes-study.timer
+```
+Schedule: Daily (configurable, typically late night)
 
----
-Generated: 2026-06-17
-Total Entry Points: 30+ across servers, scripts, workflows, and APIs
+**hermes-daily-monitoring.service + timer**
+```bash
+systemctl status hermes-daily-monitoring.timer
+```
+Schedule: Daily at configurable time
+
+## n8n Webhook Triggers
+
+**mail-triage.json**
+```bash
+# Manual test trigger
+POST /webhook/mail-triage-test
+Content-Type: application/json
+{
+  "subject": "Test FDA 510(k) inquiry",
+  "from": "test@example.com",
+  "body": "We need guidance on 510(k) submission..."
+}
+```
+Full path: `POST /webhook/mail-triage-test`
+Production: Gmail IMAP trigger (poll every minute, unread emails)
+
+**feedback-recorder.json**
+```bash
+# Human feedback webhook
+POST /webhook/feedback
+Content-Type: application/json
+{
+  "target": "ra_us",
+  "feedback_type": "correction",
+  "original_response": "...",
+  "corrected_response": "...",
+  "human_note": "Missing predicate device analysis"
+}
+```
+Full path: `POST /webhook/feedback`
+
+**infra-vote-broadcast.json**
+```bash
+# Vote broadcast trigger
+POST /webhook/infra-vote
+Content-Type: application/json
+{
+  "topic": "Increase GX10 inference capacity",
+  "context": "...",
+  "options": ["approve", "reject", "defer"]
+}
+```
+Full path: `POST /webhook/infra-vote`
+
+**wp-close-recorder.json**
+```bash
+# WP close recording (human-only action)
+POST /webhook/wp-close
+Content-Type: application/json
+{
+  "wp_id": "WP-123",
+  "close_reason": "Device approved, market authorization complete",
+  "human_confirmed": true
+}
+```
+Full path: `POST /webhook/wp-close`
+> **[HARD]** WP close/reopen = human-only permanently
+
+## Docker Compose Services
+
+**honcho/docker-compose.yml**
+```bash
+# Start Honcho stack
+docker-compose -f honcho/docker-compose.yml up -d
+
+# Stop Honcho stack
+docker-compose -f honcho/docker-compose.yml down
+
+# View logs
+docker-compose -f honcho/docker-compose.yml logs -f api
+docker-compose -f honcho/docker-compose.yml logs -f deriver
+```
+Services:
+- `api` - FastAPI on `0.0.0.0:8000` (host `:8000`)
+- `deriver` - Background worker (no exposed ports)
+- `postgres` - pgvector on `0.0.0.0:5433` (host `:5433`)
+- `redis` - Redis on `127.0.0.1:6379`
+
+**virtual-office/docker-compose.yml**
+```bash
+# Start virtual office adapter
+docker-compose -f virtual-office/docker-compose.yml up -d
+
+# Rebuild image (after HTML changes)
+docker-compose -f virtual-office/docker-compose.yml up -d --build
+```
+Services:
+- `adapter` - Node.js Express on `0.0.0.0:3000` (container internal)
+- Host mapping: `:3001` (exposed to user)
+
+**n8n/docker-compose.yml**
+```bash
+# Start n8n
+docker-compose -f n8n/docker-compose.yml up -d
+
+# Access n8n UI
+http://raspi5p:5678
+```
+Services:
+- `n8n` - n8n workflow engine on `:5678`
+
+## Hermes API Server Endpoints
+
+**hermes-api-server.py** (Flask on port 8643)
+
+`POST /v1/chat/completions`
+- Purpose: RA classification (OpenAI-compatible)
+- Auth: `Authorization: Bearer <API_SERVER_KEY>`
+- Request Body:
+  ```json
+  {
+    "model": "ra_us",
+    "messages": [{"role": "user", "content": "..."}],
+    "mail_subject": "...",
+    "mail_sender": "...",
+    "mail_attachments": [],
+    "wp_list": "WP-123, WP-456"
+  }
+  ```
+- Response: OpenAI chat completion format with `wp_comment` in content
+
+`POST /v1/knowledge/fetch`
+- Purpose: Layer 4 real-time knowledge lookup (llm-wiki, openFDA, law.go.kr)
+- Auth: `Authorization: Bearer <API_SERVER_KEY>`
+- Request Body:
+  ```json
+  {
+    "query": "FDA 510(k) predicate device requirements",
+    "profile": "ra_us",
+    "top": 3
+  }
+  ```
+- Response:
+  ```json
+  {
+    "status": "ok",
+    "profile": "ra_us",
+    "results": {
+      "llm_wiki": [...],
+      "openfda": [...],
+      "law_kr": [...]
+    }
+  }
+  ```
+
+`GET /v1/models`
+- Purpose: List available RA models
+- Auth: `Authorization: Bearer <API_SERVER_KEY>`
+- Response:
+  ```json
+  {
+    "data": [
+      {"id": "ra_us", "owned_by": "hermes"},
+      {"id": "ra_eu", "owned_by": "hermes"},
+      {"id": "ra_kr", "owned_by": "hermes"}
+    ]
+  }
+  ```
+
+`GET /health`
+- Purpose: Health check
+- Response: `{"status": true, "service": "hermes-api-server"}`
+
+## Virtual Office Adapter Endpoints
+
+**virtual-office-honcho-adapter.js** (Express on port 3000/3001)
+
+`GET /api/events`
+- Purpose: Server-Sent Events (SSE) or polling endpoint for activity log
+- Query Params: `?poll=true` (polling mode, no SSE)
+- Response: Event stream or JSON array
+  ```json
+  [
+    {"ts": "2026-06-20T10:30:00Z", "type": "mail_received", "actor": "system", "target": "ra_us", "payload": {...}},
+    {"ts": "2026-06-20T10:31:00Z", "type": "matched", "actor": "ra_us", "payload": {...}}
+  ]
+  ```
+
+`GET /health`
+- Purpose: Health check
+- Response: `{"status": "ok", "data_source": "honcho|mock"}`
