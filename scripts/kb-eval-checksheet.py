@@ -12,6 +12,7 @@ import importlib.util
 import json
 import os
 import random
+import re
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -50,6 +51,13 @@ def parse_date(value: str | None, timezone_name: str) -> date:
 def checkbox(label: str, checked: bool = False) -> str:
     mark = "x" if checked else " "
     return f"- [{mark}] {label}"
+
+
+def compact_text(value: Any, max_chars: int = 650) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 3].rstrip() + "..."
 
 
 def case_metadata(base_date: date, iteration: int, agent: Any, case_index: int, case: Any) -> dict[str, Any]:
@@ -102,6 +110,138 @@ def review_lens(agent: Any, focus: str) -> list[str]:
     return [focus_lens.get(focus, f"{focus} 관점에서 필요한 RA 판단이 드러나는지 확인합니다.")] + by_region.get(agent.region, []) + common
 
 
+def source_basename(source_path: str) -> str:
+    return source_path.rsplit("/", 1)[-1]
+
+
+def infer_source_topic(source_path: str) -> str:
+    source = source_path.casefold()
+    basename = source_basename(source_path)
+    topic_rules = [
+        (
+            ("kgmp_qmsr_iso13485",),
+            "ISO 13485를 공통 QMS master로 두고 KGMP, FDA QMSR, EU MDR의 지역별 추가 요구사항을 통합 관리하는 전략 문서",
+        ),
+        (
+            ("estar_02_substantial_equivalence", "substantial_equivalence"),
+            "FDA 510(k) substantial equivalence와 predicate 비교 항목을 정리한 eSTAR 작성 문서",
+        ),
+        (
+            ("estar_01_device_description_ifu", "device_description_ifu"),
+            "FDA eSTAR device description 및 IFU 작성에 필요한 제품 설명·표시 정보 문서",
+        ),
+        (
+            ("fda_ai_additional_information", "additional_information"),
+            "FDA AI/ML 의료기기 심사 중 additional information 또는 deficiency response 대응 전략 문서",
+        ),
+        (
+            ("fda_threat_model_stride", "threat_model_stride"),
+            "FDA cybersecurity 대응을 위한 STRIDE threat model 작성 가이드",
+        ),
+        (
+            ("fda_qmsr_2026", "qmsr_2026"),
+            "FDA QMSR 2026 전환에 따른 ISO 13485 기반 QMS·design control·inspection 준비 문서",
+        ),
+        (
+            ("pccp_ai_device", "pccp"),
+            "AI/ML 의료기기의 PCCP 및 변경관리 계획 작성 가이드",
+        ),
+        (
+            ("clinical_evaluation", "cer", "clinical_evaluation_plan"),
+            "EU MDR clinical evaluation, CER/CER plan, equivalence 또는 clinical data sufficiency 관련 문서",
+        ),
+        (
+            ("eudamed",),
+            "EUDAMED 등록·변경통제·모듈별 운영 실무 문서",
+        ),
+        (
+            ("mdr_", "week04_mdr", "annexii"),
+            "EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서",
+        ),
+        (
+            ("nb_deficiency", "notified", "nb_"),
+            "Notified Body deficiency letter 대응과 evidence traceability를 다루는 문서",
+        ),
+        (
+            ("mdcg_2019-16", "cybersecurity"),
+            "MDR/MDCG 또는 FDA cybersecurity 요구사항과 대응 체크리스트 문서",
+        ),
+        (
+            ("eu_ai_act", "ai_act"),
+            "EU AI Act와 MDR의 중첩 적용, AI/SaMD 규제 영향 매핑 문서",
+        ),
+        (
+            ("mfds_기술문서", "기술문서_섹션별"),
+            "MFDS 기술문서 섹션별 작성 요구사항과 evidence 구성 기준 문서",
+        ),
+        (
+            ("디지털의료제품법", "digital"),
+            "디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서",
+        ),
+        (
+            ("kgmp", "gmp"),
+            "KGMP 또는 GMP evidence readiness, audit readiness, QMS 절차·기록 관련 문서",
+        ),
+        (
+            ("acts_qa", "medi-guide_qa", "qa이력"),
+            "실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서",
+        ),
+        (
+            ("510k", "510(k)", "predicate"),
+            "FDA 510(k), predicate, substantial equivalence 또는 product code 판단을 다루는 문서",
+        ),
+        (
+            ("readme",),
+            "해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서",
+        ),
+    ]
+    for needles, description in topic_rules:
+        if any(needle in source for needle in needles):
+            return description
+    return f"`{basename}` source에서 선택된 규제 지식 문서"
+
+
+def source_focus_fit(source_path: str, focus: str) -> str:
+    source = source_path.casefold()
+    focus_lower = focus.casefold()
+    if "predicate" in focus_lower and not any(token in source for token in ("510k", "510(k)", "predicate", "substantial_equivalence", "estar")):
+        return (
+            "이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. "
+            "좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다."
+        )
+    if "clinical evaluation" in focus_lower and not any(token in source for token in ("clinical", "cer", "pmcf", "pms", "mdcg", "mdr")):
+        return (
+            "이 source는 clinical evaluation 전용 문서가 아닐 수 있습니다. "
+            "좋은 답변은 CER 결론을 단정하지 않고, clinical evidence gap 또는 추가 확인 필요사항을 분리해야 합니다."
+        )
+    if "classification" in focus_lower and not any(token in source for token in ("classification", "mdr", "mfds", "식약처", "인허가", "licensing", "rule")):
+        return (
+            "이 source는 classification route를 직접 확정하는 문서가 아닐 수 있습니다. "
+            "좋은 답변은 class/rule을 단정하기보다 route 판단에 필요한 evidence와 확인 대상을 제시해야 합니다."
+        )
+    if "pms" in focus_lower and not any(token in source for token in ("pms", "pmcf", "vigilance", "eudamed", "complaint")):
+        return (
+            "이 source는 PMS/PMCF 전용 문서가 아닐 수 있습니다. "
+            "좋은 답변은 surveillance 결론을 단정하지 않고 PMS/PMSR/PMCF에 연결되는 근거와 한계를 구분해야 합니다."
+        )
+    return (
+        "이 source는 focus와 직접 또는 보조적으로 연결됩니다. "
+        "좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다."
+    )
+
+
+def source_summary(agent: Any, focus: str, case: SourceCase) -> list[str]:
+    basename = source_basename(case.source_path)
+    excerpts = " ".join(excerpt["excerpt"] for excerpt in case.excerpts)
+    excerpt_brief = compact_text(excerpts, max_chars=360)
+    return [
+        f"문서 요약: `{basename}`는 {infer_source_topic(case.source_path)}입니다.",
+        f"현재 excerpt 핵심: {excerpt_brief}",
+        f"이 항목의 평가 포인트: {source_focus_fit(case.source_path, focus)}",
+        f"빠른 판단 기준: 답변이 `{focus}` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.",
+    ]
+
+
 def render_case(base_date: date, iteration: int, agent: Any, case_index: int, case: Any) -> str:
     meta = case_metadata(base_date, iteration, agent, case_index, case)
     focus = agent.daily_focus[(base_date.toordinal() + iteration - 1) % len(agent.daily_focus)]
@@ -116,6 +256,10 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         f"- Source hash: `{case.source_hash}`",
         f"- Focus: {focus}",
         f"- Matched keywords: {', '.join(case.matched_keywords) or 'source routing match'}",
+        "",
+        "**Source Summary**",
+        "",
+        *[f"- {item}" for item in source_summary(agent, focus, case)],
         "",
         "**Evaluation Target**",
         "",

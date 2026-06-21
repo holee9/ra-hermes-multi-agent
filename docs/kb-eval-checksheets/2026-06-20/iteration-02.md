@@ -24,10 +24,10 @@ Total cases: 15
 
 **Source Summary**
 
-- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고, 한국 KGMP, 미국 FDA QMSR, EU MDR의 추가 요구사항을 지역별 layer/appendix로 통합 관리하는 전략 문서입니다.
-- 현재 excerpt 핵심: ISO 13485 7.4~8.5 조항에서 FDA QMSR은 service records, complaint investigation 완료 시점 기록, 내부감사 실사 가능성 등을 강화하고, EU MDR은 PMS/PSUR/PMSR 및 vigilance 연계를 요구한다는 비교표입니다. MDSAP은 FDA/MFDS 동시 대응에서 실사 부담을 줄일 수 있지만 EU MDR을 직접 대체하지는 않는 맥락입니다.
-- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 문서가 아닙니다. 좋은 답변은 predicate/IFU 동등성 판단을 이 문서만으로 단정하지 않고, QMSR/design-control/complaint/PMS evidence gap이 510(k) submission readiness에 어떤 영향을 주는지로 제한해 사용해야 합니다.
-- 빠른 판단 기준: 답변이 이 문서를 predicate evidence로 오용하면 낮게 평가하고, QMSR evidence readiness 또는 추가 확인 필요 사항으로 구분하면 높게 평가합니다.
+- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고 KGMP, FDA QMSR, EU MDR의 지역별 추가 요구사항을 통합 관리하는 전략 문서입니다.
+- 현재 excerpt 핵심: II Tech Doc 연계 | | **7.4 구매** | ISO 동일 | ISO 동일 | ISO 동일 | | **7.5 생산 및 서비스** | ISO 동일 | §820.35 — Service Records 상세 요건 추가 | ISO 동일 | | **7.6 측정장비 관리** | ISO 동일 | ISO 동일 | ISO 동일 | | **8.1 측정·분석·개선** | ISO 동일 | ISO 동일 | ISO 동일 + PSUR/PMSR 연동 | | **8.2.1 피드백** | ISO 동일 | §820.20 — 불만 조사 완료 시점 기록 | PMS 데이터 수집 의무 (MDR Art. 83~86) | | **8.2.2 내부 감사** | ISO 동...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -80,6 +80,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA, 510k, PMA
 
+**Source Summary**
+
+- 문서 요약: `eSTAR_02_Substantial_Equivalence.md`는 FDA 510(k) substantial equivalence와 predicate 비교 항목을 정리한 eSTAR 작성 문서입니다.
+- 현재 excerpt 핵심: ### 4.1 X-ray Detector (평판 검출기) - 센서 종류 (CMOS / a-Si+CsI / a-Se) - 영상영역(cm × cm 또는 inch) - 픽셀 피치(μm) · 총 픽셀 수 - 공간분해능(lp/mm) · MTF at 1 lp/mm, 2 lp/mm - DQE at 0 lp/mm, 1 lp/mm, 2 lp/mm (IEC 62220-1-1 측정조건 명기: RQA5 등) - AED(Automatic Exposure Detection) 기능 유무 - 통신 인터페이스 (GbE / Wi-Fi 규격 / Tethered) - 배터리 (해당 시) · 충전 방식 - 동작 온습도 범위 - 무게·낙하 내성 - 호환 Generator...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -130,6 +137,13 @@ Total cases: 15
 - Source hash: `c016b9b71c421bbff191427c089029b85d25aab55e122f03e3dabbff564b8880`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
+
+**Source Summary**
+
+- 문서 요약: `FDA_AI_Additional_Information_대응_전략.md`는 FDA AI/ML 의료기기 심사 중 additional information 또는 deficiency response 대응 전략 문서입니다.
+- 현재 excerpt 핵심: ### 4.2 응답서 구성 원칙 **FDA Guidance 권고 (Section V of FDA Guidance on deficiency responses)**: 각 결함에 대해 다음 3가지 중 하나로 응답: 1. 요청된 정보 또는 데이터 제공 2. 해당 사항이 없는 이유 설명 3. 대체 정보 제공 + 왜 그 정보가 문제를 해결하는지 설명 **형식 원칙**: - 결함 번호를 **원문 그대로** 복사·유지 (순서 변경 금지) - 표(Table) 형식 + 행 색상 교차 (FDA 원문 vs 회사 응답 구분) - 단일 부록 번호 체계 유지 (AI Response App. 001, 002, …) - 각 부록 표지: "What this is...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -182,6 +196,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `FDA_Threat_Model_STRIDE_가이드.md`는 FDA cybersecurity 대응을 위한 STRIDE threat model 작성 가이드입니다.
+- 현재 excerpt 핵심: ### 1.3 MFDS — 2025.01 개정 가이드라인 | 문서 | 내용 | |---|---| | 의료기기 사이버보안 원칙 및 실무 (N60) | Threat Model 포함 사전검토 요구 | | 레거시 의료기기 사이버보안 (N70) | 출시 후 레거시 제품 대응 | | SBOM 원칙 및 실무 (N73) | SW 구성요소 목록 관리 | | 허가·심사 가이드라인 (2025.01 개정) | 제출 자료: Threat Model, Risk Analysis, SBOM, 검증결과, 업데이트 정책 | --- ### 5.1 Cyber Device 해당 여부 | 제품 | SW 포함 | 네트워크 연결 | Cyber Device 판정 | 비고 | |...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -232,6 +253,13 @@ Total cases: 15
 - Source hash: `e0a1770f4c14eee7546a5f886bb84ebc12c923c94850a85b07ce8a572f4f8319`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA, QMSR
+
+**Source Summary**
+
+- 문서 요약: `FDA_QMSR_2026.md`는 FDA QMSR 2026 전환에 따른 ISO 13485 기반 QMS·design control·inspection 준비 문서입니다.
+- 현재 excerpt 핵심: ### 2.2 구조 매핑 | QMSR (21 CFR 820) | 내용 | 대응 ISO 13485 조항 | |-------------------|------|-------------------| | §820.1 | 범위 | — | | §820.3 | 정의 | ISO 13485 §3 + 추가 정의 | | §820.10 | ISO 13485 참조편입 선언 | 4~8 전체 | | §820.20 | 경영검토 추가 입력 | 5.6 보완 | | §820.25 | 라벨링·포장 관리 | 7.5 보완 | | §820.30 | 설계관리 유지 (Class I 면제 외) | 7.3 보완 | | §820.35 | 기록관리 추가요구 | 4.2.5 보완 | |...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -286,6 +314,13 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR, MDCG
 
+**Source Summary**
+
+- 문서 요약: `Clinical_Evaluation_MDR_동등성_충분성_기준.md`는 EU MDR clinical evaluation, CER/CER plan, equivalence 또는 clinical data sufficiency 관련 문서입니다.
+- 현재 excerpt 핵심: ## 관련 KB 문서 - [공통_Clinical_Evaluation_Plan_Report_MDR_템플릿](../../../02_제품별_기술파일/공통/공통_Clinical_Evaluation_Plan_Report_MDR_템플릿.md) — CEP/CER 작성 템플릿 - [MDR_AnnexI_GSPR_Checklist](../MDR_2017_745/MDR_AnnexI_GSPR_Checklist.md) — GSPR 전항목 체크리스트 - [MDR_AnnexII_Technical_Documentation_Template](../MDR_2017_745/MDR_AnnexII_Technical_Documentation_Template.md) — 기...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MDR classification and conformity route`에 대한 간결한 RA 판단을 확인합니다.
@@ -336,6 +371,13 @@ Total cases: 15
 - Source hash: `83fe77d38e73c00b0d546abfffb6985d20fda1d3f898e6532af93bd999c6b8ae`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `Week04_MDR_EU_체계_상세.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: 요 多) | CEP + CER (Article 61, MDR Annex XIV) | | UDI | UDI 포털 (udiportal.mfds.go.kr) | GUDID (accessgudid.nlm.nih.gov) | EUDAMED UDI/DEV | | 시판 후 감시 | 이상사례 보고 (의료기기법 §31) | MDR 21 CFR 803 + MedWatch | Vigilance (MDR Art.87), PSUR | | Authorized Rep. | 수입자 (국내 수입업허가자) | US Agent (510(k) 면제 외) | Authorized Representative (Art.11) | | 수수료 | 품목별 허가 수수료 | MDUF...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -388,6 +430,13 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: EUDAMED
 
+**Source Summary**
+
+- 문서 요약: `EUDAMED_모듈별_등록_실무가이드.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: ### 5-A. 데이터베이스 등록 비교 | 항목 | FDA (미국) | MFDS (한국) | MDR (EU) | |---|---|---|---| | 등록 DB | GUDID (FDA UDI DB) | UDI포털 (mfds.go.kr) | EUDAMED | | 의무화 시점 | 등급별 단계적 완료 | 2025 기준 진행 중 | 2026-05-28 (4개 모듈) | | 경제주체 등록 | FDA Establishment Registration (21 CFR 807) | 의료기기 제조업 허가 | SRN (Actor Module) | | 기기 등록 | 510(k)/PMA cleared → GUDID | 허가/인증/신고 후 UDI포털 | EUD...
+- 이 항목의 평가 포인트: 이 source는 classification route를 직접 확정하는 문서가 아닐 수 있습니다. 좋은 답변은 class/rule을 단정하기보다 route 판단에 필요한 evidence와 확인 대상을 제시해야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MDR classification and conformity route`에 대한 간결한 RA 판단을 확인합니다.
@@ -439,6 +488,13 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `공통_Clinical_Evaluation_Plan_Report_MDR_템플릿.md`는 EU MDR clinical evaluation, CER/CER plan, equivalence 또는 clinical data sufficiency 관련 문서입니다.
+- 현재 excerpt 핵심: ### 문서 표지 | 항목 | 내용 | |---|---| | 문서 번호 | CEP-[제품코드]-[버전] | | 제품명 | [제품 정식 명칭] | | 모델 번호 | [모델 번호] | | MDR 분류 | [Class IIa / IIb] | | 문서 버전 | [버전] | | 작성일 | [YYYY-MM-DD] | | 작성자 | [이름, 직책] | | 검토자 | [이름, 직책] | | 승인자 | [이름, 직책] (PRRC 또는 책임자) | | 다음 갱신 예정일 | [YYYY-MM-DD] | --- ``` 검색 DB: PubMed, Embase, Cochrane CENTRAL, KOREAMED (MFDS용) 검색 기간: [YYYY-MM-DD]...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MDR classification and conformity route`에 대한 간결한 RA 판단을 확인합니다.
@@ -489,6 +545,13 @@ Total cases: 15
 - Source hash: `4c8b9d6c012d9a29f4e1941e69343b644f771191a691b419b328661a5e8eaba1`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `MDR_인허가_상세가이드.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: ### 2.3 Rule 11 (SW) > Software intended to provide information which is used to take decisions with diagnosis or therapeutic purposes is classified as class IIa. > 단, decision may cause (a) death or irreversible deterioration → **Class III**; (b) serious deterioration or surgical intervention → **Class IIb**. > Software intended to monitor physiological...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -543,6 +606,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 KGMP 또는 GMP evidence readiness, audit readiness, QMS 절차·기록 관련 문서입니다.
+- 현재 excerpt 핵심: ## 핵심 문서 - 「의료기기 제조 및 품질관리 기준」 (고시) - 「의료기기 GMP 심사·평가 등에 관한 규정」 - KGMP 심사 신청서 양식 및 제출서류 체크리스트 ## 수록 대상 - 의료기기 제조·품질관리 기준 (KGMP) 관련 고시 - GMP 심사 신청서·심사 체크리스트 - 기술문서 심사 대응 자료 - 적합성 인정서 (수입품목용)
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -593,6 +663,13 @@ Total cases: 15
 - Source hash: `955a83a25d265db55798a04d0d7968a79f47ac36e05a19a9321ef64a0749ffab`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Source Summary**
+
+- 문서 요약: `README.md`는 해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서입니다.
+- 현재 excerpt 핵심: ## 핵심 근거 (X-ray 관련) - 의료기기법 및 시행규칙 - 「의료기기 품목 및 품목별 등급에 관한 규정」 - 「의료기기 허가·신고·심사 등에 관한 규정」 - 「의료기기 GMP 심사·평가 등에 관한 규정」 - 「의료용 X선 발생장치 등 기술문서 작성 가이드라인」 - 「의료용 SW 허가·심사 가이드라인」 ## 수록 대상 - 의료기기법, 시행령, 시행규칙 - 식약처 고시 (제조·수입품목허가·신고 등) - 식약처 가이드라인·민원인안내서 - 의료기기 기술문서·임상시험 관련 고시
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -645,6 +722,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS
 
+**Source Summary**
+
+- 문서 요약: `Acts_QA이력.md`는 실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서입니다.
+- 현재 excerpt 핵심: ### H&abyz SAR 시험 관련 (2025-01-13, 1건) - 발신: <jr.choi@actslab.co.kr> - 수신: '"한지민"' <hjm@abyzr.com>, <jw.kim@actslab.co.kr> - 내용 요약: 안녕하세요 ㈜액트에 최재락입니다. 다름이 아니 오라 디텍터의 SAR시험에 대한 내용 정리하여 보내 드립니다. SAR 시험 시 CONDUCTED 시료가 필요한 이유는 아래와 같습니다. 성적서에 무선 모듈의 평균 전력 값이 들어가야 하는데 RSE 시료로는 측정이 안됩니다. 그래서 CONDUCTED 시료가 필요하며 CONDUCTED 각 채널 별로 평균 전력을 측정하여 최고 Worst CASE의 채널에서 시험...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -696,6 +780,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS
 
+**Source Summary**
+
+- 문서 요약: `Medi-Guide_QA이력.md`는 실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서입니다.
+- 현재 excerpt 핵심: **[2025-12-08]** <guide20@medi-guide.com> → '한지민' <hjm@abyzr.com> 수신. H&abyz 한지민 팀장님 안녕하세요. 메디가이드 김호성입니다. 문의주신 사항에 대하여 회신 드립니다. 타 제품에서 설정하고 있는 환자 범위는 저희도 추가적인 조사가 필요하여 조사 후에 다시 회신 드리도록 하겠습니다. 다만, 현재까지 확인된 바에 따르면 덴탈용으로 사용되는 휴대형 x선 촬영 시스템의 경우, **[2025-12-15]** <guide20@medi-guide.com> → '김지연' <jykim@abyzr.com> 수신. 에이치앤아비즈 김지연 프로님 안녕하세요. 메디가이드 김호성입니다. 하기 메일에...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -746,6 +837,13 @@ Total cases: 15
 - Source hash: `f1a42b1b5d6bc604ca2faa7644dc90cfb166a98521fb98244ac09e80eec1e2b1`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Source Summary**
+
+- 문서 요약: `MFDS_기술문서_섹션별_작성가이드.md`는 MFDS 기술문서 섹션별 작성 요구사항과 evidence 구성 기준 문서입니다.
+- 현재 excerpt 핵심: ### 4.3 시험규격 설정 근거 작성 요령 - 국제 표준 근거: "IEC 60601-2-28:2017을 적용하였으며, 동 규격이 X선관 조립품(X-ray tube assembly)의 성능 시험 방법을 규정하는 국제 표준으로 MFDS 인정 기준과 일치함." - 자사 규격 근거: "국제 표준에서 정하지 않은 항목(예: 영상 처리 알고리즘 성능)은 의도된 사용목적 및 위험 분석 결과에 따라 자사 시험 규격 OQP-XXXX를 제정하여 적용함." - KS 표준 근거: "KS A ISO 9283 대응 자사 규격 적용." --- ## 1. 기술문서 전체 구성 (시행규칙 별표 3 기준) ``` 기술문서 (MFDS 제출용) ├── 1. 개요 (제...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 

@@ -22,6 +22,13 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA, 510k, PMA
 
+**Source Summary**
+
+- 문서 요약: `eSTAR_02_Substantial_Equivalence.md`는 FDA 510(k) substantial equivalence와 predicate 비교 항목을 정리한 eSTAR 작성 문서입니다.
+- 현재 excerpt 핵심: ### 4.1 X-ray Detector (평판 검출기) - 센서 종류 (CMOS / a-Si+CsI / a-Se) - 영상영역(cm × cm 또는 inch) - 픽셀 피치(μm) · 총 픽셀 수 - 공간분해능(lp/mm) · MTF at 1 lp/mm, 2 lp/mm - DQE at 0 lp/mm, 1 lp/mm, 2 lp/mm (IEC 62220-1-1 측정조건 명기: RQA5 등) - AED(Automatic Exposure Detection) 기능 유무 - 통신 인터페이스 (GbE / Wi-Fi 규격 / Tethered) - 배터리 (해당 시) · 충전 방식 - 동작 온습도 범위 - 무게·낙하 내성 - 호환 Generator...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `submission evidence gaps` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `submission evidence gaps`에 대한 간결한 RA 판단을 확인합니다.
@@ -72,6 +79,13 @@ Total cases: 15
 - Source hash: `c016b9b71c421bbff191427c089029b85d25aab55e122f03e3dabbff564b8880`
 - Focus: submission evidence gaps
 - Matched keywords: FDA
+
+**Source Summary**
+
+- 문서 요약: `FDA_AI_Additional_Information_대응_전략.md`는 FDA AI/ML 의료기기 심사 중 additional information 또는 deficiency response 대응 전략 문서입니다.
+- 현재 excerpt 핵심: ### 4.2 응답서 구성 원칙 **FDA Guidance 권고 (Section V of FDA Guidance on deficiency responses)**: 각 결함에 대해 다음 3가지 중 하나로 응답: 1. 요청된 정보 또는 데이터 제공 2. 해당 사항이 없는 이유 설명 3. 대체 정보 제공 + 왜 그 정보가 문제를 해결하는지 설명 **형식 원칙**: - 결함 번호를 **원문 그대로** 복사·유지 (순서 변경 금지) - 표(Table) 형식 + 행 색상 교차 (FDA 원문 vs 회사 응답 구분) - 단일 부록 번호 체계 유지 (AI Response App. 001, 002, …) - 각 부록 표지: "What this is...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `submission evidence gaps` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -124,6 +138,13 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `FDA_Threat_Model_STRIDE_가이드.md`는 FDA cybersecurity 대응을 위한 STRIDE threat model 작성 가이드입니다.
+- 현재 excerpt 핵심: ### 1.3 MFDS — 2025.01 개정 가이드라인 | 문서 | 내용 | |---|---| | 의료기기 사이버보안 원칙 및 실무 (N60) | Threat Model 포함 사전검토 요구 | | 레거시 의료기기 사이버보안 (N70) | 출시 후 레거시 제품 대응 | | SBOM 원칙 및 실무 (N73) | SW 구성요소 목록 관리 | | 허가·심사 가이드라인 (2025.01 개정) | 제출 자료: Threat Model, Risk Analysis, SBOM, 검증결과, 업데이트 정책 | --- ### 5.1 Cyber Device 해당 여부 | 제품 | SW 포함 | 네트워크 연결 | Cyber Device 판정 | 비고 | |...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `submission evidence gaps` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `submission evidence gaps`에 대한 간결한 RA 판단을 확인합니다.
@@ -175,6 +196,13 @@ Total cases: 15
 - Focus: submission evidence gaps
 - Matched keywords: FDA, QMSR
 
+**Source Summary**
+
+- 문서 요약: `FDA_QMSR_2026.md`는 FDA QMSR 2026 전환에 따른 ISO 13485 기반 QMS·design control·inspection 준비 문서입니다.
+- 현재 excerpt 핵심: ### 2.2 구조 매핑 | QMSR (21 CFR 820) | 내용 | 대응 ISO 13485 조항 | |-------------------|------|-------------------| | §820.1 | 범위 | — | | §820.3 | 정의 | ISO 13485 §3 + 추가 정의 | | §820.10 | ISO 13485 참조편입 선언 | 4~8 전체 | | §820.20 | 경영검토 추가 입력 | 5.6 보완 | | §820.25 | 라벨링·포장 관리 | 7.5 보완 | | §820.30 | 설계관리 유지 (Class I 면제 외) | 7.3 보완 | | §820.35 | 기록관리 추가요구 | 4.2.5 보완 | |...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `submission evidence gaps` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `submission evidence gaps`에 대한 간결한 RA 판단을 확인합니다.
@@ -225,6 +253,13 @@ Total cases: 15
 - Source hash: `5efbe22295bef8ba002a4a98b9810b1add07c3de15e6e35a2236ecceda3f5fc2`
 - Focus: submission evidence gaps
 - Matched keywords: FDA, 510k, PMA
+
+**Source Summary**
+
+- 문서 요약: `eSTAR_01_Device_Description_IFU.md`는 FDA eSTAR device description 및 IFU 작성에 필요한 제품 설명·표시 정보 문서입니다.
+- 현재 excerpt 핵심: ### 2.3 작성 원칙 (FDA RTA 회피) - 전체 제출물 내 IFU 문장 **문구 일치** (라벨·IFU·SE 비교표·Summary 전부 동일) - Predicate과 동일하거나 더 좁은 범위 (확장 시 de novo·PMA 위험) - 진단 성능·치료 효과에 대한 **임상 주장은 임상 데이터가 뒷받침**하는 범위로 한정 - 환자군·해부 부위·사용 환경(병원·가정·야전 등) 명시 ### 1.2 작성 근거 문서 - FDA, "Electronic Submission Template for Medical Device 510(k) Submissions" (최종 2023 개정, eSTAR v5.x 기준) - FDA Guidance, "...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `submission evidence gaps` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -279,6 +314,13 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `Week04_MDR_EU_체계_상세.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: 요 多) | CEP + CER (Article 61, MDR Annex XIV) | | UDI | UDI 포털 (udiportal.mfds.go.kr) | GUDID (accessgudid.nlm.nih.gov) | EUDAMED UDI/DEV | | 시판 후 감시 | 이상사례 보고 (의료기기법 §31) | MDR 21 CFR 803 + MedWatch | Vigilance (MDR Art.87), PSUR | | Authorized Rep. | 수입자 (국내 수입업허가자) | US Agent (510(k) 면제 외) | Authorized Representative (Art.11) | | 수수료 | 품목별 허가 수수료 | MDUF...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `clinical evaluation gap analysis` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `clinical evaluation gap analysis`에 대한 간결한 RA 판단을 확인합니다.
@@ -329,6 +371,13 @@ Total cases: 15
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: clinical evaluation gap analysis
 - Matched keywords: EUDAMED
+
+**Source Summary**
+
+- 문서 요약: `EUDAMED_모듈별_등록_실무가이드.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: ### 5-A. 데이터베이스 등록 비교 | 항목 | FDA (미국) | MFDS (한국) | MDR (EU) | |---|---|---|---| | 등록 DB | GUDID (FDA UDI DB) | UDI포털 (mfds.go.kr) | EUDAMED | | 의무화 시점 | 등급별 단계적 완료 | 2025 기준 진행 중 | 2026-05-28 (4개 모듈) | | 경제주체 등록 | FDA Establishment Registration (21 CFR 807) | 의료기기 제조업 허가 | SRN (Actor Module) | | 기기 등록 | 510(k)/PMA cleared → GUDID | 허가/인증/신고 후 UDI포털 | EUD...
+- 이 항목의 평가 포인트: 이 source는 clinical evaluation 전용 문서가 아닐 수 있습니다. 좋은 답변은 CER 결론을 단정하지 않고, clinical evidence gap 또는 추가 확인 필요사항을 분리해야 합니다.
+- 빠른 판단 기준: 답변이 `clinical evaluation gap analysis` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -381,6 +430,13 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `공통_Clinical_Evaluation_Plan_Report_MDR_템플릿.md`는 EU MDR clinical evaluation, CER/CER plan, equivalence 또는 clinical data sufficiency 관련 문서입니다.
+- 현재 excerpt 핵심: ### 문서 표지 | 항목 | 내용 | |---|---| | 문서 번호 | CEP-[제품코드]-[버전] | | 제품명 | [제품 정식 명칭] | | 모델 번호 | [모델 번호] | | MDR 분류 | [Class IIa / IIb] | | 문서 버전 | [버전] | | 작성일 | [YYYY-MM-DD] | | 작성자 | [이름, 직책] | | 검토자 | [이름, 직책] | | 승인자 | [이름, 직책] (PRRC 또는 책임자) | | 다음 갱신 예정일 | [YYYY-MM-DD] | --- ``` 검색 DB: PubMed, Embase, Cochrane CENTRAL, KOREAMED (MFDS용) 검색 기간: [YYYY-MM-DD]...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `clinical evaluation gap analysis` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `clinical evaluation gap analysis`에 대한 간결한 RA 판단을 확인합니다.
@@ -432,6 +488,13 @@ Total cases: 15
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `MDR_인허가_상세가이드.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: ### 2.3 Rule 11 (SW) > Software intended to provide information which is used to take decisions with diagnosis or therapeutic purposes is classified as class IIa. > 단, decision may cause (a) death or irreversible deterioration → **Class III**; (b) serious deterioration or surgical intervention → **Class IIb**. > Software intended to monitor physiological...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `clinical evaluation gap analysis` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `clinical evaluation gap analysis`에 대한 간결한 RA 판단을 확인합니다.
@@ -482,6 +545,13 @@ Total cases: 15
 - Source hash: `a15dac973609fe746d7da46354e047b528ec5e8df970abafcb115620bea402ba`
 - Focus: clinical evaluation gap analysis
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `NB_Deficiency_Letter_대응전략.md`는 Notified Body deficiency letter 대응과 evidence traceability를 다루는 문서입니다.
+- 현재 excerpt 핵심: 3. Clinical equivalence: - Same clinical condition: Both indicated for standard diagnostic radiology. - Equivalent clinical performance: DQE(0) ≥ 65% for both devices (Ref. Test Report TR-2024-015, IEC 62220-1-1). Revised CER Rev. 3 is attached as Annex A. ``` --- | 항목 | EU NB (MDR) | MFDS (국내) | FDA (미국) | |---|---|---|---| | 공식 용어 | Deficiency Letter |...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `clinical evaluation gap analysis` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -536,6 +606,13 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS, 국내_MFDS
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서입니다.
+- 현재 excerpt 핵심: ## 핵심 근거 (X-ray 관련) - 의료기기법 및 시행규칙 - 「의료기기 품목 및 품목별 등급에 관한 규정」 - 「의료기기 허가·신고·심사 등에 관한 규정」 - 「의료기기 GMP 심사·평가 등에 관한 규정」 - 「의료용 X선 발생장치 등 기술문서 작성 가이드라인」 - 「의료용 SW 허가·심사 가이드라인」 ## 수록 대상 - 의료기기법, 시행령, 시행규칙 - 식약처 고시 (제조·수입품목허가·신고 등) - 식약처 가이드라인·민원인안내서 - 의료기기 기술문서·임상시험 관련 고시
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `KGMP evidence readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `KGMP evidence readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -586,6 +663,13 @@ Total cases: 15
 - Source hash: `15a68c6c759e84d380e48841a71026a22f4bf3c240a638853cec2ede1e29c21c`
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS
+
+**Source Summary**
+
+- 문서 요약: `Acts_QA이력.md`는 실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서입니다.
+- 현재 excerpt 핵심: ### H&abyz SAR 시험 관련 (2025-01-13, 1건) - 발신: <jr.choi@actslab.co.kr> - 수신: '"한지민"' <hjm@abyzr.com>, <jw.kim@actslab.co.kr> - 내용 요약: 안녕하세요 ㈜액트에 최재락입니다. 다름이 아니 오라 디텍터의 SAR시험에 대한 내용 정리하여 보내 드립니다. SAR 시험 시 CONDUCTED 시료가 필요한 이유는 아래와 같습니다. 성적서에 무선 모듈의 평균 전력 값이 들어가야 하는데 RSE 시료로는 측정이 안됩니다. 그래서 CONDUCTED 시료가 필요하며 CONDUCTED 각 채널 별로 평균 전력을 측정하여 최고 Worst CASE의 채널에서 시험...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `KGMP evidence readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -638,6 +722,13 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS
 
+**Source Summary**
+
+- 문서 요약: `Medi-Guide_QA이력.md`는 실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서입니다.
+- 현재 excerpt 핵심: **[2025-12-08]** <guide20@medi-guide.com> → '한지민' <hjm@abyzr.com> 수신. H&abyz 한지민 팀장님 안녕하세요. 메디가이드 김호성입니다. 문의주신 사항에 대하여 회신 드립니다. 타 제품에서 설정하고 있는 환자 범위는 저희도 추가적인 조사가 필요하여 조사 후에 다시 회신 드리도록 하겠습니다. 다만, 현재까지 확인된 바에 따르면 덴탈용으로 사용되는 휴대형 x선 촬영 시스템의 경우, **[2025-12-15]** <guide20@medi-guide.com> → '김지연' <jykim@abyzr.com> 수신. 에이치앤아비즈 김지연 프로님 안녕하세요. 메디가이드 김호성입니다. 하기 메일에...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `KGMP evidence readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `KGMP evidence readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -689,6 +780,13 @@ Total cases: 15
 - Focus: KGMP evidence readiness
 - Matched keywords: MFDS, 국내_MFDS
 
+**Source Summary**
+
+- 문서 요약: `MFDS_기술문서_섹션별_작성가이드.md`는 MFDS 기술문서 섹션별 작성 요구사항과 evidence 구성 기준 문서입니다.
+- 현재 excerpt 핵심: ### 4.3 시험규격 설정 근거 작성 요령 - 국제 표준 근거: "IEC 60601-2-28:2017을 적용하였으며, 동 규격이 X선관 조립품(X-ray tube assembly)의 성능 시험 방법을 규정하는 국제 표준으로 MFDS 인정 기준과 일치함." - 자사 규격 근거: "국제 표준에서 정하지 않은 항목(예: 영상 처리 알고리즘 성능)은 의도된 사용목적 및 위험 분석 결과에 따라 자사 시험 규격 OQP-XXXX를 제정하여 적용함." - KS 표준 근거: "KS A ISO 9283 대응 자사 규격 적용." --- ## 1. 기술문서 전체 구성 (시행규칙 별표 3 기준) ``` 기술문서 (MFDS 제출용) ├── 1. 개요 (제...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `KGMP evidence readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `KGMP evidence readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -739,6 +837,13 @@ Total cases: 15
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: KGMP evidence readiness
 - Matched keywords: KGMP
+
+**Source Summary**
+
+- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고 KGMP, FDA QMSR, EU MDR의 지역별 추가 요구사항을 통합 관리하는 전략 문서입니다.
+- 현재 excerpt 핵심: II Tech Doc 연계 | | **7.4 구매** | ISO 동일 | ISO 동일 | ISO 동일 | | **7.5 생산 및 서비스** | ISO 동일 | §820.35 — Service Records 상세 요건 추가 | ISO 동일 | | **7.6 측정장비 관리** | ISO 동일 | ISO 동일 | ISO 동일 | | **8.1 측정·분석·개선** | ISO 동일 | ISO 동일 | ISO 동일 + PSUR/PMSR 연동 | | **8.2.1 피드백** | ISO 동일 | §820.20 — 불만 조사 완료 시점 기록 | PMS 데이터 수집 의무 (MDR Art. 83~86) | | **8.2.2 내부 감사** | ISO 동...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `KGMP evidence readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 

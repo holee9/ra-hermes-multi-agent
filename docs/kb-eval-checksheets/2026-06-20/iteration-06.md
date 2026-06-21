@@ -22,6 +22,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `hnvue-domestic-fda-eu-document-mapping.md`는 `hnvue-domestic-fda-eu-document-mapping.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: --- type: comparison title: HnVUE 국내·FDA·EU 문서 매핑 created: 2026-06-08 updated: 2026-06-08 tags: [비교, 국내, fda, eu, hnvue, 문서매핑] related: [hnvue, standalone-samd-certification, mfds-digital-health-regulatory-support-division, fda, llz, qih, hnvue-eu-clinical-evaluation-roadmap, hnvue-usability-engineering-roadmap, hnvue-risk-management-file-planning, 39-DHF...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -72,6 +79,13 @@ Total cases: 15
 - Source hash: `f6cd656dce2527909f6e09f1befda964ccd3a78dfad81b725a69a2d8909efe44`
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
+
+**Source Summary**
+
+- 문서 요약: `FDA_Threat_Model_STRIDE_가이드.md`는 FDA cybersecurity 대응을 위한 STRIDE threat model 작성 가이드입니다.
+- 현재 excerpt 핵심: ### 1.3 MFDS — 2025.01 개정 가이드라인 | 문서 | 내용 | |---|---| | 의료기기 사이버보안 원칙 및 실무 (N60) | Threat Model 포함 사전검토 요구 | | 레거시 의료기기 사이버보안 (N70) | 출시 후 레거시 제품 대응 | | SBOM 원칙 및 실무 (N73) | SW 구성요소 목록 관리 | | 허가·심사 가이드라인 (2025.01 개정) | 제출 자료: Threat Model, Risk Analysis, SBOM, 검증결과, 업데이트 정책 | --- ### 5.1 Cyber Device 해당 여부 | 제품 | SW 포함 | 네트워크 연결 | Cyber Device 판정 | 비고 | |...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -124,6 +138,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `009_03_SW_사이버보안_IEC81001_5_1_FDA.md`는 `009_03_SW_사이버보안_IEC81001_5_1_FDA.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: ## 참고 링크 - `03_설계_개발관리/IEC_81001-5-1_FDA_Cybersecurity_SW보안.md` - `03_설계_개발관리/IEC_62304_SW_수명주기.md` - `12_교차검증_보고서/2026-04-21_Xray_안전성능_사이버보안_정합성.md` ## 체크리스트 - [x] 표준·규제 범위 정의 - [x] Security Management Plan 11개 절 구조 확정 - [x] 81001-5-1 ↔ 62304 매핑표 - [x] FDA 제출물(SBOM, Threat Model, Architecture, VM Plan, Testing) 매핑 - [x] Coordinated Vulnerability Disclosu...
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -174,6 +195,13 @@ Total cases: 15
 - Source hash: `b5ba2e7d8e325fccda4dbe56432c75660eb8f450d4ed1bfcc29941bd772522ec`
 - Focus: 510(k) predicate strategy
 - Matched keywords: 510k
+
+**Source Summary**
+
+- 문서 요약: `경쟁제품_510k_Summary_분석DB.md`는 FDA 510(k), predicate, substantial equivalence 또는 product code 판단을 다루는 문서입니다.
+- 현재 excerpt 핵심: | 구분 | 사실 (Fact) | 해석 (Interpretation) | 행동 지시 (Action) | |---|---|---|---| | 경쟁 강도 | 한국 기업이 IZL(Mobile X-ray) 시장 제출의 ~50% 차지, MQB(Detector)도 약 35% | 한국 기업들은 FDA 510(k) 취득 역량이 높음. 자사도 신속 대응 필요 | K251223(IZL) 기 cleared 활용, 신규 Detector 510(k) 우선 착수 | | Clearance 유형 | DRTECH·Iray 등은 Special 510(k) 활용 빈번 (연간 2~3건) | 제품 마이너 변경 시 Special로 ~3개월 처리. 전통적 510(k) 대비...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -226,6 +254,13 @@ Total cases: 15
 - Focus: 510(k) predicate strategy
 - Matched keywords: FDA, QMSR
 
+**Source Summary**
+
+- 문서 요약: `148_02_SOP-CVD-001_v0.3_FDA_사이버보안_QMSR.md`는 `148_02_SOP-CVD-001_v0.3_FDA_사이버보안_QMSR.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: --- title: "SOP-CVD-001 v0.3 보강 — FDA 사이버보안 지침 2026-02 반영·CVSS v4.0" labels: [enhancement, 02_QMS, v0.3, cybersecurity, QMSR] state: closed --- SOP-CVD-001 v0.2 → v0.3 보강 완료. - FDA 사이버보안 지침 2026-02-03 재발행 반영 (§15A.1) - CP 7382.850 사이버보안 CVD 점검 항목 추가 (§15A.2) - CVSS v3.1 → v4.0 전면 전환 (§15A.3) - X-ray 시스템 사이버보안 CVD 특수사항 추가 (§15A.4) ## ra_eu
+- 이 항목의 평가 포인트: 이 source는 510(k) predicate 자체를 선정하는 직접 근거가 아닐 수 있습니다. 좋은 답변은 predicate/IFU 동등성 판단을 단정하지 않고, 이 source가 제공하는 QMS·evidence·risk context로 제한해 사용해야 합니다.
+- 빠른 판단 기준: 답변이 `510(k) predicate strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `510(k) predicate strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -274,6 +309,13 @@ Total cases: 15
 - Source hash: `62dd065b6b2edb9164049ee9ef2987e60ef5409d8f1f224f4e3cc01e1d61bc77`
 - Focus: MDR classification and conformity route
 - Matched keywords: EUDAMED
+
+**Source Summary**
+
+- 문서 요약: `EUDAMED_모듈별_등록_실무가이드.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: ### 5-A. 데이터베이스 등록 비교 | 항목 | FDA (미국) | MFDS (한국) | MDR (EU) | |---|---|---|---| | 등록 DB | GUDID (FDA UDI DB) | UDI포털 (mfds.go.kr) | EUDAMED | | 의무화 시점 | 등급별 단계적 완료 | 2025 기준 진행 중 | 2026-05-28 (4개 모듈) | | 경제주체 등록 | FDA Establishment Registration (21 CFR 807) | 의료기기 제조업 허가 | SRN (Actor Module) | | 기기 등록 | 510(k)/PMA cleared → GUDID | 허가/인증/신고 후 UDI포털 | EUD...
+- 이 항목의 평가 포인트: 이 source는 classification route를 직접 확정하는 문서가 아닐 수 있습니다. 좋은 답변은 class/rule을 단정하기보다 route 판단에 필요한 evidence와 확인 대상을 제시해야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -326,6 +368,13 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `EU_AI_Act_MDR_중첩적용_매핑.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: - Regulation (EU) 2024/1689 (AI Act) — 전문, Art. 6, 9-17, 43, 61-62, Annex II/III/IV - Regulation (EU) 2017/745 (MDR) — Art. 10, 15, 83-87, Annex I-III, IX-XI - MDCG 2019-11 (소프트웨어 분류), MDCG 2019-16 Rev.1 (사이버보안), MDCG 2020-3 (significant changes) - IEC 62304:2006/A1:2015, IEC 62366-1:2015/A1:2020, IEC 81001-5-1:2021 - ISO 14971:2019/A11:2021 - FDA AI/ML-b...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MDR classification and conformity route`에 대한 간결한 RA 판단을 확인합니다.
@@ -376,6 +425,13 @@ Total cases: 15
 - Source hash: `72ade98066fdbf0bf4c58031c9c00ef73a816c300c96ec3a6de724543bc72784`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `004_01_EU_AI_Act_MDR_중첩매핑.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: ## 체크리스트 - [x] High-risk 분류 기준 정리 - [x] Art.9/10/11/12/13/14/15/16–17/43/61/62 ↔ MDR/ISO/IEC 매핑 - [x] PCCP 3자(EU/FDA/KR) 정합 확인 - [x] Gap→조치 표 도출 (Risk File, 데이터 거버넌스, 모델 변경관리, PMS, TD) - [ ] SOP-DATA-001 / SOP-ML-001 후속 초안 작성 - [ ] TD 템플릿에 AI Act Annex IV 컬럼 적용 ## 배경 AI/ML 기반 SaMD(예: X-ray 영상 판독 보조) 는 AI Act Art. 6(1)에 의해 High-risk 분류 가능성이 높다. MDR과 중첩 요건을...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -428,6 +484,13 @@ Total cases: 15
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 Notified Body deficiency letter 대응과 evidence traceability를 다루는 문서입니다.
+- 현재 excerpt 핵심: ## 수록 대상 - Notified Body 선정 자료 (후보사 비교표) - 심사 계약서·견적서 - Technical Documentation Assessment 보고서 - Non-conformity 대응 자료 - QMS Audit 관련 자료 ## 참고 - 이온화 방사선 기기(X-ray)는 Class IIb 이상 → NB 인증 필수. - NB 지정 현황: NANDO Database에서 MDR 범위(코드 MDxxxx) 확인. - X-ray 관련 주요 NB: TÜV SÜD, BSI, TÜV Rheinland, DEKRA, IMQ 등 (MDR 지정 범위 사전 확인 필수).
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MDR classification and conformity route`에 대한 간결한 RA 판단을 확인합니다.
@@ -478,6 +541,13 @@ Total cases: 15
 - Source hash: `73cd35ce968999ac597a2ffd2cc0e9de93103ba5c45edee078877a0e708818ce`
 - Focus: MDR classification and conformity route
 - Matched keywords: MDR, MDCG
+
+**Source Summary**
+
+- 문서 요약: `MDCG_2019-16_Rev1_Cybersecurity_대응_체크리스트.md`는 MDR/MDCG 또는 FDA cybersecurity 요구사항과 대응 체크리스트 문서입니다.
+- 현재 excerpt 핵심: ✅: 필수 적용 / △: 조건부 적용 / -: 해당없음 (위험 평가 결과에 따라 조정) 최종 갱신: 2026-05-14 (자동보강 #44) > 근거: https://health.ec.europa.eu/system/files/2022-01/md_cybersecurity_en.pdf | https://health.ec.europa.eu/medical-devices-sector/new-regulations/guidance-mdcg-endorsed-documents-and-other-guidance_en # MDCG 2019-16 Rev.1 Cybersecurity 대응 체크리스트 ## ra_kr
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MDR classification and conformity route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -532,6 +602,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: KGMP
 
+**Source Summary**
+
+- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고 KGMP, FDA QMSR, EU MDR의 지역별 추가 요구사항을 통합 관리하는 전략 문서입니다.
+- 현재 excerpt 핵심: II Tech Doc 연계 | | **7.4 구매** | ISO 동일 | ISO 동일 | ISO 동일 | | **7.5 생산 및 서비스** | ISO 동일 | §820.35 — Service Records 상세 요건 추가 | ISO 동일 | | **7.6 측정장비 관리** | ISO 동일 | ISO 동일 | ISO 동일 | | **8.1 측정·분석·개선** | ISO 동일 | ISO 동일 | ISO 동일 + PSUR/PMSR 연동 | | **8.2.1 피드백** | ISO 동일 | §820.20 — 불만 조사 완료 시점 기록 | PMS 데이터 수집 의무 (MDR Art. 83~86) | | **8.2.2 내부 감사** | ISO 동...
+- 이 항목의 평가 포인트: 이 source는 classification route를 직접 확정하는 문서가 아닐 수 있습니다. 좋은 답변은 class/rule을 단정하기보다 route 판단에 필요한 evidence와 확인 대상을 제시해야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -582,6 +659,13 @@ Total cases: 15
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Source Summary**
+
+- 문서 요약: `MFDS_디지털의료기기_6종_가이드라인_요약.md`는 `MFDS_디지털의료기기_6종_가이드라인_요약.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: ## 2. 6종 가이드라인 개요 | 번호 | 구분 | 가이드라인명 | 주요 적용 대상 | |---|---|---|---| | 1 | **제정** | 디지털의료기기소프트웨어 허가·심사 가이드라인 | 내장형·독립형 소프트웨어 전반 공통 기본서 | | 2 | 개정 | 의료기기 소프트웨어 허가·심사 가이드라인 | **내장형** 소프트웨어 + 의료기기 연동 앱·웹 | | 3 | 개정 | 인공지능기술이 적용된 디지털의료기기 허가·심사 가이드라인 | MLMD(Machine Learning-enabled Medical Device) 전반 | | 4 | 개정 | 가상융합기술이 적용된 디지털의료기기 허가·심사 가이드라인 | VR·AR·MR 기술 적용...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -634,6 +718,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS
 
+**Source Summary**
+
+- 문서 요약: `Acts_QA이력.md`는 실제 심사·컨설팅 QA 이력을 통해 보완 질문과 답변 패턴을 축적한 문서입니다.
+- 현재 excerpt 핵심: ### H&abyz SAR 시험 관련 (2025-01-13, 1건) - 발신: <jr.choi@actslab.co.kr> - 수신: '"한지민"' <hjm@abyzr.com>, <jw.kim@actslab.co.kr> - 내용 요약: 안녕하세요 ㈜액트에 최재락입니다. 다름이 아니 오라 디텍터의 SAR시험에 대한 내용 정리하여 보내 드립니다. SAR 시험 시 CONDUCTED 시료가 필요한 이유는 아래와 같습니다. 성적서에 무선 모듈의 평균 전력 값이 들어가야 하는데 RSE 시료로는 측정이 안됩니다. 그래서 CONDUCTED 시료가 필요하며 CONDUCTED 각 채널 별로 평균 전력을 측정하여 최고 Worst CASE의 채널에서 시험...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -685,6 +776,13 @@ Total cases: 15
 - Focus: MFDS classification and licensing route
 - Matched keywords: 디지털의료제품법
 
+**Source Summary**
+
+- 문서 요약: `014_01_디지털의료제품법_SaMD_AI_요구.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ## 참고 링크 - `01_법규_규제/01_국내_MFDS/디지털의료제품법_SaMD_AI_요구.md` - `12_교차검증_보고서/2026-04-22_SBOM_디지털의료제품법_정합성.md` - MFDS 디지털의료제품 정보 포털 (emedi.mfds.go.kr) - 국가법령정보센터 「디지털의료제품법」 - 관련 이슈: 005(GSPR 체크리스트 v0.2→v0.3), 009(사이버보안), 013(SBOM) ## 배경 디지털의료제품법은 2025-01-24 시행, 시행규칙 2025-02-28 현행. 사용적합성 자료 제출 의무화, 사이버보안 요구 확대(15→35), AI 변경관리 계획, 구성요소 단위 성능평가(2026 시행) 등 본 프로젝트(X-...
+- 이 항목의 평가 포인트: 이 source는 classification route를 직접 확정하는 문서가 아닐 수 있습니다. 좋은 답변은 class/rule을 단정하기보다 route 판단에 필요한 evidence와 확인 대상을 제시해야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `MFDS classification and licensing route`에 대한 간결한 RA 판단을 확인합니다.
@@ -735,6 +833,13 @@ Total cases: 15
 - Source hash: `72535c6d3f96f4fd7b79cd95bf14f95cd1f97e599100fb5e2131a61187ba9847`
 - Focus: MFDS classification and licensing route
 - Matched keywords: MFDS, 국내_MFDS
+
+**Source Summary**
+
+- 문서 요약: `진단용방사선_안전관리규칙_개정이력.md`는 `진단용방사선_안전관리규칙_개정이력.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: ## 5. 본 프로젝트 대응 - [ ] 60601-2-54 형식시험 시 누설선량 2mR/h 요건 검증 케이스 추가 - [ ] IFU에 포터블 사용 시나리오·환자 외 피폭 방지 조치 섹션 반영 - [ ] 2025-07-18 개정(제1122호) 조문 원문 확보 후 본 문서 v0.2 갱신 - [ ] KIAQC 정기검사 대응 자료 패키지(제조자 제공) 업데이트 ## 4. 정기 검사 체계(참고) - 설치 신고 및 **3년 주기** 정기검사(한국의료영상품질관리원, KIAQC) - 정기검사 항목: 관전압·관전류 정확도, 선량, 공간분해능, 저대비 분해능, 누설선량
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `MFDS classification and licensing route` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 

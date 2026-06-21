@@ -22,6 +22,13 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 FDA 510(k), predicate, substantial equivalence 또는 product code 판단을 다루는 문서입니다.
+- 현재 excerpt 핵심: ## 제출 절차 개요 1. Predicate Device 조사 (FDA 510(k) Database) 2. Substantial Equivalence 비교표 작성 3. 510(k) Summary, 성능시험, 생체적합성, 전자파 등 섹션 준비 4. eSTAR 템플릿을 통한 전자 제출 5. FDA 심사 질의(AI: Additional Information) 대응 ## 수록 대상 - Premarket Notification 510(k) 제출 가이던스 - PMA (Premarket Approval) 관련 문서 - De Novo Classification Request 관련 문서 - eSTAR / eSubmitter 제출 양식 및 매뉴얼
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `QMSR and design-control readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -72,6 +79,13 @@ Total cases: 15
 - Source hash: `9f94737b713dbd5c6fa5242761b479fa1ec962b8561d7e2afccf2ec9f884e7fc`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
+
+**Source Summary**
+
+- 문서 요약: `eSTAR_03_Performance_Testing_Bench_Test.md`는 FDA 510(k), predicate, substantial equivalence 또는 product code 판단을 다루는 문서입니다.
+- 현재 excerpt 핵심: ### 3.3 제품 3: 촬영실 GUI Software (영상 처리·표시 소프트웨어) #### 3.3.1 적용 규정·분류 - **Software as Medical Device (SaMD)** 해당 여부 먼저 확인 - 21 CFR 892.2050 (Class II) — Image Processing Software - FDA Guidance, "Guidance for the Content of Premarket Submissions for Device Software Functions" (2023-06-14 Final) - FDA Guidance, "Cybersecurity in Medical Devices" (2023-09-27...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `QMSR and design-control readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -124,6 +138,13 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `fda-premarket-cybersecurity-guidance-2023.md`는 MDR/MDCG 또는 FDA cybersecurity 요구사항과 대응 체크리스트 문서입니다.
+- 현재 excerpt 핵심: HnX-P1/HnX-PB 510(k) 요약서 Rev3는 사이버보안 항목에서 이 가이드를 직접 언급한다. 이는 해당 제출이 단순 전기 안전과 성능 시험만이 아니라, 소프트웨어 및 연결성 기기의 보안 제출 관행까지 반영했음을 보여 준다. 기존 위키의 [[facility-implemented-access-control-for-radiation-device]]는 주로 사용설명서 관점의 통제 개념이라면, 이 페이지는 프리마켓 제출 패키지 차원의 사이버보안 규제 근거를 다룬다. --- type: concept title: 2023 FDA 프리마켓 사이버보안 가이드 created: 2026-06-08 updated: 2026-06-08 tags...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `QMSR and design-control readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -175,6 +196,13 @@ Total cases: 15
 - Focus: QMSR and design-control readiness
 - Matched keywords: QMSR
 
+**Source Summary**
+
+- 문서 요약: `157_08_SOP-FSCA-001_v0.3_QMSR_EUDAMED_FSCA.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: ## 변경 요약 - §5.11 신설: FDA QMSR CP 7382.850 하 FSCA 실사 대응 - §5.11.1 FSCA-CAPA 연계 강화 및 문서화 경로도 - §5.11.2 FSCA 실사 자가점검표 (5항목) - §5.12 신설: EUDAMED 의무화 대응 FSCA 보고 경로 전환 - §5.12.1 현행 보고 경로 (과도기) - §5.12.2 Vigilance 의무화 후 전환 계획 - §5.12.3 Market Surveillance 활용 (현재 의무) - §5.1 트리거에 EUDAMED Market Surveillance 모듈 추가 - frontmatter: applicable에 FDA CP 7382.850 추가, rela...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `QMSR and design-control readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `QMSR and design-control readiness`에 대한 간결한 RA 판단을 확인합니다.
@@ -225,6 +253,13 @@ Total cases: 15
 - Source hash: `5efbe22295bef8ba002a4a98b9810b1add07c3de15e6e35a2236ecceda3f5fc2`
 - Focus: QMSR and design-control readiness
 - Matched keywords: FDA, 510k, PMA
+
+**Source Summary**
+
+- 문서 요약: `eSTAR_01_Device_Description_IFU.md`는 FDA eSTAR device description 및 IFU 작성에 필요한 제품 설명·표시 정보 문서입니다.
+- 현재 excerpt 핵심: ### 2.3 작성 원칙 (FDA RTA 회피) - 전체 제출물 내 IFU 문장 **문구 일치** (라벨·IFU·SE 비교표·Summary 전부 동일) - Predicate과 동일하거나 더 좁은 범위 (확장 시 de novo·PMA 위험) - 진단 성능·치료 효과에 대한 **임상 주장은 임상 데이터가 뒷받침**하는 범위로 한정 - 환자군·해부 부위·사용 환경(병원·가정·야전 등) 명시 ### 1.2 작성 근거 문서 - FDA, "Electronic Submission Template for Medical Device 510(k) Submissions" (최종 2023 개정, eSTAR v5.x 기준) - FDA Guidance, "...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `QMSR and design-control readiness` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -279,6 +314,13 @@ Total cases: 15
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
 
+**Source Summary**
+
+- 문서 요약: `Clinical_Evaluation_MDR_동등성_충분성_기준.md`는 EU MDR clinical evaluation, CER/CER plan, equivalence 또는 clinical data sufficiency 관련 문서입니다.
+- 현재 excerpt 핵심: ## 관련 KB 문서 - [공통_Clinical_Evaluation_Plan_Report_MDR_템플릿](../../../02_제품별_기술파일/공통/공통_Clinical_Evaluation_Plan_Report_MDR_템플릿.md) — CEP/CER 작성 템플릿 - [MDR_AnnexI_GSPR_Checklist](../MDR_2017_745/MDR_AnnexI_GSPR_Checklist.md) — GSPR 전항목 체크리스트 - [MDR_AnnexII_Technical_Documentation_Template](../MDR_2017_745/MDR_AnnexII_Technical_Documentation_Template.md) — 기...
+- 이 항목의 평가 포인트: 이 source는 PMS/PMCF 전용 문서가 아닐 수 있습니다. 좋은 답변은 surveillance 결론을 단정하지 않고 PMS/PMSR/PMCF에 연결되는 근거와 한계를 구분해야 합니다.
+- 빠른 판단 기준: 답변이 `PMS and PMCF planning` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
@@ -329,6 +371,13 @@ Total cases: 15
 - Source hash: `a15dac973609fe746d7da46354e047b528ec5e8df970abafcb115620bea402ba`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `NB_Deficiency_Letter_대응전략.md`는 Notified Body deficiency letter 대응과 evidence traceability를 다루는 문서입니다.
+- 현재 excerpt 핵심: 3. Clinical equivalence: - Same clinical condition: Both indicated for standard diagnostic radiology. - Equivalent clinical performance: DQE(0) ≥ 65% for both devices (Ref. Test Report TR-2024-015, IEC 62220-1-1). Revised CER Rev. 3 is attached as Annex A. ``` --- | 항목 | EU NB (MDR) | MFDS (국내) | FDA (미국) | |---|---|---|---| | 공식 용어 | Deficiency Letter |...
+- 이 항목의 평가 포인트: 이 source는 PMS/PMCF 전용 문서가 아닐 수 있습니다. 좋은 답변은 surveillance 결론을 단정하지 않고 PMS/PMSR/PMCF에 연결되는 근거와 한계를 구분해야 합니다.
+- 빠른 판단 기준: 답변이 `PMS and PMCF planning` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -381,6 +430,13 @@ Total cases: 15
 - Focus: PMS and PMCF planning
 - Matched keywords: EUDAMED
 
+**Source Summary**
+
+- 문서 요약: `147_02_SOP-CC-001_v0.3_EUDAMED_변경통제.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: --- title: "SOP-CC-001 v0.3 보강 — EUDAMED 등록 갱신·QMSR 기록 강화·IEC 62304 Ed2 대비" labels: [enhancement, 02_QMS, v0.3, EUDAMED, QMSR] state: closed --- SOP-CC-001 v0.2 → v0.3 보강 완료. - QMSR 실사 대응 변경통제 기록 FDA 열람 대비 (§9.1) - EUDAMED UDI/Device 등록 갱신 절차 추가, CIA 6축 확장 (§9.2) - IEC 62304 Ed2 SW 분류 전환 준비 항목 추가 (§9.3)
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `PMS and PMCF planning` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `PMS and PMCF planning`에 대한 간결한 RA 판단을 확인합니다.
@@ -427,6 +483,13 @@ Total cases: 15
 - Source hash: `71c0d67fb6fa7c6ec5b92f4aeea270911ed9f7094081e3008d2b6b6bbdf37a2a`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR, MDCG
+
+**Source Summary**
+
+- 문서 요약: `README.md`는 해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서입니다.
+- 현재 excerpt 핵심: ## 참고 - MDCG 가이던스는 법적 구속력은 없으나 Notified Body 심사 시 사실상 기준으로 활용됨. - 공식 소스: https://health.ec.europa.eu/medical-devices-sector/new-regulations/guidance-mdcg-endorsed-documents-and-other-guidance_en ## 주요 MDCG 문서 (X-ray / SW 관련) - **MDCG 2019-11**: Qualification and Classification of Software - **MDCG 2019-16**: Cybersecurity Guidance - **MDCG 2020-5**: Clini...
+- 이 항목의 평가 포인트: 이 source는 PMS/PMCF 전용 문서가 아닐 수 있습니다. 좋은 답변은 surveillance 결론을 단정하지 않고 PMS/PMSR/PMCF에 연결되는 근거와 한계를 구분해야 합니다.
+- 빠른 판단 기준: 답변이 `PMS and PMCF planning` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -478,6 +541,13 @@ Total cases: 15
 - Source hash: `e58a514ed0c819866f9eb094ca113d09dad260f22054cadd6a7b17a7302724ef`
 - Focus: PMS and PMCF planning
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `EU_AI_Act_MDR_중첩적용_매핑.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: - Regulation (EU) 2024/1689 (AI Act) — 전문, Art. 6, 9-17, 43, 61-62, Annex II/III/IV - Regulation (EU) 2017/745 (MDR) — Art. 10, 15, 83-87, Annex I-III, IX-XI - MDCG 2019-11 (소프트웨어 분류), MDCG 2019-16 Rev.1 (사이버보안), MDCG 2020-3 (significant changes) - IEC 62304:2006/A1:2015, IEC 62366-1:2015/A1:2020, IEC 81001-5-1:2021 - ISO 14971:2019/A11:2021 - FDA AI/ML-b...
+- 이 항목의 평가 포인트: 이 source는 PMS/PMCF 전용 문서가 아닐 수 있습니다. 좋은 답변은 surveillance 결론을 단정하지 않고 PMS/PMSR/PMCF에 연결되는 근거와 한계를 구분해야 합니다.
+- 빠른 판단 기준: 답변이 `PMS and PMCF planning` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -532,6 +602,13 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
 
+**Source Summary**
+
+- 문서 요약: `016_02_디지털의료제품법_요구사항_매트릭스.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ## 참고 링크 - 관련 문서: `02_품질경영시스템_QMS/디지털의료제품법_요구사항_매트릭스.md` - 교차검증: `12_교차검증_보고서/2026-04-24_디지털의료제품법_요구사항_정합성.md` - 관련 이슈: #014 디지털의료제품법_SaMD_AI_요구 --- title: "[02] 디지털의료제품법 35개 요구사항 매트릭스 v0.1 및 갭 분석" labels: "documentation,review,regulation,qms" state: closed ---
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `digital medical products act impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -582,6 +659,13 @@ Total cases: 15
 - Source hash: `59cd597ad73333f3a36a6a56fb5fd2997d20bab166a18e0b7ed594f77fe17fff`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS
+
+**Source Summary**
+
+- 문서 요약: `MFDS_디지털의료기기_6종_가이드라인_요약.md`는 `MFDS_디지털의료기기_6종_가이드라인_요약.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: ## 2. 6종 가이드라인 개요 | 번호 | 구분 | 가이드라인명 | 주요 적용 대상 | |---|---|---|---| | 1 | **제정** | 디지털의료기기소프트웨어 허가·심사 가이드라인 | 내장형·독립형 소프트웨어 전반 공통 기본서 | | 2 | 개정 | 의료기기 소프트웨어 허가·심사 가이드라인 | **내장형** 소프트웨어 + 의료기기 연동 앱·웹 | | 3 | 개정 | 인공지능기술이 적용된 디지털의료기기 허가·심사 가이드라인 | MLMD(Machine Learning-enabled Medical Device) 전반 | | 4 | 개정 | 가상융합기술이 적용된 디지털의료기기 허가·심사 가이드라인 | VR·AR·MR 기술 적용...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `digital medical products act impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -634,6 +718,13 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: MFDS
 
+**Source Summary**
+
+- 문서 요약: `mfds-simple-change-notification-for-low-risk-accessory-change.md`는 `mfds-simple-change-notification-for-low-risk-accessory-change.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: --- type: concept title: 저위험 액세서리 변경에 대한 MFDS 단순변경 신고 created: 2026-06-10 updated: 2026-06-10 tags: [개념, mfds, 단순변경, level-3, 인허가, accessory] related: [aq-byeong-seungin-20230113-1, simple-change-without-design-change-document-in-had1717mc-mg-bom-management, low-risk-operational-change-classified-as-level-3-without-specification-change] sources: ["DHF (인허...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `digital medical products act impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -685,6 +776,13 @@ Total cases: 15
 - Focus: digital medical products act impact
 - Matched keywords: 디지털의료제품법
 
+**Source Summary**
+
+- 문서 요약: `2026-04-22_SBOM_SOP_디지털의료제품법_방사선규칙.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ### 4) 진단용 방사선 안전관리 규칙 개정 - 2024-11-07 제1068호: 포터블 기준·방어시설 신설, 누설선량 한도 100mR → **2mR/h** 로 50배 강화 - 2025-07-18 제1122호: 조문 원문 확인 필요(오픈 작업) - 안전관리 정의에 환자 외 피폭 방지 포함 — IFU 설계 영향 ## 실행 내용 1. `03_설계_개발관리/SOP-SBOM-001_SBOM_생성관리_절차.md` v0.1 신규 — SBOM 생성·VEX·VDR·제출 체계 통합 SOP 2. `01_법규_규제/01_국내_MFDS/디지털의료제품법_SaMD_AI_요구.md` v0.1 신규 — 디지털의료제품법 핵심 요구·가이드라인 5종·프로젝트 영향...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `digital medical products act impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `digital medical products act impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -735,6 +833,13 @@ Total cases: 15
 - Source hash: `fea1a1e441cf787fd39d9734c1e90c658fef8dc7f0c2e0522a9a6e101555afce`
 - Focus: digital medical products act impact
 - Matched keywords: MFDS, 국내_MFDS, 디지털의료제품법
+
+**Source Summary**
+
+- 문서 요약: `MFDS_디지털의료제품법_하위고시_추적.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ## 1. MFDS 고시 (식약처 고시) | 고시명 | 고시 번호 | 시행일 | 핵심 내용 | 자사 영향 | |---|---|---|---|---| | 디지털의료제품 허가·인증·신고·심사 및 평가 등에 관한 규정 | 제2025-25호 | 2025-04-15 | 허가·심사 절차, 서류 요건, 평가 기준 | GUI SW 허가 시 적용 | | 디지털의료제품의 분류 및 등급 지정 등에 관한 규정 | 제2025-23호 | 2025-04-07 | 디지털의료기기 분류 체계, 등급 기준 | GUI SW 해당 여부 판단 | | 디지털의료기기 제조 및 품질관리 기준 (디지털 GMP) | 별도 고시 | 2025년 내 시행 | 8개 유형군별 GMP 요건...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `digital medical products act impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 

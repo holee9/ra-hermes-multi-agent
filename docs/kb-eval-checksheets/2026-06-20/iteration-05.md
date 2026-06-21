@@ -22,6 +22,13 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: FDA
 
+**Source Summary**
+
+- 문서 요약: `FDA_AI_Additional_Information_대응_전략.md`는 FDA AI/ML 의료기기 심사 중 additional information 또는 deficiency response 대응 전략 문서입니다.
+- 현재 excerpt 핵심: ### 4.2 응답서 구성 원칙 **FDA Guidance 권고 (Section V of FDA Guidance on deficiency responses)**: 각 결함에 대해 다음 3가지 중 하나로 응답: 1. 요청된 정보 또는 데이터 제공 2. 해당 사항이 없는 이유 설명 3. 대체 정보 제공 + 왜 그 정보가 문제를 해결하는지 설명 **형식 원칙**: - 결함 번호를 **원문 그대로** 복사·유지 (순서 변경 금지) - 표(Table) 형식 + 행 색상 교차 (FDA 원문 vs 회사 응답 구분) - 단일 부록 번호 체계 유지 (AI Response App. 001, 002, …) - 각 부록 표지: "What this is...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `SaMD change impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `SaMD change impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -72,6 +79,13 @@ Total cases: 15
 - Source hash: `d5412d37b42151a55d00d8ebb4711becdd2240ca934acae093691cb40fe3c58b`
 - Focus: SaMD change impact
 - Matched keywords: FDA
+
+**Source Summary**
+
+- 문서 요약: `PCCP_AI_Device_작성가이드.md`는 AI/ML 의료기기의 PCCP 및 변경관리 계획 작성 가이드입니다.
+- 현재 excerpt 핵심: ## 8. MFDS: 사전변경관리계획 (디지털의료제품법) - 디지털의료기기 AI 알고리즘 변경 시, 사전에 변경관리계획 제출·승인 - 승인된 범위 내 변경 → 별도 허가 면제 - 생성형 AI 의료기기 허가·심사 가이드라인 (2025-01-24, 세계 최초 발간): 생성형 AI 특성 반영한 별도 심사 기준 포함 --- 최종 갱신: 2026-05-15 (자동보강 #45) > 근거: https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `SaMD change impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -124,6 +138,13 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: QMSR
 
+**Source Summary**
+
+- 문서 요약: `158_08_SOP-PMS-001_v0.3_QMSR_EUDAMED_불만처리.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: ## 변경 요약 - §7 신설: FDA QMSR CP 7382.850 불만처리 실사 대응 - §7.1 QMSR 하 불만처리 프로세스 정합 (§8.2.2/§8.2.3 매핑) - §7.2 CP 7382.850 실사 대비 불만처리 자가점검표 (7항목) - §7.3 FDA Guidance Agenda 2026 불만처리 가이드라인 대비 - §8 신설: EUDAMED 연계 불만처리 - §8.1 Actor Registration/UDI/Market Surveillance 연계 - §8.2 PSUR 제출 연계 (Class III EUDAMED 의무) - §8.3 Vigilance 모듈 과도기 - frontmatter: applicable 확장,...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `SaMD change impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `SaMD change impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -175,6 +196,13 @@ Total cases: 15
 - Focus: SaMD change impact
 - Matched keywords: FDA, 510k, PMA
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 FDA 510(k), predicate, substantial equivalence 또는 product code 판단을 다루는 문서입니다.
+- 현재 excerpt 핵심: ## 제출 절차 개요 1. Predicate Device 조사 (FDA 510(k) Database) 2. Substantial Equivalence 비교표 작성 3. 510(k) Summary, 성능시험, 생체적합성, 전자파 등 섹션 준비 4. eSTAR 템플릿을 통한 전자 제출 5. FDA 심사 질의(AI: Additional Information) 대응 ## 수록 대상 - Premarket Notification 510(k) 제출 가이던스 - PMA (Premarket Approval) 관련 문서 - De Novo Classification Request 관련 문서 - eSTAR / eSubmitter 제출 양식 및 매뉴얼
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `SaMD change impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `SaMD change impact`에 대한 간결한 RA 판단을 확인합니다.
@@ -225,6 +253,13 @@ Total cases: 15
 - Source hash: `bfde8ccac162058d143af5ce7e6e0ec7f9d3f13456d947bcf5780e1b7e49e1e1`
 - Focus: SaMD change impact
 - Matched keywords: FDA
+
+**Source Summary**
+
+- 문서 요약: `009_03_SW_사이버보안_IEC81001_5_1_FDA.md`는 `009_03_SW_사이버보안_IEC81001_5_1_FDA.md` source에서 선택된 규제 지식 문서입니다.
+- 현재 excerpt 핵심: ## 참고 링크 - `03_설계_개발관리/IEC_81001-5-1_FDA_Cybersecurity_SW보안.md` - `03_설계_개발관리/IEC_62304_SW_수명주기.md` - `12_교차검증_보고서/2026-04-21_Xray_안전성능_사이버보안_정합성.md` ## 체크리스트 - [x] 표준·규제 범위 정의 - [x] Security Management Plan 11개 절 구조 확정 - [x] 81001-5-1 ↔ 62304 매핑표 - [x] FDA 제출물(SBOM, Threat Model, Architecture, VM Plan, Testing) 매핑 - [x] Coordinated Vulnerability Disclosu...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `SaMD change impact` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -279,6 +314,13 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: MDR, MDCG
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서입니다.
+- 현재 excerpt 핵심: ## 참고 - MDCG 가이던스는 법적 구속력은 없으나 Notified Body 심사 시 사실상 기준으로 활용됨. - 공식 소스: https://health.ec.europa.eu/medical-devices-sector/new-regulations/guidance-mdcg-endorsed-documents-and-other-guidance_en ## 주요 MDCG 문서 (X-ray / SW 관련) - **MDCG 2019-11**: Qualification and Classification of Software - **MDCG 2019-16**: Cybersecurity Guidance - **MDCG 2020-5**: Clini...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `Notified Body question response` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `Notified Body question response`에 대한 간결한 RA 판단을 확인합니다.
@@ -329,6 +371,13 @@ Total cases: 15
 - Source hash: `73cd35ce968999ac597a2ffd2cc0e9de93103ba5c45edee078877a0e708818ce`
 - Focus: Notified Body question response
 - Matched keywords: MDR, MDCG
+
+**Source Summary**
+
+- 문서 요약: `MDCG_2019-16_Rev1_Cybersecurity_대응_체크리스트.md`는 MDR/MDCG 또는 FDA cybersecurity 요구사항과 대응 체크리스트 문서입니다.
+- 현재 excerpt 핵심: ✅: 필수 적용 / △: 조건부 적용 / -: 해당없음 (위험 평가 결과에 따라 조정) 최종 갱신: 2026-05-14 (자동보강 #44) > 근거: https://health.ec.europa.eu/system/files/2022-01/md_cybersecurity_en.pdf | https://health.ec.europa.eu/medical-devices-sector/new-regulations/guidance-mdcg-endorsed-documents-and-other-guidance_en # MDCG 2019-16 Rev.1 Cybersecurity 대응 체크리스트
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `Notified Body question response` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -381,6 +430,13 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: MDR
 
+**Source Summary**
+
+- 문서 요약: `MDR_AnnexII_Technical_Documentation_Template.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: | 섹션 | MDR Annex II | FDA Design History File (21 CFR 820 / QMSR 2024) | MFDS 기술문서 (의료기기법 시행규칙 별표 3) | |---|---|---|---| | 제품 설명 | §1 Device Description | Design Output, Device Description (DHF) | 제1장 사용목적·작용원리 | | 라벨·IFU | §2 Labeling | Device Labeling (21 CFR 801; eSTAR §6) | 제3장 표시기재 | | 설계·제조 | §3 Design & Manufacturing | Design History File (§7.3 QMS...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `Notified Body question response` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `Notified Body question response`에 대한 간결한 RA 판단을 확인합니다.
@@ -432,6 +488,13 @@ Total cases: 15
 - Focus: Notified Body question response
 - Matched keywords: EUDAMED
 
+**Source Summary**
+
+- 문서 요약: `147_02_SOP-CC-001_v0.3_EUDAMED_변경통제.md`는 EUDAMED 등록·변경통제·모듈별 운영 실무 문서입니다.
+- 현재 excerpt 핵심: --- title: "SOP-CC-001 v0.3 보강 — EUDAMED 등록 갱신·QMSR 기록 강화·IEC 62304 Ed2 대비" labels: [enhancement, 02_QMS, v0.3, EUDAMED, QMSR] state: closed --- SOP-CC-001 v0.2 → v0.3 보강 완료. - QMSR 실사 대응 변경통제 기록 FDA 열람 대비 (§9.1) - EUDAMED UDI/Device 등록 갱신 절차 추가, CIA 6축 확장 (§9.2) - IEC 62304 Ed2 SW 분류 전환 준비 항목 추가 (§9.3)
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `Notified Body question response` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `Notified Body question response`에 대한 간결한 RA 판단을 확인합니다.
@@ -478,6 +541,13 @@ Total cases: 15
 - Source hash: `83fe77d38e73c00b0d546abfffb6985d20fda1d3f898e6532af93bd999c6b8ae`
 - Focus: Notified Body question response
 - Matched keywords: MDR
+
+**Source Summary**
+
+- 문서 요약: `Week04_MDR_EU_체계_상세.md`는 EU MDR classification, conformity route, technical documentation 또는 MDR 운영 요구사항 문서입니다.
+- 현재 excerpt 핵심: 요 多) | CEP + CER (Article 61, MDR Annex XIV) | | UDI | UDI 포털 (udiportal.mfds.go.kr) | GUDID (accessgudid.nlm.nih.gov) | EUDAMED UDI/DEV | | 시판 후 감시 | 이상사례 보고 (의료기기법 §31) | MDR 21 CFR 803 + MedWatch | Vigilance (MDR Art.87), PSUR | | Authorized Rep. | 수입자 (국내 수입업허가자) | US Agent (510(k) 면제 외) | Authorized Representative (Art.11) | | 수수료 | 품목별 허가 수수료 | MDUF...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `Notified Body question response` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -532,6 +602,13 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: 디지털의료제품법
 
+**Source Summary**
+
+- 문서 요약: `2026-04-22_SBOM_디지털의료제품법_정합성.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ### G6. SOP-SBOM-001과 SOP-CC-001(Change Control) 인터페이스 미정의 - SBOM 변경이 Change Control 트리거하는 조건 명시 필요 - **조치**: SOP-CC-001 v0.2에 SBOM 컴포넌트 추가/제거/버전업 시 Change 분류 기준 반영 ### G4. MFDS RA-01 ~ RA-20 체크리스트 전수 대응 문서화 미흡 - 현재 확보된 문서는 SBOM(RA-07) 중심 - **조치**: RA-01~RA-20 전체 매트릭스 작성 (별도 이슈)
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `supplementary-response strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `supplementary-response strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -582,6 +659,13 @@ Total cases: 15
 - Source hash: `fe21b220c92090300334febc505ac3e1af4cc3c647d04fe11961d30402702598`
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS
+
+**Source Summary**
+
+- 문서 요약: `091_01_MFDS_GMP_커버리지_94퍼센트_갱신.md`는 KGMP 또는 GMP evidence readiness, audit readiness, QMS 절차·기록 관련 문서입니다.
+- 현재 excerpt 핵심: ## 배경 MFDS GMP 가이드에서 미작성으로 표시되었던 3건(§4.2.3 의료기기파일, §7.5.4 서비스활동, §8.4 데이터분석)이 이미 작성 완료(TF-TD-001, SOP-SVC-001, PRO-DA-001)되어 있어 매핑 현황을 갱신하였다. 미작성 절차 우선순위 섹션도 전량 완료 현황으로 업데이트. ## 체크리스트 - [x] §4.2.3 → TF-TD-001 매핑 반영 - [x] §7.5.4 → SOP-SVC-001 매핑 반영 - [x] §8.4 → PRO-DA-001 매핑 반영 - [x] 커버리지 요약 86% → 94% 갱신 - [x] 미작성 절차 우선순위 → 작성 완료 현황으로 전환
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `supplementary-response strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
@@ -634,6 +718,13 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS, 디지털의료제품법
 
+**Source Summary**
+
+- 문서 요약: `디지털의료제품법_SaMD_AI_요구.md`는 디지털의료제품법, SaMD/AI, SBOM/cyber 의무와 전환 리스크 관련 문서입니다.
+- 현재 excerpt 핵심: ## 1. 법령 개요 | 항목 | 내용 | |------|------| | 법률명 | 디지털의료제품법 (법률 제20139호, 제정 2024-01-23) | | 시행일 | 2025-01-24 | | 시행령 | 대통령령 제35219호 (2025-01-23 제정, 2025-01-24 시행) | | 시행규칙 | 총리령 제1958호 (2025-02-28 시행) | | 소관 | 식품의약품안전처(MFDS) 의료기기정책과 / 디지털헬스규제지원과 | | 주요 하위고시 | 디지털의료제품 허가·인증·신고·심사 및 평가 등에 관한 규정, 분류 및 등급 지정 규정, 디지털의료기기 제조 및 품질관리 기준, 디지털의료기기 전자적 침해행위 보안 지침(안) |...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `supplementary-response strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `supplementary-response strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -685,6 +776,13 @@ Total cases: 15
 - Focus: supplementary-response strategy
 - Matched keywords: MFDS, 국내_MFDS
 
+**Source Summary**
+
+- 문서 요약: `README.md`는 해당 규제 지식 폴더의 범위, 주요 자료, 운영 맥락을 요약한 안내 문서입니다.
+- 현재 excerpt 핵심: ## 핵심 근거 (X-ray 관련) - 의료기기법 및 시행규칙 - 「의료기기 품목 및 품목별 등급에 관한 규정」 - 「의료기기 허가·신고·심사 등에 관한 규정」 - 「의료기기 GMP 심사·평가 등에 관한 규정」 - 「의료용 X선 발생장치 등 기술문서 작성 가이드라인」 - 「의료용 SW 허가·심사 가이드라인」 ## 수록 대상 - 의료기기법, 시행령, 시행규칙 - 식약처 고시 (제조·수입품목허가·신고 등) - 식약처 가이드라인·민원인안내서 - 의료기기 기술문서·임상시험 관련 고시
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `supplementary-response strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
+
 **Evaluation Target**
 
 - 기대 산출물: 이 source를 근거로 `supplementary-response strategy`에 대한 간결한 RA 판단을 확인합니다.
@@ -735,6 +833,13 @@ Total cases: 15
 - Source hash: `1f7581a31c4c152b66cf0460934ef96ec9205ef647cccf95efb57981151002ff`
 - Focus: supplementary-response strategy
 - Matched keywords: KGMP
+
+**Source Summary**
+
+- 문서 요약: `KGMP_QMSR_ISO13485_비교_통합전략.md`는 ISO 13485를 공통 QMS master로 두고 KGMP, FDA QMSR, EU MDR의 지역별 추가 요구사항을 통합 관리하는 전략 문서입니다.
+- 현재 excerpt 핵심: II Tech Doc 연계 | | **7.4 구매** | ISO 동일 | ISO 동일 | ISO 동일 | | **7.5 생산 및 서비스** | ISO 동일 | §820.35 — Service Records 상세 요건 추가 | ISO 동일 | | **7.6 측정장비 관리** | ISO 동일 | ISO 동일 | ISO 동일 | | **8.1 측정·분석·개선** | ISO 동일 | ISO 동일 | ISO 동일 + PSUR/PMSR 연동 | | **8.2.1 피드백** | ISO 동일 | §820.20 — 불만 조사 완료 시점 기록 | PMS 데이터 수집 의무 (MDR Art. 83~86) | | **8.2.2 내부 감사** | ISO 동...
+- 이 항목의 평가 포인트: 이 source는 focus와 직접 또는 보조적으로 연결됩니다. 좋은 답변은 source에서 확인되는 사실만 사용하고, 부족한 판단은 추가 확인 필요사항으로 남겨야 합니다.
+- 빠른 판단 기준: 답변이 `supplementary-response strategy` 관점의 판단을 source 근거와 한계 안에서 제시하면 높게 평가하고, source가 말하지 않는 결론을 단정하면 낮게 평가합니다.
 
 **Evaluation Target**
 
