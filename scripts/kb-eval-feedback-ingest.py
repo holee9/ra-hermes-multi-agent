@@ -128,8 +128,11 @@ def parse_text(source: str, text: str) -> list[dict[str, Any]]:
             continue
         if current is None:
             continue
-        if line == "**Optional Correction Note**":
-            in_note = True
+        if line.startswith("**") and line.endswith("**"):
+            # Section header: Optional Correction Note starts note capture;
+            # any other section (e.g. Source Excerpts) ends it so its quoted
+            # excerpt lines cannot overwrite the reviewer's note.
+            in_note = line == "**Optional Correction Note**"
             continue
         check_match = CHECK_RE.match(line)
         if check_match:
@@ -138,7 +141,7 @@ def parse_text(source: str, text: str) -> list[dict[str, Any]]:
         if in_note and line.startswith(">"):
             note = line[1:].strip()
             if note:
-                correction_note = note
+                correction_note = note if correction_note is None else f"{correction_note}\n{note}"
     flush()
     return records
 
