@@ -75,14 +75,14 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] Today's growth execution complete — 9 daily_growth_case written (ra_us/ra_eu/ra_kr 각 3), peer_id·content 검증 완료; deriver representation 순차 처리(6/9 processed at check, 잔여 백그라운드), idempotent ✅
+- [ ] No today's growth execution yet (Day 2-3: dry-run expected) ⚠️  MANUAL CHECK
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 8
-- **WARN**: 0
+- **PASS**: 7
+- **WARN**: 1
 - **FAIL**: 0
 
 ## 5. Status
