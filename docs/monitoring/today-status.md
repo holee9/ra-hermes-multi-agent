@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-06-22
-Timestamp: 2026-06-22T08:00:00+09:00
+Date: 2026-06-23
+Timestamp: 2026-06-23T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -75,7 +75,7 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] Today's growth execution complete — 9 daily_growth_case written (ra_us/ra_eu/ra_kr 각 3), underscore peer_id DB 검증 완료, idempotent (재실행 시 9 skip) ✅
+- [x] Today's growth execution complete — 9 daily_growth_case written (ra_us/ra_eu/ra_kr 각 3), peer_id·content 검증 완료; deriver representation 순차 처리(6/9 processed at check, 잔여 백그라운드), idempotent ✅
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
