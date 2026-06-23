@@ -334,12 +334,28 @@ const SKINMAP = {
   infra_gx10: {base:"infra",  hair:"#566c86", shirt:"#94b0c2"},
   infra_rpi:  {base:"infra",  hair:"#8a6a3a", shirt:"#cda878"}
 };
+
+// Character-specific pixel features overlaid on the mirrored 32x32 base grid.
+// Absolute [row, col] on the full grid; 'e'=outline (glasses), 'm'=mouth shade (beard).
+// Applied only to listed characters; BASE stays untouched (rows copied on demand).
+const FEATURE_OVERLAY = {
+  ra_eu: [                                   // Theo — glasses frame around eyes
+    [6,13,'e'],[6,14,'e'],[6,17,'e'],[6,18,'e'],
+    [7,12,'e'],[7,15,'e'],[7,16,'e'],[7,19,'e']
+  ],
+  infra_gx10: [                              // Leo — beard line below mouth
+    [14,11,'m'],[14,12,'m'],[14,13,'m'],[14,14,'m'],[14,15,'m'],
+    [14,16,'m'],[14,17,'m'],[14,18,'m'],[14,19,'m'],[14,20,'m']
+  ]
+};
 function spriteCanvas(id){
   const m=SKINMAP[id]; if(!m) return null;
-  const grid=BASE[m.base];
+  const feats=FEATURE_OVERLAY[id];
+  const grid=feats ? BASE[m.base].map(r=>r) : BASE[m.base];
+  if(feats){ for(const [r,q,ch] of feats){ if(grid[r]) grid[r]=grid[r].substring(0,q)+ch+grid[r].substring(q+1); } }
   const pal={...SKIN,
-    H:m.hair, h:shade(m.hair,0.7), C:m.hair,
-    X:m.shirt, x:shade(m.shirt,0.72)};
+    H:m.hair, h:shade(m.hair,0.6), C:m.hair,
+    X:m.shirt, x:shade(m.shirt,0.65)};
   const cv=document.createElement('canvas'); cv.width=32; cv.height=32;
   cv.style.width='40px'; cv.style.height='40px'; cv.style.imageRendering='pixelated';
   const cx=cv.getContext('2d');

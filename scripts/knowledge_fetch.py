@@ -30,6 +30,7 @@ Environment (read from shell, inherited from .env):
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
@@ -93,7 +94,11 @@ def _http_get(url: str, headers: dict | None = None, timeout: int = TIMEOUT) -> 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.read()
-    except Exception:
+    except urllib.error.HTTPError as exc:
+        logging.warning("HTTP %s for %s", exc.code, url)
+        return None
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+        logging.warning("fetch failed for %s: %s", url, exc)
         return None
 
 
@@ -230,9 +235,13 @@ def fetch_openfda(query: str, top: int = 3) -> list[dict]:
         return []
     try:
         data = json.loads(body)
-        items = data.get("results", [])
-    except Exception:
+    except json.JSONDecodeError:
+        logging.warning("openFDA returned non-JSON for %s", url)
         return []
+    if "error" in data:
+        logging.warning("openFDA error response for %s: %s", url, data.get("error"))
+        return []
+    items = data.get("results", [])
 
     results = []
     for item in items:
