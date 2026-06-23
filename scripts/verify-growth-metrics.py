@@ -91,6 +91,18 @@ def main() -> None:
     })
     assert no_session_cause == "no_sessions_returned"
 
+    # H1 (#80): window timezone — UTC → KST(Asia/Seoul) midnight alignment.
+    # Regression guard: reverting OPERATION_TZ to UTC would re-split a KST day.
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+
+    assert isinstance(gm.OPERATION_TZ, ZoneInfo), "OPERATION_TZ must be ZoneInfo"
+    assert str(gm.OPERATION_TZ) == "Asia/Seoul", f"expected Asia/Seoul, got {gm.OPERATION_TZ}"
+    cron_until = datetime(2026, 6, 23, 2, 0, 0, tzinfo=gm.OPERATION_TZ)  # KST 02:00 timer fire
+    since = (cron_until - timedelta(days=1)).replace(hour=0, minute=0, second=0)
+    assert since.hour == 0 and since.utcoffset().total_seconds() == 9 * 3600
+    assert since.strftime("%Y-%m-%d") == "2026-06-22"
+
     print("growth-metrics contract OK")
 
 
