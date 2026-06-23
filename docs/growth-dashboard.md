@@ -111,6 +111,15 @@ git push origin main
 
 `scripts/coverage-guards.json`의 20% KR/EU relative guard는 #60에서 KR corpus가 EU 대비 거의 비어 있는 상태로 남지 않게 막기 위한 임시 pre-activation floor였다. 이 값은 규제 전문성, 업무 정확도, 사람 평가 통과율을 의미하지 않는다. 전문가 성숙도는 `correction_rate`, `first_pass_match_accuracy`, `warmstart_lift`, `confidence_calibration`, `escalation_precision`, human feedback coverage 같은 행동 지표와 사람 평가 데이터로만 판단한다.
 
+## 시계열 주의사항 — window 정의 변경 (2026-06-23)
+
+`growth-metrics.py`의 측정 window가 2026-06-23부로 **UTC → KST(Asia/Seoul) 자정 기준**으로 변경됐다 ([#80](https://github.com/holee9/ra-hermes-multi-agent/issues/80), H1).
+
+- **이전**(snapshot 06-17~23): `since`/`until`이 UTC 기준이라 KST 자정 경계가 안 맞아 window가 ~41시간 혼합 (예: `growth-2026-06-23.json` window = KST [06-21 09:00, 06-23 02:00])
+- **이후**(06-24 timer 실행분부터): KST 자정 기준 1일 정렬 (`since YYYY-MM-DDT00:00:00+09:00`)
+
+**해석 주의**: window 정의가 변경됐으므로 06-23 이전 snapshot과 06-24 이후 snapshot의 metrics는 **직접 비교 불가** (시계열 불연속). 추세 판정 시 이 분절점을 고려할 것.
+
 ## 현재 한계
 
 2026-06-16 #64 보정 전에는 `reports/growth-2026-06-16.json`까지 생성됐지만 `sessions_scanned=0`, `messages_scanned=0`이었다. 원인은 collector가 Honcho v0.15.1 list API를 `GET /sessions`로 호출한 것이다. 실제 API 계약은 `POST /sessions/list`, `POST /sessions/{id}/messages/list`다.
