@@ -32,6 +32,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -49,6 +50,10 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Operation timezone for window boundaries. Growth activity is measured in KST
+# business days; UTC midnights would split a KST day and mis-align the window.
+OPERATION_TZ = ZoneInfo(os.environ.get("GROWTH_OPERATION_TZ", "Asia/Seoul"))
 
 # Retry configuration
 MAX_RETRIES = int(os.environ.get("GROWTH_METRICS_MAX_RETRIES", "3"))
@@ -1067,10 +1072,10 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.date:
-        until = datetime.strptime(args.date, "%Y%m%d").replace(tzinfo=timezone.utc)
+        until = datetime.strptime(args.date, "%Y%m%d").replace(tzinfo=OPERATION_TZ)
         until = until.replace(hour=23, minute=59, second=59)
     else:
-        until = datetime.now(timezone.utc)
+        until = datetime.now(OPERATION_TZ)
 
     since = (until - timedelta(days=args.days)).replace(hour=0, minute=0, second=0)
 

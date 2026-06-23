@@ -394,7 +394,7 @@ def chat_completions():
                 "market_analysis": {"mfds": None, "ce_mdr": None, "fda": None},
                 "source_docs": [],
                 "recommendation": f"hermes 서비스 상태 확인: journalctl -u hermes-api-server. 오류: {error_detail}",
-                "confidence": "low",
+                "confidence": 0.0,
                 "deadline": None,
                 "product": None,
                 "org": None,
