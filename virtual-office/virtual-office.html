@@ -136,13 +136,25 @@
 
   /* log */
   .log{
-    width:760px; margin-top:12px; background:var(--card); border:3px solid var(--line);
-    height:96px; overflow-y:auto; padding:6px 10px; font-size:16px; line-height:1.35;
+    width:1068px; margin-top:12px; background:var(--card); border:3px solid var(--line);
+    height:220px; overflow-y:auto; padding:8px 12px; font-size:16px; line-height:1.4;
   }
-  .log div{color:#c0cbdc;}
+  .log div{color:#c0cbdc; cursor:pointer; padding:1px 4px; border-radius:3px;}
+  .log div:hover{background:rgba(255,255,255,.06);}
+  .log div.sel{background:var(--kanban);}
   .log .ts{color:#6b7394;}
   .log .who{color:var(--accent);}
   .log .new{color:#fff;}
+  /* 상세 패널 (기록 행 클릭 시) */
+  .detail-panel{
+    width:1068px; margin-top:8px; background:var(--card); border:3px solid var(--line);
+    max-height:220px; overflow-y:auto; padding:10px 14px; font-size:15px; line-height:1.5;
+  }
+  .detail-panel .dp-title{font-family:'Press Start 2P'; font-size:9px; color:var(--accent); margin-bottom:6px;}
+  .detail-panel .dp-empty{color:#6b7394;}
+  .detail-panel .dp-row{margin:2px 0;}
+  .detail-panel .dp-k{color:var(--accent);}
+  .detail-panel .dp-v{color:#c0cbdc; word-break:break-all;}
 
   /* score stamp */
   .stamp{
@@ -304,6 +316,7 @@
   </div>
 
   <div class="log" id="log"></div>
+  <div class="detail-panel" id="detail"><div class="dp-empty">기록 행을 클릭하면 상세 내용이 표시됩니다.</div></div>
 
 <script>
 /* ===== 픽셀 캐릭터 데이터 (32x32, 좌우대칭 베이스 + 캐릭터별 색) =====
@@ -489,6 +502,8 @@ function log(ev,live=false){
   }
   const who=names[ev.actor]||ev.actor;
   const div=document.createElement('div');
+  div._ev=ev;
+  div.onclick=()=>selectLog(div);
   div.innerHTML=`<span class="ts">${fmtTs(ev.ts)}</span> <span class="who">[${who}]</span> <span class="msg">${msg}</span>`;
   logEl.appendChild(div);
   logEl.scrollTop=logEl.scrollHeight;
@@ -496,6 +511,37 @@ function log(ev,live=false){
     const m=div.querySelector('.msg'); m.classList.add('new');
     setTimeout(()=>m.classList.remove('new'),600);
   }
+}
+
+/* 기록 행 클릭 → 하단 상세 패널 */
+// @MX:NOTE: detail panel turns the log from a one-line feed into a browsable history
+// (human monitors without CLI). Each row carries its full event in _ev.
+function selectLog(div){
+  document.querySelectorAll('.log div.sel').forEach(d=>d.classList.remove('sel'));
+  div.classList.add('sel');
+  renderDetail(div._ev);
+}
+function renderDetail(ev){
+  const dp=document.getElementById('detail'); if(!dp||!ev) return;
+  const p=ev.payload||{};
+  const who=CHARS[ev.actor]?.name||ev.actor;
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const rows=[];
+  const push=(k,v)=>{ if(v!==null&&v!==undefined&&v!=='') rows.push(`<div class="dp-row"><span class="dp-k">${esc(k)}:</span> <span class="dp-v">${esc(v)}</span></div>`); };
+  push('유형', ev.type);
+  push('시각', ev.ts? new Date(ev.ts).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'-');
+  push('주체', `${who} (${ev.actor})`);
+  if(ev.type==='growth_case'){
+    push('학습 도메인', p.domain); push('소스', p.source); push('시나리오 ID', p.scenario_id);
+  } else if(ev.type==='score_given'){
+    push('평가 대상', CHARS[p.target_actor]?.name||p.target_actor);
+    push('점수', p.score!=null?(p.score+' / 3'):'-');
+    if(p.dimensions) push('평가 차원', Object.entries(p.dimensions).map(([k,v])=>`${k}:${v?'O':'X'}`).join('  '));
+    push('결정 참조', p.decision_ref); push('소스', p.source);
+  } else {
+    for(const [k,v] of Object.entries(p)) push(k, typeof v==='object'?JSON.stringify(v):v);
+  }
+  dp.innerHTML=`<div class="dp-title">📋 상세 정보</div>${rows.join('')||'<div class="dp-empty">표시할 내용이 없습니다.</div>'}`;
 }
 
 /* ===== 이벤트 처리 ===== */
