@@ -343,6 +343,7 @@ const SKINMAP = {
   ra_kr:      {base:"worker", hair:"#2a2a2a", shirt:"#ef7d57"},
   op_manager: {base:"worker", hair:"#4a2a1d", shirt:"#a7f070"},
   n8n_manager:{base:"worker", hair:"#3a2a4d", shirt:"#b8b5ff"},
+  raspi5p:    {base:"worker", hair:"#3a2a4a", shirt:"#c896ff"},
   infra_t3610:{base:"infra",  hair:"#2a8a9a", shirt:"#73eff7"},
   infra_gx10: {base:"infra",  hair:"#566c86", shirt:"#94b0c2"},
   infra_rpi:  {base:"infra",  hair:"#8a6a3a", shirt:"#cda878"}
@@ -386,6 +387,7 @@ const CHARS = {
   ra_kr:     {name:"Sam",   role:"한국RA", room:"work", x:310, y:150, color:"#ef7d57"},
   op_manager:{name:"Margot",role:"사안",   room:"work", x:130, y:300, color:"#a7f070"},
   n8n_manager:{name:"Olly", role:"자동화", room:"work", x:280, y:300, color:"#b8b5ff"},
+  raspi5p:    {name:"Iris", role:"raspi5p Hermes(실행자)", room:"work", x:410, y:150, color:"#c896ff"},
   infra_t3610:{name:"Finn", role:"T3610", room:"infra",x:60, y:120, color:"#73eff7"},
   infra_gx10:{name:"Leo",   role:"GX10",  room:"infra",x:160,y:120, color:"#94b0c2"},
   infra_rpi: {name:"Gus",   role:"RPi",   room:"infra",x:110,y:230, color:"#f4d29c"}
@@ -497,6 +499,8 @@ function log(ev,live=false){
     case"vote_cast":msg=`🗳 투표: ${p.vote}`;break;
     case"vote_result":msg=`✅ 결정: ${p.result}`;break;
     case"growth_case":{const dom=p.domain||'규제';msg=`📖 규제 학습 (${dom})`;break;}
+    case"advisory_returned":{const d=p.decision||'?';const c=p.confidence!=null?(p.confidence*100|0)+'%':'?';msg=`💬 RA 자문 (${d}, 신뢰도 ${c})${p.yellow_reason?' ⚠Yellow':''}`;break;}
+    case"advisory_executed":{msg=`✅ 실행 ${p.action_taken||''}${p.wp_id?' → WP '+p.wp_id:''}`;break;}
     case"score_given":{const sc=p.score||0,tgt=p.target||p.target_actor||'대상 미상';msg=`⭐ 평가 ${"★".repeat(sc)}${"☆".repeat(3-sc)} (${tgt})`;break;}
     default:msg=`${ev.type}`;break;
   }
@@ -596,6 +600,13 @@ function handle(ev){
       break;
     case"growth_case":
       activate(ev.actor); bubble(ev.actor,"📖 "+(p.domain||'학습'));
+      break;
+    case"advisory_returned":
+      activate(ev.actor); bubble(ev.actor,"💬 자문 "+(p.decision||''));
+      if(els.raspi5p) activate("raspi5p",900);
+      break;
+    case"advisory_executed":
+      activate("raspi5p"); bubble("raspi5p","✅ "+(p.action_taken||'실행'));
       break;
     case"score_given":
       stamp.textContent="★".repeat(p.score)+"☆".repeat(3-p.score);
