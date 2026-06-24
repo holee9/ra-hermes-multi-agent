@@ -272,6 +272,233 @@ def ensure_real_source_paths(parsed: dict, rag_results: list[dict]) -> dict:
     return parsed
 
 
+# ── RA Advisory (raspi5p ← T3610 consultant) ─────────────────────────────
+# @MX:NOTE: advisory = T3610 RA agents advise; raspi5p Hermes executes.
+# Boundary: T3610 never writes OpenProject. Honcho stays local; raspi5p uses 8643 only.
+ADVISORY_REGION_KEYWORDS: dict[str, list[str]] = {
+    "ra_us": ["fda", "510(k)", "510k", "qmsr", "de novo", "pma", "미국"],
+    "ra_eu": ["mdr", "eudamed", "eu clinical", "ce mark", "ce-mdr", "유럽"],
+    "ra_kr": ["mfds", "kgmp", "식약처", "한국", "국내", "허가"],
+}
+ADVISORY_ACTOR_PROFILE: dict[str, str] = {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
+ADVISORY_REGION_LABEL: dict[str, str] = {"ra_us": "US", "ra_eu": "EU", "ra_kr": "KR"}
+ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
+HONCHO_API_URL = os.environ.get("HONCHO_API_URL", "http://localhost:8000")
+HONCHO_WORKSPACE = os.environ.get("HONCHO_WORKSPACE", "work")
+
+
+def route_advisory_region(query: str, hint: str | None) -> tuple[str | None, str | None]:
+    """Server-side keyword routing. Returns (actor, yellow_reason).
+
+    Single match -> actor; multi/none -> (None, yellow_reason). Caller hint is
+    honored only when it does not conflict with detected regions.
+    """
+    q = (query or "").lower()
+    detected: set[str] = set()
+    for actor, kws in ADVISORY_REGION_KEYWORDS.items():
+        if any(kw in q for kw in kws):
+            detected.add(actor)
+
+    if hint in ADVISORY_ACTOR_PROFILE:
+        if not detected or detected == {hint}:
+            return hint, None
+        return None, "multi_region"
+
+    if len(detected) == 1:
+        return next(iter(detected)), None
+    if detected:
+        return None, "multi_region"
+    return None, "unclear_region"
+
+
+def _extract_json_objects(text: str) -> list[dict]:
+    """Return balanced JSON objects found in free text (handles nesting)."""
+    objs: list[dict] = []
+    depth = 0
+    start = -1
+    for i, ch in enumerate(text):
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start >= 0:
+                    try:
+                        objs.append(json.loads(text[start : i + 1]))
+                    except json.JSONDecodeError:
+                        pass
+                    start = -1
+    return objs
+
+
+def parse_advisory(text: str) -> dict | None:
+    """Extract advisory JSON from Hermes output."""
+    for d in _extract_json_objects(text):
+        if isinstance(d, dict) and ("decision" in d or "recommended_comment" in d):
+            return d
+    return None
+
+
+def validate_advisory(adv: dict, routed_actor: str) -> tuple[dict, str | None]:
+    """Enforce advisory contract. Returns (normalized_adv, yellow_reason_or_None).
+
+    Yellow when: invalid confidence, low confidence (< LOW_CONF = uncertain), or
+    no evidence (accuracy-first: every executable advisory must cite a source).
+    actor is ALWAYS the routed underscore actor (never trust LLM spelling) so a
+    wrong/hyphen peer id can never leak.
+    """
+    adv["actor"] = routed_actor
+    adv["region"] = ADVISORY_REGION_LABEL.get(routed_actor, "")
+    conf = adv.get("confidence")
+    if not isinstance(conf, (int, float)) or isinstance(conf, bool) or not (0 <= conf <= 1):
+        adv["confidence"] = 0.0
+        return adv, "invalid_confidence"
+    if conf < ADVISORY_LOW_CONF:
+        return adv, "low_confidence"
+    if not (adv.get("evidence") or []):
+        return adv, "no_evidence"
+    return adv, None
+
+
+def build_advisory_context(
+    query: str,
+    actor: str,
+    region: str,
+    rag_results: list[dict],
+    wiki_results: dict | None,
+    wp_context: dict | None,
+) -> str:
+    """Context for advisory output (NOT wp_comment). Reuses RAG/Layer4 evidence."""
+    parts = [f"## RA 자문 요청 — 담당 {actor} ({region})", "", "## 사안", query]
+    wp = wp_context or {}
+    wp_list = wp.get("wp_list", "")
+    wp_id = wp.get("wp_id")
+    if isinstance(wp_list, str) and wp_list.strip():
+        parts += ["", "## 기존 OpenProject WP 목록", wp_list]
+    if wp_id:
+        parts.append(f"(검토 대상 WP 후보: {wp_id})")
+    if rag_results:
+        parts += ["", "## 관련 문서(NAS) — evidence로 인용 가능"]
+        for i, r in enumerate(rag_results[:5], 1):
+            parts.append(f"[{i}] {r.get('source_file', '')} (관련도 {r.get('score', 0):.3f})")
+            parts.append(r.get("text", "")[:300])
+    if wiki_results:
+        _add_wiki_context(parts, wiki_results)
+    tmpl = (
+        '{"actor": "' + actor + '", "region": "' + region + '", '
+        '"confidence": 0.0~1.0, "decision": "comment_existing_wp|request_new_wp_review|yellow_review|no_action", '
+        '"wp_candidate": <WP번호 또는 null>, "summary": "...", "recommended_comment": "...", '
+        '"evidence": ["source/path.md"], "yellow_reason": null}'
+    )
+    parts += [
+        "",
+        "## 출력 지시",
+        "반드시 한국어로 다음 JSON 형식으로만 응답하세요 (마크다운 코드블록 금지, 다른 텍스트 금지):",
+        tmpl,
+        "- confidence 0.7 이상이면 evidence 1개 이상 필수.",
+        '- 불확실/근거 부족/다중 규제권이면 decision="yellow_review", yellow_reason 작성.',
+    ]
+    return "\n".join(parts)
+
+
+def _invoke_hermes(profile: str, context: str) -> tuple[str, str]:
+    """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
+    try:
+        result = subprocess.run(
+            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
+            capture_output=True,
+            text=True,
+            timeout=TIMEOUT,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"},
+        )
+        out = result.stdout.strip()
+        if out:
+            return out, ""
+        return "", (result.stderr.strip()[:500] or "no output")
+    except subprocess.TimeoutExpired:
+        return "", f"hermes timeout after {TIMEOUT}s"
+    except FileNotFoundError:
+        return "", f"hermes binary not found: {HERMES_BIN}"
+    except Exception as e:
+        return "", str(e)
+
+
+def _yellow_advisory(reason: str, region: str | None, error: str | None = None) -> dict:
+    """Build a non-executable Yellow advisory (auto-execution forbidden)."""
+    msg = {
+        "multi_region": "다중 규제권이 감지되어 단일 RA 전문가 자문 불가",
+        "unclear_region": "규제권을 특정할 수 없음",
+        "low_confidence": "신뢰도 낮음(불확실) — 사람 검토 필요",
+        "no_evidence": "근거(evidence) 없음 — 실행 불가",
+        "invalid_confidence": "confidence 값이 유효하지 않음",
+        "parse_or_hermes_failure": "RA agent 응답 파싱/호출 실패",
+    }.get(reason, reason)
+    if error:
+        msg = f"{msg} ({error[:120]})"
+    return {
+        "actor": region if region in ADVISORY_ACTOR_PROFILE else "system",
+        "region": ADVISORY_REGION_LABEL.get(region, "") if region in ADVISORY_ACTOR_PROFILE else "",
+        "confidence": 0.0,
+        "decision": "yellow_review",
+        "wp_candidate": None,
+        "summary": f"[Yellow] {msg}",
+        "recommended_comment": None,
+        "evidence": [],
+        "yellow_reason": reason,
+    }
+
+
+def _adv_meta(adv: dict, request_ref: str) -> dict:
+    """Structured metadata for Honcho (content stays clean text)."""
+    return {
+        "actor": adv.get("actor"),
+        "region": adv.get("region"),
+        "confidence": adv.get("confidence"),
+        "decision": adv.get("decision"),
+        "wp_candidate": adv.get("wp_candidate"),
+        "evidence": adv.get("evidence") or [],
+        "yellow_reason": adv.get("yellow_reason"),
+        "request_ref": request_ref,
+    }
+
+
+def _honcho_record(record_type: str, peer_id: str, content_text: str, meta: dict) -> None:
+    """Best-effort Honcho record (clean text content + structured metadata).
+
+    Never raises: advisory must not fail because Honcho is down (circular-dep avoid).
+    """
+    try:
+        session_id = "ra-advisory" if record_type == "ra_advisory" else "ra-advisory-feedback"
+        base = f"{HONCHO_API_URL}/v3/workspaces/{HONCHO_WORKSPACE}/sessions"
+        sess_req = urllib.request.Request(
+            f"{base}/{session_id}",
+            data=json.dumps({"id": session_id, "metadata": {"purpose": record_type}}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            urllib.request.urlopen(sess_req, timeout=5)
+        except urllib.error.HTTPError:
+            pass  # session already exists
+        msg_req = urllib.request.Request(
+            f"{base}/{session_id}/messages",
+            data=json.dumps({
+                "messages": [{
+                    "peer_id": peer_id,
+                    "content": content_text,
+                    "metadata": {"record_type": record_type, **meta},
+                }]
+            }).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(msg_req, timeout=5)
+    except Exception:
+        pass
+
+
 @app.route("/v1/models", methods=["GET"])
 def list_models():
     if not check_auth():
@@ -428,6 +655,89 @@ def chat_completions():
             "total_tokens": len(context.split()) + len(content.split()),
         },
     })
+
+
+@app.route("/v1/ra/advisory", methods=["POST"])
+def ra_advisory():
+    """RA advisory: T3610 returns a processing plan; never writes OpenProject.
+
+    raspi5p Hermes calls this, then re-verifies and executes locally. Output is
+    the fixed advisory contract; routing/validation violations collapse to Yellow.
+    """
+    # @MX:ANCHOR: cross-machine advisory boundary (raspi5p caller, T3610 consultant)
+    # @MX:REASON: gates all OP execution to raspi5p; T3610 only advises + records to local Honcho
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(force=True, silent=True) or {}
+    query = str(data.get("query") or data.get("content") or "").strip()
+    if not query or len(query) > 8000:
+        return jsonify({"error": "query required (<=8000 chars)"}), 400
+    wp_context = data.get("wp_context") or {}
+    region_hint = str(data.get("region_hint") or "").strip() or None
+
+    actor, yellow = route_advisory_region(query, region_hint)
+    request_ref = f"adv-{int(time.time())}"
+
+    if yellow:
+        adv = _yellow_advisory(yellow, region_hint)
+        adv["request_ref"] = request_ref
+        _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
+        return jsonify(adv)
+
+    profile = ADVISORY_ACTOR_PROFILE[actor]
+    region = ADVISORY_REGION_LABEL[actor]
+    rag_results = _run_rag_search(query, top=5)
+    wiki_results = _run_knowledge_fetch(query, profile, top=3)
+    context = build_advisory_context(query, actor, region, rag_results, wiki_results, wp_context)
+
+    response_text, error_detail = _invoke_hermes(profile, context)
+    adv = parse_advisory(response_text) if response_text else None
+
+    if adv:
+        adv, vyellow = validate_advisory(adv, actor)
+        if vyellow:
+            adv = _yellow_advisory(vyellow, actor, error=str(vyellow))
+        else:
+            adv.setdefault("yellow_reason", None)
+    else:
+        adv = _yellow_advisory("parse_or_hermes_failure", actor, error=error_detail)
+
+    adv["request_ref"] = request_ref
+    _honcho_record("ra_advisory", actor, adv.get("summary", ""), _adv_meta(adv, request_ref))
+    return jsonify(adv)
+
+
+@app.route("/v1/ra/advisory/feedback", methods=["POST"])
+def ra_advisory_feedback():
+    """raspi5p reports execution result; T3610 records ra_advisory_feedback locally."""
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(force=True, silent=True) or {}
+    request_ref = str(data.get("request_ref") or "").strip()
+    if not request_ref:
+        return jsonify({"error": "request_ref required"}), 400
+    action = str(data.get("action_taken") or "").strip()
+    if action not in ("comment_added", "review_requested", "rejected", "no_action"):
+        return jsonify({"error": "invalid action_taken"}), 400
+
+    actor = str(data.get("actor") or "system").strip()
+    if actor not in ADVISORY_ACTOR_PROFILE:
+        actor = "system"
+    note = str(data.get("note") or data.get("summary") or "").strip()
+    wp_id = data.get("wp_id")
+    gate = data.get("gate_result")
+
+    content = "[실행결과] " + action + (f" → WP {wp_id}" if wp_id else "") + (f": {note}" if note else "")
+    meta = {
+        "request_ref": request_ref,
+        "action_taken": action,
+        "wp_id": wp_id,
+        "gate_result": gate,
+    }
+    _honcho_record("ra_advisory_feedback", actor, content, meta)
+    return jsonify({"status": "recorded", "request_ref": request_ref})
 
 
 @app.route("/health", methods=["GET"])

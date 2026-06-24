@@ -20,7 +20,8 @@
    └─ Sam    (한국 RA)                                  └─ Gus   (라즈베리파이)
    업무 지원
    ├─ Margot (사안 담당)
-   └─ Olly   (자동화 담당)
+   ├─ Olly   (자동화 담당)
+   └─ Iris   (raspi5p Hermes · 실행자)
 ```
 
 ---
@@ -34,6 +35,7 @@
 | ra_kr | Samuel | **Sam** | 한국 RA 전문가 (MFDS/KGMP) | 업무 |
 | op_manager | Margot | **Margot** | 사안 담당 (OpenProject WP 추적·반영) | 업무 |
 | n8n_manager | Oliver | **Olly** | 자동화 담당 (n8n 워크플로우) | 업무 |
+| raspi5p | Iris | **Iris** | raspi5p Hermes 실행자 (RA 자문 수신 → 로컬 게이트 → OP 댓글/검토 실행) | 업무 |
 | infra_t3610 | Finn | **Finn** | 인프라 (T3610) | 인프라 |
 | infra_gx10 | Leo | **Leo** | 인프라 (GX10) | 인프라 |
 | infra_rpi | Gus | **Gus** | 인프라 (라즈베리파이) | 인프라 |
@@ -55,3 +57,4 @@
 - actor ID는 뼈대 활동 기록(목업 계약)의 식별자. 살은 이 표로 ID→이름 번역해 캐릭터 라벨에 표시.
 - 정식/애칭 분리: 가상 오피스 캐릭터 위에는 애칭, 사람 대상 공식 리포트(있다면)에는 정식 이름 사용 가능.
 - 파일럿 단계 작명이므로 확정 아님 — 운영 피드백으로 조정.
+- **raspi5p(Iris) 경계**: raspi5p Hermes가 실행주체. T3610 RA 전문가(Mike/Theo/Sam)는 자문만 반환하고 OP에 직접 write하지 않음(#83). Iris는 RA 자문을 받아 로컬 안전 게이트 통과 시에만 OP 댓글/검토요청을 수행. infra_rpi(Gus, 투표용)와는 별개.

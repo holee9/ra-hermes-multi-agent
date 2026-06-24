@@ -59,6 +59,41 @@ function adaptHonchoMessage(msg) {
     };
   }
 
+  // (1b) ra_advisory: T3610 RA agent returned a processing plan to raspi5p.
+  // @MX:NOTE: advisory loop — RA advises (ra_advisory), raspi5p executes (ra_advisory_feedback).
+  if (meta.record_type === 'ra_advisory') {
+    const actor = meta.actor || meta.peer_id;
+    if (!actor) return null;
+    return {
+      ts: msg.created_at,
+      type: 'advisory_returned',
+      actor,
+      payload: {
+        decision: meta.decision || null,
+        confidence: meta.confidence,
+        region: meta.region || null,
+        wp_candidate: meta.wp_candidate ?? null,
+        summary: msg.content || meta.summary || '',
+        yellow_reason: meta.yellow_reason ?? null
+      }
+    };
+  }
+
+  // (1c) ra_advisory_feedback: raspi5p (Iris) executed after local gate.
+  // @MX:NOTE: executor is always raspi5p regardless of which RA advised.
+  if (meta.record_type === 'ra_advisory_feedback') {
+    return {
+      ts: msg.created_at,
+      type: 'advisory_executed',
+      actor: 'raspi5p',
+      payload: {
+        action_taken: meta.action_taken || null,
+        wp_id: meta.wp_id ?? null,
+        note: msg.content || ''
+      }
+    };
+  }
+
   // (2) 자기서술적 JSON content를 가진 작업 레코드 — score_given(KB-eval 사람 채점) +
   // activity_log(n8n mail-triage). content 전체가 {type, actor?, payload} 계약.
   // @MX:NOTE: score_given actor lives in metadata (human), content only has type/payload.
