@@ -483,6 +483,7 @@ function log(ev,live=false){
     case"vote_opened":msg=`🔔 투표 소집: ${p.topic}`;break;
     case"vote_cast":msg=`🗳 투표: ${p.vote}`;break;
     case"vote_result":msg=`✅ 결정: ${p.result}`;break;
+    case"growth_case":{const dom=p.domain||'규제';msg=`📖 규제 학습 (${dom})`;break;}
     case"score_given":{const sc=p.score||0,tgt=p.target||p.target_actor||'대상 미상';msg=`⭐ 평가 ${"★".repeat(sc)}${"☆".repeat(3-sc)} (${tgt})`;break;}
     default:msg=`${ev.type}`;break;
   }
@@ -546,6 +547,9 @@ function handle(ev){
       },1600);
       // 브릿지: 인프라->업무 알림
       floatIcon(WORK_W+10,200,"op_manager","⚠️");
+      break;
+    case"growth_case":
+      activate(ev.actor); bubble(ev.actor,"📖 "+(p.domain||'학습'));
       break;
     case"score_given":
       stamp.textContent="★".repeat(p.score)+"☆".repeat(3-p.score);
