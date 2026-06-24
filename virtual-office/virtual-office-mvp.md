@@ -10,6 +10,7 @@
 - **관찰자 구조**: 살은 뼈대 활동을 읽기만 한다. 운영에 개입하지 않는다.
 - **기록 재생**: 실시간 시뮬레이션이 아니라, 쌓인 활동 이벤트를 시간순 재생하는 플레이어. (라이브는 후속 — 같은 배열을 폴링 갱신)
 - **[2026-06-21 갱신] 관측 모델 전환 완료**: 재생 메타포(플레이어) 폐지 → read-only 관측. 과거는 정적 로그(시간순, 애니메이션 없음), 새 이벤트만 실시간 애니메이션. Heat Map 목업→실데이터(`matched` 이벤트 region×confidence 집계). 모니터링 시스템은 있는 그대로 관측 — 활동 없으면 조용한 게 정상 신호.
+- **[2026-06-24 갱신] 실제업무 대시보드 전환 ([#81](https://github.com/holee9/ra-hermes-multi-agent/issues/81))**: 어댑터가 `metadata.record_type` 기반 매핑 추가 — `daily_growth_case`→`growth_case`(RA 일일 학습), `score_given`(사람 KB-eval 평가)을 기존 `activity_log`(메일)와 함께 표시. 메일 의존성 탈피 — 메일이 안 와도 학습 루프가 살아 있으면 오피스가 움직인다. 하단 기록창 확대(상단 폭 정렬·높이 96→220px) + **클릭 상세 패널**(행 클릭 시 소스·도메인·점수·평가차원 표시)로 CLI 없이 이력 파악. 새 이벤트 실시간 반응은 사용자 브라우저로 검증 완료.
 - **목업 = 계약**: 뼈대 출력 형태를 목업으로 미리 고정. 연동 시 데이터 소스만 목업→Honcho 교체.
 - **독립 배포**: 비설치형 웹앱. Docker 단일 컨테이너. 배포 PC는 추후 지정.
 
@@ -36,6 +37,13 @@
 
 **필드 의미**: `ts`=재생 순서, `actor`=캐릭터, `type`=동작, `payload`=말풍선/상태 내용.
 이 형태가 뼈대 출력 명세이자 살 입력 명세다. 양쪽이 이 형태를 기준으로 만든다.
+
+> **[2026-06-24] 데이터 소스 매핑 ([#81](https://github.com/holee9/ra-hermes-multi-agent/issues/81))**: 살의 어댑터(`virtual-office-honcho-adapter.js`)는 Honcho 메시지를 위 이벤트 형태로 변환한다. 매핑 기준 = `metadata.record_type` / `metadata.type`:
+> - `daily_growth_case` → `growth_case` 이벤트 (구조는 `metadata`에서 조립 — content는 사람이 읽는 텍스트)
+> - `score_given` → `score_given` 이벤트 (자기서술적 content JSON 파싱)
+> - `activity_log` → content JSON의 `type` 그대로 (mail_received·matched·comment_added·...)
+>
+> 이벤트 형태 자체는 불변(목업=계약). 변한 것은 어댑터의 소스 매핑뿐이다.
 
 ---
 
@@ -75,6 +83,7 @@
 | vote_cast | 각 인프라 캐릭터 표 카드 제출 |
 | vote_result | 인프라→업무 구역으로 알림 종이 이동 (브릿지 시각화) |
 | score_given | human이 대상 이벤트에 3점 도장 |
+| growth_case | 해당 RA 학습 애니메이션 + "📖 도메인" 말풍선 (규제 문서 학습, daily-growth) |
 | (완료, 후속) | human 전용 도장. 그전엔 카드가 완료구역 못 넘어감 (고정 규칙의 시각적 강제) |
 
 ---
