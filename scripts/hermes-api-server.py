@@ -282,9 +282,19 @@ ADVISORY_REGION_KEYWORDS: dict[str, list[str]] = {
 }
 ADVISORY_ACTOR_PROFILE: dict[str, str] = {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
 ADVISORY_REGION_LABEL: dict[str, str] = {"ra_us": "US", "ra_eu": "EU", "ra_kr": "KR"}
+# Accept region hint as either label (US/EU/KR) or actor id (ra_us/ra_eu/ra_kr).
+HINT_ALIASES: dict[str, str] = {
+    "us": "ra_us", "eu": "ra_eu", "kr": "ra_kr",
+    "ra_us": "ra_us", "ra_eu": "ra_eu", "ra_kr": "ra_kr",
+}
 ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
 HONCHO_API_URL = os.environ.get("HONCHO_API_URL", "http://localhost:8000")
 HONCHO_WORKSPACE = os.environ.get("HONCHO_WORKSPACE", "work")
+
+
+def normalize_region_hint(hint: str | None) -> str | None:
+    """Normalize a region hint (US/EU/KR or ra_us/ra_eu/ra_kr) -> actor id, or None."""
+    return HINT_ALIASES.get((hint or "").lower())
 
 
 def route_advisory_region(query: str, hint: str | None) -> tuple[str | None, str | None]:
@@ -293,6 +303,7 @@ def route_advisory_region(query: str, hint: str | None) -> tuple[str | None, str
     Single match -> actor; multi/none -> (None, yellow_reason). Caller hint is
     honored only when it does not conflict with detected regions.
     """
+    hint = normalize_region_hint(hint)
     q = (query or "").lower()
     detected: set[str] = set()
     for actor, kws in ADVISORY_REGION_KEYWORDS.items():
@@ -397,7 +408,8 @@ def build_advisory_context(
         "## 출력 지시",
         "반드시 한국어로 다음 JSON 형식으로만 응답하세요 (마크다운 코드블록 금지, 다른 텍스트 금지):",
         tmpl,
-        "- confidence 0.7 이상이면 evidence 1개 이상 필수.",
+        "- confidence 0.5 이상 실행 응답은 evidence(출처) 1개 이상 필수. 근거 없으면 Yellow.",
+        "- confidence 0.5 미만(불확실)이면 Yellow.",
         '- 불확실/근거 부족/다중 규제권이면 decision="yellow_review", yellow_reason 작성.',
     ]
     return "\n".join(parts)
@@ -680,7 +692,7 @@ def ra_advisory():
     request_ref = f"adv-{int(time.time())}"
 
     if yellow:
-        adv = _yellow_advisory(yellow, region_hint)
+        adv = _yellow_advisory(yellow, normalize_region_hint(region_hint))
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
         return jsonify(adv)
