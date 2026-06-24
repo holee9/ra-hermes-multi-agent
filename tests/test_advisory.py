@@ -64,6 +64,24 @@ def test_route_hint_conflict_is_yellow():
     assert yellow == "multi_region"
 
 
+def test_route_hint_accepts_label_format():  # US/EU/KR label (doc format) accepted
+    assert m.normalize_region_hint("US") == "ra_us"
+    assert m.normalize_region_hint("kr") == "ra_kr"
+    actor, yellow = m.route_advisory_region("일반 사안", "EU")
+    assert actor == "ra_eu" and yellow is None
+
+
+def test_route_hint_accepts_actor_format():  # ra_us/ra_eu/ra_kr also accepted
+    actor, yellow = m.route_advisory_region("일반 사안", "ra_us")
+    assert actor == "ra_us" and yellow is None
+
+
+def test_route_hint_invalid_is_ignored():
+    assert m.normalize_region_hint("XX") is None
+    actor, yellow = m.route_advisory_region("FDA 사안", "XX")
+    assert actor == "ra_us"  # invalid hint ignored, keyword still routes
+
+
 # ── parsing (#83 item 1/2: normal JSON returned from prose) ───────────────
 def test_parse_advisory_from_prose():
     sample = (
