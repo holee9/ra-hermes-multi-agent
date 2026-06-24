@@ -123,6 +123,15 @@ Honcho delegates all inference to GX10 via OpenAI-compatible endpoint over 2.5G 
 
 `confidence` (Contract A) below `YELLOW_CONFIDENCE_THRESHOLD`, invalid/missing fields, ambiguous routing, existing WP closed/done state, or OpenProject lookup failure must route to Yellow/human review.
 
+**Contract C — RA Advisory** (`POST /v1/ra/advisory` in `scripts/hermes-api-server.py`, #83): T3610 RA agent returns a processing plan to raspi5p Hermes (executor). T3610 never writes OpenProject.
+```json
+{ "actor": "ra_us|ra_eu|ra_kr", "region": "US|EU|KR", "confidence": 0.0-1.0,
+  "decision": "comment_existing_wp|request_new_wp_review|yellow_review|no_action",
+  "wp_candidate": 1234, "summary": "...", "recommended_comment": "...",
+  "evidence": ["source/path.md#section"], "yellow_reason": null }
+```
+Server-side keyword routing; multi-region/unclear → Yellow. `actor` is underscore-only (forced). High-confidence requires evidence; low (<0.5)/no-evidence → Yellow. raspi5p re-verifies then executes (PoC: OP comment or review request only). Spec: `docs/ra-advisory-api.md`.
+
 **Activity log format** (Honcho output = Virtual Office input, frozen):
 ```json
 { "ts":"ISO8601", "type":"mail_received|matched|comment_added|...",

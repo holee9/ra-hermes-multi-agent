@@ -331,6 +331,16 @@ npm test
 - 2026-06-16 구현: `scripts/hermes-api-server.py`에 `POST /v1/knowledge/fetch` 추가. `mail-triage.json`에 `Layer 4 조회 준비` → `Layer 4 규제 DB 조회` → `Layer 4 컨텍스트 주입` 노드를 추가하고 RA prompt에 `layer4_context`를 주입한다.
 - Runtime 검증: `scripts/deploy-local.sh`로 `/opt/hermes-ra/` 동기화 후 `hermes-api-server` restart. RPi → T3610 `/v1/knowledge/fetch` smoke에서 openFDA `MQB` 510(k) 결과를 200 OK로 확인.
 
+#### P3.1b RA 자문 백엔드 (raspi5p ← T3610) `#83`
+
+raspi5p Hermes가 RA 처리안을 T3610 RA agent(ra_us/ra_eu/ra_kr)에 질의. **T3610은 자문만, raspi5p가 실행주체** (OP write 권한 이동 없음).
+
+- `POST /v1/ra/advisory` (8643, Bearer): 서버측 키워드 라우팅(단일→actor, 다중/불명확→Yellow 사전 반환) → RAG + Layer4 → `hermes -p <profile> -z <ctx> --skills ra-expert` → advisory JSON 검증(actor underscore 강제·confidence 0-1·저신뢰<0.5/근거없음→Yellow) → Honcho `ra_advisory` 기록(로컬 8000만) → 응답.
+- `POST /v1/ra/advisory/feedback`: raspi5p 실행 결과 회신 → T3610이 Honcho `ra_advisory_feedback` 기록 (루프 클로즈).
+- `region_hint`: `US`/`EU`/`KR`(label) 또는 `ra_us`/`ra_eu`/`ra_kr`(actor) 양쪽 지원 (`normalize_region_hint`).
+- 계약·라우팅·fallback·raspi5p 호출 예시: `docs/ra-advisory-api.md`. 단위 테스트: `tests/test_advisory.py` (25). Honcho는 T3610 로컬만 (raspi5p는 8643만 호출, 8000 노출 없음).
+- 2026-06-24 구현·live 검증: `/opt/hermes-ra/` 반영 + restart. ra_kr/ra_us 단일→정상 JSON(evidence 포함), 다중·불명확→Yellow, feedback 기록, 옵저버 advisory 이벤트 표시 확인. review로 hint label 지원·LLM지시-검증 일치 수정(commit 2c8012d).
+
 ### P3.2 성장 트리거 자동화 `[구현 + IF]` (#38, #64, #65)
 
 - systemd timer: `ra-growth-metrics.timer` (일 1회 02:00 KST)
