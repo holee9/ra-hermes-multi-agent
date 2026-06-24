@@ -39,7 +39,14 @@ async function initDataSource(){
 
 **연동 가능한 엔드포인트**:
 - `/api/config` — 데이터 소스 설정
-- `/api/events` — Honcho 활동 기록 스트림
+- `/api/events` — Honcho 활동 이벤트 스트림 (어댑터가 메시지→이벤트로 변환해 반환)
+
+> **[2026-06-24 갱신, [#81](https://github.com/holee9/ra-hermes-multi-agent/issues/81)]**: `/api/events`는 어댑터(`virtual-office-honcho-adapter.js`)가 Honcho 메시지를 이벤트로 변환한다. 매핑 기준 = `metadata.record_type` / `metadata.type`:
+> - `daily_growth_case` → `growth_case` (RA 일일 학습, 구조는 metadata에서 조립)
+> - `score_given` → `score_given` (사람 KB-eval 평가, 자기서술적 content JSON)
+> - `activity_log` → content JSON의 `type` 그대로 (메일 처리: `mail_received`·`matched`·`comment_added`·`transition_proposed`·`vote_*`)
+>
+> 이전에는 `activity_log`(메일)만 반환했으나, 학습/평가 실제 업무까지 표시하도록 확장했다. 브라우저는 기록 행 클릭 시 하단 상세 패널에 소스·도메인·점수·평가차원을 표시한다.
 
 ---
 
