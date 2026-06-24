@@ -38,37 +38,56 @@ const MOCK_EVENTS = [
 ];
 
 // Honcho 메시지를 가상 오피스 이벤트 형식으로 변환
+// @MX:NOTE: maps two distinct Honcho record shapes — (1) record_type-tagged work
+// records whose structure lives in metadata, (2) activity_log/mail records whose
+// structure is a self-describing JSON in content. Only real-work records render;
+// conversational (NULL record_type) messages are intentionally skipped.
 function adaptHonchoMessage(msg) {
-  // activity_log 타입의 메시지만 처리 (n8n mail-triage가 남기는 활동 기록)
-  if (msg.metadata?.type !== 'activity_log') {
-    return null;
+  const meta = msg.metadata || {};
+
+  // (1) daily_growth_case: content는 사람이 읽는 텍스트 → 구조는 metadata에 있음.
+  // @MX:NOTE: growth cases (ra_us/ra_eu/ra_kr) are the daily learning heartbeat.
+  if (meta.record_type === 'daily_growth_case') {
+    const actor = meta.actor || meta.peer_id;
+    if (!actor) return null;
+    const kws = Array.isArray(meta.matched_keywords) ? meta.matched_keywords : [];
+    return {
+      ts: msg.created_at,
+      type: 'growth_case',
+      actor,
+      payload: { domain: kws.join('/') || '규제', source: meta.source || null }
+    };
   }
 
-  let activityRecord;
-  try {
-    activityRecord = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
-  } catch {
-    return null;
+  // (2) 자기서술적 JSON content를 가진 작업 레코드 — score_given(KB-eval 사람 채점) +
+  // activity_log(n8n mail-triage). content 전체가 {type, actor?, payload} 계약.
+  // @MX:NOTE: score_given actor lives in metadata (human), content only has type/payload.
+  const isScoreGiven = meta.record_type === 'score_given';
+  const isActivityLog = meta.type === 'activity_log';
+  if (isScoreGiven || isActivityLog) {
+    let parsed = null;
+    try {
+      parsed = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+    } catch {
+      return null;
+    }
+    if (!parsed || !parsed.type) return null;
+    const actor = parsed.actor || meta.actor;
+    if (!actor) return null;
+    const event = {
+      ts: parsed.ts || msg.created_at,
+      type: parsed.type,
+      actor,
+      payload: parsed.payload || {}
+    };
+    // mail_received 이벤트에 target 필드 복원
+    if (parsed.type === 'mail_received' && parsed.payload?.target) {
+      event.target = parsed.payload.target;
+    }
+    return event;
   }
 
-  if (!activityRecord || !activityRecord.type || !activityRecord.actor) {
-    return null;
-  }
-
-  // 활동 기록 계약 형식 → 가상 오피스 이벤트 형식 매핑
-  const event = {
-    ts: activityRecord.ts || msg.created_at,
-    type: activityRecord.type,
-    actor: activityRecord.actor,
-    payload: activityRecord.payload || {}
-  };
-
-  // mail_received 이벤트에 target 필드 복원
-  if (activityRecord.type === 'mail_received' && activityRecord.payload?.target) {
-    event.target = activityRecord.payload.target;
-  }
-
-  return event;
+  return null;
 }
 
 function postJson(apiUrl, payload) {
