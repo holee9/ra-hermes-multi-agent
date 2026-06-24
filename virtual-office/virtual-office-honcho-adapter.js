@@ -55,7 +55,7 @@ function adaptHonchoMessage(msg) {
       ts: msg.created_at,
       type: 'growth_case',
       actor,
-      payload: { domain: kws.join('/') || '규제', source: meta.source || null }
+      payload: { domain: kws.join('/') || '규제', source: meta.source || null, scenario_id: meta.scenario_id || null }
     };
   }
 
