@@ -288,6 +288,10 @@ HINT_ALIASES: dict[str, str] = {
     "ra_us": "ra_us", "ra_eu": "ra_eu", "ra_kr": "ra_kr",
 }
 ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
+ADVISORY_TIMEOUT = int(os.environ.get("ADVISORY_TIMEOUT", "180"))
+ADVISORY_FALLBACK_ACTOR = os.environ.get("ADVISORY_FALLBACK_ACTOR", "ra_kr")
+if ADVISORY_FALLBACK_ACTOR not in ADVISORY_ACTOR_PROFILE:
+    ADVISORY_FALLBACK_ACTOR = "ra_kr"
 HONCHO_API_URL = os.environ.get("HONCHO_API_URL", "http://localhost:8000")
 HONCHO_WORKSPACE = os.environ.get("HONCHO_WORKSPACE", "work")
 
@@ -415,14 +419,14 @@ def build_advisory_context(
     return "\n".join(parts)
 
 
-def _invoke_hermes(profile: str, context: str) -> tuple[str, str]:
+def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
     """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
     try:
         result = subprocess.run(
             [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
             capture_output=True,
             text=True,
-            timeout=TIMEOUT,
+            timeout=timeout,
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
         out = result.stdout.strip()
@@ -430,7 +434,7 @@ def _invoke_hermes(profile: str, context: str) -> tuple[str, str]:
             return out, ""
         return "", (result.stderr.strip()[:500] or "no output")
     except subprocess.TimeoutExpired:
-        return "", f"hermes timeout after {TIMEOUT}s"
+        return "", f"hermes timeout after {timeout}s"
     except FileNotFoundError:
         return "", f"hermes binary not found: {HERMES_BIN}"
     except Exception as e:
@@ -449,9 +453,10 @@ def _yellow_advisory(reason: str, region: str | None, error: str | None = None) 
     }.get(reason, reason)
     if error:
         msg = f"{msg} ({error[:120]})"
+    actor = region if region in ADVISORY_ACTOR_PROFILE else ADVISORY_FALLBACK_ACTOR
     return {
-        "actor": region if region in ADVISORY_ACTOR_PROFILE else "system",
-        "region": ADVISORY_REGION_LABEL.get(region, "") if region in ADVISORY_ACTOR_PROFILE else "",
+        "actor": actor,
+        "region": ADVISORY_REGION_LABEL.get(actor, ""),
         "confidence": 0.0,
         "decision": "yellow_review",
         "wp_candidate": None,
@@ -482,7 +487,11 @@ def _honcho_record(record_type: str, peer_id: str, content_text: str, meta: dict
     Never raises: advisory must not fail because Honcho is down (circular-dep avoid).
     """
     try:
-        session_id = "ra-advisory" if record_type == "ra_advisory" else "ra-advisory-feedback"
+        session_id = {
+            "ra_advisory": "ra-advisory",
+            "ra_advisory_feedback": "ra-advisory-feedback",
+            "ra_advisory_conclusion": "ra-advisory-conclusion",
+        }.get(record_type, "ra-advisory-feedback")
         base = f"{HONCHO_API_URL}/v3/workspaces/{HONCHO_WORKSPACE}/sessions"
         sess_req = urllib.request.Request(
             f"{base}/{session_id}",
@@ -703,7 +712,7 @@ def ra_advisory():
     wiki_results = _run_knowledge_fetch(query, profile, top=3)
     context = build_advisory_context(query, actor, region, rag_results, wiki_results, wp_context)
 
-    response_text, error_detail = _invoke_hermes(profile, context)
+    response_text, error_detail = _invoke_hermes(profile, context, timeout=ADVISORY_TIMEOUT)
     adv = parse_advisory(response_text) if response_text else None
 
     if adv:
@@ -734,9 +743,9 @@ def ra_advisory_feedback():
     if action not in ("comment_added", "review_requested", "rejected", "no_action"):
         return jsonify({"error": "invalid action_taken"}), 400
 
-    actor = str(data.get("actor") or "system").strip()
+    actor = str(data.get("actor") or ADVISORY_FALLBACK_ACTOR).strip()
     if actor not in ADVISORY_ACTOR_PROFILE:
-        actor = "system"
+        actor = ADVISORY_FALLBACK_ACTOR
     note = str(data.get("note") or data.get("summary") or "").strip()
     wp_id = data.get("wp_id")
     gate = data.get("gate_result")
@@ -749,6 +758,18 @@ def ra_advisory_feedback():
         "gate_result": gate,
     }
     _honcho_record("ra_advisory_feedback", actor, content, meta)
+    if action in ("comment_added", "review_requested", "rejected", "no_action"):
+        conclusion = "[결론] " + action + (f" / WP {wp_id}" if wp_id else " / WP 없음") + (f" / {note}" if note else "")
+        _honcho_record("ra_advisory_conclusion", actor, conclusion, {
+            **meta,
+            "conclusion": {
+                "request_ref": request_ref,
+                "actor": actor,
+                "action_taken": action,
+                "wp_id": wp_id,
+                "note": note,
+            },
+        })
     return jsonify({"status": "recorded", "request_ref": request_ref})
 
 
