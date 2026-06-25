@@ -109,9 +109,17 @@ API_TIMEOUT_MS=3000000
 
 현재 `/home/abyz-lab/.local/bin/glm` wrapper는 명령 인자로 모델 선택을 지원한다.
 
+2026-06-24 실제 Z.ai Anthropic-compatible endpoint smoke test 기준:
+
+- `glm-5.1` 요청: HTTP 200, 응답 `model`은 `glm-5.2`로 서버측 매핑
+- `glm-5.2`: HTTP 200
+- `glm-5.2[1m]`: HTTP 400 `Unknown Model`
+
+따라서 현재 장비 설정은 명시 모델명을 `glm-5.2`로 고정하고, Claude Code compact window는 `GLM_AUTO_COMPACT_WINDOW=1000000`으로 별도 지정한다.
+
 ```bash
 glm                 # Z.ai server-side default mapping
-glm 5.2             # glm-5.2[1m], 1M compact window
+glm 5.2             # glm-5.2
 glm 4.7             # glm-4.7
 glm 5-turbo         # glm-5-turbo
 glm 5.1             # glm-5.1
@@ -126,15 +134,15 @@ glm 5.2 -p "review this repo"
 glm 4.7 --continue
 ```
 
-GLM-5.2 1M context를 Claude Code에서 명시 고정하려면 Z.ai 공식 문서 기준으로 `~/.claude/settings.json`의 `env` 또는 wrapper env에 아래 값을 추가한다.
+GLM-5.2 1M context를 Claude Code에서 명시하려면 Z.ai 공식 모델명은 `glm-5.2`로 두고, compact window만 wrapper env에 별도 지정한다.
 
 ```json
 {
   "env": {
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.2[1m]",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.2[1m]"
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.2",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.2",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
   }
 }
 ```
