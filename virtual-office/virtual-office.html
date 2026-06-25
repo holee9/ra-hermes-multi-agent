@@ -473,18 +473,14 @@ function floatIcon(fromRoomX,fromY,toId,icon){
   requestAnimationFrame(()=>{ f.style.left=(t.home.x)+'px'; f.style.top=(t.home.y-20)+'px'; });
   setTimeout(()=>f.remove(),1400);
 }
-/* 타임스탬프 → 상대시간(짧은 절대시간 fallback) */
+/* 타임스탬프 → 실제 기록 시각(MM-DD HH:MM:SS, Asia/Seoul). 정확한 시점 표시. */
 function fmtTs(ts){
   if(!ts) return '';
-  const d=new Date(ts), now=new Date();
-  const sec=(now-d)/1000;
-  if(isNaN(sec)) return String(ts).slice(0,16);
-  if(sec<0) return '방금 전';
-  if(sec<60) return Math.floor(sec)+'초 전';
-  if(sec<3600) return Math.floor(sec/60)+'분 전';
-  if(sec<86400) return Math.floor(sec/3600)+'시간 전';
-  if(sec<86400*30) return Math.floor(sec/86400)+'일 전';
-  return String(ts).slice(5,16).replace('T',' ');
+  const d=new Date(ts);
+  if(isNaN(d.getTime())) return String(ts).slice(0,19);
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(d);
+  const g={};p.forEach(x=>g[x.type]=x.value);
+  return `${g.month}-${g.day} ${g.hour}:${g.minute}:${g.second}`;
 }
 function log(ev,live=false){
   const names={...Object.fromEntries(Object.entries(CHARS).map(([k,v])=>[k,v.name])),system:"SYS",human:"YOU"};
