@@ -628,7 +628,7 @@ async function fetchEvents(){
    표시 범위: 최근 30일 이내 & 최대 HISTORY_LIMIT개 (plan 싱크) */
 function renderHistory(evts){
   logEl.innerHTML='';
-  const cutoff = Date.now() - 30*24*60*60*1000; // 최근 30일
+  const cutoff = Date.now() - 2*24*60*60*1000; // 최근 2일 (이력 창 누적 방지)
   evts.filter(ev => !ev.ts || new Date(ev.ts).getTime() >= cutoff)
       .slice(-HISTORY_LIMIT)
       .forEach(ev=>log(ev,false));
