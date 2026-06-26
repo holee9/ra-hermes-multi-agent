@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-06-24
-Timestamp: 2026-06-24T08:00:00+09:00
+Date: 2026-06-26
+Timestamp: 2026-06-26T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -75,14 +75,14 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] daily-growth executed (written=9, idempotent verified, peer_id underscore clean)
+- [ ] No today's growth execution yet (Day 2-3: dry-run expected) ⚠️  MANUAL CHECK
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 8
-- **WARN**: 0
+- **PASS**: 7
+- **WARN**: 1
 - **FAIL**: 0
 
 ## 5. Status
