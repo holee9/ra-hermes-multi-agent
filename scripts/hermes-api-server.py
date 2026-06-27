@@ -45,7 +45,10 @@ PROFILE_MAP: dict[str, str] = {
 }
 DEFAULT_PROFILE = "ra-us"
 
-# Response log for weekly_review.py analysis
+# Response log for weekly_review.py analysis. Contract A (/v1/chat/completions) only —
+# written by log_response() inside chat_completions(). Contract C (/v1/ra/advisory) logs to
+# ADV_REQUEST_LOG instead, so this file goes stale while Contract A is unused. That staleness
+# is expected, not a defect (#88 action 3 — closed as no-action 2026-06-28 after investigation).
 RESPONSE_LOG = os.environ.get("RESPONSE_LOG", "/var/log/hermes-responses.jsonl")
 
 _response_logger = logging.getLogger("hermes.responses")
@@ -94,7 +97,12 @@ def _log_adv_request(request_ref: str, query: str, region_hint: str | None, adv:
 
 
 def log_response(metadata: dict, parsed: dict) -> None:
-    """Append one JSONL line per processed request for quality review."""
+    """Append one JSONL line per processed Contract A request for quality review.
+
+    Contract A-only (called from chat_completions, /v1/chat/completions). The Contract C
+    advisory path (/v1/ra/advisory) does not call this — it logs via ADV_REQUEST_LOG.
+    RESPONSE_LOG therefore stays silent while Contract A is unused (#88 action 3).
+    """
     try:
         record = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
