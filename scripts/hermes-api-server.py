@@ -57,6 +57,41 @@ try:
 except OSError:
     pass  # log dir not writable; skip silently
 
+# Advisory request log: input (query + region_hint) + outcome, so unclear_region is
+# immediately diagnosable (#88 action 2). Separate from RESPONSE_LOG (that is #88 action 3).
+ADV_REQUEST_LOG = os.environ.get("ADV_REQUEST_LOG", "/var/log/ra-advisory-requests.jsonl")
+
+_adv_request_logger = logging.getLogger("ra.advisory.requests")
+_adv_request_logger.setLevel(logging.INFO)
+try:
+    _ar_fh = logging.FileHandler(ADV_REQUEST_LOG)
+    _ar_fh.setFormatter(logging.Formatter("%(message)s"))
+    _adv_request_logger.addHandler(_ar_fh)
+except OSError:
+    pass  # log dir not writable; skip silently
+
+
+def _log_adv_request(request_ref: str, query: str, region_hint: str | None, adv: dict) -> None:
+    """Log advisory request input + outcome so unclear_region is immediately diagnosable.
+
+    Joinable with Honcho via request_ref. Never raises — logging must not break advisory.
+    """
+    try:
+        _adv_request_logger.info(json.dumps({
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "request_ref": request_ref,
+            "query_len": len(query),
+            "query": query[:1000],
+            "region_hint": region_hint,
+            "region": adv.get("region"),
+            "actor": adv.get("actor"),
+            "decision": adv.get("decision"),
+            "yellow_reason": adv.get("yellow_reason"),
+            "confidence": adv.get("confidence"),
+        }, ensure_ascii=False))
+    except Exception:
+        pass
+
 
 def log_response(metadata: dict, parsed: dict) -> None:
     """Append one JSONL line per processed request for quality review."""
@@ -704,6 +739,7 @@ def ra_advisory():
         adv = _yellow_advisory(yellow, normalize_region_hint(region_hint))
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
+        _log_adv_request(request_ref, query, region_hint, adv)
         return jsonify(adv)
 
     profile = ADVISORY_ACTOR_PROFILE[actor]
@@ -726,6 +762,7 @@ def ra_advisory():
 
     adv["request_ref"] = request_ref
     _honcho_record("ra_advisory", actor, adv.get("summary", ""), _adv_meta(adv, request_ref))
+    _log_adv_request(request_ref, query, region_hint, adv)
     return jsonify(adv)
 
 
