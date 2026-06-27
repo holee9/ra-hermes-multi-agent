@@ -75,7 +75,7 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] Daily growth executed 2026-06-27 (written=9: ra_us/eu/kr ×3, domain-specific FDA/MDR/MFDS sources) ✅
+- [x] Daily growth executed 2026-06-27 + 06-26 backfill (written=18: ra_us/eu/kr ×6, 18 distinct domain-specific scenarios; 06-26분은 created_at 06-27 기록·scenario_id로 구분) ✅
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
