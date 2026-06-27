@@ -75,14 +75,14 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [ ] No today's growth execution yet (Day 2-3: dry-run expected) ⚠️  MANUAL CHECK
+- [x] Daily growth executed 2026-06-27 (written=9: ra_us/eu/kr ×3, domain-specific FDA/MDR/MFDS sources) ✅
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 7
-- **WARN**: 1
+- **PASS**: 8
+- **WARN**: 0
 - **FAIL**: 0
 
 ## 5. Status
