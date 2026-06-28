@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
 Date: 2026-06-28
-Timestamp: 2026-06-28T06:58:38+09:00
+Timestamp: 2026-06-28T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -75,7 +75,7 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] Daily growth executed 2026-06-28 (written=9: ra_us/eu/kr ×3, domain-specific FDA/510k·MDR·MFDS sources) ✅
+- [x] Today's growth execution found
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
