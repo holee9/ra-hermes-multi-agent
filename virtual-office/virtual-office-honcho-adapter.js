@@ -94,6 +94,15 @@ function adaptHonchoMessage(msg) {
     };
   }
 
+  // (1d) ra_advisory_conclusion: final summary written in the SAME cycle as feedback
+  // (hermes-api-server records feedback then conclusion back-to-back per advisory).
+  // @MX:NOTE: intentionally dropped — feedback (advisory_executed) already renders the
+  // action; showing both would duplicate the same event on the dashboard. Re-enable as a
+  // distinct event type only if a separate "conclusion" visualization is desired. See #95.
+  if (meta.record_type === 'ra_advisory_conclusion') {
+    return null;
+  }
+
   // (2) 자기서술적 JSON content를 가진 작업 레코드 — score_given(KB-eval 사람 채점) +
   // activity_log(n8n mail-triage). content 전체가 {type, actor?, payload} 계약.
   // @MX:NOTE: score_given actor lives in metadata (human), content only has type/payload.
@@ -133,7 +142,9 @@ function postJson(apiUrl, payload) {
     const options = {
       hostname: parsedUrl.hostname,
       port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
-      path: parsedUrl.pathname,
+      // @MX:NOTE: pathname ALONE drops the query string — Honcho v3 pagination (?page=N)
+      // is transmitted via search. Omitting it silently makes every page request return page 1.
+      path: parsedUrl.pathname + (parsedUrl.search || ''),
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,18 +185,24 @@ async function fetchHonchoEvents() {
 }
 
 async function fetchSessionMessages(sessionId) {
-  // Honcho v3 API: POST /v3/workspaces/{workspace}/sessions/{id}/messages/list
-  const raw = await postJson(
-    `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/${sessionId}/messages/list`,
-    { page: 1, page_size: 200 }
-  );
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed.items || [];
-  } catch {
-    return [];
+  // @MX:NOTE: Honcho v3 paginates via QUERY STRING (?page=N&page_size=50), NOT request body.
+  // Body {page} is silently ignored → only page 1 (oldest 50) ever returns, hiding the latest
+  // activity. Server also caps page_size at 50 regardless of the requested value.
+  // @MX:REASON: page through ALL pages so the dashboard shows recent RA advisory/feedback,
+  // not just the oldest 50 records. See issue #95.
+  const base = `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/${sessionId}/messages/list`;
+  const first = await postJson(`${base}?page=1&page_size=50`, {});
+  if (!first) return [];
+  let parsed;
+  try { parsed = JSON.parse(first); } catch { return []; }
+  const out = [...(parsed.items || [])];
+  const pages = parsed.pages || 1;
+  for (let p = 2; p <= pages; p++) {
+    const raw = await postJson(`${base}?page=${p}&page_size=50`, {});
+    if (!raw) break;
+    try { out.push(...(JSON.parse(raw).items || [])); } catch { break; }
   }
+  return out;
 }
 
 // In Docker: __dirname=/app, HTML is at /app/virtual-office.html (same dir)
