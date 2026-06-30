@@ -671,10 +671,11 @@ async function initDataSource(){
     renderHistory(knownEvents);
     renderStatusHeader(knownEvents);
     renderHeatMapFromEvents(knownEvents);
-    renderStars(await fetchLevels());                          // RA 전문가 성숙도 별 표시
+    // RA 성숙도 별 — 페이지 로드 시 1회만 갱신. 학습은 하루 소량씩 천천히 쌓이므로
+    // 실시간 폴링 불필요 (주 1회 이상 대시보드를 새로 열면 최신 반영됨).
+    renderStars(await fetchLevels());
     const pollMs = cfg?.poll_interval_ms || 30000;
     setInterval(pollNew, pollMs);
-    setInterval(async()=>renderStars(await fetchLevels()), pollMs);  // 별 주기적 갱신
   }catch(_){
     const el=document.getElementById('status'); if(el) el.textContent='활동 로드 실패';
   }
