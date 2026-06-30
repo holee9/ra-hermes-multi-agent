@@ -99,6 +99,7 @@
     white-space:nowrap;
   }
   .role{font-size:10px;color:rgba(255,255,255,.45);display:block;}
+  .stars{font-size:9px;color:#ffcd75;letter-spacing:-1px;display:block;line-height:1.1;}
   .desk{
     width:30px;height:8px;background:var(--desk);border:2px solid #5a3520;
     margin:1px auto 0;
@@ -392,6 +393,9 @@ const CHARS = {
   infra_gx10:{name:"Leo",   role:"GX10",  room:"infra",x:160,y:120, color:"#94b0c2"},
   infra_rpi: {name:"Gus",   role:"RPi",   room:"infra",x:110,y:230, color:"#f4d29c"}
 };
+
+// 성숙도 별 표시 대상: RA 전문가 3종만 (운영/배관 에이전트 제외)
+const RA_PEERS = ['ra_us', 'ra_eu', 'ra_kr'];
 const WORK_W = 760*0.62;
 
 /* ===== fallback 목업 이벤트 (DATA_SOURCE=mock 시 사용. honcho 모드는 /api/events 사용) ===== */
@@ -424,7 +428,7 @@ function makeChar(id,c){
     <div class="bubble" id="bub_${id}"></div>
     <div class="body" id="body_${id}"></div>
     <div class="desk"></div>
-    <span class="namep">${c.name}<span class="role">${c.role}</span></span>`;
+    <span class="namep">${c.name}${RA_PEERS.includes(id)?`<span class="stars" id="stars_${id}">☆☆☆☆☆</span>`:''}<span class="role">${c.role}</span></span>`;
   roomEl(c.room).appendChild(d);
   const body=d.querySelector('.body');
   // 1순위: PNG sprite 경로  2순위: 픽셀 canvas  3순위: 도형
@@ -624,6 +628,20 @@ async function fetchEvents(){
   return Array.isArray(evts) ? evts : [];
 }
 
+/* RA 전문가 성숙도 별 (학습량 기반). 정확도는 사람 KB-eval 도입 전까지 '평가 대기'. */
+async function fetchLevels(){
+  const data = await fetch('/api/agent-levels').then(r=>r.json()).catch(()=>null);
+  return Array.isArray(data?.levels) ? data.levels : [];
+}
+function renderStars(levels){
+  for (const lv of levels) {
+    const el = document.getElementById('stars_'+lv.actor);
+    if (!el) continue;
+    el.textContent = '★'.repeat(lv.level) + '☆'.repeat(5-lv.level);
+    el.title = `별 ${lv.level}/5 · 학습 ${lv.growth_cases} case · 정확도: 평가 대기(사람 KB-eval 도입 시)`;
+  }
+}
+
 /* 과거 활동을 정적으로 로그에 채움(애니메이션/하이라이트 없음, 시간순)
    표시 범위: 최근 30일 이내 & 최대 HISTORY_LIMIT개 (plan 싱크) */
 function renderHistory(evts){
@@ -653,8 +671,10 @@ async function initDataSource(){
     renderHistory(knownEvents);
     renderStatusHeader(knownEvents);
     renderHeatMapFromEvents(knownEvents);
+    renderStars(await fetchLevels());                          // RA 전문가 성숙도 별 표시
     const pollMs = cfg?.poll_interval_ms || 30000;
     setInterval(pollNew, pollMs);
+    setInterval(async()=>renderStars(await fetchLevels()), pollMs);  // 별 주기적 갱신
   }catch(_){
     const el=document.getElementById('status'); if(el) el.textContent='활동 로드 실패';
   }
