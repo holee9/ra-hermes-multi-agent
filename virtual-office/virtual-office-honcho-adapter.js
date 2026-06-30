@@ -134,6 +134,35 @@ function adaptHonchoMessage(msg) {
   return null;
 }
 
+// Agent maturity level (별 1~5) — displayed on RA expert characters.
+// @MX:NOTE: star mapping uses daily_growth_case cumulative count (learning VOLUME only,
+// not accuracy). Balanced formula: 1~9→1, 10~19→2, 20~34→3, 35~59→4, 60+→5.
+// Star 5 = "지구 최강 전문가" long-term goal.
+const RA_PEERS = ['ra_us', 'ra_eu', 'ra_kr'];
+function levelFromCount(count) {
+  if (count >= 60) return 5;
+  if (count >= 35) return 4;
+  if (count >= 20) return 3;
+  if (count >= 10) return 2;
+  return 1;
+}
+// accuracy='pending': ra-advisory confidence is intentionally NOT used as an accuracy
+// signal — the raspi5p advisory loop (25s-interval duplicate Yellow) contaminates it
+// (e.g. ra_kr 2557 records / avg conf 0.01). Only human KB-eval (#69~72) will populate
+// accuracy once those evaluations are completed.
+function computeAgentLevels(events) {
+  const counts = { ra_us: 0, ra_eu: 0, ra_kr: 0 };
+  for (const ev of events) {
+    if (ev.type === 'growth_case' && counts[ev.actor] !== undefined) counts[ev.actor]++;
+  }
+  return RA_PEERS.map(p => ({
+    actor: p,
+    growth_cases: counts[p],
+    level: levelFromCount(counts[p]),
+    accuracy: 'pending'
+  }));
+}
+
 function postJson(apiUrl, payload) {
   return new Promise((resolve) => {
     const parsedUrl = new URL(apiUrl);
@@ -165,23 +194,52 @@ function postJson(apiUrl, payload) {
 
 async function fetchHonchoEvents() {
   // Honcho v3 API: POST /v3/workspaces/{workspace}/sessions/list
-  const raw = await postJson(
-    `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/list`,
-    { page: 1, page_size: 100 }
-  );
-  if (!raw) return MOCK_EVENTS;
-  try {
-    const parsed = JSON.parse(raw);
-    const sessions = parsed.items || [];
-    const results = await Promise.all(sessions.map(s => fetchSessionMessages(s.id)));
-    return results
-      .flat()
-      .map(adaptHonchoMessage)
-      .filter(Boolean)
-      .sort((a, b) => new Date(a.ts) - new Date(b.ts));
-  } catch {
-    return MOCK_EVENTS;
+  // @MX:NOTE: sessions/list ALSO paginates via query string (?page=N&page_size=50) and
+  // caps page_size at 50 — same trap as messages/list (#95). Page 1 alone returns only
+  // 50 of 66+ sessions, hiding ~half the growth-ra_* daily learning sessions and making
+  // agent maturity stars under-count. Page through ALL pages + dedup by session id
+  // (Honcho occasionally returns overlapping items across pages).
+  const base = `${HONCHO_API_URL}/v3/workspaces/${HONCHO_APP_NAME}/sessions/list`;
+  const first = await postJson(`${base}?page=1&page_size=50`, {});
+  if (!first) return MOCK_EVENTS;
+  let parsed;
+  try { parsed = JSON.parse(first); } catch { return MOCK_EVENTS; }
+  const seen = new Set();
+  const sessions = [];
+  for (const s of (parsed.items || [])) {
+    if (s.id && !seen.has(s.id)) { seen.add(s.id); sessions.push(s); }
   }
+  const pages = parsed.pages || 1;
+  for (let p = 2; p <= pages; p++) {
+    const raw = await postJson(`${base}?page=${p}&page_size=50`, {});
+    if (!raw) break;
+    let pageItems;
+    try { pageItems = JSON.parse(raw).items || []; } catch { break; }
+    let added = 0;
+    for (const s of pageItems) {
+      if (s.id && !seen.has(s.id)) { seen.add(s.id); sessions.push(s); added++; }
+    }
+    if (added === 0) break; // no new sessions → stop (guards against bad pages metadata)
+  }
+  const results = await Promise.all(sessions.map(s => fetchSessionMessages(s.id)));
+  return results
+    .flat()
+    .map(adaptHonchoMessage)
+    .filter(Boolean)
+    .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+}
+
+// @MX:NOTE: 30s TTL cache so /api/events and /api/agent-levels share one Honcho fetch
+// (avoiding double pagination walks on every dashboard poll). Cache only holds real
+// Honcho events; mock mode bypasses it.
+let _eventsCache = null;
+let _eventsCacheAt = 0;
+async function getEvents() {
+  const now = Date.now();
+  if (_eventsCache && now - _eventsCacheAt < 30000) return _eventsCache;
+  _eventsCache = await fetchHonchoEvents();
+  _eventsCacheAt = now;
+  return _eventsCache;
 }
 
 async function fetchSessionMessages(sessionId) {
@@ -232,14 +290,22 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (parsedUrl.pathname === '/api/events') {
-    let events;
-    if (DATA_SOURCE === 'honcho') {
-      events = await fetchHonchoEvents();
-    } else {
-      events = MOCK_EVENTS;
-    }
+    const events = DATA_SOURCE === 'honcho' ? await getEvents() : MOCK_EVENTS;
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(events));
+    return;
+  }
+
+  if (parsedUrl.pathname === '/api/agent-levels') {
+    const events = DATA_SOURCE === 'honcho' ? await getEvents() : MOCK_EVENTS;
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      levels: computeAgentLevels(events),
+      // @MX:NOTE: accuracy is pending — ra-advisory confidence excluded (raspi5p loop
+      // contamination). Only human KB-eval (#69~72) will activate accuracy later.
+      accuracy_status: 'ra-advisory confidence excluded (raspi5p loop contamination); accuracy pending human KB-eval (#69~72)',
+      star_formula: 'balanced: 1~9→1, 10~19→2, 20~34→3, 35~59→4, 60+→5 (daily_growth_case volume)'
+    }));
     return;
   }
 
