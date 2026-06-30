@@ -242,6 +242,25 @@ async function getEvents() {
   return _eventsCache;
 }
 
+// @MX:NOTE: display-side dedup for /api/events. The raspi5p advisory loop emits the
+// SAME advisory (actor+type+payload) every ~25s — thousands of identical records flood
+// the dashboard (8k+ advisory events, 1.7MB payload). This collapses near-duplicate
+// bursts within a window to one representative record so the dashboard payload stays
+// small while genuine varied activity (growth_case, score_given, distinct advisories)
+// passes through untouched. DB is NOT modified — display policy only.
+function dedupeForDisplay(events, windowMs = 300000) {
+  const out = [];
+  const lastByKey = new Map();
+  for (const ev of events) {
+    const key = `${ev.actor}|${ev.type}|${JSON.stringify(ev.payload || {})}`;
+    const last = lastByKey.get(key);
+    if (last !== undefined && (new Date(ev.ts) - last) < windowMs) continue;
+    lastByKey.set(key, new Date(ev.ts));
+    out.push(ev);
+  }
+  return out;
+}
+
 async function fetchSessionMessages(sessionId) {
   // @MX:NOTE: Honcho v3 paginates via QUERY STRING (?page=N&page_size=50), NOT request body.
   // Body {page} is silently ignored → only page 1 (oldest 50) ever returns, hiding the latest
@@ -290,7 +309,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (parsedUrl.pathname === '/api/events') {
-    const events = DATA_SOURCE === 'honcho' ? await getEvents() : MOCK_EVENTS;
+    // @MX:NOTE: display dedup — collapse raspi5p advisory loop bursts (identical events
+    // every ~25s). /api/agent-levels still uses the FULL unfiltered set so maturity stars
+    // count every growth_case accurately.
+    const all = DATA_SOURCE === 'honcho' ? await getEvents() : MOCK_EVENTS;
+    const events = dedupeForDisplay(all);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(events));
     return;
