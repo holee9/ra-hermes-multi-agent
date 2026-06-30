@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-06-29
-Timestamp: 2026-06-29T08:00:00+09:00
+Date: 2026-06-30
+Timestamp: 2026-06-30T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -75,7 +75,7 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] daily-growth execute 06-29 (written=9, ra_us/eu/kr ×3)
+- [x] daily-growth execute 06-30 (written=9: ra_us/eu/kr ×3; --max-pending 60 — ra-advisory backlog 일시적, daily_growth_case 백로그 0 확인)
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
