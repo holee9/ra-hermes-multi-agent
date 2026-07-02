@@ -316,7 +316,13 @@ def record_contract_diagnostics(messages_by_session: dict[str, list[dict]],
                 expected_records_found += 1
 
             content = parse_content(msg)
-            if not content and msg.get("content"):
+            # Plain-text content carrying a metadata record_type is an
+            # intentional clean-text record (daily_growth_case, study_insight,
+            # ra_advisory*, curriculum_seed) — NOT a parse failure. Only count
+            # genuine parse failures: non-empty content that is neither valid
+            # JSON nor backed by a metadata record_type.
+            content_raw = msg.get("content") or ""
+            if not content and content_raw and record_type == "unclassified":
                 parse_failures += 1
             activity_type = str(content.get("type") or "unclassified")
             activity_type_counts[activity_type] = activity_type_counts.get(activity_type, 0) + 1
