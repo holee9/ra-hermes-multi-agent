@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
 Date: 2026-07-02
-Timestamp: 2026-07-02T08:00:00+09:00
+Timestamp: 2026-07-02T09:45:24+09:00
 
 ## 1. System Status
 =================
@@ -11,63 +11,82 @@ Timestamp: 2026-07-02T08:00:00+09:00
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-transition-readiness-2026-06-16.json
+Latest report: reports/growth-2026-07-02.json
 
 ### Current Metrics
 {
-  "generated_at": "2026-06-16T12:26:20.893606+00:00",
-  "reports_loaded": 6,
-  "valid_reports": 1,
-  "latest_report": "reports/growth-diagnostic-2026-06-16.json",
-  "threshold_policy": {
-    "ready_for_definition": true,
-    "status": "ready_for_human_policy",
-    "thresholds_defined": [],
-    "null_thresholds": [
-      "duplicate_wp_reduction",
-      "human_correction_rate",
-      "transition_accuracy",
-      "mail_triage_stability"
-    ]
+  "correction_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "samples": [],
+    "direction": "down",
+    "note": "fraction of human-reviewed decisions where agent was overridden"
   },
-  "form_transfer": {
-    "ready": false,
-    "status": "blocked_by_growth_evidence",
-    "conditions": {
-      "valid_metrics_days": 1,
-      "requires_valid_metrics_days": 30,
-      "latest_messages_scanned": 302,
-      "latest_empty_cause": "metrics_input_available",
-      "thresholds_defined": [],
-      "null_thresholds": [
-        "duplicate_wp_reduction",
-        "human_correction_rate",
-        "transition_accuracy",
-        "mail_triage_stability"
-      ]
-    }
+  "first_pass_match_accuracy": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "direction": "up",
+    "note": "fraction of WP match decisions confirmed correct by human"
   },
-  "specialist_expansion": {
-    "ready_for_review": false,
-    "status": "insufficient_operating_signal",
-    "absence_pattern_signals": {
-      "value": 0,
-      "yellow_total": 0,
-      "correction_total": 0,
-      "yellow_by_domain": {},
-      "correction_by_domain": {},
-      "strongest_domain": null,
-      "domains": [
-        "clinical_evaluation",
-        "coordination",
-        "cybersecurity",
-        "pms_vigilance",
-        "quality_capa"
-      ],
-      "samples": [],
-      "direction": "diagnostic",
-      "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger"
-    }
+  "confidence_calibration": {
+    "value": null,
+    "n_pairs": 0,
+    "direction": "zero",
+    "note": "Brier score: mean((confidence - actual_correct)^2). Lower → better calibrated."
+  },
+  "warmstart_lift": {
+    "value": null,
+    "warm_mean": null,
+    "cold_mean": null,
+    "warm_n": 0,
+    "cold_n": 0,
+    "direction": "positive",
+    "note": "warm_mean - cold_mean (1-3 scale). Positive → memory helps."
+  },
+  "escalation_precision": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "direction": "up",
+    "note": "fraction of escalations that required actual human correction (score=1)"
+  },
+  "autonomous_study_sessions": {
+    "value": 0,
+    "numerator": 0,
+    "denominator": null,
+    "by_agent": {},
+    "samples": [],
+    "direction": "up",
+    "note": "autonomous study sessions completed by all RA agents (higher = more self-study)"
+  },
+  "study_insights_count": {
+    "value": 0,
+    "numerator": 0,
+    "denominator": null,
+    "by_agent": {},
+    "samples": [],
+    "direction": "up",
+    "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)"
+  },
+  "absence_pattern_signals": {
+    "value": 0,
+    "yellow_total": 0,
+    "correction_total": 0,
+    "yellow_by_domain": {},
+    "correction_by_domain": {},
+    "strongest_domain": null,
+    "domains": [
+      "clinical_evaluation",
+      "coordination",
+      "cybersecurity",
+      "pms_vigilance",
+      "quality_capa"
+    ],
+    "samples": [],
+    "direction": "diagnostic",
+    "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger"
   }
 }
 - [x] Growth metrics available
@@ -75,7 +94,7 @@ Latest report: reports/growth-transition-readiness-2026-06-16.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] daily-growth execute 07-02 (written=9: ra_us/eu/kr ×3, cases-per-agent=3)
+- [x] Today's growth execution found
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 

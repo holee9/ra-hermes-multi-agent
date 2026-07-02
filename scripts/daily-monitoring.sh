@@ -70,8 +70,14 @@ echo "" >> "$CHECKLIST_FILE"
 echo "## 2. Growth Metrics" >> "$CHECKLIST_FILE"
 echo "=================" >> "$CHECKLIST_FILE"
 
-# Get latest growth report
-LATEST_REPORT=$(find reports -name "growth-*.json" -type f 2>/dev/null | sort -r | head -1)
+# Get latest growth report — prefer today's dated snapshot, else newest by mtime.
+# (sort -r on names mis-picks "growth-transition-readiness-..." ahead of "growth-YYYY-MM-DD".)
+TODAY_GROWTH_REPORT="reports/growth-$(date +%Y-%m-%d).json"
+if [ -f "$TODAY_GROWTH_REPORT" ]; then
+    LATEST_REPORT="$TODAY_GROWTH_REPORT"
+else
+    LATEST_REPORT=$(find reports -maxdepth 1 -name "growth-*.json" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+fi
 
 if [ -n "$LATEST_REPORT" ] && [ -f "$LATEST_REPORT" ]; then
     echo "Latest report: $LATEST_REPORT" >> "$CHECKLIST_FILE"
@@ -95,12 +101,14 @@ echo "=======================" >> "$CHECKLIST_FILE"
 if [ -f scripts/daily-growth-runner.py ]; then
     check_pass "daily-growth-runner available"
 
-    # Check if there's recent activity (today's executions)
+    # Check if there's recent activity (today's executions).
+    # Covers both the legacy daily-growth-DATE.json path and the current
+    # pre-auto-growth-loop output under reports/auto-growth/.
     TODAY=$(date +%Y-%m-%d)
-    if find reports -name "daily-growth-*$TODAY*.json" -type f 2>/dev/null | grep -q .; then
+    if find reports \( -name "daily-growth-*${TODAY}*.json" -o -name "pre-execute-${TODAY}*.json" \) -type f 2>/dev/null | grep -q .; then
         check_pass "Today's growth execution found"
     else
-        check_warn "No today's growth execution yet (Day 2-3: dry-run expected)"
+        check_warn "No today's growth execution yet"
     fi
 else
     check_fail "daily-growth-runner not found"
