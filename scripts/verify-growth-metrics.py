@@ -70,6 +70,39 @@ def main() -> None:
     assert contract["expected_records_found"] >= 3
     assert contract["messages_in_window"] == 4
     assert contract["peer_counts"]["ra_us"] == 2
+    # Baseline: all JSON-content fixtures parse cleanly.
+    assert contract["content_parse_failures"] == 0, (
+        f"JSON fixtures must not trigger parse failures, got {contract['content_parse_failures']}"
+    )
+
+    # P1 (#97) regression guard: plain-text content carrying a metadata.record_type
+    # is an intentional clean-text record (daily_growth_case, study_insight,
+    # ra_advisory*, curriculum_seed) and must NOT count as a parse failure. Only
+    # non-JSON content with no metadata type is a genuine failure. Reverting the
+    # record_contract_diagnostics text-content fix would make this assert fail.
+    text_records = {
+        "growth-session": [
+            {
+                "content": "Daily regulatory growth case\nGrowth version: daily_growth_v1\n",
+                "metadata": {"record_type": "daily_growth_case", "actor": "ra_kr", "peer_id": "ra_kr"},
+                "peer_name": "ra_kr",
+            },
+            {
+                "content": "free-form text with no metadata record_type",
+                "metadata": {},
+                "peer_name": "ra_us",
+            },
+        ],
+    }
+    text_contract = gm.record_contract_diagnostics(text_records, since, until)
+    assert text_contract["content_parse_failures"] == 1, (
+        f"expected exactly 1 genuine failure (no-record_type text), "
+        f"got {text_contract['content_parse_failures']} — clean-text records with "
+        "metadata.record_type must not be counted as parse failures"
+    )
+    assert text_contract["record_type_counts"]["daily_growth_case"] == 1, (
+        "clean-text daily_growth_case must still be classified via metadata.record_type"
+    )
 
     cause = gm.classify_empty_cause(2, 2, 2, 0, 4, contract)
     assert cause == "metrics_input_available"
