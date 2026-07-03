@@ -3,7 +3,10 @@
 # Daily Monitoring Script for Day 2-3
 # Runs automatically and generates checklist status
 
-DATE=$(date +%Y-%m-%d)
+# Optional date override: `bash daily-monitoring.sh 2026-07-03` regenerates a
+# past day's checklist (e.g. back-fill auto-detected [x] after a fix like #100).
+# Default (no arg) = today, preserving cron behavior.
+DATE="${1:-$(date +%Y-%m-%d)}"
 TIMESTAMP=$(date -Iseconds)
 REPORT_DIR="reports/daily-monitoring"
 CHECKLIST_FILE="$REPORT_DIR/checklist-$DATE.md"
@@ -104,7 +107,7 @@ if [ -f scripts/daily-growth-runner.py ]; then
     # Check if there's recent activity (today's executions).
     # Covers both the legacy daily-growth-DATE.json path and the current
     # pre-auto-growth-loop output under reports/auto-growth/.
-    TODAY=$(date +%Y-%m-%d)
+    TODAY="$DATE"   # reuse the (possibly overridden) report date for detection
     if find reports \( -name "daily-growth-*${TODAY}*.json" -o -name "pre-execute-${TODAY}*.json" \) -type f 2>/dev/null | grep -q .; then
         check_pass "Today's growth execution found"
     else
