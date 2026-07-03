@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-07-03
-Timestamp: 2026-07-04T08:25:35+09:00
+Date: 2026-07-04
+Timestamp: 2026-07-04T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -94,14 +94,14 @@ Latest report: reports/growth-2026-07-04.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [x] Today's growth execution found
+- [ ] No today's growth execution yet ⚠️  MANUAL CHECK
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 8
-- **WARN**: 0
+- **PASS**: 7
+- **WARN**: 1
 - **FAIL**: 0
 
 ## 5. Status
