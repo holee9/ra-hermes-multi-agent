@@ -50,6 +50,17 @@ RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
 REPORT_DIR="reports/auto-growth"
 mkdir -p "$REPORT_DIR"
 
+# [HARD contract #100] Output name MUST stay aligned with daily-monitoring.sh:108
+# detection pattern (pre-execute-<dashed-date>*). If this prefix is dropped, the
+# daily checklist Section 3 ("Today's growth execution") silently falls back to a
+# false WARN even though execute succeeded. RUN_DATE is dashed (YYYY-MM-DD), so
+# pre-execute-${RUN_DATE}-* matches the pre-execute-${TODAY}* glob in P2.
+OUTPUT_NAME="pre-execute-${RUN_DATE}-${RUN_TS}.json"
+case "$OUTPUT_NAME" in
+  pre-execute-*) : ;;  # OK — P2 detection contract (#100)
+  *) echo "FATAL: output name '$OUTPUT_NAME' breaks P2 detection contract (#100)" >&2; exit 1 ;;
+esac
+
 ARGS=(
   --iterations 1
   --pending-scope ra
@@ -61,7 +72,7 @@ ARGS=(
   --operation-timezone Asia/Seoul
   --sleep-seconds 10
   --drain-timeout-seconds 900
-  --output "$REPORT_DIR/run-${RUN_TS}.json"
+  --output "$REPORT_DIR/$OUTPUT_NAME"
 )
 if [[ $DRY_RUN -eq 0 ]]; then
   ARGS+=(--execute-daily-growth)
