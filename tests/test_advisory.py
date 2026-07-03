@@ -169,6 +169,25 @@ def test_yellow_advisory_actor_is_safe():
     assert ya["confidence"] == 0.0
 
 
+def test_yellow_unclear_region_label_not_kr():  # #88/#77: unclear yellow -> region "unclear", not fallback actor's "KR"
+    ya = m._yellow_advisory("unclear_region", None)
+    assert ya["yellow_reason"] == "unclear_region"
+    assert ya["decision"] == "yellow_review"
+    assert ya["region"] == "unclear"
+    assert ya["actor"] == "ra_kr"  # safe fallback actor unchanged (Honcho routing intact)
+
+
+def test_yellow_multi_region_label():
+    ya = m._yellow_advisory("multi_region", None)
+    assert ya["region"] == "multi_region"
+
+
+def test_yellow_low_confidence_keeps_routed_region():  # confidence/evidence yellow keeps the routed actor's real region
+    ya = m._yellow_advisory("low_confidence", "ra_eu")
+    assert ya["region"] == "EU"
+    assert ya["actor"] == "ra_eu"
+
+
 def test_actor_profile_map_uses_hyphen_only_internally():
     # externally-exposed actor -> internal hermes profile (hyphen dir name)
     assert m.ADVISORY_ACTOR_PROFILE == {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
