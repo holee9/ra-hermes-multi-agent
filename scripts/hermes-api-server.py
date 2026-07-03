@@ -325,6 +325,14 @@ ADVISORY_REGION_KEYWORDS: dict[str, list[str]] = {
 }
 ADVISORY_ACTOR_PROFILE: dict[str, str] = {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
 ADVISORY_REGION_LABEL: dict[str, str] = {"ra_us": "US", "ra_eu": "EU", "ra_kr": "KR"}
+# Region-uncertain Yellow reasons -> region label reflects uncertainty, not the
+# safe fallback actor's home region. Prevents a misleading "KR" label on
+# unclear/multi yellow advisories (#88/#77: foreign mail with no region signal
+# must read as unclear, not as KR fallback).
+_YELLOW_REGION_LABEL: dict[str, str] = {
+    "unclear_region": "unclear",
+    "multi_region": "multi_region",
+}
 # Accept region hint as either label (US/EU/KR) or actor id (ra_us/ra_eu/ra_kr).
 HINT_ALIASES: dict[str, str] = {
     "us": "ra_us", "eu": "ra_eu", "kr": "ra_kr",
@@ -497,9 +505,13 @@ def _yellow_advisory(reason: str, region: str | None, error: str | None = None) 
     if error:
         msg = f"{msg} ({error[:120]})"
     actor = region if region in ADVISORY_ACTOR_PROFILE else ADVISORY_FALLBACK_ACTOR
+    # Region-uncertain yellow -> label the uncertainty, not the fallback actor's
+    # home region. Other yellow reasons (low_confidence/no_evidence/etc.) keep
+    # the routed actor's region label since the region itself was determined.
+    region_label = _YELLOW_REGION_LABEL.get(reason) or ADVISORY_REGION_LABEL.get(actor, "")
     return {
         "actor": actor,
-        "region": ADVISORY_REGION_LABEL.get(actor, ""),
+        "region": region_label,
         "confidence": 0.0,
         "decision": "yellow_review",
         "wp_candidate": None,
