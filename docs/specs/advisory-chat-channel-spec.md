@@ -569,6 +569,32 @@ bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`
 
 **남은 개선안 (후속)**: B(회고 전용 decision `information_reply` + recommended_comment 의무화), C(evidence 포맷 정규화 — 현재 NAS/GitHub/상대경로 혼재), D(응답 시간 100-171s 개선 — warming/caching/SSE).
 
+### Deep analysis (2026-07-07) — retrospective depth & KB necessity (사용자 딥싱크)
+
+**관찰**: 회고 query는 응답(200)하지만, 세 agent의 답이 "학습 회고"가 아니라 **SOUL.md 정형 역할 + RAG 지식의 재진술**.
+- 세 agent 답 ≈ SOUL.md Identity 줄 + 제품 분류표의 문장화. 시나리오 테스트 답과 실제 창 답이 **패턴 동일** (같은 SOUL.md + 같은 RAG 소스).
+- 사용자 query의 핵심 "현재 어느 정도 지식을 축적했는지"에 대한 답 **없음** — 에이전트가 Honcho 학습 이력(growth_cases/성숙도/최근 학습 주제/부족 영역)을 **읽지 않음**.
+- confidence 0.85-0.98은 "역할 정의 확신"이지 "학습 수준 정확 파악"이 아님.
+
+**정정**: 앞선 "TV-2 REVERSED"는 **좁은 의미(응답 여부)**에서만 맞음. **질적 의미(진짜 학습 회고)**에서는 **여전히 NOT FEASIBLE**. 정확한 표현: *"회고 query는 응답은 하나, 학습 이력 반영 회고는 아직 안 된다."*
+
+**"KB 없이 자율 성장?" 분석**: 의료기기 RA에서 완전 자율(크롤링→자체 저장)은 위험 — KB는 여전히 필요.
+1. **신뢰성/출처 검증** — 틀리면 환자 안전·규제 위반. 사람 큐레이션·검토 출처 필수.
+2. **사내 지식은 크롤링 불가** — H&abyz 제품 분류/내부 SOP는 웹에 없음. KB(pgvector)로만 접근.
+3. **품질 관리** — 자율 KB 갱신은 오류 누적 위험 (`.moai/config` evolution safety 5층이 이것을 막음).
+4. **법적/윤리** — 공식 사이트 문서도 자동 수집·재구성·재배포는 ToS·저작권 회색지대.
+5. **설계 철학** — ECOSYSTEM 원칙 3("연결은 사람"), 8("정확성=판단 품질"), "에이전트는 보조, 대체하지 않는다". KB 업데이트는 사람 판단 영역.
+
+→ "자율 성장"의 **안전한 형태** = 자율 탐지 + 사람 승인 업데이트 (KB 폐지 아님, KB + 인간 루프 강화).
+
+**진짜 RA 전문 agent를 위한 4가지 (우선순위)**:
+- **(a) Honcho 학습 이력 주입** (REQ-AC-002b 본격 구현) — `hermes-api-server.py` `build_advisory_context`에 에이전트 Honcho 학습 데이터(growth_cases/성숙도/최근 학습 주제/어려운 케이스) 주입. 회고/자문에서 과거 학습 반영.
+- **(b) #105 해결** — 구체적 지식 query Hermes CLI 지연 진단. `_invoke_hermes` bisect: GX10 추론 시간 vs RAG 컨텍스트 과적 vs Hermes CLI 자체 루프.
+- (c) **KB 갭 탐지 루프** — 자문 답이 KB에 없으면 "이 주제 KB 보완 필요" 자동 표시 → 사람이 KB 업데이트. (사용자 본래 목적 "부족한 부분을 사용자가 개선" 루프의 핵심.)
+- (d) (선택) **최신 규제 모니터링** — agent가 공식 사이트 변화 탐지 → 사람 승인 시만 KB 업데이트 (완전 자율 아님).
+
+**다음 세션 우선순위**: **(a) + (b)**. 이 둘이 "진짜 RA 전문 agent"를 가로막은 두 기둥. (c)는 (a) 이후 자연스럽게, (d)는 별도 검토.
+
 ---
 
 ## Next Session Entrypoint
