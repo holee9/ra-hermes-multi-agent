@@ -602,16 +602,13 @@ bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`
 - `build_advisory_context(..., learning_history=None)` 시그니처 추가, evidence(RAG/Layer4)와 출력 지시 사이에 "## 담당자 최근 학습 이력 (Honcho)" 섹션 주입. "학습 이력 자체는 evidence가 아님" 명시 (정확성 우선 철학 준수).
 - 라이브 검증: ra_us/eu/kr 각 7개 학습 주제 추출(55-74ms). hyphen actor → `""` (peer-id 안전). pytest 32 passed.
 
-**(b) #105 해결 — 근본 원인 규명 + fix (검증 완료)**
-- **근본 원인**: `ra-expert` 스킬이 "Search NAS Qdrant RAG"를 지시 → 지식 query에서 다중턴 RAG tool/thinking 루프. `gpt-oss:120b`(~49s/turn, thinking 포함) × N턴 × `max_turns:150` → 300s+ 행, stdout 0 bytes. "hello"가 0.18s인 이유: 서버가 Hermes 호출 **전** Yellow 라우팅.
-- **bisect 증거** (동일 query/동일 evidence context):
-  - `--skills ra-expert` → 120s timeout, **0 bytes** (행).
-  - `--skills` 제거 → **75s, 유효 JSON 답** (conf 0.93, evidence 인용).
-  - 직접 GX10 `/api/chat`: 48.8s 정상 (GX10 자체는 정상, 원인은 Hermes 오케스트레이션).
-- **fix**: `_invoke_hermes(..., skills="ra-expert")` 파라미터화. advisory는 `ADVISORY_SKILLS=""`(기본값, 스킬 제거)로 호출 — 서버가 이미 RAG evidence를 주입하므로 스킬의 tool 호출은 중복. 이메일 triage(`chat_completions`)는 default `ra-expert` 유지(미변경). `ADVISORY_SKILLS=ra-expert` env로 환원 가능.
-- **통합 라이브 e2e** (실제 코드 경로): learning_history 주입 + `skills=""` → **129.6s, 유효 advisory JSON** (이전 300s+/0 bytes). #105 해결 확정.
-
-**배포 상태**: fix는 repo `scripts/hermes-api-server.py`에만 반영. 실운영 서버 `/opt/hermes-ra/hermes-api-server.py`(systemd `hermes-api-server.service`)는 이전 코드 → (a)+(b) 라이브 반영을 위해 복사 + 재기동 필요 (사용자 승인 대기).
+**(b) #105 — fix 시도 → 라이브 회귀 발견 → 롤백 (재검토 필요)**
+- **근본 원인(1차 진단)**: `ra-expert` 스킬의 "Search NAS Qdrant RAG" 지시가 지식 query에서 다중턴 tool/thinking 루프. `gpt-oss:120b`(~49s/turn) × N턴 × config `max_turns:150` → 300s+ 행, 0 bytes. 직접GX10 `/api/chat`은 48.8s 정상 (GX10 자체 정상).
+- **fix 시도 (commit 518be4d)**: `_invoke_hermes` `skills` 파라미터화, advisory는 `ADVISORY_SKILLS=""`(스킬 제거). 직접 단발 테스트에서는 129.6s/유효 JSON 로 보였음.
+- **라이브 배포 후 회귀 발견**: 실운영 서버(`/opt/hermes-ra/`) 배포 + 재기동 후 라이브 검증 → **raspi5p-style 자문(email context 포함)도 150-200s 행**. 원인: 스킬을 제거해도 agent가 **`hermes-cli` toolset(shell/ripgrep) + MCP filesystem server**로 `/mnt/nas-ra`를 재검색하며 루프 (hanging hermes가 자식 `rg`로 NAS grep). 스킬 제거는 지식 query 행을 막지 못했고, 오히려 email 자문(스킬의 루프가 수렴해 69-91s 정상 동작)까지 회귀.
+- **교훈**: 직접 단발 테스트(129.6s)는 비결정적 수렴에 불과 — 라이브 서버 경로(RAG 5건 + Layer4 + filesystem 도구)에서는 agent가 도구를 쓰며 루프. "스킬만 제거"는 불충분.
+- **롤백 완료**: `/opt/hermes-ra/hermes-api-server.py`를 `.bak-20260707-advisory-ab`(Jul 3 원본)로 복원, 바이트 동일 확인, 재기동. **production 안전 복구**(raspi5p email 자문 원래대로). repo에서도 (b) 코드 revert(아래 commit).
+- **재검토 방향(별도 작업)**: advisory는 Hermes agentic mode(도구+루프)에 부적합. 근본 fix = advisory를 **직접 LLM 호출**(OpenAI-compatible endpoint로 GX10에 context+system prompt 단발 완성, 도구 없음)로 전환 — Contract C 아키텍처 변경. #105는 이 방향으로 재OPEN.
 
 ---
 

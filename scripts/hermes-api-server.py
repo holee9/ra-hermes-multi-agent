@@ -341,15 +341,6 @@ HINT_ALIASES: dict[str, str] = {
 }
 ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
 ADVISORY_TIMEOUT = int(os.environ.get("ADVISORY_TIMEOUT", "180"))
-# @MX:NOTE: #105 — advisory drops --skills ra-expert by default. The ra-expert
-# skill instructs the agent to "search NAS Qdrant RAG", which triggers a
-# multi-turn tool/thinking loop on knowledge queries (gpt-oss:120b ~49s/turn × N
-# turns → 300s+ hang, 0 bytes). The server already pre-fetches RAG evidence into
-# build_advisory_context, so the skill's tool calls are redundant. Verified:
-# same query without the skill returns a valid advisory in ~75s. Email-triage
-# (chat_completions) keeps --skills ra-expert (its default is unchanged).
-# Set ADVISORY_SKILLS=ra-expert to revert.
-ADVISORY_SKILLS = os.environ.get("ADVISORY_SKILLS", "")
 ADVISORY_FALLBACK_ACTOR = os.environ.get("ADVISORY_FALLBACK_ACTOR", "ra_kr")
 if ADVISORY_FALLBACK_ACTOR not in ADVISORY_ACTOR_PROFILE:
     ADVISORY_FALLBACK_ACTOR = "ra_kr"
@@ -483,21 +474,11 @@ def build_advisory_context(
     return "\n".join(parts)
 
 
-def _invoke_hermes(
-    profile: str, context: str, timeout: int = TIMEOUT, skills: str = "ra-expert"
-) -> tuple[str, str]:
-    """Call hermes -p profile -z context [--skills skills]. Returns (stdout, error).
-
-    skills="" omits --skills. Used by advisory (ADVISORY_SKILLS="") to avoid the
-    ra-expert skill's RAG tool-loop that hangs knowledge queries past timeout
-    (#105). Email-triage keeps the default skills="ra-expert".
-    """
+def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
+    """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
     try:
-        cmd = [HERMES_BIN, "-p", profile, "-z", context]
-        if skills:
-            cmd += ["--skills", skills]
         result = subprocess.run(
-            cmd,
+            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -877,9 +858,7 @@ def ra_advisory():
         query, actor, region, rag_results, wiki_results, wp_context, learning_history
     )
 
-    response_text, error_detail = _invoke_hermes(
-        profile, context, timeout=ADVISORY_TIMEOUT, skills=ADVISORY_SKILLS
-    )
+    response_text, error_detail = _invoke_hermes(profile, context, timeout=ADVISORY_TIMEOUT)
     adv = parse_advisory(response_text) if response_text else None
 
     if adv:
