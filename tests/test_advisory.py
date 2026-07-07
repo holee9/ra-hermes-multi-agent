@@ -123,6 +123,54 @@ def test_build_advisory_context_minimal():
     assert isinstance(ctx, str) and "decision" in ctx
 
 
+# ── REQ-AC-002b: learning history injection (a) ────────────────────────────
+def test_build_advisory_context_with_learning_history():
+    lh = (
+        "## 담당자 최근 학습 이력 (Honcho)\n"
+        "최근 본인이 학습한 RA 주제 (최근 순):\n"
+        "- 2026-07-07: MFDS classification and licensing route"
+    )
+    ctx = m.build_advisory_context(
+        "최근 학습 정리", "ra_kr", "KR", [], None, None, learning_history=lh
+    )
+    assert "담당자 최근 학습 이력" in ctx
+    assert "MFDS classification and licensing route" in ctx
+
+
+def test_build_advisory_context_learning_history_default_omitted():
+    # When learning_history is None, the section header must NOT appear.
+    ctx = m.build_advisory_context("query", "ra_us", "US", [], None, None)
+    assert "담당자 최근 학습 이력" not in ctx
+
+
+def test_fetch_learning_history_rejects_non_actor():
+    # Hyphen profile id / unknown actor must return "" (peer-id safety invariant).
+    assert m._fetch_learning_history("ra-us") == ""
+    assert m._fetch_learning_history("unknown") == ""
+
+
+def test_invoke_hermes_skills_param(monkeypatch):
+    """#105: skills='' omits --skills (advisory fix); default keeps --skills ra-expert."""
+    captured = {}
+
+    class _FakeCP:
+        stdout = ""
+        stderr = ""
+
+    def _fake_run(cmd, **kw):
+        captured["cmd"] = list(cmd)
+        return _FakeCP()
+
+    monkeypatch.setattr(m.subprocess, "run", _fake_run)
+
+    m._invoke_hermes("ra-kr", "ctx", skills="ra-expert")
+    assert "--skills" in captured["cmd"]
+    assert "ra-expert" in captured["cmd"]
+
+    m._invoke_hermes("ra-kr", "ctx", skills="")
+    assert "--skills" not in captured["cmd"]
+
+
 # ── validation (#83 items 4/5/6: evidence/low-conf/peer-id invariants) ────
 def test_validate_no_evidence_is_yellow():  # DoD item 4: evidence 없는 응답 → Yellow
     adv, yellow = m.validate_advisory({"actor": "ra-us", "confidence": 0.9, "evidence": []}, "ra_kr")
