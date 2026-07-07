@@ -541,10 +541,21 @@ future work.
 - raspi5p's hourly advisories (192.168.100.50) return `200` normally → Hermes itself works; the stall is **query-specific** (ra_kr routing + knowledge query, not wp_context emptiness).
 - **REQ-AC-001 still valid at the contract level** (server accepts query-only); the gap is Hermes CLI response time for knowledge-type queries, which is OUT OF PHASE-1 SCOPE (adapter is correct).
 
-### Next diagnostic (separate from Phase 1)
-1. Time a lightweight query (e.g., short English greeting) end-to-end to find Hermes's normal response window.
-2. If lightweight works → query-specific stall in `_run_rag_search` / `_run_knowledge_fetch` / `_invoke_hermes` for KR knowledge queries; bisect.
-3. Consider raising `ADVISORY_TIMEOUT` and/or adding a streaming/sse path (OD-5 Option 2) if knowledge queries routinely exceed 180s.
+### Diagnostic result (2026-07-07) → 분리 이슈 #105
+
+bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`.
+
+| Path | Result |
+|---|---|
+| Adapter (401/202/405/one-directional) | ✅ PASS |
+| Yellow (unclear region) "hello" | ✅ 0.18s (Hermes CLI not invoked) |
+| `/v1/knowledge/fetch` (Layer 4 RAG) | ✅ 9s normal |
+| **`_invoke_hermes` (Hermes CLI → GX10), US/KR knowledge query** | ❌ 300s timeout |
+
+- raspi5p (192.168.100.50) hourly advisories return `200` normally → query-specific stall.
+- "순수 지식 자문" 회신은 **#105** (Hermes CLI/GX10 runtime, Phase 1 scope 밖).
+- Phase 1 adapter 코드: **DoD 달성**. VO에서 unclear/yellow 자문은 즉시 응답(0.18s).
+- #104: #105 해결 후 close.
 
 ---
 
