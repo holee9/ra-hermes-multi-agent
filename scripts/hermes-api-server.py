@@ -21,6 +21,7 @@ import subprocess
 import time
 import urllib.request
 import urllib.error
+from datetime import date, timedelta
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -340,6 +341,15 @@ HINT_ALIASES: dict[str, str] = {
 }
 ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
 ADVISORY_TIMEOUT = int(os.environ.get("ADVISORY_TIMEOUT", "180"))
+# @MX:NOTE: #105 — advisory drops --skills ra-expert by default. The ra-expert
+# skill instructs the agent to "search NAS Qdrant RAG", which triggers a
+# multi-turn tool/thinking loop on knowledge queries (gpt-oss:120b ~49s/turn × N
+# turns → 300s+ hang, 0 bytes). The server already pre-fetches RAG evidence into
+# build_advisory_context, so the skill's tool calls are redundant. Verified:
+# same query without the skill returns a valid advisory in ~75s. Email-triage
+# (chat_completions) keeps --skills ra-expert (its default is unchanged).
+# Set ADVISORY_SKILLS=ra-expert to revert.
+ADVISORY_SKILLS = os.environ.get("ADVISORY_SKILLS", "")
 ADVISORY_FALLBACK_ACTOR = os.environ.get("ADVISORY_FALLBACK_ACTOR", "ra_kr")
 if ADVISORY_FALLBACK_ACTOR not in ADVISORY_ACTOR_PROFILE:
     ADVISORY_FALLBACK_ACTOR = "ra_kr"
@@ -435,6 +445,7 @@ def build_advisory_context(
     rag_results: list[dict],
     wiki_results: dict | None,
     wp_context: dict | None,
+    learning_history: str | None = None,
 ) -> str:
     """Context for advisory output (NOT wp_comment). Reuses RAG/Layer4 evidence."""
     parts = [f"## RA 자문 요청 — 담당 {actor} ({region})", "", "## 사안", query]
@@ -452,6 +463,8 @@ def build_advisory_context(
             parts.append(r.get("text", "")[:300])
     if wiki_results:
         _add_wiki_context(parts, wiki_results)
+    if learning_history:
+        parts += ["", learning_history]
     tmpl = (
         '{"actor": "' + actor + '", "region": "' + region + '", '
         '"confidence": 0.0~1.0, "decision": "comment_existing_wp|request_new_wp_review|yellow_review|no_action", '
@@ -470,11 +483,21 @@ def build_advisory_context(
     return "\n".join(parts)
 
 
-def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
-    """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
+def _invoke_hermes(
+    profile: str, context: str, timeout: int = TIMEOUT, skills: str = "ra-expert"
+) -> tuple[str, str]:
+    """Call hermes -p profile -z context [--skills skills]. Returns (stdout, error).
+
+    skills="" omits --skills. Used by advisory (ADVISORY_SKILLS="") to avoid the
+    ra-expert skill's RAG tool-loop that hangs knowledge queries past timeout
+    (#105). Email-triage keeps the default skills="ra-expert".
+    """
     try:
+        cmd = [HERMES_BIN, "-p", profile, "-z", context]
+        if skills:
+            cmd += ["--skills", skills]
         result = subprocess.run(
-            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
+            cmd,
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -573,6 +596,89 @@ def _honcho_record(record_type: str, peer_id: str, content_text: str, meta: dict
         urllib.request.urlopen(msg_req, timeout=5)
     except Exception:
         pass
+
+
+# @MX:NOTE: REQ-AC-002b — agent reads its own prior daily_growth_case learning
+# from Honcho so retrospective/advisory queries reflect actual learning, not a
+# restatement of SOUL.md role. Read-only and fail-safe (never blocks advisory).
+_GROWTH_HISTORY_DAYS = int(os.environ.get("ADVISORY_LEARNING_DAYS", "7"))
+_GROWTH_HISTORY_MAX = int(os.environ.get("ADVISORY_LEARNING_MAX", "8"))
+
+
+def _honcho_post_json(path: str, body: dict, timeout: int = 4) -> list:
+    """Fail-safe Honcho POST read. Returns a list of message dicts, or [].
+
+    Mirrors _honcho_record's fail-safe contract: advisory must not fail when
+    Honcho is unreachable (circular-dependency avoidance).
+    """
+    try:
+        base = f"{HONCHO_API_URL}/v3/workspaces/{HONCHO_WORKSPACE}"
+        req = urllib.request.Request(
+            f"{base}{path}",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        if isinstance(data, dict):
+            items = data.get("items", data.get("messages", data.get("data", [])))
+            return items if isinstance(items, list) else []
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _fetch_learning_history(actor: str) -> str:
+    """Compact summary of the agent's recent learning, or "" if unavailable.
+
+    Probes the last N date-stamped growth sessions (growth-{actor}-daily-{date})
+    and collects each daily_growth_case "Primary focus" + source. Never raises.
+    Underscore actor only — a hyphen profile id is rejected and returns "".
+    """
+    if actor not in ADVISORY_ACTOR_PROFILE:
+        return ""
+    today = date.today()
+    seen: set[str] = set()
+    rows: list[str] = []
+    for back in range(_GROWTH_HISTORY_DAYS):
+        run_day = today - timedelta(days=back)
+        sid = f"growth-{actor}-daily-{run_day.isoformat()}"
+        msgs = _honcho_post_json(
+            f"/sessions/{sid}/messages/list",
+            {"page": 1, "page_size": 20, "size": 20},
+        )
+        for m in msgs:
+            if (m.get("metadata") or {}).get("record_type") != "daily_growth_case":
+                continue
+            focus, source = "", ""
+            for line in (m.get("content") or "").splitlines():
+                ls = line.strip()
+                if ls.startswith("Primary focus:") and not focus:
+                    focus = ls[len("Primary focus:"):].strip()
+                elif ls.startswith("Source:") and not source:
+                    source = ls[len("Source:"):].strip()
+            if not focus:
+                continue
+            key = f"{run_day.isoformat()}|{focus.lower()}"
+            if key in seen:
+                continue
+            seen.add(key)
+            src = f" (출처: {source.rsplit('/', 1)[-1]})" if source else ""
+            rows.append(f"- {run_day.isoformat()}: {focus}{src}")
+            if len(rows) >= _GROWTH_HISTORY_MAX:
+                break
+        if len(rows) >= _GROWTH_HISTORY_MAX:
+            break
+    if not rows:
+        return ""
+    return (
+        "## 담당자 최근 학습 이력 (Honcho)\n"
+        "최근 본인이 학습한 RA 주제 (최근 순):\n"
+        + "\n".join(rows)
+        + "\n자문/회고 시 위 학습 내용을 반영하되, 실행 근거(evidence)는 "
+        "RAG/KB 문서에서 인용하십시오 — 학습 이력 자체는 evidence가 아닙니다."
+    )
 
 
 @app.route("/v1/models", methods=["GET"])
@@ -766,9 +872,14 @@ def ra_advisory():
     region = ADVISORY_REGION_LABEL[actor]
     rag_results = _run_rag_search(query, top=5)
     wiki_results = _run_knowledge_fetch(query, profile, top=3)
-    context = build_advisory_context(query, actor, region, rag_results, wiki_results, wp_context)
+    learning_history = _fetch_learning_history(actor)
+    context = build_advisory_context(
+        query, actor, region, rag_results, wiki_results, wp_context, learning_history
+    )
 
-    response_text, error_detail = _invoke_hermes(profile, context, timeout=ADVISORY_TIMEOUT)
+    response_text, error_detail = _invoke_hermes(
+        profile, context, timeout=ADVISORY_TIMEOUT, skills=ADVISORY_SKILLS
+    )
     adv = parse_advisory(response_text) if response_text else None
 
     if adv:

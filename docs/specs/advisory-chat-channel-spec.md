@@ -595,6 +595,24 @@ bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`
 
 **다음 세션 우선순위**: **(a) + (b)**. 이 둘이 "진짜 RA 전문 agent"를 가로막은 두 기둥. (c)는 (a) 이후 자연스럽게, (d)는 별도 검토.
 
+### Implementation (2026-07-07) — (a) + (b) 완료
+
+**(a) Honcho 학습 이력 주입 — 구현 완료 (REQ-AC-002b)**
+- `hermes-api-server.py`: `_honcho_post_json()` + `_fetch_learning_history(actor)` 추가. date 기반 직접 probe(`growth-{actor}-daily-{date}` 세션)로 최근 7일 `daily_growth_case` 에서 "Primary focus" + 출처를 추출해 compact 컨텍스트를 생성 (fail-safe, ~50-75ms).
+- `build_advisory_context(..., learning_history=None)` 시그니처 추가, evidence(RAG/Layer4)와 출력 지시 사이에 "## 담당자 최근 학습 이력 (Honcho)" 섹션 주입. "학습 이력 자체는 evidence가 아님" 명시 (정확성 우선 철학 준수).
+- 라이브 검증: ra_us/eu/kr 각 7개 학습 주제 추출(55-74ms). hyphen actor → `""` (peer-id 안전). pytest 32 passed.
+
+**(b) #105 해결 — 근본 원인 규명 + fix (검증 완료)**
+- **근본 원인**: `ra-expert` 스킬이 "Search NAS Qdrant RAG"를 지시 → 지식 query에서 다중턴 RAG tool/thinking 루프. `gpt-oss:120b`(~49s/turn, thinking 포함) × N턴 × `max_turns:150` → 300s+ 행, stdout 0 bytes. "hello"가 0.18s인 이유: 서버가 Hermes 호출 **전** Yellow 라우팅.
+- **bisect 증거** (동일 query/동일 evidence context):
+  - `--skills ra-expert` → 120s timeout, **0 bytes** (행).
+  - `--skills` 제거 → **75s, 유효 JSON 답** (conf 0.93, evidence 인용).
+  - 직접 GX10 `/api/chat`: 48.8s 정상 (GX10 자체는 정상, 원인은 Hermes 오케스트레이션).
+- **fix**: `_invoke_hermes(..., skills="ra-expert")` 파라미터화. advisory는 `ADVISORY_SKILLS=""`(기본값, 스킬 제거)로 호출 — 서버가 이미 RAG evidence를 주입하므로 스킬의 tool 호출은 중복. 이메일 triage(`chat_completions`)는 default `ra-expert` 유지(미변경). `ADVISORY_SKILLS=ra-expert` env로 환원 가능.
+- **통합 라이브 e2e** (실제 코드 경로): learning_history 주입 + `skills=""` → **129.6s, 유효 advisory JSON** (이전 300s+/0 bytes). #105 해결 확정.
+
+**배포 상태**: fix는 repo `scripts/hermes-api-server.py`에만 반영. 실운영 서버 `/opt/hermes-ra/hermes-api-server.py`(systemd `hermes-api-server.service`)는 이전 코드 → (a)+(b) 라이브 반영을 위해 복사 + 재기동 필요 (사용자 승인 대기).
+
 ---
 
 ## Next Session Entrypoint
