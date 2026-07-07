@@ -149,6 +149,49 @@ def test_fetch_learning_history_rejects_non_actor():
     assert m._fetch_learning_history("unknown") == ""
 
 
+# ── #105 fix: direct LLM call (no agentic tool-loop) ───────────────────────
+def test_load_soul_missing_profile_is_empty():
+    assert m._load_soul("does-not-exist-zzz") == ""
+    assert isinstance(m._load_soul("ra-kr"), str)  # type check (content if profiles dir present)
+
+
+def test_invoke_llm_direct_returns_content(monkeypatch):
+    """#105: direct ollama completion — builds /v1/chat/completions, returns content."""
+    captured = {}
+
+    class _FakeResp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            pass
+
+        def read(self):
+            return b'{"choices":[{"message":{"content":"payload"}}]}'
+
+    def _fake_urlopen(req, timeout=None):
+        captured["url"] = req.full_url
+        captured["body"] = req.data.decode("utf-8")
+        return _FakeResp()
+
+    monkeypatch.setattr(m.urllib.request, "urlopen", _fake_urlopen)
+    out, err = m._invoke_llm_direct("ra-kr", "advisory context")
+    assert err == ""
+    assert out == "payload"
+    assert "/v1/chat/completions" in captured["url"]
+    assert "system" in captured["body"]  # persona + user turn
+
+
+def test_invoke_llm_direct_error_is_safe(monkeypatch):
+    """On endpoint failure, returns ('', error) → advisory collapses to Yellow."""
+    def _boom(req, timeout=None):
+        raise OSError("connection refused")
+    monkeypatch.setattr(m.urllib.request, "urlopen", _boom)
+    out, err = m._invoke_llm_direct("ra-kr", "ctx")
+    assert out == ""
+    assert "llm_direct error" in err
+
+
 # ── validation (#83 items 4/5/6: evidence/low-conf/peer-id invariants) ────
 def test_validate_no_evidence_is_yellow():  # DoD item 4: evidence 없는 응답 → Yellow
     adv, yellow = m.validate_advisory({"actor": "ra-us", "confidence": 0.9, "evidence": []}, "ra_kr")

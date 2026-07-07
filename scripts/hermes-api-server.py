@@ -496,6 +496,66 @@ def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[
         return "", str(e)
 
 
+# @MX:NOTE: #105 — direct LLM call for advisory (no agentic tool-loop).
+# Hermes agentic mode (hermes -z --skills ra-expert) gives the model tools
+# (shell/rg + MCP filesystem + skill RAG) and loops on substantive queries
+# (gpt-oss:120b ~49s/turn × N turns → 300s+ hang, 0 bytes). Advisory is a
+# single-shot classification/answer over PRE-FETCHED context (the server runs
+# RAG + Layer4 and injects evidence), so it needs no tools. Direct completion
+# with SOUL.md persona: ~13-20s, no loop, valid advisory. Verified live for
+# both knowledge queries and email/action advisories. Email-triage (Contract A,
+# /v1/chat/completions) keeps _invoke_hermes (unchanged — working).
+ADVISORY_LLM_URL = os.environ.get("ADVISORY_LLM_URL") or OLLAMA_URL
+ADVISORY_LLM_MODEL = os.environ.get("ADVISORY_LLM_MODEL", "gpt-oss:120b")
+HERMES_PROFILES_DIR = os.environ.get("HERMES_PROFILES_DIR", "/home/abyz-lab/.hermes/profiles")
+_SOUL_CACHE: dict[str, str] = {}
+
+
+def _load_soul(profile: str) -> str:
+    """Load a profile's SOUL.md persona (cached). Returns '' if missing."""
+    if profile not in _SOUL_CACHE:
+        path = os.path.join(HERMES_PROFILES_DIR, profile, "SOUL.md")
+        try:
+            with open(path, encoding="utf-8") as f:
+                _SOUL_CACHE[profile] = f.read()
+        except OSError:
+            _SOUL_CACHE[profile] = ""
+    return _SOUL_CACHE[profile]
+
+
+def _invoke_llm_direct(
+    profile: str, context: str, timeout: int = ADVISORY_TIMEOUT
+) -> tuple[str, str]:
+    """Direct LLM completion — no tools, no agent loop (#105 fix for advisory).
+
+    Calls the OpenAI-compatible endpoint (ollama/GX10) with the profile's
+    SOUL.md persona + the advisory context as a single user turn. No tools are
+    exposed, so the model cannot loop on RAG/filesystem searches. Returns
+    (content, error); on failure advisory collapses to Yellow (safe).
+    """
+    body = json.dumps({
+        "model": ADVISORY_LLM_MODEL,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": _load_soul(profile)},
+            {"role": "user", "content": context},
+        ],
+        "options": {"num_predict": 700, "temperature": 0.3},
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            f"{ADVISORY_LLM_URL.rstrip('/')}/v1/chat/completions",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return data["choices"][0]["message"]["content"], ""
+    except Exception as e:
+        return "", f"llm_direct error: {str(e)[:200]}"
+
+
 def _yellow_advisory(reason: str, region: str | None, error: str | None = None) -> dict:
     """Build a non-executable Yellow advisory (auto-execution forbidden)."""
     msg = {
@@ -858,7 +918,7 @@ def ra_advisory():
         query, actor, region, rag_results, wiki_results, wp_context, learning_history
     )
 
-    response_text, error_detail = _invoke_hermes(profile, context, timeout=ADVISORY_TIMEOUT)
+    response_text, error_detail = _invoke_llm_direct(profile, context, timeout=ADVISORY_TIMEOUT)
     adv = parse_advisory(response_text) if response_text else None
 
     if adv:
