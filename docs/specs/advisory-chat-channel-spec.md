@@ -507,10 +507,10 @@ future work.
 | ID | Decision | Owner | Status |
 |---|---|---|---|
 | OD-1 | UI placement: Candidate A (side) vs Candidate B (bottom) — Section 6 | User | RESOLVED 2026-07-07 → **Candidate B (bottom)** |
-| OD-2 | Auth implementation: sessionStorage token vs HTTP basic auth vs mutual TLS | User | DEFERRED (recommend sessionStorage token for POC) |
+| OD-2 | Auth implementation: sessionStorage token vs HTTP basic auth vs mutual TLS | User | RESOLVED 2026-07-07 → **sessionStorage token** (single-user POC) |
 | OD-3 | Notification form: character speech bubble vs badge vs toast | User | DEFERRED |
 | OD-4 | Learning retrospective mode (REQ-AC-002b): ship as Phase 2 or cut from this SPEC? | User | DEFERRED — depends on TV-2 new-code appetite |
-| OD-5 | Async option: Option 1 (adapter in-process map) vs Option 2 (server-side /async) | User | DEFERRED (recommend Option 1 for POC) |
+| OD-5 | Async option: Option 1 (adapter in-process map) vs Option 2 (server-side /async) | User | RESOLVED 2026-07-07 → **Option 1** (adapter in-process map; no Hermes server change) |
 | OD-6 | Apply Section 7 wording edits to CLAUDE.md / master-design.md / mvp.md? | User | APPROVED 2026-07-07 — minimal-add wording (one-directional principle preserved; adapter, not VO, is the API caller) |
 | OD-7 | New Honcho session name for human chat (e.g., `ra-advisory-human-chat`) or reuse `ra-advisory`? | User | DEFERRED (recommend reuse + `source` metadata) |
 | OD-8 | Should human-chat advisories feed the agent learning loop (3-point evaluation)? | User | DEFERRED — out of scope for this SPEC but flagged for ecosystem alignment |
@@ -532,8 +532,8 @@ until each item is resolved.
    - Re-grep `virtual-office-honcho-adapter.js:304-309` for the 405 block.
 3. ~~Resolve OD-6~~ — **RESOLVED 2026-07-07 (APPROVED)**. Apply Section 7 minimal-add wording to
    CLAUDE.md:212, master-design.md:154/170, mvp.md:10 (one-directional principle preserved).
-4. ~~Resolve OD-1~~ — **RESOLVED 2026-07-07 → Candidate B (bottom)**. Still pending before coding:
-   OD-2 (auth), OD-5 (async option).
+4. ~~Resolve OD-1/OD-2/OD-5~~ — **ALL RESOLVED 2026-07-07**. OD-1 = bottom, OD-2 = sessionStorage
+   token, OD-5 = Option 1 (adapter in-process map + polling). **Ready for Phase 1.**
 5. **Create a GitHub issue** referencing this SPEC before any code change
    (per CLAUDE.md:143-151 Issue History Protocol).
 6. **Update `memory/next-session-entrypoint.md`** after each work session (per Session Handoff
@@ -543,7 +543,8 @@ until each item is resolved.
 
 - **Phase 0** (no code): Apply Section 7 doc edits — OD-6 APPROVED, OD-1 = bottom. Use minimal-add
   wording (one-directional principle preserved; adapter, not VO, is the API caller).
-- **Phase 1**: Backend proxy + `/api/chat` POST whitelist (REQ-AC-003, REQ-AC-007).
+- **Phase 1**: Backend proxy + `/api/chat` POST whitelist (REQ-AC-003, REQ-AC-007). OD-2 = sessionStorage
+  token, OD-5 = Option 1 (adapter in-process map + `/api/chat/{request_id}` polling).
 - **Phase 2**: Single-user auth (REQ-AC-006).
 - **Phase 3**: Async request_id + status endpoint (REQ-AC-004, REQ-AC-009).
 - **Phase 4**: Chat UI (placement = **Candidate B bottom**, OD-1 resolved) + disclaimer (REQ-AC-010).
