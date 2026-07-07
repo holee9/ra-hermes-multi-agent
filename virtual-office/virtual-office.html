@@ -405,7 +405,7 @@
   }
   async function pollAdvisory(requestId, pendEl){
     const token = sessionStorage.getItem(CHAT_TOKEN_KEY) || '';
-    const pollEvery = 3000, maxWait = 200000;
+    const pollEvery = 3000, maxWait = 240000;
     const start = Date.now();
     const tick = async () => {
       if(Date.now() - start > maxWait){
@@ -417,12 +417,29 @@
         const j = await r.json();
         if(j.status === 'completed'){
           if(pendEl) pendEl.remove();
-          addMsg('RA:', fmtResult(j.result), 'agent');
+          // Multi-agent fanout — show each region's answer as a separate message.
+          if(j.kind === 'multi' && Array.isArray(j.children)){
+            for(const ch of j.children){
+              if(ch.status === 'completed' && ch.result){
+                const actor = (ch.result && ch.result.actor) || ('RA-'+(ch.region||'?'));
+                addMsg(actor+':', fmtResult(ch.result), 'agent');
+              } else if(ch.status === 'failed'){
+                addMsg('RA-'+(ch.region||'?')+':', '('+(ch.error||'오류')+')', 'err');
+              }
+            }
+          } else {
+            addMsg('RA:', fmtResult(j.result), 'agent');
+          }
           return;
         }
         if(j.status === 'failed'){
           if(pendEl){ pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(' + (j.error||'오류') + ')'; }
           return;
+        }
+        // pending — update wait message if multi
+        if(j.kind === 'multi' && pendEl){
+          const done = (j.children||[]).filter(c=>c.status==='completed'||c.status==='failed').length;
+          pendEl.querySelector('.cp-body').textContent = '3개 에이전트 병렬 회고 중 ('+done+'/'+(j.children?j.children.length:3)+') — 최대 ~4분';
         }
         // pending — 계속 폴링
       }catch(e){ /* 일시 네트워크 오류는 무시하고 재시도 */ }
