@@ -557,6 +557,18 @@ bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`
 - Phase 1 adapter 코드: **DoD 달성**. VO에서 unclear/yellow 자문은 즉시 응답(0.18s).
 - #104: #105 해결 후 close.
 
+### Improvement A applied (2026-07-07, commit `7a50792`) — **TV-2 REVERSED**
+
+**회고 query는 FEASIBLE** (TV-2의 NOT FEASIBLE 판정 정정). 근거:
+
+- 단일 region_hint 강제 라우팅 시 ra_kr/ra_eu/ra_us 모두 107-171s 내 정상 회고 응답 (confidence 0.85-0.98).
+- 다중 actor 회고 query("각 에이전트...")는 자동 분할 라우팅(개선안 A)로 처리 — 어댑터가 `isMultiAgentRetrospective(query)` 감지 시 KR/EU/US 3개 병렬 POST, parent request_id로 취합.
+- 라이브 검증: 사용자 원래 query → 3개 답(ra_kr 0.85, ra_eu 0.96, ra_us 0.95) parent completed로 취합.
+
+**#105 범위 축소**: 회고 query는 정상 동작하므로 #105는 **"구체적 지식 query"(예: "한국 MFDS 1등급 기준은?")의 Hermes CLI 지연**으로 한정. 회고 query는 #104 Phase 1에서 처리 완료.
+
+**남은 개선안 (후속)**: B(회고 전용 decision `information_reply` + recommended_comment 의무화), C(evidence 포맷 정규화 — 현재 NAS/GitHub/상대경로 혼재), D(응답 시간 100-171s 개선 — warming/caching/SSE).
+
 ---
 
 ## Next Session Entrypoint
