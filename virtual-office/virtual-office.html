@@ -372,12 +372,12 @@
   const hintEl  = document.getElementById('chathint');
   if(!histEl || !inputEl || !sendBtn) return; // 요소 없으면 중단
 
-  function getToken(){
-    let t = sessionStorage.getItem(CHAT_TOKEN_KEY);
-    if(!t){
-      t = prompt('RA 자문 채널 인증 토큰(CHAT_AUTH_TOKEN)을 입력하세요:', '') || '';
-      if(t) sessionStorage.setItem(CHAT_TOKEN_KEY, t);
-    }
+  // Token is OPTIONAL in LAN POC mode — server skips auth when CHAT_AUTH_TOKEN is empty.
+  // Never prompt proactively; only on explicit 401 from the server.
+  function getToken(){ return sessionStorage.getItem(CHAT_TOKEN_KEY) || ''; }
+  function promptForToken(){
+    const t = prompt('RA 자문 채널 인증 토큰(CHAT_AUTH_TOKEN)을 입력하세요:', '') || '';
+    if(t) sessionStorage.setItem(CHAT_TOKEN_KEY, t);
     return t;
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -433,8 +433,7 @@
   async function sendAdvisory(){
     const q = inputEl.value.trim();
     if(!q) return;
-    const token = getToken();
-    if(!token){ hintEl.textContent = '토큰이 필요합니다.'; return; }
+    const token = getToken(); // empty = LAN POC bypass; server skips auth when CHAT_AUTH_TOKEN is empty
     sendBtn.disabled = true;
     const region = regionEl.value || null;
     inputEl.value = '';
@@ -444,13 +443,15 @@
     try{
       const r = await fetch('/api/chat', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        headers:{'Content-Type':'application/json', ...(token ? {'Authorization':'Bearer '+token} : {})},
         body: JSON.stringify({query:q, region_hint:region})
       });
       if(r.status === 401){
+        // Server requires auth — prompt once, then user re-sends.
         sessionStorage.removeItem(CHAT_TOKEN_KEY);
-        pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(인증 실패 — 토큰 재입력 필요)';
-        hintEl.textContent = '인증 실패. 토큰을 재입력하세요.';
+        if(pendEl) pendEl.remove();
+        const newTok = promptForToken();
+        hintEl.textContent = newTok ? '토큰 저장됨. 다시 전송해 주세요.' : '토큰 필요 — 서버가 인증을 요구합니다.';
         sendBtn.disabled = false; return;
       }
       const j = await r.json();
