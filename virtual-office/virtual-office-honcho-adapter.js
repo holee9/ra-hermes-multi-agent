@@ -231,6 +231,23 @@ function readJsonBody(req) {
   });
 }
 
+// Detect "multi-agent retrospective" queries — e.g., "각 에이전트 역할/지식 수준",
+// "all agents' roles". Routes to all 3 RA agents in parallel when the user asks about
+// agents collectively without pinning a single region.
+// @MX:ANCHOR: multi-agent routing — fans one query out to KR/EU/US, merges via parent entry.
+// @MX:REASON: single-actor advisory can't answer "each agent" questions (issue #104 live finding);
+// auto-fanout lets the user's natural query work without manually calling 3 regions.
+// @MX:SPEC: improvement A on docs/specs/advisory-chat-channel-spec.md (TV-2 reversed)
+const MULTI_REGIONS = ['KR', 'EU', 'US'];
+function isMultiAgentRetrospective(query) {
+  const q = String(query || '');
+  const hasRetrospect = /(각각|각\s*에이전트|각\s*agent|모든\s*에이전트|전체\s*에이전트|역할|지식\s*수준|학습|성장|성숙|role|knowledge|all\s+agents|each\s+agent|every\s+agent)/i.test(q);
+  if (!hasRetrospect) return false;
+  // Pin to a single region if the query names one explicitly.
+  const hasRegion = /(fda|mdr|ivdr|mfds|510\s*\(?k|ce\s*mark|kgmp|^us\b|\bus\b|\beu\b|\bkr\b|미국|유럽|한국)/i.test(q);
+  return !hasRegion;
+}
+
 // @MX:ANCHOR: Hermes advisory client — adapter presents as a normal caller (raspi5p-like).
 // @MX:REASON: never leak VO identity; identical shape to existing raspi5p advisory calls.
 // @MX:SPEC: REQ-AC-003 (backend proxy), REQ-AC-001 (query-only)
@@ -444,6 +461,26 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: 'query (string) required' }));
       return;
     }
+    // Multi-agent retrospective fanout — one query → KR/EU/US in parallel, merged under parent.
+    const isMulti = body.multi === true || (!body.region_hint && isMultiAgentRetrospective(body.query));
+    if (isMulti) {
+      const parentId = require('crypto').randomUUID();
+      const q = body.query.slice(0, 2000);
+      const children = MULTI_REGIONS.map((region) => {
+        const childId = require('crypto').randomUUID();
+        advisoryRequests.set(childId, {
+          status: 'pending', query: q, region_hint: region, created_at: Date.now()
+        });
+        callHermesAdvisory(q, region, childId);
+        return childId;
+      });
+      advisoryRequests.set(parentId, {
+        kind: 'multi', children, status: 'pending', created_at: Date.now(), query: q
+      });
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ request_id: parentId, status: 'pending', kind: 'multi', regions: MULTI_REGIONS }));
+      return;
+    }
     const requestId = require('crypto').randomUUID();
     advisoryRequests.set(requestId, {
       status: 'pending',
@@ -466,6 +503,34 @@ const server = http.createServer(async (req, res) => {
     if (!entry) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'unknown or expired request_id' }));
+      return;
+    }
+    // Multi-agent parent — merge children status/results.
+    if (entry.kind === 'multi') {
+      const childEntries = entry.children.map((c) => advisoryRequests.get(c)).filter(Boolean);
+      const done = childEntries.filter((c) => c.status === 'completed' || c.status === 'failed');
+      const allDone = childEntries.length > 0 && done.length === entry.children.length;
+      const parentStatus = allDone
+        ? (childEntries.every((c) => c.status === 'failed') ? 'failed' : 'completed')
+        : 'pending';
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        request_id: requestId,
+        kind: 'multi',
+        status: parentStatus,
+        regions: MULTI_REGIONS,
+        children: entry.children.map((cid, i) => {
+          const c = advisoryRequests.get(cid);
+          return {
+            request_id: cid,
+            region: MULTI_REGIONS[i],
+            status: c ? c.status : 'expired',
+            result: (c && c.result) || null,
+            error: (c && c.error) || null
+          };
+        }),
+        created_at: entry.created_at
+      }));
       return;
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
