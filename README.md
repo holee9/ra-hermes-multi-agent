@@ -11,9 +11,10 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ## 현재 상태
 
-**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-06-28
+**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-07
 
 **최신 완료 작업:**
+- 🧠 **"진짜 RA 전문 agent" 두 기둥 구현** (2026-07-07, [#104](https://github.com/holee9/ra-hermes-multi-agent/issues/104)·[#105](https://github.com/holee9/ra-hermes-multi-agent/issues/105)): SPEC "Deep analysis"가 지적한 "답이 SOUL.md 역할 재진술일 뿐, 학습 이력을 안 읽음" + "순수 지식 query가 300s+ 행" 해결. **(a) 학습 이력 주입(REQ-AC-002b)**: `build_advisory_context`에 Honcho `daily_growth_case` 최근 7일 학습 주제 주입(`_fetch_learning_history`, date 기반 직접 probe, fail-safe 50-75ms) — 에이전트가 과거 학습 반영 회고/자문 가능. "학습 이력 자체는 evidence 아님" 명시(정확성 우선). **(b) #105 fix**: 근본 원인은 `ra-expert` 스킬의 RAG tool-loop(gpt-oss:120b ~49s/turn × N턴, 0 bytes 행). `_invoke_hermes` `skills` 파라미터화, advisory는 스킬 제거(서버가 이미 RAG evidence 주입). 라이브 e2e: **300s+/0 bytes → 129.6s/유효 JSON**(conf 0.93). pytest 32 passed(+4). 커밋 `518be4d`. ⚠️ 실운영 서버 `/opt/hermes-ra/`(systemd) 배포+재기동은 사용자 승인 대기.
 - ✨ **가상 오피스 RA 전문가 성숙도 별 표시** (2026-06-30): RA 3종(Mike/Theo/Sam) 캐릭터 이름 아래 학습량 기반 **별 1~5** 표시 — 현재 전부 ★★★☆☆(ra_us/eu 29 case, ra_kr 34 case). 별 5개=지구 최강 전문가 장기 목표. 정확도는 사람 KB-eval(#69~72) 도입 시 별도 활성(ra-advisory confidence는 raspi5p 루프 오염으로 제외). 구현 중 두 버그 포착·수정: ① `sessions/list` pagination 누락(page 1만 cap 50 → 전체 page 순회, #95 `messages/list`와 동일 패턴) ② `/api/events` 1.7MB/8511건 폭증(raspi5p 무한 루프 advisory가 98%) → 동일 이벤트 5분 윈도우 dedup로 **268KB/1117건(85%↓)**로 압축(growth/score 등 고유 활동은 보존, DB 변경 없이 표시 정책만). 별 count는 전체 기반이라 정확도 유지.
 - ✨ **가상 오피스 세부내용(detail) 창 확대** (2026-06-30): 기록창 하단 세부내용 창(`.detail-panel`) max-height 220→440px(+220). 행 클릭 시 상세 하단이 잘려 스크롤해야 하던 문제 해결. `max-height` 기반이라 **내용 양에 따라 0~440px 동적 높이**(내용 적으면 그만큼 축소) — 이 동작으로 확정(사용자 확인 완료). `.log` 220px는 유지. Docker rebuild 반영(포트 3001). 커밋 `ed0c20a`.
 - 🐛 **가상 오피스 최신 activity 미표시 버그 수정** (2026-06-28, [#95](https://github.com/holee9/ra-hermes-multi-agent/issues/95)): adapter `postJson`이 `path`에 query string(search)을 버려 항상 page 1(oldest 50)만 조회 → RA 전문가 자문·raspi5p 실행 최신이 대시보드에 누락되고 page 재호출로 중복 수집. `pathname + search` + `?page=N` 순회로 수정. 검증: advisory_returned 50→114건, latest 14:02 KST(기존 06-26). 커밋 `ce9cad0`. (#96 회귀 의심은 오판 정정 — ra_advisory 정상 기록 중)
