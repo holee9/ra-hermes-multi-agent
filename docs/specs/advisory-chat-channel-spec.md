@@ -610,6 +610,16 @@ bisect 완료. **Phase 1 어댑터는 정상**, 지연 근원 = `_invoke_hermes`
 - **롤백 완료**: `/opt/hermes-ra/hermes-api-server.py`를 `.bak-20260707-advisory-ab`(Jul 3 원본)로 복원, 바이트 동일 확인, 재기동. **production 안전 복구**(raspi5p email 자문 원래대로). repo에서도 (b) 코드 revert(아래 commit).
 - **재검토 방향(별도 작업)**: advisory는 Hermes agentic mode(도구+루프)에 부적합. 근본 fix = advisory를 **직접 LLM 호출**(OpenAI-compatible endpoint로 GX10에 context+system prompt 단발 완성, 도구 없음)로 전환 — Contract C 아키텍처 변경. #105는 이 방향으로 재OPEN.
 
+### ✅ (b) #105 해결 완료 — 직접 LLM 호출 전환 (commit `b21b47c`, 2026-07-07)
+
+위 재검토 방향대로 구현 + 배포 + **실서버 라이브 e2e** 검증 완료.
+- `_invoke_llm_direct(profile, context)`: `_load_soul(profile)`(SOUL.md persona 캐싱) + `build_advisory_context`를 단발 user turn으로 GX10 OpenAI-compatible endpoint(`{OLLAMA_URL}/v1/chat/completions`, `gpt-oss:120b`)에 직접 완성 요청. **도구 미노출 → 루프 구조적 불가**. config: `ADVISORY_LLM_URL`/`ADVISORY_LLM_MODEL`/`HERMES_PROFILES_DIR` env.
+- advisory endpoint가 `_invoke_hermes` → `_invoke_llm_direct`로 전환. Contract A(`/v1/chat/completions` 이메일 triage)는 `_invoke_hermes` 유지(미변경, 작동 중).
+- **라이브 e2e(배포 후 실서버 `/v1/ra/advisory` 엔드포인트 — 단발 테스트 아님, (b) v1 실패 교훈 반영)**:
+  - 지식 query "한국 MFDS 1등급 기준?" — **300s+ 행/0 bytes → 47s/유효 자문**(ra_kr, conf 0.92, evidence 인용, 상세 summary). #105 해결.
+  - email/action 자문(EU WP-114) — **68s → 42s/유효 자문**(ra_eu, conf 0.87, comment_existing_wp, wp=114, 2 evidence). 회귀 없음(오히려 개선).
+- pytest 34 passed(+3: `_load_soul`, `_invoke_llm_direct` content/error).
+
 ---
 
 ## Next Session Entrypoint
