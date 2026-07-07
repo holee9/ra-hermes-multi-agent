@@ -209,4 +209,4 @@ This repo is one piece of a larger RA ecosystem.
 - Agents access knowledge exclusively via pgvector `ra_knowledge` (pre-indexed from these sources).
 - doc-converter writes only to pgvector `ra_knowledge`, never to any knowledge base repo.
 
-The virtual office reads from this system; this system is unaware of the virtual office.
+The virtual office reads from this system; this system is unaware of the virtual office. (Observation stays read-only and one-directional. A separate human→RA advisory input channel — VO chat panel → adapter backend proxy → `/v1/ra/advisory` — was added per `docs/specs/advisory-chat-channel-spec.md`; the adapter, not the VO, is the API caller, so Hermes still does not know about the virtual office.)
