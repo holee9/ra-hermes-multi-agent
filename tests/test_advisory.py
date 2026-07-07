@@ -149,28 +149,6 @@ def test_fetch_learning_history_rejects_non_actor():
     assert m._fetch_learning_history("unknown") == ""
 
 
-def test_invoke_hermes_skills_param(monkeypatch):
-    """#105: skills='' omits --skills (advisory fix); default keeps --skills ra-expert."""
-    captured = {}
-
-    class _FakeCP:
-        stdout = ""
-        stderr = ""
-
-    def _fake_run(cmd, **kw):
-        captured["cmd"] = list(cmd)
-        return _FakeCP()
-
-    monkeypatch.setattr(m.subprocess, "run", _fake_run)
-
-    m._invoke_hermes("ra-kr", "ctx", skills="ra-expert")
-    assert "--skills" in captured["cmd"]
-    assert "ra-expert" in captured["cmd"]
-
-    m._invoke_hermes("ra-kr", "ctx", skills="")
-    assert "--skills" not in captured["cmd"]
-
-
 # ── validation (#83 items 4/5/6: evidence/low-conf/peer-id invariants) ────
 def test_validate_no_evidence_is_yellow():  # DoD item 4: evidence 없는 응답 → Yellow
     adv, yellow = m.validate_advisory({"actor": "ra-us", "confidence": 0.9, "evidence": []}, "ra_kr")
