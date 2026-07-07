@@ -21,6 +21,20 @@ const HONCHO_API_URL = process.env.HONCHO_API_URL || 'http://localhost:8000';
 const HONCHO_APP_NAME = process.env.HONCHO_APP_NAME || 'work';
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000');
 
+// Human→RA advisory channel (Phase 1, docs/specs/advisory-chat-channel-spec.md, issue #104).
+// The ADAPTER is the API caller — Hermes never learns about the virtual office.
+// @MX:ANCHOR: one-directional invariant — adapter MUST present as a normal /v1/ra/advisory
+// client; never put "vo"/"virtual-office"/"dashboard" in User-Agent, headers, or request body.
+// @MX:REASON: CLAUDE.md:212 "this system is unaware of the virtual office" must hold.
+// @MX:SPEC: docs/specs/advisory-chat-channel-spec.md REQ-AC-003, REQ-AC-007
+const HERMES_API_URL = process.env.HERMES_API_URL || 'http://192.168.100.200:8643';
+const API_SERVER_KEY = process.env.API_SERVER_KEY || '';
+// @MX:WARN: CHAT_AUTH_TOKEN empty = no client auth — POC internal-network single-user only.
+// @MX:REASON: set a non-empty token before any non-LAN exposure; empty is only for the
+// single-user POC on the trusted T3610 LAN.
+const CHAT_AUTH_TOKEN = process.env.CHAT_AUTH_TOKEN || '';
+const ADVISORY_TIMEOUT_MS = parseInt(process.env.ADVISORY_TIMEOUT_MS || '180000');
+
 // 목업 이벤트 (virtual-office.html의 EVENTS 배열과 동일)
 const MOCK_EVENTS = [
   {type:"mail_received", actor:"system", target:"ra_us", payload:{region:"US", subject:"510(k) follow-up"}},
@@ -192,6 +206,98 @@ function postJson(apiUrl, payload) {
   });
 }
 
+// ===== Human→RA advisory: async in-process map (OD-5 Option 1) =====
+// @MX:NOTE: request_id → state. Adapter owns async; Hermes server unchanged.
+// @MX:SPEC: REQ-AC-004, REQ-AC-009 (OD-5 = Option 1)
+const advisoryRequests = new Map(); // request_id → {status, result, error, created_at, query}
+const ADVISORY_TTL_MS = 30 * 60 * 1000; // 30 min
+// Purge stale entries every 5 min so the map can't grow unbounded.
+// @MX:WARN: setInterval in long-lived server — unref'd so it never blocks exit.
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, r] of advisoryRequests) {
+    if (now - r.created_at > ADVISORY_TTL_MS) advisoryRequests.delete(id);
+  }
+}, 5 * 60 * 1000).unref();
+
+function readJsonBody(req) {
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', (c) => { raw += c; if (raw.length > 65536) req.destroy(); });
+    req.on('end', () => {
+      try { resolve(JSON.parse(raw || '{}')); } catch { resolve(null); }
+    });
+    req.on('error', () => resolve(null));
+  });
+}
+
+// @MX:ANCHOR: Hermes advisory client — adapter presents as a normal caller (raspi5p-like).
+// @MX:REASON: never leak VO identity; identical shape to existing raspi5p advisory calls.
+// @MX:SPEC: REQ-AC-003 (backend proxy), REQ-AC-001 (query-only)
+function callHermesAdvisory(query, regionHint, requestId) {
+  const payload = JSON.stringify({
+    query,
+    region_hint: regionHint || null,
+    wp_context: {} // TV-1: query-only advisory, no WP context
+  });
+  const parsedUrl = new URL(`${HERMES_API_URL}/v1/ra/advisory`);
+  const transport = parsedUrl.protocol === 'https:' ? https : http;
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+      // @MX:NOTE: no VO/virtual-office identifier — adapter is just another advisory client.
+      'Authorization': `Bearer ${API_SERVER_KEY}`
+    }
+  };
+  const req = transport.request(options, (res) => {
+    let data = '';
+    res.on('data', (c) => data += c);
+    res.on('end', () => {
+      const entry = advisoryRequests.get(requestId);
+      if (!entry) return; // purged/expired
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        let parsed;
+        try { parsed = JSON.parse(data); } catch { parsed = null; }
+        if (parsed) {
+          entry.status = 'completed';
+          entry.result = parsed;
+        } else {
+          entry.status = 'failed';
+          entry.error = `non-JSON response (HTTP ${res.statusCode})`;
+        }
+      } else {
+        entry.status = 'failed';
+        entry.error = `upstream HTTP ${res.statusCode}: ${data.slice(0, 500)}`;
+      }
+      entry.completed_at = Date.now();
+    });
+  });
+  req.on('error', (err) => {
+    const entry = advisoryRequests.get(requestId);
+    if (entry) {
+      entry.status = 'failed';
+      entry.error = `adapter→hermes error: ${err.message}`;
+      entry.completed_at = Date.now();
+    }
+  });
+  req.setTimeout(ADVISORY_TIMEOUT_MS, () => {
+    req.destroy();
+    const entry = advisoryRequests.get(requestId);
+    if (entry) {
+      entry.status = 'failed';
+      entry.error = `timeout after ${ADVISORY_TIMEOUT_MS}ms`;
+      entry.completed_at = Date.now();
+    }
+  });
+  req.write(payload);
+  req.end();
+}
+
 async function fetchHonchoEvents() {
   // Honcho v3 API: POST /v3/workspaces/{workspace}/sessions/list
   // @MX:NOTE: sessions/list ALSO paginates via query string (?page=N&page_size=50) and
@@ -291,9 +397,10 @@ const HTML_PATH = fs.existsSync(path.join(__dirname, 'virtual-office.html'))
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
-  // CORS
+  // CORS — GET for observation, POST for /api/chat advisory only
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -301,10 +408,75 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 읽기 전용 — POST/PUT/DELETE 차단
-  if (req.method !== 'GET') {
+  // 읽기 전용 유지 — POST는 /api/chat* (자문 채널)만 허용, 나머지 쓰기는 여전히 405.
+  // @MX:ANCHOR: read-only invariant preserved — only /api/chat POST is whitelisted.
+  // @MX:REASON: REQ-AC-007; all other write paths stay blocked (was 405 for everything pre-#104).
+  // @MX:SPEC: docs/specs/advisory-chat-channel-spec.md
+  const isChatPath = parsedUrl.pathname === '/api/chat' || parsedUrl.pathname.startsWith('/api/chat/');
+  const isAllowedWrite = req.method === 'POST' && isChatPath;
+  if (req.method !== 'GET' && !isAllowedWrite) {
     res.writeHead(405, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Method not allowed. Virtual office is read-only.' }));
+    res.end(JSON.stringify({ error: 'Method not allowed. Virtual office is read-only (only POST /api/chat is accepted).' }));
+    return;
+  }
+
+  // POST /api/chat — submit human→RA advisory (OD-2 sessionStorage token auth)
+  // @MX:SPEC: REQ-AC-003, REQ-AC-004, REQ-AC-006
+  if (req.method === 'POST' && parsedUrl.pathname === '/api/chat') {
+    // Auth: single-user token (OD-2). Empty CHAT_AUTH_TOKEN = LAN-only POC bypass.
+    if (CHAT_AUTH_TOKEN) {
+      const auth = req.headers.authorization || '';
+      const token = auth.replace(/^Bearer\s+/i, '');
+      if (token !== CHAT_AUTH_TOKEN) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'unauthorized' }));
+        return;
+      }
+    }
+    if (!API_SERVER_KEY) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'API_SERVER_KEY not configured on adapter' }));
+      return;
+    }
+    const body = await readJsonBody(req);
+    if (!body || typeof body.query !== 'string' || !body.query.trim()) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'query (string) required' }));
+      return;
+    }
+    const requestId = require('crypto').randomUUID();
+    advisoryRequests.set(requestId, {
+      status: 'pending',
+      query: body.query.slice(0, 2000),
+      region_hint: body.region_hint || null,
+      created_at: Date.now()
+    });
+    // Fire-and-forget — adapter resolves the entry async.
+    callHermesAdvisory(body.query.slice(0, 2000), body.region_hint, requestId);
+    res.writeHead(202, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ request_id: requestId, status: 'pending' }));
+    return;
+  }
+
+  // GET /api/chat/{request_id} — poll advisory status/result
+  // @MX:SPEC: REQ-AC-009
+  if (req.method === 'GET' && parsedUrl.pathname.startsWith('/api/chat/')) {
+    const requestId = decodeURIComponent(parsedUrl.pathname.slice('/api/chat/'.length));
+    const entry = advisoryRequests.get(requestId);
+    if (!entry) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unknown or expired request_id' }));
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      request_id: requestId,
+      status: entry.status,
+      result: entry.result || null,
+      error: entry.error || null,
+      created_at: entry.created_at,
+      completed_at: entry.completed_at || null
+    }));
     return;
   }
 

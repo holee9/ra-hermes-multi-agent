@@ -157,6 +157,30 @@
   .detail-panel .dp-k{color:var(--accent);}
   .detail-panel .dp-v{color:#c0cbdc; word-break:break-all;}
 
+  /* 채팅 자문 패널 — 하단 (OD-1 Candidate B). 사람→RA 자문 입력 (#104).
+     어댑터 백엔드 프록시 경유, Hermes는 VO를 모름(단방향 유지). */
+  .chat-panel{
+    width:1068px; margin-top:8px; background:var(--card); border:3px solid var(--line);
+    padding:10px 14px; font-size:15px;
+  }
+  .chat-panel .cp-title{font-family:'Press Start 2P'; font-size:9px; color:var(--accent); margin-bottom:6px;}
+  .chat-panel .cp-history{max-height:220px; overflow-y:auto; margin-bottom:8px;}
+  .chat-panel .cp-msg{margin:4px 0; line-height:1.4;}
+  .chat-panel .cp-msg .cp-who{font-weight:bold; margin-right:6px;}
+  .chat-panel .cp-msg.user .cp-who{color:var(--accent);}
+  .chat-panel .cp-msg.agent .cp-who{color:var(--green);}
+  .chat-panel .cp-msg.pending .cp-who{color:#ffcd75;}
+  .chat-panel .cp-msg.err .cp-who,
+  .chat-panel .cp-msg.err .cp-body{color:var(--red);}
+  .chat-panel .cp-body{color:#c0cbdc; word-break:break-word;}
+  .chat-panel .cp-input-row{display:flex; gap:6px;}
+  .chat-panel .cp-input{flex:1; padding:6px 8px; font-size:14px; background:#1a1f2e; color:#fff; border:2px solid var(--line); border-radius:3px;}
+  .chat-panel .cp-region{padding:6px; font-size:13px; background:#1a1f2e; color:#fff; border:2px solid var(--line); border-radius:3px;}
+  .chat-panel .cp-send{padding:6px 14px; font-size:14px; cursor:pointer; background:var(--kanban); color:#fff; border:2px solid var(--line); border-radius:3px;}
+  .chat-panel .cp-send:hover{filter:brightness(1.2);}
+  .chat-panel .cp-send:disabled{opacity:0.5; cursor:not-allowed;}
+  .chat-panel .cp-hint{font-size:11px; color:#6b7394; margin-top:4px;}
+
   /* score stamp */
   .stamp{
     position:absolute; right:8px; bottom:8px; z-index:30;
@@ -319,7 +343,135 @@
   <div class="log" id="log"></div>
   <div class="detail-panel" id="detail"><div class="dp-empty">기록 행을 클릭하면 상세 내용이 표시됩니다.</div></div>
 
+  <!-- 채팅 자문 채널 (하단, #104) — 사람 → RA 에이전트. 어댑터 백엔드 프록시 경유 -->
+  <div class="chat-panel" id="chatpanel">
+    <div class="cp-title">💬 RA ADVISORY (사람 → 에이전트 자문)</div>
+    <div class="cp-history" id="chathist"></div>
+    <div class="cp-input-row">
+      <input type="text" id="chatinput" class="cp-input" placeholder="RA 에이전트에게 물어보세요 (예: MFDS 510(k) 분류 기준?) — 자문만, 실행 권한 없음" maxlength="2000" />
+      <select id="chatregion" class="cp-region" aria-label="지역 힌트">
+        <option value="">지역 자동</option>
+        <option value="US">US</option>
+        <option value="EU">EU</option>
+        <option value="KR">KR</option>
+      </select>
+      <button id="chatsend" class="cp-send" type="button">전송</button>
+    </div>
+    <div class="cp-hint" id="chathint">자문 응답은 백그라운드로 처리됩니다 (최대 ~180초). 에이전트는 자문만 반환하고, 실행·결정은 사람.</div>
+  </div>
+
 <script>
+/* ===== Human→RA advisory chat (#104) — VO → adapter backend proxy → /v1/ra/advisory
+   단방향 유지: Hermes는 VO를 모름. 에이전트는 자문만, 결정은 사람. */
+(function(){
+  const CHAT_TOKEN_KEY = 'vo_chat_token';
+  const histEl = document.getElementById('chathist');
+  const inputEl = document.getElementById('chatinput');
+  const regionEl = document.getElementById('chatregion');
+  const sendBtn = document.getElementById('chatsend');
+  const hintEl  = document.getElementById('chathint');
+  if(!histEl || !inputEl || !sendBtn) return; // 요소 없으면 중단
+
+  function getToken(){
+    let t = sessionStorage.getItem(CHAT_TOKEN_KEY);
+    if(!t){
+      t = prompt('RA 자문 채널 인증 토큰(CHAT_AUTH_TOKEN)을 입력하세요:', '') || '';
+      if(t) sessionStorage.setItem(CHAT_TOKEN_KEY, t);
+    }
+    return t;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function addMsg(who, body, cls){
+    const d = document.createElement('div');
+    d.className = 'cp-msg ' + (cls||'');
+    d.innerHTML = '<span class="cp-who">'+esc(who)+'</span><span class="cp-body">'+esc(body)+'</span>';
+    histEl.appendChild(d);
+    histEl.scrollTop = histEl.scrollHeight;
+    return d;
+  }
+  function fmtResult(res){
+    if(!res || typeof res !== 'object') return '(빈 응답)';
+    const parts = [];
+    if(res.actor) parts.push(res.actor);
+    if(res.decision) parts.push('['+res.decision+']');
+    if(res.region) parts.push('('+res.region+')');
+    if(res.confidence!=null) parts.push('conf='+res.confidence);
+    const head = parts.length ? parts.join(' ') + ': ' : '';
+    const body = res.summary || res.recommended_comment || JSON.stringify(res).slice(0,800);
+    let tail = '';
+    if(res.yellow_reason) tail += ' | Yellow: '+res.yellow_reason;
+    if(Array.isArray(res.evidence) && res.evidence.length) tail += ' | 근거: '+res.evidence.slice(0,3).join('; ');
+    return head + body + tail;
+  }
+  async function pollAdvisory(requestId, pendEl){
+    const token = sessionStorage.getItem(CHAT_TOKEN_KEY) || '';
+    const pollEvery = 3000, maxWait = 200000;
+    const start = Date.now();
+    const tick = async () => {
+      if(Date.now() - start > maxWait){
+        if(pendEl){ pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(타임아웃 — 백그라운드에서 계속 처리 중)'; }
+        return;
+      }
+      try{
+        const r = await fetch('/api/chat/'+encodeURIComponent(requestId), { headers: token ? {'Authorization':'Bearer '+token} : {} });
+        const j = await r.json();
+        if(j.status === 'completed'){
+          if(pendEl) pendEl.remove();
+          addMsg('RA:', fmtResult(j.result), 'agent');
+          return;
+        }
+        if(j.status === 'failed'){
+          if(pendEl){ pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(' + (j.error||'오류') + ')'; }
+          return;
+        }
+        // pending — 계속 폴링
+      }catch(e){ /* 일시 네트워크 오류는 무시하고 재시도 */ }
+      setTimeout(tick, pollEvery);
+    };
+    tick();
+  }
+  async function sendAdvisory(){
+    const q = inputEl.value.trim();
+    if(!q) return;
+    const token = getToken();
+    if(!token){ hintEl.textContent = '토큰이 필요합니다.'; return; }
+    sendBtn.disabled = true;
+    const region = regionEl.value || null;
+    inputEl.value = '';
+    addMsg('나:', q + (region?' ('+region+')':''), 'user');
+    const pendEl = addMsg('…', 'RA 응답 대기 중 (백그라운드, 최대 ~180초)', 'pending');
+    hintEl.textContent = '전송 중…';
+    try{
+      const r = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify({query:q, region_hint:region})
+      });
+      if(r.status === 401){
+        sessionStorage.removeItem(CHAT_TOKEN_KEY);
+        pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(인증 실패 — 토큰 재입력 필요)';
+        hintEl.textContent = '인증 실패. 토큰을 재입력하세요.';
+        sendBtn.disabled = false; return;
+      }
+      const j = await r.json();
+      if(!r.ok){
+        pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(' + (j.error||('HTTP '+r.status)) + ')';
+        hintEl.textContent = j.error || ('HTTP '+r.status);
+        sendBtn.disabled = false; return;
+      }
+      hintEl.textContent = '요청 ID: ' + j.request_id + ' — 응답 대기';
+      await pollAdvisory(j.request_id, pendEl);
+      hintEl.textContent = '완료. (자문만, 결정은 사람)';
+    }catch(e){
+      pendEl.classList.add('err'); pendEl.querySelector('.cp-body').textContent = '(네트워크 오류: '+e.message+')';
+      hintEl.textContent = '네트워크 오류';
+    }
+    sendBtn.disabled = false;
+  }
+  sendBtn.addEventListener('click', sendAdvisory);
+  inputEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendAdvisory(); } });
+})();
+
 /* ===== 픽셀 캐릭터 데이터 (32x32, 좌우대칭 베이스 + 캐릭터별 색) =====
    코드로 찍은 픽셀아트. canvas 렌더 → 외부 PNG 불필요.
    더 정교한 CC0 스프라이트(예: Kenney, kenney.nl, 표기 의무 없음)를

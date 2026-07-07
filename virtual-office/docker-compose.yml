@@ -26,6 +26,12 @@ services:
       - HONCHO_API_URL=${HONCHO_API_URL:-http://honcho-api-1:8000}
       - HONCHO_APP_NAME=${HONCHO_APP_NAME:-work}
       - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-30000}
+      # Human→RA advisory channel (#104) — adapter backend proxy to Hermes (host:8643).
+      # Adapter is the API caller; Hermes never learns about the virtual office.
+      - HERMES_API_URL=${HERMES_API_URL:-http://192.168.100.200:8643}
+      - API_SERVER_KEY=${API_SERVER_KEY:-}
+      - CHAT_AUTH_TOKEN=${CHAT_AUTH_TOKEN:-}
+      - ADVISORY_TIMEOUT_MS=${ADVISORY_TIMEOUT_MS:-180000}
     # 읽기 전용 관찰자 — 외부 서비스로의 쓰기 경로 없음
     read_only: true
     tmpfs:
