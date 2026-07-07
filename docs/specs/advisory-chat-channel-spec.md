@@ -517,6 +517,37 @@ future work.
 
 ---
 
+## Phase 1 Implementation Log (2026-07-07)
+
+**Commit**: `115cac6` (feat #104). **Issue**: #104.
+
+### Implemented
+- `virtual-office-honcho-adapter.js`: `/api/chat` POST whitelist (other writes still 405), `API_SERVER_KEY` held server-side, OD-2 sessionStorage token auth, OD-5 Option 1 in-process map + `/api/chat/{id}` polling.
+- `virtual-office.html`: bottom chat panel (OD-1 Candidate B) + token input + polling UI.
+- `docker-compose.yml`: `HERMES_API_URL`/`API_SERVER_KEY`/`CHAT_AUTH_TOKEN` env. `.env.example` documents keys (`.env` gitignored).
+
+### Live e2e verification (T3610)
+| Check | Result |
+|---|---|
+| No-token POST → 401 | ✅ PASS |
+| Valid-token POST → 202 + request_id | ✅ PASS |
+| POST to other path → 405 (read-only preserved) | ✅ PASS |
+| One-directional (no VO identifier to Hermes) | ✅ PASS |
+| Advisory response returned | ⚠️ **FAIL** — 180s timeout, `socket hang up` |
+
+### ⚠️ TV-1 REVERSED by live test (2026-07-07)
+- TV-1 (code-only) said query-only advisory FEASIBLE. **Live test reverses this.**
+- `/v1/ra/advisory` handler code DOES accept empty `wp_context` (`hermes-api-server.py:752`), but the `_invoke_hermes` subprocess (Hermes CLI) does NOT return within `ADVISORY_TIMEOUT=180s` for the test query ("한국 MFDS 의료기기 1등급 기준은?", region_hint=KR).
+- raspi5p's hourly advisories (192.168.100.50) return `200` normally → Hermes itself works; the stall is **query-specific** (ra_kr routing + knowledge query, not wp_context emptiness).
+- **REQ-AC-001 still valid at the contract level** (server accepts query-only); the gap is Hermes CLI response time for knowledge-type queries, which is OUT OF PHASE-1 SCOPE (adapter is correct).
+
+### Next diagnostic (separate from Phase 1)
+1. Time a lightweight query (e.g., short English greeting) end-to-end to find Hermes's normal response window.
+2. If lightweight works → query-specific stall in `_run_rag_search` / `_run_knowledge_fetch` / `_invoke_hermes` for KR knowledge queries; bisect.
+3. Consider raising `ADVISORY_TIMEOUT` and/or adding a streaming/sse path (OD-5 Option 2) if knowledge queries routinely exceed 180s.
+
+---
+
 ## Next Session Entrypoint
 
 The next session can resume immediately by running through this checklist. Do not start coding
