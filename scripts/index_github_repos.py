@@ -49,7 +49,9 @@ GITHUB_API = "https://api.github.com"
 # Gitea (internal NAS Gitea — reachable on LAN via diskstation:7001; Tailscale not required)
 GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001")
 GITEA_TOKEN: Optional[str] = os.environ.get("GITEA_TOKEN")
-GITEA_REPOS = ["DR_RnD/ra-llm-wiki"]
+GITEA_REPOS = []  # llm-wiki removed (#27, 2026-07-11) — Karpathy on-demand Layer 4, not a
+                  # pgvector embedding target. Consumed via Layer 4 fetch_llm_wiki (Gitea
+                  # realtime API). Legacy 2,636 rows cleaned from ra_knowledge (backup kept).
 
 # ---------------------------------------------------------------------------
 # Helpers
