@@ -74,6 +74,22 @@ try:
 except OSError:
     pass  # log dir not writable; skip silently
 
+# KB gap log (#106 Phase 1): advisory yellow/no-evidence/low-confidence responses are
+# KB-completion candidates. Append-only JSONL; adapter reads via /api/kb-gaps. Logger-only —
+# advisory inference logic is never touched (REQ-MC-013, #105 regression guard).
+KB_GAPS_LOG = os.environ.get("KB_GAPS_LOG", "reports/kb-gaps/kb-gaps.jsonl")
+_kb_gaps_logger = logging.getLogger("ra.kb_gaps")
+_kb_gaps_logger.setLevel(logging.INFO)
+try:
+    _kg_dir = os.path.dirname(KB_GAPS_LOG)
+    if _kg_dir and not os.path.isdir(_kg_dir):
+        os.makedirs(_kg_dir, exist_ok=True)
+    _kg_fh = logging.FileHandler(KB_GAPS_LOG)
+    _kg_fh.setFormatter(logging.Formatter("%(message)s"))
+    _kb_gaps_logger.addHandler(_kg_fh)
+except OSError:
+    pass  # log dir not writable; skip silently
+
 
 def _log_adv_request(request_ref: str, query: str, region_hint: str | None, adv: dict) -> None:
     """Log advisory request input + outcome so unclear_region is immediately diagnosable.
@@ -340,6 +356,49 @@ HINT_ALIASES: dict[str, str] = {
     "ra_us": "ra_us", "ra_eu": "ra_eu", "ra_kr": "ra_kr",
 }
 ADVISORY_LOW_CONF = float(os.environ.get("ADVISORY_LOW_CONF", "0.5"))
+
+# [IF] KB gap detection thresholds (#106 Phase 1). GAP_CONF_THRESHOLD defaults to
+# ADVISORY_LOW_CONF so gap capture aligns with the existing accuracy-first cut.
+# GAP_DEDUP_WINDOW is the seconds-window for same-topic suppression (enforced at read).
+GAP_CONF_THRESHOLD = float(os.environ.get("GAP_CONF_THRESHOLD", str(ADVISORY_LOW_CONF)))
+GAP_DEDUP_WINDOW = int(os.environ.get("GAP_DEDUP_WINDOW", "3600"))
+
+
+def _log_kb_gap(adv: dict, query: str, request_ref: str) -> None:
+    """Append a KB-gap candidate to KB_GAPS_LOG when the advisory signals a knowledge gap.
+
+    Gap signal (REQ-MC-001): decision == yellow_review, evidence empty, or confidence below
+    GAP_CONF_THRESHOLD. This only observes the final advisory dict — it never touches the
+    advisory inference path (build_advisory_context, _invoke_llm_direct, validate_advisory,
+    _yellow_advisory), so #105 regression is impossible. Append-only JSONL; the adapter
+    dedups by topic within GAP_DEDUP_WINDOW at read time. Never raises.
+    """
+    decision = adv.get("decision")
+    evidence = adv.get("evidence") or []
+    confidence = adv.get("confidence")
+    try:
+        conf_f = float(confidence) if isinstance(confidence, (int, float)) else 0.0
+    except (TypeError, ValueError):
+        conf_f = 0.0
+    is_gap = (decision == "yellow_review") or (not evidence) or (conf_f < GAP_CONF_THRESHOLD)
+    if not is_gap:
+        return
+    topic = (adv.get("summary") or query or "").strip()[:300]
+    try:
+        _kb_gaps_logger.info(json.dumps({
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "request_ref": request_ref,
+            "actor": adv.get("actor"),
+            "region": adv.get("region"),
+            "topic": topic,
+            "source_query": (query or "")[:1000],
+            "yellow_reason": adv.get("yellow_reason"),
+            "confidence": conf_f,
+            "decision": decision,
+            "evidence_count": len(evidence),
+        }, ensure_ascii=False))
+    except Exception:
+        pass  # logging must never break advisory (accuracy-first: response always returns)
 ADVISORY_TIMEOUT = int(os.environ.get("ADVISORY_TIMEOUT", "180"))
 ADVISORY_FALLBACK_ACTOR = os.environ.get("ADVISORY_FALLBACK_ACTOR", "ra_kr")
 if ADVISORY_FALLBACK_ACTOR not in ADVISORY_ACTOR_PROFILE:
@@ -907,6 +966,7 @@ def ra_advisory():
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
         _log_adv_request(request_ref, query, region_hint, adv)
+        _log_kb_gap(adv, query, request_ref)
         return jsonify(adv)
 
     profile = ADVISORY_ACTOR_PROFILE[actor]
@@ -933,6 +993,7 @@ def ra_advisory():
     adv["request_ref"] = request_ref
     _honcho_record("ra_advisory", actor, adv.get("summary", ""), _adv_meta(adv, request_ref))
     _log_adv_request(request_ref, query, region_hint, adv)
+    _log_kb_gap(adv, query, request_ref)
     return jsonify(adv)
 
 

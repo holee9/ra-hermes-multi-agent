@@ -35,6 +35,71 @@ const API_SERVER_KEY = process.env.API_SERVER_KEY || '';
 const CHAT_AUTH_TOKEN = process.env.CHAT_AUTH_TOKEN || '';
 const ADVISORY_TIMEOUT_MS = parseInt(process.env.ADVISORY_TIMEOUT_MS || '180000');
 
+// #106 Phase 1: KB gap log path (shared with hermes-api-server.py KB_GAPS_LOG) + dedup window.
+// [IF] operator-tunable. Adapter READS the JSONL the advisory server appends to — never writes.
+const KB_GAPS_LOG = process.env.KB_GAPS_LOG || 'reports/kb-gaps/kb-gaps.jsonl';
+const GAP_DEDUP_WINDOW_S = parseInt(process.env.GAP_DEDUP_WINDOW || '3600');
+// #106 Phase 2: KB total source count for coverage-axis normalization. [IF] — operator tunes
+// on KB jump (REQ-MC-008 re-baseline). Default = ra_knowledge distinct-sources snapshot.
+const KB_TOTAL_SOURCES = parseInt(process.env.KB_TOTAL_SOURCES || '1493');
+
+function normalizeTopicKey(s) {
+  return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+
+// @MX:NOTE: read-only KB gap consumer (#106 Phase 1). Dedups advisory yellow/no-evidence/
+// low-confidence candidates by (actor + source_query topic) so the human sees each KB gap once
+// per topic, not every raspi5p loop burst. Log is append-only; this only reads.
+function readKbGaps() {
+  let lines = [];
+  try {
+    lines = fs.readFileSync(KB_GAPS_LOG, 'utf8').split('\n');
+  } catch {
+    return {
+      gaps: [],
+      summary: { total_raw: 0, total_deduped: 0, by_actor: {}, by_reason: {} },
+      dedup_window_s: GAP_DEDUP_WINDOW_S,
+      generated_at: new Date().toISOString(),
+      log_path: KB_GAPS_LOG,
+      note: 'log not found or empty (no gaps captured yet)'
+    };
+  }
+  const records = [];
+  for (const ln of lines) {
+    const t = ln.trim();
+    if (!t) continue;
+    try { records.push(JSON.parse(t)); } catch { /* skip malformed line */ }
+  }
+  // newest first so the first occurrence per topic key is the latest gap
+  records.sort((a, b) => (b.ts || '').localeCompare(a.ts || ''));
+  const seen = new Set();
+  const deduped = [];
+  const byActor = {};
+  const byReason = {};
+  for (const r of records) {
+    const key = (r.actor || 'unknown') + '::' + normalizeTopicKey(r.source_query || r.topic);
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(r);
+    }
+    byActor[r.actor || 'unknown'] = (byActor[r.actor || 'unknown'] || 0) + 1;
+    const yr = r.yellow_reason || 'unknown';
+    byReason[yr] = (byReason[yr] || 0) + 1;
+  }
+  return {
+    gaps: deduped.slice(0, 200),
+    summary: {
+      total_raw: records.length,
+      total_deduped: deduped.length,
+      by_actor: byActor,
+      by_reason: byReason
+    },
+    dedup_window_s: GAP_DEDUP_WINDOW_S,
+    generated_at: new Date().toISOString(),
+    log_path: KB_GAPS_LOG
+  };
+}
+
 // 목업 이벤트 (virtual-office.html의 EVENTS 배열과 동일)
 const MOCK_EVENTS = [
   {type:"mail_received", actor:"system", target:"ra_us", payload:{region:"US", subject:"510(k) follow-up"}},
@@ -166,15 +231,28 @@ function levelFromCount(count) {
 // accuracy once those evaluations are completed.
 function computeAgentLevels(events) {
   const counts = { ra_us: 0, ra_eu: 0, ra_kr: 0 };
+  const sourceSets = { ra_us: new Set(), ra_eu: new Set(), ra_kr: new Set() };
   for (const ev of events) {
-    if (ev.type === 'growth_case' && counts[ev.actor] !== undefined) counts[ev.actor]++;
+    if (ev.type === 'growth_case' && counts[ev.actor] !== undefined) {
+      counts[ev.actor]++;
+      // #106 Phase 2: coverage axis = distinct KB sources studied. Volume's twin dimension:
+      // volume counts cases (breadth of practice), coverage counts unique sources (breadth of
+      // knowledge touched). Same case-count can have different coverage — maturity's second leg.
+      const src = ev.payload && ev.payload.source;
+      if (src) sourceSets[ev.actor].add(src);
+    }
   }
-  return RA_PEERS.map(p => ({
-    actor: p,
-    growth_cases: counts[p],
-    level: levelFromCount(counts[p]),
-    accuracy: 'pending'
-  }));
+  return RA_PEERS.map(p => {
+    const covSrc = sourceSets[p].size;
+    return {
+      actor: p,
+      growth_cases: counts[p],
+      level: levelFromCount(counts[p]),   // REQ-MC-006: volume star unchanged (regression=0)
+      accuracy: 'pending',                 // REQ-MC-015: pending until human KB-eval (#69~72)
+      coverage_sources: covSrc,
+      coverage_pct: KB_TOTAL_SOURCES > 0 ? Math.round((covSrc / KB_TOTAL_SOURCES) * 1000) / 10 : 0
+    };
+  });
 }
 
 function postJson(apiUrl, payload) {
@@ -564,8 +642,23 @@ const server = http.createServer(async (req, res) => {
       // @MX:NOTE: accuracy is pending — ra-advisory confidence excluded (raspi5p loop
       // contamination). Only human KB-eval (#69~72) will activate accuracy later.
       accuracy_status: 'ra-advisory confidence excluded (raspi5p loop contamination); accuracy pending human KB-eval (#69~72)',
-      star_formula: 'balanced: 1~9→1, 10~19→2, 20~34→3, 35~59→4, 60+→5 (daily_growth_case volume)'
+      star_formula: 'balanced: 1~9→1, 10~19→2, 20~34→3, 35~59→4, 60+→5 (daily_growth_case volume)',
+      // #106 Phase 2: coverage axis = distinct KB sources studied / KB_TOTAL_SOURCES. Volume
+      // star is unchanged (REQ-MC-006 regression=0); coverage is a twin dimension so maturity
+      // keeps meaning after volume saturation (★5). accuracy axis still pending (#69~72).
+      coverage_axis: {
+        kb_total_sources: KB_TOTAL_SOURCES,
+        normalization: 'distinct growth_case source / KB_TOTAL_SOURCES (operator tunes on KB jump, REQ-MC-008)'
+      }
     }));
+    return;
+  }
+
+  // #106 Phase 1: KB gap surface — advisory yellow/no-evidence/low-confidence candidates,
+  // deduped by topic. Read-only view for the human KB-completion loop (REQ-MC-003).
+  if (parsedUrl.pathname === '/api/kb-gaps') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(readKbGaps()));
     return;
   }
 

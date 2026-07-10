@@ -156,6 +156,17 @@
   .detail-panel .dp-row{margin:2px 0;}
   .detail-panel .dp-k{color:var(--accent);}
   .detail-panel .dp-v{color:#c0cbdc; word-break:break-all;}
+  /* #106 Phase 1: KB 갭 후보 패널 (advisory yellow/no-evidence/low-confidence). */
+  .gap-panel{max-height:200px; overflow-y:auto; background:#10131f; border:1px solid #232842; border-radius:4px; padding:6px; margin-top:6px;}
+  .gap-panel .gp-title{font-family:'Press Start 2P'; font-size:9px; color:var(--accent); margin-bottom:4px;}
+  .gap-panel .gp-count{color:#ffd966;}
+  .gap-panel .gp-empty{color:#6b7394; font-size:9px;}
+  .gap-panel .gp-chips{margin-bottom:4px;}
+  .gap-panel .gp-chip{display:inline-block; background:#1b2138; color:#9fb4d8; border-radius:3px; padding:1px 4px; margin-right:3px; font-size:8px;}
+  .gap-panel .gp-row{font-size:9px; margin:2px 0; line-height:1.3;}
+  .gap-panel .gp-actor{color:#7fd1c5; margin-right:4px;}
+  .gap-panel .gp-reason{color:#e0a868; margin-right:4px;}
+  .gap-panel .gp-topic{color:#c0cbdc; word-break:break-all;}
 
   /* 채팅 자문 패널 — 하단 (OD-1 Candidate B). 사람→RA 자문 입력 (#104).
      어댑터 백엔드 프록시 경유, Hermes는 VO를 모름(단방향 유지). */
@@ -342,6 +353,10 @@
 
   <div class="log" id="log"></div>
   <div class="detail-panel" id="detail"><div class="dp-empty">기록 행을 클릭하면 상세 내용이 표시됩니다.</div></div>
+  <div class="gap-panel">
+    <div class="gp-title">KB 보완 후보 <span class="gp-count" id="gapCount">…</span></div>
+    <div id="gapList"></div>
+  </div>
 
   <!-- 채팅 자문 채널 (하단, #104) — 사람 → RA 에이전트. 어댑터 백엔드 프록시 경유 -->
   <div class="chat-panel" id="chatpanel">
@@ -808,7 +823,38 @@ function renderStars(levels){
     const el = document.getElementById('stars_'+lv.actor);
     if (!el) continue;
     el.textContent = '★'.repeat(lv.level) + '☆'.repeat(5-lv.level);
-    el.title = `별 ${lv.level}/5 · 학습 ${lv.growth_cases} case · 정확도: 평가 대기(사람 KB-eval 도입 시)`;
+    el.title = `별 ${lv.level}/5 (학습량) · 학습 ${lv.growth_cases} case · 커버리지 ${lv.coverage_sources||0} source(${lv.coverage_pct||0}%) · 정확도: 평가 대기`;
+  }
+}
+
+/* #106 Phase 1: KB 갭 후보 (advisory가 근거 부족/저신뢰로 판정한 주제). 페이지 로드 시 1회.
+   사람이 보고 KB(llm-wiki 등)를 보완 → agent 재소비. 보조 표시 전용(자동화 근거 아님, REQ-MC-012). */
+async function fetchKbGaps(){
+  const data = await fetch('/api/kb-gaps').then(r=>r.json()).catch(()=>null);
+  return (data && Array.isArray(data.gaps)) ? data : null;
+}
+function renderKbGaps(data){
+  const list=document.getElementById('gapList'); if(!list) return;
+  const count=document.getElementById('gapCount');
+  list.innerHTML='';
+  if(!data || !data.gaps.length){
+    if(count) count.textContent='0';
+    const e=document.createElement('div'); e.className='gp-empty';
+    e.textContent='탐지된 갭 없음 — advisory가 근거 있는 자문만 반환 중';
+    list.appendChild(e); return;
+  }
+  if(count) count.textContent=String(data.summary.total_deduped)+'건 (raw '+data.summary.total_raw+')';
+  const chips=document.createElement('div'); chips.className='gp-chips';
+  for(const [a,n] of Object.entries(data.summary.by_actor||{})){
+    const s=document.createElement('span'); s.className='gp-chip'; s.textContent=a+':'+n; chips.appendChild(s);
+  }
+  list.appendChild(chips);
+  for(const g of data.gaps.slice(0,12)){
+    const row=document.createElement('div'); row.className='gp-row';
+    const ac=document.createElement('span'); ac.className='gp-actor'; ac.textContent=(g.actor||'?');
+    const rs=document.createElement('span'); rs.className='gp-reason'; rs.textContent=(g.yellow_reason||'?');
+    const tp=document.createElement('span'); tp.className='gp-topic'; tp.textContent=(g.topic||g.source_query||'').slice(0,90);
+    row.append(ac,rs,tp); list.appendChild(row);
   }
 }
 
@@ -844,6 +890,7 @@ async function initDataSource(){
     // RA 성숙도 별 — 페이지 로드 시 1회만 갱신. 학습은 하루 소량씩 천천히 쌓이므로
     // 실시간 폴링 불필요 (주 1회 이상 대시보드를 새로 열면 최신 반영됨).
     renderStars(await fetchLevels());
+    renderKbGaps(await fetchKbGaps());
     const pollMs = cfg?.poll_interval_ms || 30000;
     setInterval(pollNew, pollMs);
   }catch(_){

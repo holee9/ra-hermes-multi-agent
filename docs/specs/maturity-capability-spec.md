@@ -271,6 +271,18 @@ KB 갭이 탐지되면 "이 주제 KB 보완 필요"로 **표시**만 한다. KB
 
 > OD는 코드-전( 코드 작성 전) 결정이 아니다 — 일부는 Phase 1/2 Run 진입 시점에, 실측 데이터를 보며 결정하는 것이 합리적이다(OD-2는 KB 규모 실측, OD-3은 사용자 UX 선호). 다만 OD-1은 Phase 1 착수 전 결정 필요.
 
+### OD 결정 (2026-07-10, Phase 1/2 Run 진행 시점 — 실측 데이터 기반)
+
+사용자 승인 하 Phase 1/2 Run을 진행하며 DB 실측 데이터를 보아 3개 OD를 확정했다.
+
+| OD | 결정 | 근거 |
+|----|------|------|
+| **OD-1** | **(b) JSONL 파일** `reports/kb-gaps/kb-gaps.jsonl` | 기존 `reports/` 패턴 일관, append-only 이벤트 로그에 자연스러움, DB 스키마 추가 회피(GATE-3 영향 최소). Phase 1 구현 완료(`hermes-api-server.py:_log_kb_gap` + adapter `/api/kb-gaps`). |
+| **OD-2** | **agent별 고유 학습 source 수 / KB 총 source 수**(정규화 비율) | DB 검증: `daily_growth_case` metadata `source` 100% 채워짐(ra_us 59/59·ra_eu 59/59·ra_kr 64/64). distinct source = **ra_us 22·ra_eu 17·ra_kr 17**. coverage = distinct growth source / `KB_TOTAL_SOURCES`([IF] env, 기본 1493). 청크 수가 아닌 **source(파일) 단위** — 학습 다양성이 volume(누적 case)과 직교하는 진짜 제2의 축. |
+| **OD-3** | **(b) 축별 다중 표시** — ★ volume(현행·회귀 0) + `coverage_sources`/`coverage_pct` 보조 + accuracy pending | 정확도 축 데이터(#69~72) 미확보 상태에서 가중합은 의미 없음. volume 별은 `levelFromCount` 유지(REQ-MC-006 회귀=0, 단위 테스트 PASS), coverage는 표시용 보조 축. KB 점프 시 `KB_TOTAL_SOURCES` 갱신 → coverage_pct 재산정(REQ-MC-008 인플레 방지). |
+
+> 정확도 축(REQ-MC-007)은 여전 `pending` — 사람 KB-eval(#69~72) 데이터에 의존하므로 본 Run에서는 활성하지 않는다. coverage 축은 메타데이터 기반으로 **지금 즉시 측정 가능**하여 활성했다(AC-P2-1 volume 회귀=0 / AC-P2-3 재산정 로직 단위 검증 / AC-P2-4 OD 문서화 충족).
+
 ---
 
 ## Annex B — Cross-reference Index
