@@ -1,7 +1,7 @@
 # SPEC — KB RAG Sync (ra-project/MD-process/llm-wiki 단절 해결 + 정기 동기화 파이프라인)
 
 > **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: **Phase 1 IMPLEMENTED (2026-07-10, GATE-3 승인 받아 실행)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. Phase 2 RAG 전환은 여전 PROPOSED(DEFERRED).
+> **Status**: **Phase 1 IMPLEMENTED (2026-07-10)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. **Phase 2 (c1) 역방향 동기화 IMPLEMENTED (2026-07-11, GATE-3 승인)** — ra_knowledge → Qdrant `ra_kb_markdown` collection 역방향 복사 + `_run_rag_search` 하이브리드 조회. AC-P2-1(markdown 도달)/2(NAS 회귀 보존)/3(결정 문서화) 라이브 검증 PASS.
 > **llm-wiki는 본 SPEC 범위에서 제외** (2026-07-10 결정 정정) — Karpathy "compile 지식" 계층으로 pgvector 인제스트 대상 아님. Layer 4 on-demand 소비 모델로 전환 → `docs/specs/llm-wiki-operating-model.md` 참조. (기존 Annex C의 "페이지네이션 미완" 서술은 운영모델 결정으로 대체.)
 > **Date**: 2026-07-10.
 > **Tracking issue**: #107 ([MONITOR-6] pgvector ra_knowledge 정기 인덱싱 스케줄 부재).
@@ -142,6 +142,10 @@ Phase 2는 Layer 1 RAG 조회 경로를 Qdrant → pgvector로 전환하는 것�
 > - **(c)** 그 외 Run phase에서 제안 가능.
 >
 > **본 SPEC은 (a)/(b)/(c) 중 어느 것도 선택하지 않는다.** Phase 2는 별도 설계 세션에서 이 결정을 내린 후 Run phase로 진입한다.
+
+> **✅ REQ-KBS-004a 결정 (2026-07-11, 사용자 승인 Run)**: **(c1) 역방향 Qdrant collection** 선택.
+> 임베딩 호환 실측(pgvector `ra_knowledge` 4096/Cosine/`qwen3-embedding` == Qdrant `nas_ra_docs`)으로, 이미 계산된 벡터를 pgvector에서 Qdrant 신규 collection `ra_kb_markdown`로 복사(`scripts/sync_ra_knowledge_to_qdrant.py`). **GX10 임베딩 0건·데이터 손실 0**(NAS 2.09M 유지 + markdown 8,159 추가). `_run_rag_search`는 nas_ra_docs + ra_kb_markdown 하이브리드 조회(Hermes `rag_search.py` 스킬 미수정, collection별 호출). llm-wiki는 제외(Karpathy on-demand, 레거시 행은 #27 정리 대기). 매일 cron 18:03 증분(id 기반 멱등).
+> **라이브 e2e**: AC-P2-1 RAG 도달 확증(`_run_rag_search` NAS 5 + markdown 5 = 10건, markdown score 0.80 > NAS 0.72) · AC-P2-2 NAS 회귀 보존 · AC-P2-3 본 결정 문서화. end-to-end advisory evidence는 LLM이 query에 가장 관련 높은 출처를 인용(RTA query→NAS PDF, 정상)하며, markdown-only 내용에서 markdown이 인용됨.
 
 ### REQ-KBS-005 (Phase 2 — 라이브 e2e 검증 필수)
 **THE SYSTEM SHALL NOT** Phase 2 RAG 전환을 "완료"로 선언하기 위해 단위 테스트만으로 충족한다. 반드시 실서버(T3610 `/opt/hermes-ra/`)에서 라이브 e2e 검증을 수행해야 한다.
