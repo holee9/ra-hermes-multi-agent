@@ -1,7 +1,8 @@
 # SPEC — KB RAG Sync (ra-project/MD-process/llm-wiki 단절 해결 + 정기 동기화 파이프라인)
 
 > **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: **Phase 1 IMPLEMENTED (2026-07-10, GATE-3 승인 받아 실행)** — 2/3 KB(MD-process·ra-project) 정기 동기화 확립. Phase 2 RAG 전환은 여전 PROPOSED(DEFERRED). ⚠️ llm-wiki는 인덱서 페이지네이션 한계로 미완(신규 이슈, Annex C 참조).
+> **Status**: **Phase 1 IMPLEMENTED (2026-07-10, GATE-3 승인 받아 실행)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. Phase 2 RAG 전환은 여전 PROPOSED(DEFERRED).
+> **llm-wiki는 본 SPEC 범위에서 제외** (2026-07-10 결정 정정) — Karpathy "compile 지식" 계층으로 pgvector 인제스트 대상 아님. Layer 4 on-demand 소비 모델로 전환 → `docs/specs/llm-wiki-operating-model.md` 참조. (기존 Annex C의 "페이지네이션 미완" 서술은 운영모델 결정으로 대체.)
 > **Date**: 2026-07-10.
 > **Tracking issue**: #107 ([MONITOR-6] pgvector ra_knowledge 정기 인덱싱 스케줄 부재).
 
