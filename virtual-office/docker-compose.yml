@@ -32,6 +32,12 @@ services:
       - API_SERVER_KEY=${API_SERVER_KEY:-}
       - CHAT_AUTH_TOKEN=${CHAT_AUTH_TOKEN:-}
       - ADVISORY_TIMEOUT_MS=${ADVISORY_TIMEOUT_MS:-180000}
+      # #106 Phase 1: KB gap log — host hermes-api-server writes, adapter reads (read-only mount).
+      - KB_GAPS_LOG=${KB_GAPS_LOG:-/data/kb-gaps/kb-gaps.jsonl}
+    volumes:
+      # host gap log (written by hermes-api-server on T3610) → read-only into container.
+      # Adapter's /api/kb-gaps surfaces it; container stays read-only.
+      - /home/abyz-lab/.hermes/reports/kb-gaps:/data/kb-gaps:ro
     # 읽기 전용 관찰자 — 외부 서비스로의 쓰기 경로 없음
     read_only: true
     tmpfs:

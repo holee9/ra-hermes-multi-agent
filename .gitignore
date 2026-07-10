@@ -236,6 +236,7 @@ reports/non-email-growth/
 reports/auto-growth/
 reports/auto-growth-readiness/
 reports/ra-kr-growth/
+reports/kb-gaps/
 
 # Incident/database export backups (runtime artifacts — not version-controlled)
 backups/
