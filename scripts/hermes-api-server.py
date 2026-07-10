@@ -136,6 +136,10 @@ RAG_SCRIPT = os.environ.get("RAG_SCRIPT", "/opt/hermes-ra/skills/ra-expert/scrip
 QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "qwen3-embedding:latest")
+# #107 Phase 2 (c1): second RAG collection (markdown KB reverse-synced from pgvector by
+# sync_ra_knowledge_to_qdrant.py). Empty disables hybrid lookup. The Hermes rag_search.py
+# skill is NOT modified — we call it once per collection (query embedded twice, lightweight).
+RAG_SECOND_COLLECTION = os.environ.get("RAG_SECOND_COLLECTION", "ra_kb_markdown")
 
 # Layer 4: Real-time knowledge (llm-wiki, openFDA, law.go.kr)
 # @MX:ANCHOR: Layer 4 integration point — called from chat_completions alongside RAG
@@ -151,13 +155,11 @@ def check_auth() -> bool:
     return auth[7:] == API_KEY
 
 
-def _run_rag_search(query: str, top: int = 5) -> list[dict]:
-    """Layer 1: Search NAS Qdrant for relevant RA documents."""
-    if not query.strip():
-        return []
+def _rag_search_once(query: str, top: int, collection: str) -> list[dict]:
+    """Single-collection Qdrant RAG lookup via the Hermes rag_search.py skill."""
     try:
         result = subprocess.run(
-            ["python3", RAG_SCRIPT, query, "--top", str(top)],
+            ["python3", RAG_SCRIPT, query, "--top", str(top), "--collection", collection],
             capture_output=True,
             text=True,
             timeout=RAG_TIMEOUT,
@@ -169,11 +171,26 @@ def _run_rag_search(query: str, top: int = 5) -> list[dict]:
             },
         )
         if result.returncode == 0 and result.stdout.strip():
-            data = json.loads(result.stdout)
-            return data.get("results", [])
+            return json.loads(result.stdout).get("results", [])
     except Exception:
         pass
     return []
+
+
+def _run_rag_search(query: str, top: int = 5) -> list[dict]:
+    """Layer 1: hybrid RAG — NAS docs (nas_ra_docs) + markdown KB (RAG_SECOND_COLLECTION).
+
+    #107 Phase 2 (c1): NAS results are preserved unchanged (regression guard); markdown-KB
+    results are appended so ra-project/MD-process knowledge reaches the agent. rag_search.py
+    (Hermes skill) is NOT modified — we just call it once per collection. Query is embedded
+    twice (lightweight GX10 /api/embed); NAS 2.09M and markdown 8K are separate id spaces.
+    """
+    if not query.strip():
+        return []
+    results = _rag_search_once(query, top, "nas_ra_docs")
+    if RAG_SECOND_COLLECTION:
+        results = results + _rag_search_once(query, top, RAG_SECOND_COLLECTION)
+    return results
 
 
 def _run_knowledge_fetch(query: str, profile: str, top: int = 3) -> dict:
@@ -507,8 +524,11 @@ def build_advisory_context(
     if wp_id:
         parts.append(f"(검토 대상 WP 후보: {wp_id})")
     if rag_results:
-        parts += ["", "## 관련 문서(NAS) — evidence로 인용 가능"]
-        for i, r in enumerate(rag_results[:5], 1):
+        parts += ["", "## 관련 문서(NAS + 규제지식 KB) — evidence로 인용 가능"]
+        # #107 Phase 2 (c1): _run_rag_search returns NAS (nas_ra_docs) then markdown-KB
+        # (ra_kb_markdown) results. Slice [:8] so markdown sources (ra-project/MD-process)
+        # are not cut off — [:5] left only NAS and the agent never saw markdown evidence.
+        for i, r in enumerate(rag_results[:8], 1):
             parts.append(f"[{i}] {r.get('source_file', '')} (관련도 {r.get('score', 0):.3f})")
             parts.append(r.get("text", "")[:300])
     if wiki_results:
