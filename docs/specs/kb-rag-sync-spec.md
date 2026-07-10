@@ -1,7 +1,7 @@
 # SPEC — KB RAG Sync (ra-project/MD-process/llm-wiki 단절 해결 + 정기 동기화 파이프라인)
 
 > **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: PROPOSED — Phase 1 cron 신설과 Phase 2 RAG 전환은 모두 GATE-3(사람 승인) 영역.
+> **Status**: **Phase 1 IMPLEMENTED (2026-07-10, GATE-3 승인 받아 실행)** — 2/3 KB(MD-process·ra-project) 정기 동기화 확립. Phase 2 RAG 전환은 여전 PROPOSED(DEFERRED). ⚠️ llm-wiki는 인덱서 페이지네이션 한계로 미완(신규 이슈, Annex C 참조).
 > **Date**: 2026-07-10.
 > **Tracking issue**: #107 ([MONITOR-6] pgvector ra_knowledge 정기 인덱싱 스케줄 부재).
 
@@ -275,5 +275,46 @@ Phase 2는 Layer 1 RAG 조회 경로를 Qdrant → pgvector로 전환하는 것�
 | 기존 crontab (git pull + nas_indexer) | #107 점검 결과 — `index_github_repos.py` 항목 부재 확인 |
 
 ---
+
+## Annex C — Phase 1 Implementation Log (2026-07-10, GATE-3 승인 실행)
+
+> 사용자 #107 Phase 1 승인(2026-07-10)에 따라 실행. "코드 변경 0" 원칙 — 단, 사전 검증에서 2건의 선행 setup이 필요했음(아래).
+
+### 사전 검증에서 발견된 선행 setup (SPEC "검증 항목" 예상 범위)
+1. **`/opt/hermes-ra/index_github_repos.py`가 구형 Qdrant 버전** (May 22, pgvector 마커 0/qdrant 13). cron이 /opt 경로를 쓰므로 repo의 pgvector 버전으로 교체 (구 버전은 `.bak-qdrant-20260710` 백업).
+2. **env**: `scripts/.env`엔 `POSTGRES_URL`만 있었음. `GITHUB_PAT`(gh CLI 토큰, ra-project 비인증 60/hr 제한 해소)·`GITEA_TOKEN`(실제 40-char, `/opt/hermes-ra/.env`에서 확보 — `.bashrc` 값은 동적 변수 참조라 쓰레기값) 추가 통합.
+
+### 실행 (2회 인덱서 실행, idempotent)
+| KB | 결과 | rows | latest indexed_at | fresh ≤24h |
+|----|------|------|-------------------|------------|
+| MD-process | RUN1: new=167, +590 chunks | 4120 | 2026-07-10 05:38 | ✅ |
+| ra-project | RUN2(GITHUB_PAT): new files, +167 chunks | 3273 | 2026-07-10 05:50 | ✅ |
+| llm-wiki | **미완** (페이지네이션 한계, 아래) | 2636 | 2026-06-11 | ❌ |
+- 전체: 9,272(06-11 스냅샷) → **10,029** (+757). idempotency: RUN2에서 MD-process "No changes since last run (sha=…), skipping" 로그로 AC-P1-2 입증.
+
+### cron 설치 (abyz-lab crontab, 백업 `~/crontab.bak-20260710`)
+```
+17 3 * * * mkdir -p /home/abyz-lab/logs && bash -c 'set -a; . /opt/hermes-ra/.env; set +a; /usr/bin/python3 /opt/hermes-ra/index_github_repos.py >> /home/abyz-lab/logs/hermes-kb-index.log 2>&1'
+```
+- 시각 03:17 (nas_indexer 02:00 Ollama 경합 회피, off-round). `/var/log` 비쓰기 가능 → 사용자 영역 `~/logs/`.
+
+### AC-P1 검증
+| AC | 결과 | 근거 |
+|----|------|------|
+| AC-P1-1 freshness ≤24h | ✅ MD·ra-project / ❌ llm-wiki | docker psql `MAX(indexed_at)` per KB |
+| AC-P1-2 idempotency | ✅ | RUN2 sha-skip 로그 + per-file `pgvector_source_exists` skip |
+| AC-P1-3 신규 커밋 반영 | ✅ | ra-project·MD-process 신규 .md 757 chunks 반영 |
+| AC-P1-4 읽기 API only | ✅ | github_get/gitea_get = GET 전용(POST는 로컬 Ollama 임베딩 only) |
+| AC-P1-5 실패 복구 | ✅ | RUN1 ra-project 레이트리밋 실패 → RUN2 GITHUB_PAT로 복구(idempotent) |
+
+### ⚠️ llm-wiki 미완 — 인덱서 페이지네이션 한계 (신규 이슈)
+- **Gitea `git/trees?recursive=true`가 1000엔트리에서 `truncated: true`** → 인덱서가 페이지네이션 없이 첫 ~990 파일만 인덱싱. llm-wiki는 07-05 "auto-update 14276 files" 커밋 등 대규모 자동생성 위키 → 1000+ .md가 첫 페이지를 넘어 누락.
+- 인덱서가 **기존 파일 내용 변경도 미감지** (`pgvector_source_exists` 시 skip, force=False). 변경된 파일 재임베딩 안 됨.
+- 전체 동기화 = 인덱서 코드 개선(페이지네이션 + 변경 감지) + **수시간 GX10 임베딩(실시간 자문 백엔드 경합 = production risk) + 자동생성 위키 수만 건 DB 증가**. 이는 **REQ-KBS-004a DEFERRED 대규모 볼륨 영역**이자 **RA 품질 판단(사람 영역)**.
+- → 별도 이슈 등록(indexer 페이지네이션 개선 + llm-wiki 볼륨 전략). 사용자 결정 대기. cron은 llm-wiki 첫 1000 파일 유지 보수(완전 동기화 전까지).
+
+### GATE-3 준수
+- 사용자 명시 승인(2026-07-10 #107 Phase1) 후 실행. crontab 변경(cron/systemd = 사람 결정 영역)은 대리 추가(백업 보존). `/opt/hermes-ra/` 인덱서 교체·`.env` 통합은 비파괴(abyz-lab 소유, 서비스 재기동 없음, DB는 idempotent 인덱싱만).
+- KB repo 읽기 전용(REQ-KBS-007) 준수 — GET only.
 
 End of SPEC.
