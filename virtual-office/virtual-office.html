@@ -787,11 +787,16 @@ function handle(ev){
       activate(ev.actor); bubble(ev.actor,"📖 "+(p.domain||'학습'));
       break;
     case"advisory_returned":
+      // Leo(GX10)가 실제 추론 주체 — RA 자문 전 추론 가시화 (B 인프라 가시화, #117)
+      activate("infra_gx10",1100); bubble("infra_gx10","🧠 추론 "+(p.confidence!=null?(p.confidence*100|0)+'%':''));
       activate(ev.actor); bubble(ev.actor,"💬 자문 "+(p.decision||''));
       if(els.raspi5p) activate("raspi5p",900);
       break;
     case"advisory_executed":
+      // Gus(RPi) 실행 호스트 + Margot OP 반영 가시화 (B 인프라 가시화, #117)
       activate("raspi5p"); bubble("raspi5p","✅ "+(p.action_taken||'실행'));
+      if(els.infra_rpi){ activate("infra_rpi",1100); bubble("infra_rpi","⚙️ 호스트"); }
+      if(els.op_manager){ activate("op_manager",1200); bubble("op_manager","📝 OP 반영"); }
       break;
     case"score_given":
       stamp.textContent="★".repeat(p.score)+"☆".repeat(3-p.score);
