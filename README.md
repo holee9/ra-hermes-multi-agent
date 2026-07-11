@@ -60,7 +60,9 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ### 🏢 가상 오피스 (픽셀 아트 실제업무 대시보드)
 
-**구축 완료: RA 조직의 실제 업무(학습·평가·메일 처리)를 실시간으로 비추는 읽기 전용 모니터링 대시보드**
+**구축 완료: RA 조직의 실제 업무(학습·평가·메일 처리)를 실시간으로 비추는 관측 대시보드 + 사람→RA 자문 입력 창구([#104](https://github.com/holee9/ra-hermes-multi-agent/issues/104))**
+
+> **관측 + 단방향 자문**. Hermes 활동은 읽기 전용으로 관측하되, 하단 채팅창으로 사람→RA 자문을 받는다. 어댑터가 `/v1/ra/advisory`를 호출하므로 **Hermes는 VO의 존재를 모른다(단방향 유지)**. 에이전트는 자문만 반환하고 실행·결정은 사람.
 
 메일 트리아지뿐 아니라 **RA 일일 학습(daily-growth)·사람 KB-eval 평가**까지 표시한다. 메일이 들어오지 않아도 학습 루프가 살아 있으면 오피스가 움직인다 — CLI 없이도 프로젝트 활동 이력을 파악하는 것이 목적이다.
 
@@ -77,7 +79,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 | **Docker 컨테이너 배포** | ✅ 구축 완료 | 단일 컨테이너, `DATA_SOURCE=mock\|honcho` 전환 |
 | **E2E 테스트** | ✅ 구축 완료 | 11개 Playwright 테스트 케이스 |
 
-**작동 모드**: 읽기 전용 관찰자. `DATA_SOURCE`로 목업/Honcho 전환. 폴링(기본 30초) 중 새 이벤트가 오면 해당 캐릭터가 반응한다. 접속: `http://192.168.100.200:3001` / Tailscale `http://100.119.79.28:3001`.
+**작동 모드**: 관측 중심(단방향). Hermes 활동은 읽기 전용으로 관측하고, 하단 채팅창([#104](https://github.com/holee9/ra-hermes-multi-agent/issues/104))으로 사람→RA 자문을 받는다(어댑터가 `/v1/ra/advisory`를 호출 → **Hermes는 VO를 모름**). 에이전트는 자문만 반환, 실행·결정은 사람. `DATA_SOURCE`로 목업/Honcho 전환. 폴링(기본 30초) 중 새 이벤트가 오면 해당 캐릭터가 반응한다. 접속: `http://192.168.100.200:3001` / Tailscale `http://100.119.79.28:3001`.
 
 ---
 
@@ -280,7 +282,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 | 웹 대시보드 | GitHub Pages `growth-dashboard.html` 바로보기 활성화. RA Growth Operations 요약, 담당자별 성장 카드, growth signal flow, 성장 측정 warning, 커버리지 근거 포함 | ✅ README 클릭 렌더링 |
 | 트리거 알림 | `feedback/config/growth-trigger-config.json` 구조는 있으나 threshold/webhook은 null | ⚠️ 운영 기준 미정 |
 
-현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열린다. 2026-06-16 #64에서 Honcho v0.15.1 list API 계약을 `POST /sessions/list`, `POST /sessions/{id}/messages/list`로 보정했고, 2026-06-19 daily report는 27 sessions / 302 messages를 스캔한다. 다만 행동/사람 피드백 지표가 N/A 또는 denominator 0이므로 Growth Trend Verdict는 `측정 불충분` warning 상태가 맞다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 읽기 전용 파일럿으로 분리한다. dashboard 표시 유지·보정은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62), metrics ingestion 보정 이력은 [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64), threshold/webhook 운영 기준은 [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)에서 각각 추적한다.
+현재 존재하는 것은 **자동 리포트와 정적 HTML snapshot 기반 모니터링**이다. [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html)는 README에서 클릭하면 렌더링된 HTML로 열린다. 2026-06-16 #64에서 Honcho v0.15.1 list API 계약을 `POST /sessions/list`, `POST /sessions/{id}/messages/list`로 보정했고, 2026-06-19 daily report는 27 sessions / 302 messages를 스캔한다. 다만 행동/사람 피드백 지표가 N/A 또는 denominator 0이므로 Growth Trend Verdict는 `측정 불충분` warning 상태가 맞다. 하단 readiness/coverage/raw metrics는 매일 볼 필수 현황이 아니라 기본 접힘 상태의 검증/감사 상세다. 열람·갱신·판정 기준은 [growth-dashboard.md](docs/growth-dashboard.md)에 정리했다. `virtual-office`는 Honcho 활동 이벤트를 시각화하는 관측 파일럿으로 분리한다(사람→RA 자문 입력 채널 [#104](https://github.com/holee9/ra-hermes-multi-agent/issues/104) 포함 — 어댑터가 API caller이므로 단방향 유지, Hermes는 VO를 모름). dashboard 표시 유지·보정은 [#62](https://github.com/holee9/ra-hermes-multi-agent/issues/62), metrics ingestion 보정 이력은 [#64](https://github.com/holee9/ra-hermes-multi-agent/issues/64), threshold/webhook 운영 기준은 [#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)에서 각각 추적한다.
 
 ### Hermes 프로파일 & Honcho 피어 현황 (2026-06-16 기준)
 

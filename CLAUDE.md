@@ -49,7 +49,7 @@ Remote: `https://github.com/holee9/ra-hermes-multi-agent.git`
 
 ### Virtual Office Observer
 
-`virtual-office/virtual-office.html` is a read-only activity observer that visualizes Honcho activity logs as pixel-art characters. Runs in Docker (`virtual-office/docker-compose.yml`, port 3001) with `DATA_SOURCE=honcho`. The HTML is baked into the image — rebuild with `docker compose up -d --build` after edits. Observes current state only: past activity shows as a static (time-ordered) log, new events animate live.
+`virtual-office/virtual-office.html` is a pixel-art dashboard that observes Honcho activity logs (read-only) plus a human→RA advisory chat channel (#104) and a KB-gap panel (#106). Runs in Docker (`virtual-office/docker-compose.yml`, port 3001) with `DATA_SOURCE=honcho`. The HTML is baked into the image — rebuild with `docker compose up -d --build` after edits. Direction is one-way: the adapter (not the VO) is the sole API caller, so Hermes does not know about the virtual office (see Ecosystem Position below). Observation shows current state only — past activity appears as a static (time-ordered) log, new events animate live.
 
 ---
 
