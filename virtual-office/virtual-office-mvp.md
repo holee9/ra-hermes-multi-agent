@@ -61,6 +61,7 @@
 | ra_kr | **Sam** (Samuel) | 한국 RA 전문가 (MFDS/KGMP) | 업무 |
 | op_manager | **Margot** | 사안 담당 (OpenProject WP 추적·반영) | 업무 |
 | n8n_manager | **Olly** (Oliver) | 자동화 담당 (n8n 워크플로우) | 업무 |
+| raspi5p | **Iris** | raspi5p Hermes 실행자 (RA 자문 수신 → 로컬 게이트 → OP 댓글/검토 실행) | 업무 |
 | infra_t3610 | **Finn** | 인프라 (T3610) | 인프라 |
 | infra_gx10 | **Leo** | 인프라 (GX10) | 인프라 |
 | infra_rpi | **Gus** | 인프라 (라즈베리파이) | 인프라 |

@@ -6,7 +6,7 @@
 
 ---
 
-## 제작 규격 (8명 공통)
+## 제작 규격 (9명 공통)
 
 - 크기: **32×32 px** (오피스 캐릭터 라벨에 적정)
 - 뷰: 정면 기준 (PixelLab 방향 자동 생성으로 측면 추가 가능)
@@ -18,7 +18,7 @@
 
 ---
 
-## 8명 생성 프롬프트 (PixelLab에 그대로 입력)
+## 9명 생성 프롬프트 (PixelLab에 그대로 입력)
 
 각 프롬프트 앞에 공통 접두사를 붙인다:
 `32x32 pixel art character, front view, retro 16-color palette, dark outline #1a1c2c, transparent background, simple office worker, upper body, sitting-ready pose —`
@@ -30,22 +30,23 @@
 | ra_kr | Sam | `#ef7d57` | approachable professional in a **coral/orange** shirt, friendly attentive face (Korea regulatory expert) |
 | op_manager | Margot | `#a7f070` | organized coordinator in a **green** blouse, tidy hair, focused look holding a clipboard (project manager) |
 | n8n_manager | Olly | `#b8b5ff` | tinkerer engineer in a **lavender** hoodie, headphones, curious expression (automation engineer) |
+| raspi5p | Iris | `#c896ff` | calm executor in a **lavender** top holding a small tablet, attentive focused face (remote Hermes executor — advisory intake → safety gate → OP comment/review) |
 | infra_t3610 | Finn | `#73eff7` | steady technician in a **cyan** jumpsuit, cap, reliable calm face (infrastructure ops) |
 | infra_gx10 | Leo | `#94b0c2` | sturdy technician in a **steel-gray** jumpsuit, short beard, watchful face (infrastructure ops) |
-| infra_rpi | Gus | `#f4d29c` | small wiry technician in a **tan** jumpsuit, goggles on forehead, alert face (infrastructure ops) |
+| infra_rpi | Gus | `#cda878` | small wiry technician in a **tan** jumpsuit, goggles on forehead, alert face (infrastructure ops) |
 
-> 톤 통일 포인트: 8명 모두 같은 화풍·같은 외곽선·같은 크기. 강조색만 다르게 해서 한눈에 구분되되 한 팀으로 보이게.
-> 업무팀(Mike/Theo/Sam/Margot/Olly)과 인프라팀(Finn/Leo/Gus)을 복장으로 구분 — 업무팀은 셔츠/블라우스, 인프라팀은 점프수트.
+> 톤 통일 포인트: 9명 모두 같은 화풍·같은 외곽선·같은 크기. 강조색만 다르게 해서 한눈에 구분되되 한 팀으로 보이게.
+> 업무팀(Mike/Theo/Sam/Margot/Olly/Iris)과 인프라팀(Finn/Leo/Gus)을 복장으로 구분 — 업무팀은 셔츠/블라우스, 인프라팀은 점프수트.
 
 ---
 
 ## 제작 → 오피스 적용 절차
 
-1. PixelLab에서 위 8개 프롬프트로 캐릭터 생성(무료 티어로 8명 커버). 필요시 방향(측면) 자동 생성.
+1. PixelLab에서 위 9개 프롬프트로 캐릭터 생성(무료 티어로 9명 커버). 필요시 방향(측면) 자동 생성.
 2. Piskel(piskelapp.com, 브라우저)에서 색을 위 팔레트로 미세 보정, 32×32로 정리.
 3. 투명 PNG로 export. 파일명을 ID와 맞춤: `mike.png, theo.png, sam.png, margot.png, olly.png, finn.png, leo.png, gus.png`.
 4. 가상 오피스 아티팩트(virtual-office.html)의 `CHARS` 매핑에서 각 캐릭터에 `sprite:"경로/파일.png"` 추가.
-   - 아티팩트는 이미 sprite 경로가 있으면 PNG를, 없으면 기존 도형을 그리도록 개조됨 → 8명 다 준비 안 돼도 일부만 PNG로 교체 가능.
+   - 아티팩트는 이미 sprite 경로가 있으면 PNG를, 없으면 기존 도형을 그리도록 개조됨 → 9명 다 준비 안 돼도 일부만 PNG로 교체 가능.
 
 ---
 
@@ -69,7 +70,7 @@
   - **Mini Characters** — https://kenney.nl/assets/mini-characters (작은 탑다운 캐릭터, 오피스에 적합)
   - **Animated Characters 1** — https://kenney.nl/assets/animated-characters-1 (동작 프레임 포함)
 - 받는 법: 페이지에서 **"Continue without donating"** 클릭 → zip 무료 다운로드(기부는 선택).
-- zip 안에 PNG 캐릭터 스프라이트들이 들어있음. 8명에 가장 가까운 것 선택(업무팀=셔츠/정장, 인프라팀=작업복 느낌).
+- zip 안에 PNG 캐릭터 스프라이트들이 들어있음. 9명에 가장 가까운 것 선택(업무팀=셔츠/정장, 인프라팀=작업복 느낌).
 
 ### 2) 파일 넣을 위치 (배포 구조 기준)
 
@@ -85,6 +86,7 @@ virtual-office/
 │     ├─ sam.png
 │     ├─ margot.png
 │     ├─ olly.png
+│     ├─ iris.png
 │     ├─ finn.png
 │     ├─ leo.png
 │     └─ gus.png
@@ -103,12 +105,13 @@ const CHARS = {
   ra_us:     {name:"Mike", role:"미국RA", room:"work", x:70, y:150, color:"#41a6f6",
               sprite:"assets/characters/mike.png"},   // ← 이 줄 추가
   ra_eu:     {name:"Theo", ... , sprite:"assets/characters/theo.png"},
-  // ... 8명 동일하게
+  raspi5p:   {name:"Iris", ... , sprite:"assets/characters/iris.png"},
+  // ... 9명 동일하게
 };
 ```
 
 - 렌더링은 이미 **PNG 우선(1순위)** → 픽셀 canvas(2순위) → 도형(3순위)로 짜여 있음.
-- `sprite` 경로를 넣은 캐릭터만 PNG로 교체됨 → **8명 한꺼번에 안 해도 됨**, 받은 것부터 하나씩 교체.
+- `sprite` 경로를 넣은 캐릭터만 PNG로 교체됨 → **9명 한꺼번에 안 해도 됨**, 받은 것부터 하나씩 교체.
 - actor ID·이벤트 로직·뼈대 연동 무영향. **그림만 갈아끼움.**
 
 ### 4) 순서 주의
