@@ -123,6 +123,14 @@ def test_build_advisory_context_minimal():
     assert isinstance(ctx, str) and "decision" in ctx
 
 
+# ── #109: summary must come from body analysis, not Subject; ≤100 chars ────
+def test_build_advisory_context_summary_body_analysis_guard():
+    ctx = m.build_advisory_context("query 본문", "ra_us", "US", [], None, None)
+    assert "Subject:" in ctx                 # explicit subject-copy prohibition present
+    assert "본문" in ctx and "분석" in ctx    # body-analysis requirement stated
+    assert "100자" in ctx                      # length guard present (255 is raspi5p safety net)
+
+
 # ── REQ-AC-002b: learning history injection (a) ────────────────────────────
 def test_build_advisory_context_with_learning_history():
     lh = (

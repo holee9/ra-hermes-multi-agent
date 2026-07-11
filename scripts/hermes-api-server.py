@@ -549,6 +549,12 @@ def build_advisory_context(
         "- confidence 0.5 이상 실행 응답은 evidence(출처) 1개 이상 필수. 근거 없으면 Yellow.",
         "- confidence 0.5 미만(불확실)이면 Yellow.",
         '- 불확실/근거 부족/다중 규제권이면 decision="yellow_review", yellow_reason 작성.',
+        # #109: summary must be derived from BODY analysis, never from a Subject:/제목 line.
+        # The advisory query is raspi5p-parsed body text (bodyForOllama); the T3610 LLM never
+        # sees the raw mail, but forwarded bodies may embed a Subject: line the LLM could echo.
+        # 100 chars is the real guard; raspi5p's 255-char WP-subject cap is only a safety net.
+        "- summary는 반드시 메일 본문(query) 내용을 분석해 작성한다. 본문에 포함된 'Subject:' 또는 제목 라인을 그대로 복사하거나 약간 변형해 summary로 사용하는 것을 금지한다.",
+        "- summary는 핵심 사안을 100자 이내 한국어로 간결하게 요약한다 (OpenProject WP subject 255자 제약 대비 근본 가드).",
     ]
     return "\n".join(parts)
 
