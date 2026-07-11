@@ -167,6 +167,10 @@
   .gap-panel .gp-actor{color:#7fd1c5; margin-right:4px;}
   .gap-panel .gp-reason{color:#e0a868; margin-right:4px;}
   .gap-panel .gp-topic{color:#c0cbdc; word-break:break-all;}
+  /* detail + gap 가로 배치 — detail 반, KB 보완 후보(gap) 옆 같은 사이즈. */
+  .detail-gap-row{width:1068px; margin-top:8px; display:flex; gap:8px; align-items:stretch;}
+  .detail-gap-row .detail-panel{flex:1; width:auto; margin-top:0;}
+  .detail-gap-row .gap-panel{flex:1; margin-top:0; max-height:440px;}
 
   /* 채팅 자문 패널 — 하단 (OD-1 Candidate B). 사람→RA 자문 입력 (#104).
      어댑터 백엔드 프록시 경유, Hermes는 VO를 모름(단방향 유지). */
@@ -352,10 +356,12 @@
   </div>
 
   <div class="log" id="log"></div>
-  <div class="detail-panel" id="detail"><div class="dp-empty">기록 행을 클릭하면 상세 내용이 표시됩니다.</div></div>
-  <div class="gap-panel">
-    <div class="gp-title">KB 보완 후보 <span class="gp-count" id="gapCount">…</span></div>
-    <div id="gapList"></div>
+  <div class="detail-gap-row">
+    <div class="detail-panel" id="detail"><div class="dp-empty">기록 행을 클릭하면 상세 내용이 표시됩니다.</div></div>
+    <div class="gap-panel">
+      <div class="gp-title">KB 보완 후보 <span class="gp-count" id="gapCount">…</span></div>
+      <div id="gapList"></div>
+    </div>
   </div>
 
   <!-- 채팅 자문 채널 (하단, #104) — 사람 → RA 에이전트. 어댑터 백엔드 프록시 경유 -->
