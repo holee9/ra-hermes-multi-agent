@@ -44,15 +44,15 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
+- [x] Source cited
+- [x] No hallucination
 - [ ] Escalation appropriate
 - [ ] Human correction needed
 
@@ -102,17 +102,17 @@ Total cases: 15
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -163,20 +163,20 @@ Total cases: 15
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> QMSR 키워드가 불만처리(PMS) SOP를 매칭하고 자동요약이 complaint를 '변경통제'로 과장(no_hallucination 위반) — 변경영향 focus와 불일치.
 
 **Source Excerpts**
 
@@ -221,16 +221,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -280,16 +280,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -341,16 +341,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -400,16 +400,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -458,17 +458,17 @@ Total cases: 15
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -519,20 +519,20 @@ Total cases: 15
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
+- [x] Source cited
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> EUDAMED가 SOP-CC 변경통제를 매칭, 유일 청크가 frontmatter뿐 — NB 질의대응 근거 없음.
 
 **Source Excerpts**
 
@@ -573,16 +573,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -634,16 +634,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -693,16 +693,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -751,17 +751,17 @@ Total cases: 15
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -811,16 +811,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
@@ -870,16 +870,16 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
