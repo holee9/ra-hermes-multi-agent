@@ -142,6 +142,151 @@ def source_hash(chunks: list[dict[str, Any]]) -> str:
     return digest.hexdigest()
 
 
+# --- Retrieval quality knobs (issues #110/#111/#112, kb-eval feedback) ---------
+# All defaults below are safe (keyword mode, folder exclusions only) and can be
+# tuned at runtime via env so operations can adjust without a code change.
+
+GROWTH_RANK_MODE = os.environ.get("GROWTH_RANK_MODE", "keyword").strip().lower()
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/")
+EMBED_MODEL = os.environ.get("EMBED_MODEL", "qwen3-embedding:latest")
+
+
+def _env_list(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    raw = os.environ.get(name, "")
+    if not raw.strip():
+        return default
+    return tuple(item.strip() for item in raw.split(",") if item.strip())
+
+
+# @MX:NOTE: [AUTO] #112 — low-signal / PII-bearing source folders excluded from
+# growth retrieval. Retrieval-side only (no ra_knowledge writes); reversible.
+EXCLUDED_SOURCE_PATTERNS: tuple[str, ...] = _env_list(
+    "GROWTH_EXCLUDED_SOURCE_PATTERNS",
+    (
+        "%/wiki/entities/%",       # pre-existing: low-signal entity stubs
+        "%/06_심사_QA이력/%",       # QA email logs (contain email/phone PII) — #112
+        "%/11_일일_리서치로그/%",    # daily research logs (low-signal) — #112
+    ),
+)
+
+
+_YAML_KEY_RE = re.compile(r"^[\w\-]+:\s")
+_LINK_RE = re.compile(r"\]\(|https?://")
+
+
+def is_substantive_chunk(content: str) -> bool:
+    """#111 — reject chunks that are pure YAML frontmatter, a table of contents,
+    or a reference-link list, so growth excerpts carry real regulatory text.
+    Callers must fall back to raw order when this filters out everything."""
+    text = (content or "").strip()
+    if len(text) < 40:
+        return False
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return False
+    yamlish = sum(1 for ln in lines if ln == "---" or _YAML_KEY_RE.match(ln))
+    if yamlish >= max(1, len(lines) - 1):
+        return False
+    linkish = sum(1 for ln in lines if _LINK_RE.search(ln))
+    if linkish >= max(2, int(len(lines) * 0.6)):
+        return False
+    return True
+
+
+def focus_for(agent: "Agent", run_date: date) -> str:
+    """Focus of the day for an agent. Shared by the runner and kb-eval so both
+    measure the same retrieval (issue #110)."""
+    return agent.daily_focus[run_date.toordinal() % len(agent.daily_focus)]
+
+
+# @MX:NOTE: [AUTO] #110 — per-focus routing tokens. Positive tokens boost
+# focus-relevant sources; negative tokens demote off-topic matches that broad
+# region keywords (FDA/MFDS/MDR alone) otherwise pull in. Tunable data map.
+FOCUS_ROUTING: dict[str, dict[str, tuple[str, ...]]] = {
+    "510(k) predicate strategy": {
+        "positive": ("510k", "510(k)", "predicate", "substantial_equivalence", "estar"),
+        "negative": ("cybersecurity", "threat_model", "stride", "sbom", "qa이력", "리서치로그"),
+    },
+    "submission evidence gaps": {
+        "positive": ("estar", "submission", "evidence", "deficiency", "qmsr", "clinical"),
+        "negative": ("qa이력", "리서치로그"),
+    },
+    "QMSR and design-control readiness": {
+        "positive": ("qmsr", "design", "820.30", "capa", "complaint", "iso13485", "iso 13485"),
+        "negative": ("qa이력", "리서치로그"),
+    },
+    "SaMD change impact": {
+        "positive": ("pccp", "change", "samd", "software", "validation"),
+        "negative": ("qa이력", "리서치로그"),
+    },
+    "MDR classification and conformity route": {
+        "positive": ("mdr", "classification", "rule", "annex", "conformity", "class"),
+        "negative": ("cybersecurity", "mdcg_2019-16", "qa이력", "리서치로그"),
+    },
+    "clinical evaluation gap analysis": {
+        "positive": ("clinical", "cer", "pmcf", "equivalence", "mdcg"),
+        "negative": ("eudamed", "cybersecurity", "qa이력"),
+    },
+    "PMS and PMCF planning": {
+        "positive": ("pms", "pmcf", "psur", "surveillance", "vigilance", "eudamed"),
+        "negative": ("deficiency", "qa이력", "리서치로그"),
+    },
+    "Notified Body question response": {
+        "positive": ("nb", "notified", "deficiency", "annex", "gspr"),
+        "negative": ("qa이력", "리서치로그"),
+    },
+    "MFDS classification and licensing route": {
+        "positive": ("mfds", "classification", "licensing", "인허가", "디지털의료제품법", "가이드라인"),
+        "negative": ("qa이력", "리서치로그", "방사선"),
+    },
+    "KGMP evidence readiness": {
+        "positive": ("kgmp", "gmp", "iso13485", "iso 13485", "qms", "audit"),
+        "negative": ("qa이력", "리서치로그", "방사선"),
+    },
+    "digital medical products act impact": {
+        "positive": ("디지털의료제품법", "samd", "sbom", "cyber", "digital"),
+        "negative": ("qa이력", "방사선"),
+    },
+    "supplementary-response strategy": {
+        "positive": ("보완", "supplementary", "deficiency", "대응", "rationale"),
+        "negative": ("qa이력", "리서치로그"),
+    },
+}
+
+
+def focus_relevance(focus: str, source_path: str, excerpts_text: str) -> int:
+    """#110 — keyword-mode focus fit score. 0 when the focus has no routing
+    entry (falls back to pure source-order ranking)."""
+    routing = FOCUS_ROUTING.get(focus)
+    if not routing:
+        return 0
+    hay = f"{source_path} {excerpts_text}".casefold()
+    score = 0
+    for token in routing.get("positive", ()):
+        if token.casefold() in hay:
+            score += 2
+    for token in routing.get("negative", ()):
+        if token.casefold() in hay:
+            score -= 3
+    return score
+
+
+def embed_text(text: str) -> list[float] | None:
+    """P2 (#110/#111 vector mode) — embed a focus string via Ollama. Returns
+    None on any failure so callers fall back to keyword ranking."""
+    try:
+        resp = requests.post(
+            f"{OLLAMA_URL}/api/embeddings",
+            json={"model": EMBED_MODEL, "prompt": text},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        vector = resp.json().get("embedding")
+        return vector if isinstance(vector, list) and vector else None
+    except Exception:
+        return None
+
+
 def build_keyword_where(keywords: tuple[str, ...]) -> tuple[str, list[str]]:
     clauses: list[str] = []
     params: list[str] = []
@@ -197,6 +342,8 @@ def fetch_self_docs(conn: Any) -> dict[str, int]:
 
 def fetch_source_paths(conn: Any, agent: Agent, limit: int) -> list[str]:
     where_sql, params = build_keyword_where(agent.keywords)
+    # #112: exclude low-signal / PII-bearing source folders (retrieval-side only).
+    exclusion_sql = "\n".join("AND source_path NOT ILIKE %s" for _ in EXCLUDED_SOURCE_PATTERNS)
     with conn.cursor() as cur:
         cur.execute(
             f"""
@@ -204,18 +351,21 @@ def fetch_source_paths(conn: Any, agent: Agent, limit: int) -> list[str]:
             FROM ra_knowledge
             WHERE source_path IS NOT NULL
               AND source_path <> ''
-              AND source_path NOT ILIKE %s
+              {exclusion_sql}
               AND ({where_sql})
             GROUP BY source_path
             ORDER BY COUNT(*) DESC, source_path ASC
             LIMIT %s
             """,
-            ["%/wiki/entities/%", *params, limit],
+            [*EXCLUDED_SOURCE_PATTERNS, *params, limit],
         )
         return [row[0] for row in cur.fetchall()]
 
 
 def fetch_source_chunks(conn: Any, source_path: str, max_chunks: int) -> list[dict[str, Any]]:
+    # #111: pull a wider candidate window, prefer substantive chunks, and fall
+    # back to raw indexed order so we never return fewer chunks than available.
+    candidate_limit = max(max_chunks * 6, 12)
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             """
@@ -225,14 +375,107 @@ def fetch_source_chunks(conn: Any, source_path: str, max_chunks: int) -> list[di
             ORDER BY indexed_at ASC, id::text ASC
             LIMIT %s
             """,
-            (source_path, max_chunks),
+            (source_path, candidate_limit),
         )
-        return [dict(row) for row in cur.fetchall()]
+        rows = [dict(row) for row in cur.fetchall()]
+    if not rows:
+        return []
+    substantive_ids = {
+        row["id"] for row in rows if is_substantive_chunk(str(row.get("content", "")))
+    }
+    ordered = [row for row in rows if row["id"] in substantive_ids]
+    ordered += [row for row in rows if row["id"] not in substantive_ids]
+    return ordered[:max_chunks]
 
 
 def scenario_id_for(run_date: date, agent: Agent, source_path: str) -> str:
     raw = f"{GROWTH_VERSION}:{run_date.isoformat()}:{agent.peer_id}:{source_path}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def rank_paths_by_focus_vector(conn: Any, focus: str, candidate_paths: list[str]) -> list[str] | None:
+    """P2 — order candidate source paths by best chunk cosine distance to the
+    focus embedding. Returns None on any failure so callers keep keyword order.
+
+    UNVALIDATED in CI: requires an Ollama embedding endpoint and pgvector cosine
+    (`<=>`). Enable only via GROWTH_RANK_MODE=vector after a host dry-run."""
+    if not candidate_paths:
+        return None
+    vector = embed_text(focus)
+    if not vector:
+        return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT source_path, MIN(embedding <=> %s::vector) AS dist
+                FROM ra_knowledge
+                WHERE source_path = ANY(%s)
+                  AND embedding IS NOT NULL
+                GROUP BY source_path
+                ORDER BY dist ASC
+                """,
+                (json.dumps(vector), list(candidate_paths)),
+            )
+            ranked = [row[0] for row in cur.fetchall()]
+    except Exception:
+        return None
+    if not ranked:
+        return None
+    ranked_set = set(ranked)
+    tail = [path for path in candidate_paths if path not in ranked_set]
+    return ranked + tail
+
+
+# @MX:NOTE: [AUTO] assemble_cases — shared retrieval used by both the runner
+# (select_daily_cases) and kb-eval-checksheet so the eval measures production
+# retrieval. Always returns <= cases_per_agent (never starves the growth loop).
+def assemble_cases(
+    conn: Any,
+    agent: Agent,
+    focus: str,
+    ordered_paths: list[str],
+    run_date: date,
+    cases_per_agent: int,
+    max_chunks: int,
+) -> list[SourceCase]:
+    pool_cap = max(cases_per_agent * 8, 24)
+    pool = ordered_paths[:pool_cap]
+    if GROWTH_RANK_MODE == "vector":
+        vector_order = rank_paths_by_focus_vector(conn, focus, pool)
+        if vector_order is not None:
+            pool = vector_order[:pool_cap]
+    scored: list[tuple[int, int, SourceCase]] = []
+    for order_idx, source_path in enumerate(pool):
+        chunks = fetch_source_chunks(conn, source_path, max_chunks)
+        if not chunks:
+            continue
+        excerpts = tuple(
+            {"id": str(chunk.get("id", "")), "excerpt": compact_text(chunk.get("content", ""))}
+            for chunk in chunks
+        )
+        excerpt_text = " ".join(item["excerpt"] for item in excerpts)
+        matched = find_matches(
+            source_path + " " + " ".join(str(c.get("metadata", "")) for c in chunks),
+            agent.keywords,
+        )
+        # Vector mode already ranked the pool by relevance; keep that order.
+        relevance = 0 if GROWTH_RANK_MODE == "vector" else focus_relevance(focus, source_path, excerpt_text)
+        scored.append((
+            relevance,
+            order_idx,
+            SourceCase(
+                scenario_id=scenario_id_for(run_date, agent, source_path),
+                source_path=source_path,
+                source_hash=source_hash(chunks),
+                chunk_count=len(chunks),
+                matched_keywords=matched,
+                excerpts=excerpts,
+            ),
+        ))
+    # Focus-relevant first, then the original (rotation/shuffle/vector) order — stable.
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    return [case for _, _, case in scored[:cases_per_agent]]
 
 
 def select_daily_cases(
@@ -248,29 +491,15 @@ def select_daily_cases(
         return []
     offset = run_date.toordinal() % len(paths)
     rotated = paths[offset:] + paths[:offset]
-    cases: list[SourceCase] = []
-    for source_path in rotated:
-        chunks = fetch_source_chunks(conn, source_path, max_chunks)
-        if not chunks:
-            continue
-        matched = find_matches(source_path + " " + " ".join(str(c.get("metadata", "")) for c in chunks), agent.keywords)
-        excerpts = tuple(
-            {"id": str(chunk.get("id", "")), "excerpt": compact_text(chunk.get("content", ""))}
-            for chunk in chunks
-        )
-        cases.append(
-            SourceCase(
-                scenario_id=scenario_id_for(run_date, agent, source_path),
-                source_path=source_path,
-                source_hash=source_hash(chunks),
-                chunk_count=len(chunks),
-                matched_keywords=matched,
-                excerpts=excerpts,
-            )
-        )
-        if len(cases) >= cases_per_agent:
-            break
-    return cases
+    return assemble_cases(
+        conn,
+        agent,
+        focus_for(agent, run_date),
+        rotated,
+        run_date,
+        cases_per_agent,
+        max_chunks,
+    )
 
 
 def fetch_existing_scenarios(conn: Any, run_date: date) -> set[str]:

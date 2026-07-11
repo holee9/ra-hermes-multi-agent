@@ -385,34 +385,19 @@ def select_cases(
             max_chunks=max_chunks,
         )
 
+    # Randomized exploration still routes through the shared retrieval so the
+    # eval measures production behaviour (substantive chunks + focus ranking).
     paths = daily.fetch_source_paths(conn, agent, source_pool)
     rng.shuffle(paths)
-    cases: list[Any] = []
-    for source_path in paths:
-        chunks = daily.fetch_source_chunks(conn, source_path, max_chunks)
-        if not chunks:
-            continue
-        matched = daily.find_matches(
-            source_path + " " + " ".join(str(chunk.get("metadata", "")) for chunk in chunks),
-            agent.keywords,
-        )
-        excerpts = tuple(
-            {"id": str(chunk.get("id", "")), "excerpt": daily.compact_text(chunk.get("content", ""))}
-            for chunk in chunks
-        )
-        cases.append(
-            daily.SourceCase(
-                scenario_id=daily.scenario_id_for(run_date, agent, source_path),
-                source_path=source_path,
-                source_hash=daily.source_hash(chunks),
-                chunk_count=len(chunks),
-                matched_keywords=matched,
-                excerpts=excerpts,
-            )
-        )
-        if len(cases) >= cases_per_agent:
-            break
-    return cases
+    return daily.assemble_cases(
+        conn,
+        agent,
+        daily.focus_for(agent, run_date),
+        paths,
+        run_date,
+        cases_per_agent,
+        max_chunks,
+    )
 
 
 def main() -> None:
