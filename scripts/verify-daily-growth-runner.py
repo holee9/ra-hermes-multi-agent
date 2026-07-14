@@ -88,6 +88,42 @@ def main() -> None:
     if blocked_gate["allowed"]:
         fail("execute gate must remain closed without manual completion")
 
+    # #111 follow-up — reject README bullet/numbered manifest chunks (item
+    # names/steps with no explanatory prose), reproduced from live checksheet
+    # cases in the 2026-07-15 re-eval (docs/kb-eval-checksheets/2026-07-15/).
+    readme_bullet_manifest = (
+        "## 수록 대상\n"
+        "- MDR 2017/745 원문 (영문·국문 번역본)\n"
+        "- 개정 Regulation (EU) 2023/607 (전환기간 연장)\n"
+        "- Annex I (General Safety and Performance Requirements, GSPR)\n"
+        "- Annex II (Technical Documentation)\n"
+        "- Annex III (Post-Market Surveillance)\n"
+        "- Annex VIII (Classification Rules)"
+    )
+    if module.is_substantive_chunk(readme_bullet_manifest):
+        fail("README bullet manifest chunk must be rejected as non-substantive")
+
+    readme_numbered_manifest = (
+        "## 제출 절차 개요\n"
+        "1. Predicate Device 조사 (FDA 510(k) Database)\n"
+        "2. Substantial Equivalence 비교표 작성\n"
+        "3. 510(k) Summary, 성능시험, 생체적합성, 전자파 등 섹션 준비\n"
+        "4. eSTAR 템플릿을 통한 전자 제출\n"
+        "5. FDA 심사 질의(AI: Additional Information) 대응"
+    )
+    if module.is_substantive_chunk(readme_numbered_manifest):
+        fail("README numbered manifest chunk must be rejected as non-substantive")
+
+    substantive_bullets = (
+        "## Predicate 비교 시 확인 사항\n"
+        "- 기존 predicate 대비 기술적 차이가 유의미한 경우, 반드시 성능시험 데이터로 "
+        "substantial equivalence를 입증해야 하며 단순 서면 주장만으로는 부족하다.\n"
+        "- 소프트웨어 변경이 진단 알고리즘에 영향을 미치는 경우 PCCP 범위 내 변경인지 "
+        "별도 검토가 필요하다."
+    )
+    if not module.is_substantive_chunk(substantive_bullets):
+        fail("substantive bulleted analysis must not be rejected (over-filtering regression)")
+
     print("OK: daily growth runner contract and payload shape hold")
 
 

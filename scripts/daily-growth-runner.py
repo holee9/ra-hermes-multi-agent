@@ -15,7 +15,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable
 from zoneinfo import ZoneInfo
@@ -172,12 +172,17 @@ EXCLUDED_SOURCE_PATTERNS: tuple[str, ...] = _env_list(
 
 _YAML_KEY_RE = re.compile(r"^[\w\-]+:\s")
 _LINK_RE = re.compile(r"\]\(|https?://")
+_HEADING_RE = re.compile(r"^#{1,6}\s")
+_LIST_ITEM_RE = re.compile(r"^([-*•]|\d+[.\)])\s")
+_MANIFEST_ITEM_MAX_CHARS = 80  # #111 follow-up — item-name lines vs. explanatory prose
 
 
 def is_substantive_chunk(content: str) -> bool:
-    """#111 — reject chunks that are pure YAML frontmatter, a table of contents,
-    or a reference-link list, so growth excerpts carry real regulatory text.
-    Callers must fall back to raw order when this filters out everything."""
+    """#111 — reject chunks that are pure YAML frontmatter, a reference-link
+    list, or a heading + bullet/numbered manifest (folder README index/overview
+    naming documents or steps without explanatory prose), so growth excerpts
+    carry real regulatory text. Callers must fall back to raw order when this
+    filters out everything."""
     text = (content or "").strip()
     if len(text) < 40:
         return False
@@ -190,6 +195,12 @@ def is_substantive_chunk(content: str) -> bool:
     linkish = sum(1 for ln in lines if _LINK_RE.search(ln))
     if linkish >= max(2, int(len(lines) * 0.6)):
         return False
+    non_heading = [ln for ln in lines if not _HEADING_RE.match(ln)]
+    if non_heading:
+        listish = sum(1 for ln in non_heading if _LIST_ITEM_RE.match(ln))
+        if listish >= max(2, int(len(non_heading) * 0.6)):
+            if not any(len(ln) > _MANIFEST_ITEM_MAX_CHARS for ln in non_heading):
+                return False
     return True
 
 
