@@ -18,9 +18,7 @@ import base64
 import hashlib
 import json
 import os
-import sys
 import time
-import warnings
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
@@ -52,6 +50,24 @@ GITEA_TOKEN: Optional[str] = os.environ.get("GITEA_TOKEN")
 GITEA_REPOS = []  # llm-wiki removed (#27, 2026-07-11) — Karpathy on-demand Layer 4, not a
                   # pgvector embedding target. Consumed via Layer 4 fetch_llm_wiki (Gitea
                   # realtime API). Legacy 2,636 rows cleaned from ra_knowledge (backup kept).
+
+# @MX:NOTE: [AUTO] #112 — low-signal / PII-bearing path patterns excluded at
+# indexing time (never fetched, embedded, or written to ra_knowledge). Mirrors
+# the retrieval-side EXCLUDED_SOURCE_PATTERNS in daily-growth-runner.py; plain
+# substrings here since these match raw repo tree paths, not SQL ILIKE.
+INDEX_EXCLUDED_PATH_PATTERNS: tuple[str, ...] = tuple(
+    pattern.strip()
+    for pattern in os.environ.get(
+        "INDEX_EXCLUDED_PATH_PATTERNS",
+        "wiki/entities/,06_심사_QA이력/,11_일일_리서치로그/",
+    ).split(",")
+    if pattern.strip()
+)
+
+
+def is_excluded_path(path: str) -> bool:
+    """#112 — reject QA-log/PII-bearing/low-signal source paths before fetch/embed."""
+    return any(pattern in path for pattern in INDEX_EXCLUDED_PATH_PATTERNS)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -98,7 +114,7 @@ def gitea_get(path: str, params: dict = None) -> requests.Response:
         try:
             resp = requests.get(url, headers=gitea_headers(), params=params, timeout=30)
             if resp.status_code in (429,):
-                print(f"  [warn] Gitea rate limited, sleeping 2s …", flush=True)
+                print("  [warn] Gitea rate limited, sleeping 2s …", flush=True)
                 time.sleep(2)
                 continue
             return resp
@@ -142,7 +158,9 @@ def list_md_files_gitea(repo: str) -> list[dict]:
     return [
         {"path": item["path"], "sha": item.get("sha", "")}
         for item in tree
-        if item.get("type") == "blob" and item["path"].lower().endswith(".md")
+        if item.get("type") == "blob"
+        and item["path"].lower().endswith(".md")
+        and not is_excluded_path(item["path"])
     ]
 
 
@@ -224,7 +242,9 @@ def list_md_files(repo: str) -> list[dict]:
     tree = resp.json().get("tree", [])
     return [
         item for item in tree
-        if item.get("type") == "blob" and item.get("path", "").lower().endswith(".md")
+        if item.get("type") == "blob"
+        and item.get("path", "").lower().endswith(".md")
+        and not is_excluded_path(item.get("path", ""))
     ]
 
 
@@ -660,8 +680,8 @@ class SyncHandler(BaseHTTPRequestHandler):
 def run_server():
     server = HTTPServer(("0.0.0.0", SERVER_PORT), SyncHandler)
     print(f"[server] Listening on port {SERVER_PORT} …", flush=True)
-    print(f"  GET  /health  → {{status, kb_rows}}", flush=True)
-    print(f"  POST /sync    → trigger full sync", flush=True)
+    print("  GET  /health  → {status, kb_rows}", flush=True)
+    print("  POST /sync    → trigger full sync", flush=True)
     server.serve_forever()
 
 
