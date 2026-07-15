@@ -26,6 +26,29 @@ BATCH = int(os.environ.get("SYNC_BATCH", "500"))
 POSTGRES_URL = os.environ.get("POSTGRES_URL")
 
 
+def _env_list(name, default):
+    raw = os.environ.get(name, "")
+    if not raw.strip():
+        return default
+    return tuple(item.strip() for item in raw.split(",") if item.strip())
+
+
+# @MX:NOTE: [AUTO] #112 — low-signal / PII-bearing source folders excluded from
+# the Qdrant mirror. Mirrors daily-growth-runner.py's EXCLUDED_SOURCE_PATTERNS
+# (retrieval-side) and index_github_repos.py's INDEX_EXCLUDED_PATH_PATTERNS
+# (indexing-side); this is the sync-side equivalent so the live advisory RAG
+# collection (ra_kb_markdown, queried by hermes-api-server._run_rag_search)
+# never receives these patterns via the nightly resync.
+EXCLUDED_SOURCE_PATTERNS = _env_list(
+    "SYNC_EXCLUDED_SOURCE_PATTERNS",
+    (
+        "%/wiki/entities/%",
+        "%/06_심사_QA이력/%",
+        "%/11_일일_리서치로그/%",
+    ),
+)
+
+
 def qdrant(method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(
@@ -59,13 +82,22 @@ def fetch_rows():
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM ra_knowledge")
     total = cur.fetchone()[0]
+    exclusion_sql = "\n".join(
+        "AND source_path NOT ILIKE %s" for _ in EXCLUDED_SOURCE_PATTERNS
+    )
     cur.execute(
         # llm-wiki is EXCLUDED — it is a Karpathy on-demand knowledge layer consumed via
         # Layer 4 fetch, NOT a pgvector/RAG embedding target (user decision 2026-07-10).
         # Only ra-project / MD-process markdown belong in the RAG collection. Legacy
         # llm-wiki rows still in ra_knowledge (#27 cleanup pending) are filtered out here.
-        "SELECT id, content, embedding::text, metadata FROM ra_knowledge "
-        "WHERE metadata->>'repo' NOT LIKE '%llm-wiki%' ORDER BY id"
+        # #112: low-signal / PII-bearing source folders excluded (see EXCLUDED_SOURCE_PATTERNS).
+        f"""
+        SELECT id, content, embedding::text, metadata FROM ra_knowledge
+        WHERE metadata->>'repo' NOT LIKE '%%llm-wiki%%'
+        {exclusion_sql}
+        ORDER BY id
+        """,
+        list(EXCLUDED_SOURCE_PATTERNS),
     )
     rows = cur.fetchall()
     conn.close()
