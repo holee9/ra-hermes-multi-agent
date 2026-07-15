@@ -14,6 +14,8 @@ import os
 import random
 import re
 import sys
+import urllib.error
+import urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -28,6 +30,57 @@ DAILY_RUNNER = ROOT / "scripts" / "daily-growth-runner.py"
 DEFAULT_OUTPUT = ROOT / "docs" / "kb-eval-checksheets"
 DEFAULT_TZ = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
 DEFAULT_GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001").rstrip("/")
+
+# @MX:NOTE: [AUTO] #113 — direct LLM completion for checksheet response capture.
+# Mirrors hermes-api-server.py's _invoke_llm_direct (#105 fix: no tools, no agent
+# loop, single-shot completion) so reviewers can judge no_hallucination/
+# escalation_appropriate against a real generated answer instead of source-only
+# transparency. Duplicated (not imported) to avoid pulling in the Flask app's
+# module-level state; kept in lockstep with hermes-api-server.py by convention.
+ADVISORY_LLM_URL = os.environ.get("ADVISORY_LLM_URL") or os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
+ADVISORY_LLM_MODEL = os.environ.get("ADVISORY_LLM_MODEL", "gpt-oss:120b")
+HERMES_PROFILES_DIR = os.environ.get("HERMES_PROFILES_DIR", "/home/abyz-lab/.hermes/profiles")
+RESPONSE_CAPTURE_TIMEOUT = int(os.environ.get("KB_EVAL_RESPONSE_TIMEOUT", "90"))
+_SOUL_CACHE: dict[str, str] = {}
+
+
+def _load_soul(profile: str) -> str:
+    if profile not in _SOUL_CACHE:
+        path = os.path.join(HERMES_PROFILES_DIR, profile, "SOUL.md")
+        try:
+            with open(path, encoding="utf-8") as f:
+                _SOUL_CACHE[profile] = f.read()
+        except OSError:
+            _SOUL_CACHE[profile] = ""
+    return _SOUL_CACHE[profile]
+
+
+def capture_agent_response(profile: str, assignment: str) -> tuple[str, str]:
+    """#113 — invoke the real RA agent (direct completion, no tools) on the
+    checksheet's assignment prompt. Returns (response_text, error); on failure
+    the case still renders with an explicit capture-failed note (fail-safe,
+    never blocks checksheet generation)."""
+    body = json.dumps({
+        "model": ADVISORY_LLM_MODEL,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": _load_soul(profile)},
+            {"role": "user", "content": assignment},
+        ],
+        "options": {"num_predict": 700, "temperature": 0.3},
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            f"{ADVISORY_LLM_URL.rstrip('/')}/v1/chat/completions",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=RESPONSE_CAPTURE_TIMEOUT) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return data["choices"][0]["message"]["content"], ""
+    except Exception as exc:
+        return "", f"response capture error: {str(exc)[:200]}"
 
 
 def load_daily_runner() -> Any:
@@ -253,7 +306,7 @@ def source_focus_fit(source_path: str, focus: str) -> str:
     )
 
 
-def source_summary(agent: Any, focus: str, case: SourceCase) -> list[str]:
+def source_summary(agent: Any, focus: str, case: Any) -> list[str]:
     basename = source_basename(case.source_path)
     excerpts = " ".join(excerpt["excerpt"] for excerpt in case.excerpts)
     excerpt_brief = compact_text(excerpts, max_chars=360)
@@ -265,9 +318,21 @@ def source_summary(agent: Any, focus: str, case: SourceCase) -> list[str]:
     ]
 
 
-def render_case(base_date: date, iteration: int, agent: Any, case_index: int, case: Any) -> str:
+def render_case(
+    base_date: date,
+    iteration: int,
+    agent: Any,
+    case_index: int,
+    case: Any,
+    response: str | None = None,
+    response_error: str = "",
+) -> str:
     meta = case_metadata(base_date, iteration, agent, case_index, case)
     focus = agent.daily_focus[(base_date.toordinal() + iteration - 1) % len(agent.daily_focus)]
+    has_response = response is not None
+    # #113: no_hallucination/escalation_appropriate are only judgeable against an
+    # actual generated answer — point reviewers at the captured response when present.
+    hallucination_target = "Agent Response" if has_response else "source excerpt transparency (no captured response — inferred only)"
     lines = [
         f"### {meta['decision_ref']}",
         "",
@@ -290,7 +355,24 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         f"- 기대 산출물: 이 source를 근거로 `{focus}`에 대한 간결한 RA 판단을 확인합니다.",
         "- 주요 확인 기준:",
         *[f"  - {item}" for item in review_lens(agent, focus)],
+        f"  - `No hallucination`/`Escalation appropriate`는 {hallucination_target}을 기준으로 판정합니다.",
         "",
+    ]
+    if has_response:
+        lines.extend([
+            "**Agent Response** (실제 생성된 응답 — no_hallucination/escalation_appropriate 판정 대상)",
+            "",
+            f"> {response.strip() or '(empty response)'}" if response else "> (empty response)",
+            "",
+        ])
+    elif response_error:
+        lines.extend([
+            "**Agent Response** — capture failed (fail-safe: fast checks fall back to source-only inference)",
+            "",
+            f"> ⚠️ {response_error}",
+            "",
+        ])
+    lines.extend([
         "**Reviewer Score**",
         "",
         checkbox("Score 3 - pass / usable without correction"),
@@ -312,7 +394,7 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
         "",
         "**Source Excerpts**",
         "",
-    ]
+    ])
     for idx, excerpt in enumerate(case.excerpts, start=1):
         lines.extend([
             f"{idx}. Chunk `{excerpt['id']}`",
@@ -323,7 +405,15 @@ def render_case(base_date: date, iteration: int, agent: Any, case_index: int, ca
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_iteration(base_date: date, iteration: int, cases_by_agent: dict[str, list[tuple[Any, Any]]]) -> str:
+def render_iteration(
+    base_date: date,
+    iteration: int,
+    cases_by_agent: dict[str, list[tuple[Any, Any]]],
+    responses: dict[str, str | None] | None = None,
+    response_errors: dict[str, str] | None = None,
+) -> str:
+    responses = responses or {}
+    response_errors = response_errors or {}
     total = sum(len(items) for items in cases_by_agent.values())
     lines = [
         f"# KB Eval Checksheet - {base_date.isoformat()} Iteration {iteration:02d}",
@@ -341,7 +431,11 @@ def render_iteration(base_date: date, iteration: int, cases_by_agent: dict[str, 
     for agent_peer, items in cases_by_agent.items():
         lines.extend([f"## {agent_peer}", ""])
         for case_index, (agent, case) in enumerate(items, start=1):
-            lines.append(render_case(base_date, iteration, agent, case_index, case))
+            lines.append(render_case(
+                base_date, iteration, agent, case_index, case,
+                response=responses.get(case.scenario_id),
+                response_error=response_errors.get(case.scenario_id, ""),
+            ))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -412,6 +506,13 @@ def main() -> None:
     parser.add_argument("--randomize", action="store_true", help="Shuffle source candidates per agent/iteration.")
     parser.add_argument("--random-seed", default=None, help="Optional deterministic seed for randomize mode.")
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT))
+    parser.add_argument(
+        "--capture-responses",
+        action="store_true",
+        help="#113: invoke the real RA agent (direct completion) per case and attach the "
+             "response so no_hallucination/escalation_appropriate are judgeable. Slower "
+             "(one LLM call per case) — opt-in.",
+    )
     args = parser.parse_args()
 
     pg_dsn = os.environ.get("POSTGRES_URL")
@@ -449,8 +550,28 @@ def main() -> None:
                     rng=rng,
                 )
                 cases_by_agent[agent.peer_id] = [(agent, case) for case in cases]
+
+            responses: dict[str, str | None] = {}
+            response_errors: dict[str, str] = {}
+            if args.capture_responses:
+                total_cases = sum(len(items) for items in cases_by_agent.values())
+                done = 0
+                for agent_peer, items in cases_by_agent.items():
+                    for agent, case in items:
+                        assignment = daily.build_case_content(agent, case, selection_date)
+                        text, error = capture_agent_response(agent.profile_id, assignment)
+                        if error:
+                            response_errors[case.scenario_id] = error
+                        else:
+                            responses[case.scenario_id] = text
+                        done += 1
+                        print(f"  [capture] iter{iteration:02d} {done}/{total_cases} {agent_peer}/{case.scenario_id}: {'OK' if not error else 'FAILED — ' + error}", flush=True)
+
             path = out_root / f"iteration-{iteration:02d}.md"
-            path.write_text(render_iteration(base_date, iteration, cases_by_agent), encoding="utf-8")
+            path.write_text(
+                render_iteration(base_date, iteration, cases_by_agent, responses, response_errors),
+                encoding="utf-8",
+            )
             written_iterations.append(iteration)
 
     existing_iterations = sorted(
