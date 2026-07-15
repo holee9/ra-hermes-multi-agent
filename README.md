@@ -14,6 +14,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 **✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-15
 
 **최신 완료 작업:**
+- 🧪 **#113 KB eval 체크시트 — 실제 에이전트 응답 캡처 추가, CLOSED** (2026-07-15, [#113](https://github.com/holee9/ra-hermes-multi-agent/issues/113) CLOSED, commit `7716171`): 체크시트 케이스에 source/매칭 키워드만 있고 실제 응답이 없어 `no_hallucination`/`escalation_appropriate`를 판정할 수 없던 갭 해결. `capture_agent_response()`(hermes-api-server.py `_invoke_llm_direct`와 동일 방식, 도구 없는 단발 completion) + `--capture-responses` opt-in 플래그 추가, `render_case()`에 **Agent Response** 섹션 신설(판정 기준 문구도 응답 기준으로 정합). 검증: `verify-kb-eval-checksheet.py` 신규(4종) PASS. **파일럿(iteration-13, 3케이스)에서 실제 hallucination 발견** — ra_us 응답이 존재하지 않는 가상 510(k) predicate 번호(K123456 등)를 구체 인용, 응답 캡처 없이는 식별 불가능했던 결함을 정확히 재현.
 - 🔒 **#112 저신호·PII 소스(QA 이메일 로그) 인덱싱 배제 — 4단계 정리 완료, CLOSED** (2026-07-15, [#112](https://github.com/holee9/ra-hermes-multi-agent/issues/112) CLOSED): `06_심사_QA이력`/`11_일일_리서치로그` 저신호·PII 소스를 인덱싱·동기화·라이브 검색·원본 저장 4개 층위에서 순차 정리.
   1. **인덱싱 배제 규칙**(commit `02c7a24`): `scripts/index_github_repos.py`에 `INDEX_EXCLUDED_PATH_PATTERNS`+`is_excluded_path()` — fetch·embed 이전 단계에서 차단. `/opt` 배포 + 라이브 실행 검증(신규 유입 0건).
   2. **딥싱크로 발견한 라이브 노출 경로**: `sync_ra_knowledge_to_qdrant.py`(매일 03:18 KST)가 `llm-wiki`만 제외하고 QA이력/리서치로그는 필터 없이 Qdrant `ra_kb_markdown`(`hermes-api-server.py _run_rag_search()`의 **실제 라이브 advisory 서빙 컬렉션**)로 복사 중이었음 확인 — 실제 이메일·직원 실명·회사 주소 포함 812+620건 존재. advisory 로그+Honcho 세션 메시지 4,789건 검색 결과 실제 인용 사고 0건(잠재 위험이었지 발생한 사고는 아님).
