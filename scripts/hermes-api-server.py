@@ -555,6 +555,12 @@ def build_advisory_context(
         # 100 chars is the real guard; raspi5p's 255-char WP-subject cap is only a safety net.
         "- summary는 반드시 메일 본문(query) 내용을 분석해 작성한다. 본문에 포함된 'Subject:' 또는 제목 라인을 그대로 복사하거나 약간 변형해 summary로 사용하는 것을 금지한다.",
         "- summary는 핵심 사안을 100자 이내 한국어로 간결하게 요약한다 (OpenProject WP subject 255자 제약 대비 근본 가드).",
+        # #118: kb-eval response capture (#113) reproduced the same fabricated 510(k)
+        # number ("K123456") across unrelated cases — the model invents a plausible-
+        # looking identifier as a placeholder when the source has none. Guard applies
+        # to recommended_comment/summary, not just evidence (evidence is already
+        # source-path-only, per the confidence>=0.5 rule above).
+        "- 510(k)/predicate/등록번호 등 구체적 식별자·문서번호는 evidence(제공된 source)에 실제로 명시된 경우에만 인용한다. source에 없으면 임의의 번호를 만들어내지 말고 recommended_comment/summary에 '문서 확인 필요'라고 명시한다. '예: K123456'처럼 예시용 가상 번호도 제시하지 말고, 식별자 값 자체를 생략한다.",
     ]
     return "\n".join(parts)
 

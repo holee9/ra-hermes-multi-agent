@@ -543,6 +543,12 @@ def build_case_content(agent: Agent, case: SourceCase, run_date: date) -> str:
         f"Source hash: {case.source_hash}",
         f"Matched keywords: {', '.join(case.matched_keywords) or 'source routing match'}",
         "Assignment: Produce a regulatory draft that identifies classification/submission route, required evidence, missing information, risk controls, citations, and human-escalation triggers.",
+        # #118: kb-eval response capture reproduced the same fabricated 510(k) number
+        # ("K123456") across unrelated cases when asked for citations the source did
+        # not contain — the model invents a plausible identifier rather than flagging
+        # the gap. This assignment text is sent verbatim as the LLM prompt (#113
+        # capture_agent_response), so the guard belongs here, not only in advisory.
+        "Citation rule: cite specific identifiers (510(k)/predicate/registration numbers, case IDs) only if they literally appear in the source excerpts below. If none appear, write 'no specific identifier found in source — verify separately' instead of inventing one. Do not provide an illustrative or placeholder identifier either (e.g., 'e.g., K123456') — omit the identifier value entirely rather than showing a made-up example.",
         "Peer review prompt: Ask one other RA peer to challenge the assumptions, source coverage, and jurisdiction-specific gaps.",
         "Source excerpts:",
     ]
