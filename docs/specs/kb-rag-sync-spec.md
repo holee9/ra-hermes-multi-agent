@@ -1,7 +1,7 @@
 # SPEC — KB RAG Sync (ra-project/MD-process/llm-wiki 단절 해결 + 정기 동기화 파이프라인)
 
 > **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: **Phase 1 IMPLEMENTED (2026-07-10)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. **Phase 2 (c1) 역방향 동기화 IMPLEMENTED (2026-07-11, GATE-3 승인)** — ra_knowledge → Qdrant `ra_kb_markdown` collection 역방향 복사 + `_run_rag_search` 하이브리드 조회. AC-P2-1(markdown 도달)/2(NAS 회귀 보존)/3(결정 문서화) 라이브 검증 PASS.
+> **Status**: **Phase 1 IMPLEMENTED (2026-07-10)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. **Phase 2 (c1) 역방향 동기화 IMPLEMENTED (2026-07-11, GATE-3 승인)** — ra_knowledge → Qdrant `ra_kb_markdown` collection 역방향 복사 + `_run_rag_search` 하이브리드 조회. AC-P2-1(markdown 도달)/2(NAS 회귀 보존)/3(결정 문서화) 라이브 검증 PASS. **#112 Data-Governance 배제 필터 추가 (2026-07-15)** — `sync_ra_knowledge_to_qdrant.py`가 llm-wiki 외에 저신호·PII 소스(QA 이메일 로그·일일 리서치로그)도 배제하도록 확장 + 기존 라이브 포인트 정리. Annex D 참조.
 > **llm-wiki는 본 SPEC 범위에서 제외** (2026-07-10 결정 정정) — Karpathy "compile 지식" 계층으로 pgvector 인제스트 대상 아님. Layer 4 on-demand 소비 모델로 전환 → `docs/specs/llm-wiki-operating-model.md` 참조. (기존 Annex C의 "페이지네이션 미완" 서술은 운영모델 결정으로 대체.)
 > **Date**: 2026-07-10.
 > **Tracking issue**: #107 ([MONITOR-6] pgvector ra_knowledge 정기 인덱싱 스케줄 부재).
@@ -144,7 +144,7 @@ Phase 2는 Layer 1 RAG 조회 경로를 Qdrant → pgvector로 전환하는 것�
 > **본 SPEC은 (a)/(b)/(c) 중 어느 것도 선택하지 않는다.** Phase 2는 별도 설계 세션에서 이 결정을 내린 후 Run phase로 진입한다.
 
 > **✅ REQ-KBS-004a 결정 (2026-07-11, 사용자 승인 Run)**: **(c1) 역방향 Qdrant collection** 선택.
-> 임베딩 호환 실측(pgvector `ra_knowledge` 4096/Cosine/`qwen3-embedding` == Qdrant `nas_ra_docs`)으로, 이미 계산된 벡터를 pgvector에서 Qdrant 신규 collection `ra_kb_markdown`로 복사(`scripts/sync_ra_knowledge_to_qdrant.py`). **GX10 임베딩 0건·데이터 손실 0**(NAS 2.09M 유지 + markdown 8,159 추가). `_run_rag_search`는 nas_ra_docs + ra_kb_markdown 하이브리드 조회(Hermes `rag_search.py` 스킬 미수정, collection별 호출). llm-wiki는 제외(Karpathy on-demand, 레거시 행은 #27 정리 대기). 매일 cron 18:03 증분(id 기반 멱등).
+> 임베딩 호환 실측(pgvector `ra_knowledge` 4096/Cosine/`qwen3-embedding` == Qdrant `nas_ra_docs`)으로, 이미 계산된 벡터를 pgvector에서 Qdrant 신규 collection `ra_kb_markdown`로 복사(`scripts/sync_ra_knowledge_to_qdrant.py`). **GX10 임베딩 0건·데이터 손실 0**(NAS 2.09M 유지 + markdown 8,159 추가). `_run_rag_search`는 nas_ra_docs + ra_kb_markdown 하이브리드 조회(Hermes `rag_search.py` 스킬 미수정, collection별 호출). llm-wiki는 제외(Karpathy on-demand, 레거시 행은 #27 정리 대기). 매일 cron 03:18(KST) 증분(id 기반 멱등, 정확한 시각은 crontab 실측 기준 — 최초 문서화 시 "18:03" 오기 정정). **2026-07-15부터 QA 이메일 로그(`06_심사_QA이력`)·일일 리서치로그(`11_일일_리서치로그`)도 배제**(`EXCLUDED_SOURCE_PATTERNS`, #112) — 상세는 Annex D.
 > **라이브 e2e**: AC-P2-1 RAG 도달 확증(`_run_rag_search` NAS 5 + markdown 5 = 10건, markdown score 0.80 > NAS 0.72) · AC-P2-2 NAS 회귀 보존 · AC-P2-3 본 결정 문서화. end-to-end advisory evidence는 LLM이 query에 가장 관련 높은 출처를 인용(RTA query→NAS PDF, 정상)하며, markdown-only 내용에서 markdown이 인용됨.
 
 ### REQ-KBS-005 (Phase 2 — 라이브 e2e 검증 필수)
@@ -321,5 +321,29 @@ Phase 2는 Layer 1 RAG 조회 경로를 Qdrant → pgvector로 전환하는 것�
 ### GATE-3 준수
 - 사용자 명시 승인(2026-07-10 #107 Phase1) 후 실행. crontab 변경(cron/systemd = 사람 결정 영역)은 대리 추가(백업 보존). `/opt/hermes-ra/` 인덱서 교체·`.env` 통합은 비파괴(abyz-lab 소유, 서비스 재기동 없음, DB는 idempotent 인덱싱만).
 - KB repo 읽기 전용(REQ-KBS-007) 준수 — GET only.
+
+---
+
+## Annex D — #112 Data-Governance 배제 필터 + 라이브 Qdrant 정리 (2026-07-15, 사용자 승인 실행)
+
+> #112(저신호·PII 소스 인덱싱 배제) 작업 중 딥싱크로 발견: 인덱싱 단계(`index_github_repos.py`, commit `02c7a24`)와 growth-runner 검색 단계(`daily-growth-runner.py` `EXCLUDED_SOURCE_PATTERNS`)는 이미 QA 이메일 로그·리서치로그를 배제했으나, **본 SPEC이 다루는 sync 파이프라인(`sync_ra_knowledge_to_qdrant.py`)은 llm-wiki만 배제하고 QA이력/리서치로그는 필터 없이 그대로 복사 중**이었음. `ra_kb_markdown`은 `_run_rag_search`가 조회하는 실제 라이브 advisory 서빙 컬렉션이라, 매일 03:18 KST 동기화가 저신호·PII 소스를 계속 복제하고 있었던 실질 노출 경로.
+
+### 실측 (사고 여부 — 과장 방지)
+- Qdrant 직접 조회: `06_심사_QA이력` 812건 + `11_일일_리서치로그` 620건, 실제 이메일 주소·직원 실명·회사 주소 포함 확인.
+- advisory 요청 로그 전체 + Honcho `ra-advisory` 세션 메시지 4,789건 검색 — 이 소스가 실제 응답에 인용된 사례 **0건**. 잠재적 노출 경로였으나 확인된 유출 사고는 아님.
+
+### 조치
+1. **sync 스크립트 필터 추가**(`EXCLUDED_SOURCE_PATTERNS`, env `SYNC_EXCLUDED_SOURCE_PATTERNS`, daily-growth-runner.py/index_github_repos.py와 동일 3패턴) — `fetch_rows()` WHERE 절에 적용. 구현 중 버그 1건 재현+수정: 기존 `'%llm-wiki%'` 리터럴이 파라미터 바인딩(`cur.execute(sql, params)`) 도입 후 psycopg2의 `%`-스타일 치환과 충돌(`IndexError`) → `'%%llm-wiki%%'`로 이스케이프. 검증: `verify-sync-ra-knowledge-to-qdrant.py` 신규, 실측 `fetch_rows()` 8238→6806(812+620 배제).
+2. **Qdrant 기존 1,432건(812+620) 삭제** — (a) scroll API로 전체 payload+vector 백업(`~/hermes-backups/qdrant-ra_kb_markdown-qa-research-log-20260715.jsonl`) (b) filter-delete 실행 (c) 카운트 0 확인(8209→6777) (d) 실제 advisory 쿼리(EU MDR Annex II)로 회귀 확인 — confidence 0.94, 정상 응답.
+3. **pgvector `ra_knowledge` 원본 812+620행은 보존** — 감사 보존 가치 + ①②로 실질 노출 경로(라이브 검색 인덱스)는 이미 닫혔다는 판단하에 사용자가 명시적으로 원본 정리는 보류.
+
+### 배포
+`sync_ra_knowledge_to_qdrant.py`는 cron이 `/opt` 사본이 아니라 **repo 경로를 직접 실행**(`18 3 * * * ... /home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent/scripts/sync_ra_knowledge_to_qdrant.py`) — 별도 배포 없이 커밋 즉시 다음 03:18 실행부터 적용됨.
+
+### 교훈
+retrieval-side 필터(daily-growth-runner.py)만 확인하고 "노출 차단됨"이라 단정한 것은 성급했음 — 소스(pgvector) → sync → 라이브 서빙 컬렉션(Qdrant)까지 **모든 다운스트림 소비 경로**를 끝까지 추적해야 함.
+
+### 관련
+#112, `~/hermes-backups/qdrant-ra_kb_markdown-qa-research-log-20260715.jsonl`, `scripts/verify-sync-ra-knowledge-to-qdrant.py`.
 
 End of SPEC.
