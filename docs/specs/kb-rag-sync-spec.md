@@ -1,7 +1,7 @@
 # SPEC — KB RAG Sync (ra-project/MD-process/llm-wiki 단절 해결 + 정기 동기화 파이프라인)
 
 > **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: **Phase 1 IMPLEMENTED (2026-07-10)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. **Phase 2 (c1) 역방향 동기화 IMPLEMENTED (2026-07-11, GATE-3 승인)** — ra_knowledge → Qdrant `ra_kb_markdown` collection 역방향 복사 + `_run_rag_search` 하이브리드 조회. AC-P2-1(markdown 도달)/2(NAS 회귀 보존)/3(결정 문서화) 라이브 검증 PASS. **#112 Data-Governance 배제 필터 추가 (2026-07-15)** — `sync_ra_knowledge_to_qdrant.py`가 llm-wiki 외에 저신호·PII 소스(QA 이메일 로그·일일 리서치로그)도 배제하도록 확장 + 기존 라이브 포인트 정리. Annex D 참조.
+> **Status**: **Phase 1 IMPLEMENTED (2026-07-10)** — 2 KB(MD-process·ra-project) 정기 동기화 확립. **Phase 2 (c1) 역방향 동기화 IMPLEMENTED (2026-07-11, GATE-3 승인)** — ra_knowledge → Qdrant `ra_kb_markdown` collection 역방향 복사 + `_run_rag_search` 하이브리드 조회. AC-P2-1(markdown 도달)/2(NAS 회귀 보존)/3(결정 문서화) 라이브 검증 PASS. **#112 Data-Governance CLOSED (2026-07-15)** — `sync_ra_knowledge_to_qdrant.py`가 llm-wiki 외 저신호·PII 소스(QA 이메일 로그·일일 리서치로그)도 배제하도록 확장 + Qdrant 라이브 포인트 삭제 + pgvector 원본 격리(quarantine, 삭제 아님) 완료. Annex D 참조.
 > **llm-wiki는 본 SPEC 범위에서 제외** (2026-07-10 결정 정정) — Karpathy "compile 지식" 계층으로 pgvector 인제스트 대상 아님. Layer 4 on-demand 소비 모델로 전환 → `docs/specs/llm-wiki-operating-model.md` 참조. (기존 Annex C의 "페이지네이션 미완" 서술은 운영모델 결정으로 대체.)
 > **Date**: 2026-07-10.
 > **Tracking issue**: #107 ([MONITOR-6] pgvector ra_knowledge 정기 인덱싱 스케줄 부재).
@@ -343,7 +343,18 @@ Phase 2는 Layer 1 RAG 조회 경로를 Qdrant → pgvector로 전환하는 것�
 ### 교훈
 retrieval-side 필터(daily-growth-runner.py)만 확인하고 "노출 차단됨"이라 단정한 것은 성급했음 — 소스(pgvector) → sync → 라이브 서빙 컬렉션(Qdrant)까지 **모든 다운스트림 소비 경로**를 끝까지 추적해야 함.
 
+### pgvector 원본 격리 완료 (2026-07-15, 사용자 승인 — #112 최종 마무리)
+
+①②(인덱싱·sync 필터, Qdrant 정리)에 이어 **원본 `ra_knowledge`의 812+620행도 격리**(삭제 아님)로 마무리:
+
+1. 백업: `~/hermes-backups/ra_knowledge-quarantine-112-20260715.jsonl`(1,432건, content+metadata).
+2. 신규 테이블 `ra_knowledge_quarantine`(`ra_knowledge`와 동일 스키마 + `quarantined_at`/`quarantine_reason`) 생성.
+3. 단일 트랜잭션으로 INSERT(quarantine) → DELETE(원본) — 삽입/삭제 건수 불일치 시 자동 롤백 가드 포함, 1432=1432 확인 후 커밋.
+4. 검증: `ra_knowledge` 8238→6806(-1432, 해당 패턴 0건), `ra_knowledge_quarantine` 1,432건. 회귀 테스트 3종 재실행 PASS + 실제 advisory 쿼리(MFDS 2등급 디지털 의료기기) confidence 0.88 정상.
+
+**최종 상태**: `ra_knowledge`는 저신호·PII 소스 완전 제거(정상 규제 지식만 6,806건). 원본 데이터는 `ra_knowledge_quarantine`에 감사 목적으로 보존(임의 삭제 아님, 필요 시 사람 승인하에 복원/영구삭제 검토 가능).
+
 ### 관련
-#112, `~/hermes-backups/qdrant-ra_kb_markdown-qa-research-log-20260715.jsonl`, `scripts/verify-sync-ra-knowledge-to-qdrant.py`.
+#112, `~/hermes-backups/qdrant-ra_kb_markdown-qa-research-log-20260715.jsonl`, `~/hermes-backups/ra_knowledge-quarantine-112-20260715.jsonl`, `scripts/verify-sync-ra-knowledge-to-qdrant.py`, `ra_knowledge_quarantine`(신규 테이블).
 
 End of SPEC.
