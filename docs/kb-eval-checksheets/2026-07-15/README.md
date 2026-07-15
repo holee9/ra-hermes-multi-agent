@@ -3,9 +3,9 @@
 This folder stores human review checksheets generated from the current RA knowledge base.
 Checked boxes are kept in git as audit history and can later be converted into Honcho `score_given` feedback.
 
-- Iterations: 7
-- Cases per agent per iteration: 1
-- Expected total cases: 21
+- Iterations: 11
+- Cases per agent per iteration: 5
+- Expected total cases: 165
 - Latest generation mode: deterministic rotation
 
 Files:
@@ -17,3 +17,7 @@ Files:
 - [Iteration 11](iteration-11.md)
 - [Iteration 12](iteration-12.md)
 - [Iteration 13](iteration-13.md)
+- [Iteration 14](iteration-14.md)
+- [Iteration 15](iteration-15.md)
+- [Iteration 16](iteration-16.md)
+- [Iteration 17](iteration-17.md)
