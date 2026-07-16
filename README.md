@@ -14,6 +14,11 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 **✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-16
 
 **최신 완료 작업:**
+- ✅ **#123/#124/#125 전체 배치 재-eval 검증 완료 — #124/#125 CLOSE, #123 2차 수정 후 OPEN 유지** (2026-07-16, commit `995f6db`): 신규 45케이스(`kb-eval-checksheet.py --capture-responses`, iteration 01-03) 생성 후 딥리서치 팩트체크(3개 병렬 에이전트, agent-type별).
+  - **#124 CLOSE**: 핵심 패턴(OECD/CER 고시번호 창작) 재발 0/15건 확인.
+  - **#125 CLOSE**: 핵심 패턴(가짜 기기 카테고리) 재발 0/15건. 잔여 스타일 흔적("Daily Growth" 응답 제목 노출) 5건 발견 → 프롬프트 안내문 2차 보완 후 재현 테스트로 해소 확인.
+  - **#123 OPEN 유지**: 6개 명시 패턴 중 4개(CER/PMCF/PMS/DoC) 완전 해결(12건 전건 정확), 2개(NLF Module 혼동/Rule 9-10 역전) 4/12건 잔존 → SOUL.md 참조표 2차 강화(EUR-Lex 재검증: Rule 9=치료용/10=진단용/17=X-ray 영상기록 전용) + 표본 2건 재현 테스트로 개선 확인, 단 전체 재-eval 미실시로 이슈는 열어둠.
+  - **신규 이슈 5건 등록**(Issue-First Protocol): [#126](https://github.com/holee9/ra-hermes-multi-agent/issues/126)(ra_us Part 862/892 영상기기 분류 오배치), [#127](https://github.com/holee9/ra-hermes-multi-agent/issues/127)(KB 소스 `FDA_QMSR_2026.md` 자체 노후화), [#128](https://github.com/holee9/ra-hermes-multi-agent/issues/128)(ra_kr 감사 지시 반대 해석, High), [#129](https://github.com/holee9/ra-hermes-multi-agent/issues/129)(ra_kr OECD 외 주제 고시번호 창작 잔존), [#130](https://github.com/holee9/ra-hermes-multi-agent/issues/130)(ra_eu 라벨링/위험관리 Annex 오배치).
 - 🔧 **#123/#124/#125 근본원인 조사 + 수정 적용 완료 (이슈는 OPEN 유지, 전체 재-eval 대기)** (2026-07-16, commit `84b9e0d`): 우선순위 순 3건 순차 적용.
   - **#124(재우선순위 확인 결과 원 가설 정정)**: 등록 당시 가설("`_fetch_learning_history` 경유 전파")은 코드 확인 결과 틀림 — kb-eval 응답 캡처 경로는 학습이력 재주입을 아예 하지 않음. 실제 원인은 `ra-kr` SOUL.md 페르소나 파일이 "OECD mutual recognition, CER acceptance since Jan 2026"을 출처 없이 단정해 매 호출마다 창작을 유발("전파"가 아니라 "공통 오염원 반복 자극"). 구체 고시번호/날짜는 KB 출처 인용 또는 미검증 명시로 수정.
   - **#123**: EUR-Lex 웹검증 기반 MDR Annex/Article 매핑 참조표(CER=Annex XIV Part A, PMCF=Annex XIV Part B, PMS/PSUR=Art.83-86, 적합성평가=Annex IX/X/XI vs NLF Module 구분, EUDAMED=Art.33-39)를 `ra-eu` SOUL.md에 추가.
