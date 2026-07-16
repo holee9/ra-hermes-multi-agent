@@ -546,7 +546,7 @@ def build_case_content(agent: Agent, case: SourceCase, run_date: date) -> str:
         # header as a device category and fabricated a matching CFR section for a
         # non-existent "growth-type device". These lines are pipeline bookkeeping
         # only and never describe the device under assessment.
-        "Note: the lines above marked '[internal run metadata]' are pipeline bookkeeping only (this script's own run tracking) — they are not device names, categories, or classifications. Do not reference them when determining device type, intended use, or regulatory classification.",
+        "Note: the lines above marked '[internal run metadata]' are pipeline bookkeeping only (this script's own run tracking) — they are not device names, categories, or classifications. Do not reference them when determining device type, intended use, or regulatory classification. Also do not echo this exercise's own framing ('Daily regulatory growth case', 'Growth Case', 'Daily Growth') into your response's title or heading — title the response after the actual regulatory topic instead.",
         "Assignment: Produce a regulatory draft that identifies classification/submission route, required evidence, missing information, risk controls, citations, and human-escalation triggers.",
         # #118: kb-eval response capture reproduced the same fabricated 510(k) number
         # ("K123456") across unrelated cases when asked for citations the source did
