@@ -535,13 +535,18 @@ def build_case_content(agent: Agent, case: SourceCase, run_date: date) -> str:
     lines = [
         "Daily regulatory growth case",
         f"Audience: {agent.name} ({agent.region} RA)",
-        f"Growth version: {GROWTH_VERSION}",
-        f"Run date: {run_date.isoformat()}",
-        f"Scenario ID: {case.scenario_id}",
+        f"[internal run metadata — not a device attribute] Pipeline run ID: {GROWTH_VERSION}",
+        f"[internal run metadata — not a device attribute] Run date: {run_date.isoformat()}",
+        f"[internal run metadata — not a device attribute] Scenario ID: {case.scenario_id}",
         f"Primary focus: {focus}",
         f"Source: {case.source_path}",
         f"Source hash: {case.source_hash}",
         f"Matched keywords: {', '.join(case.matched_keywords) or 'source routing match'}",
+        # #125: the model previously misread the "Growth version"/scenario-tracking
+        # header as a device category and fabricated a matching CFR section for a
+        # non-existent "growth-type device". These lines are pipeline bookkeeping
+        # only and never describe the device under assessment.
+        "Note: the lines above marked '[internal run metadata]' are pipeline bookkeeping only (this script's own run tracking) — they are not device names, categories, or classifications. Do not reference them when determining device type, intended use, or regulatory classification.",
         "Assignment: Produce a regulatory draft that identifies classification/submission route, required evidence, missing information, risk controls, citations, and human-escalation triggers.",
         # #118: kb-eval response capture reproduced the same fabricated 510(k) number
         # ("K123456") across unrelated cases when asked for citations the source did
