@@ -156,21 +156,21 @@ When any trigger fires, the following actions are required within 24 h:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> PCCP 판단(FDA 2024-12 최종가이던스 기준)은 소스와 일치. '21 CFR 862'(오기, 정답 892) + 존재하지 않는 'AICGM-GMLP' 명칭(실제는 2021 FDA/Health Canada/MHRA 공동 GMLP).
 
 **Source Excerpts**
 
@@ -364,22 +364,22 @@ honcho_conclude:
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 인용(21 CFR 892.2050, IEC 62304, ISO 14971 등)이 소스와 정확히 일치, 플레이스홀더 표기 우수 — fabrication 없음.
 
 **Source Excerpts**
 
@@ -551,20 +551,20 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> #118 재확인: 소스에 없는 'K123456' predicate 번호 인용 + 존재하지 않는 FDA 문서명 + 'IEC 62304 4판(2023)'(실제 2006+A1:2015).
 
 **Source Excerpts**
 
@@ -764,20 +764,20 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> #118 재확인: 검증 불가한 제품명('MobileDR')+가상 번호 'K123456' 결합 + '21 CFR 862.1000'(오기, X-ray는 892부).
 
 **Source Excerpts**
 
@@ -932,20 +932,20 @@ honcho_conclude {
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> #118 재확인: 나머지 내용(§820.35 세부항목, Part 11 오적용 지적)은 소스와 정확히 일치하는 우수한 응답인데 'K123456'만 고립되어 삽입.
 
 **Source Excerpts**
 
@@ -998,20 +998,20 @@ honcho_conclude {
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1200,22 +1200,22 @@ honcho_conclude {
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> TD/GSPR/CER/PMS 체크리스트가 소스와 정확 일치, 출처 chunk ID 명시 — fabrication 없음.
 
 **Source Excerpts**
 
@@ -1404,21 +1404,21 @@ honcho_conclude{
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 8단계 TD 워크플로우/Economic Operator 표는 소스와 정확. GSPR 조항-주제 매핑표를 임의 창작 — 같은 파일의 다른 케이스(ra_eu-004/005) 소스와도 모순(#123 유사).
 
 **Source Excerpts**
 
@@ -1469,20 +1469,20 @@ honcho_conclude{
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1664,7 +1664,7 @@ honcho_conclude:{
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -1673,11 +1673,11 @@ honcho_conclude:{
 - [ ] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> GSPR 재조정 부분(§10 배제, §15/16/17 배정)은 정확. 그러나 'Class C'를 MDR 최종분류로 제시 — Class A/B/C/D는 IVDR 용어이며 MDR은 Class I/IIa/IIb/III(검증된 명백한 오류).
 
 **Source Excerpts**
 
@@ -1730,20 +1730,20 @@ honcho_conclude:{
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1794,20 +1794,20 @@ honcho_conclude:{
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1985,22 +1985,22 @@ Please review, address the peer‑review questions, and update the submission pa
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 핵심 판단(법 제8조 근거, 제11조 아님)과 시행규칙 매핑표 전체가 소스와 조항 단위로 정확히 일치 — fabrication 없음.
 
 **Source Excerpts**
 
@@ -2170,7 +2170,7 @@ For Class III SaMD/AI modules under the 2025 Digital Medical Device Act, MFDS 
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -2179,11 +2179,11 @@ For Class III SaMD/AI modules under the 2025 Digital Medical Device Act, MFDS 
 - [ ] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스는 배경 문단+참고링크뿐인데, '법 제17조=분류기준'(실제 우수관리체계 인증 조항 — 같은 파일 ra_kr-003 소스와도 모순) + 세부조항 다수 창작 + '96% 민감도/94% 특이도' 등 검증 데이터를 표로 완전 창작.
 
 **Source Excerpts**
 
@@ -2234,20 +2234,20 @@ For Class III SaMD/AI modules under the 2025 Digital Medical Device Act, MFDS 
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 

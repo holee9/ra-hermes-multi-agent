@@ -167,21 +167,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 결론(Class II, Traditional 510(k), SE)은 정확. '21 CFR 820.30(c)(6)/(c)(2)' 세부조항 창작(실제 (c)는 미세분화, 검증됨) + 21 CFR 822를 PMCF로 오설명(EU 용어).
 
 **Source Excerpts**
 
@@ -363,21 +363,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 경로비교표(수수료·심사기간·eSTAR 날짜)는 소스와 정확 일치. 'IEC 62561'을 영상 성능시험 표준으로 오인용(실제 낙뢰보호 표준, 무관 — 검증됨).
 
 **Source Excerpts**
 
@@ -540,21 +540,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 감사 인력 리소스 충돌이라는 실질적 통찰 우수, 소스에 근거. '21 CFR 803.3'을 기기설명/라벨링 근거로 오인용(실제 이상사례 보고 규정, 무관 — 검증됨).
 
 **Source Excerpts**
 
@@ -694,21 +694,21 @@ The device falls under **Class II** and requires a **traditional 510(k)**. The
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스엔 RTA 점수(52%→85%)만 있는데 '필수항목 5개' 표를 확정적으로 창작 — 추론임을 명시하지 않음. 플레이스홀더 표기는 투명.
 
 **Source Excerpts**
 
@@ -873,21 +873,21 @@ The device falls under **Class II** and requires a **traditional 510(k)**. The
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> FDA 서식번호(3514/3601/3654/3881)·만료일(2026-07-31)은 소스와 정확 일치, 우수. 'Fed. Register Vol.91 No.42(2025)'는 창작(실제 QMSR 최종규칙은 89 FR 7496, 2024).
 
 **Source Excerpts**
 
@@ -1088,21 +1088,21 @@ Please provide specific citations, alternative interpretations, and any addition
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> Rule 10→Class IIb 도출은 소스와 일치. 'Module A/C/G'를 MDR 적합성평가 체계로 오설명(실제 Annex IX/X/XI 체계, Module은 별도 NLF 프레임워크 — #123 유사) + 'MDCG 2022-5' 검증 불가.
 
 **Source Excerpts**
 
@@ -1257,22 +1257,22 @@ All controls must be documented in the **Risk Management File** and referenced i
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 이전 오류(Rule 9 오적용)를 정정한 소스를 정확히 재현(Rule 10→IIb, Rule 17→IIa). Module 표기 문제만 경미하게 반복(전체 판단에는 영향 없음).
 
 **Source Excerpts**
 
@@ -1466,22 +1466,22 @@ All controls must be documented in the **Risk Management File** and referenced i
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 최우수 사례: 소스에 특정 클래스를 확정할 충분한 데이터가 없음을 명시적으로 인정 — 교과서적 에스컬레이션, fabrication 없음.
 
 **Source Excerpts**
 
@@ -1712,21 +1712,21 @@ honcho_conclude{
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> DoC 템플릿이 완전 공란임을 정확히 파악. 소스에 없는 예시 기기유형을 '가정'으로 명확히 표시하고 창작(투명하나 불필요) + Module 표기 문제 반복.
 
 **Source Excerpts**
 
@@ -1924,22 +1924,22 @@ honcho_conclude{
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 이전 문서의 오류(Class III에만 10년 보존 적용)를 소스가 정정한 대로(전 클래스 10년, 이식형 15년) 정확히 일반화 — fabrication 없음.
 
 **Source Excerpts**
 
@@ -2152,20 +2152,20 @@ honcho_conclude{
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 규정번호·날짜는 정확히 소스 근거. 총리령 제2088호가 'OECD 임상평가보고서(CER) 상호인정을 도입'한다는 존재하지 않는 메커니즘 창작(#124) — '재사용 가능한 RA 판단' 필드에 기록돼 향후 확산 위험.
 
 **Source Excerpts**
 
@@ -2376,20 +2376,20 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 'X-ray는 대부분 Class III'→'우리 기기도 Class III' 결론 — 웹 검증 결과 국내 X선 촬영장치는 실제 Class II(결론 자체가 틀림). 이 케이스 소스에도 없는 'OECD-CER' 반복(#124) + 검증불가 'IMDRF Rule 5'.
 
 **Source Excerpts**
 
@@ -2576,21 +2576,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> '(가정)' 명시 등 우수한 관행, NIDS 인증일자 등 소스 사실은 정확. 이 케이스 소스에도 없는 '2026 OECD 상호인정' 재등장(#124) + MDR/IVDR 혼용.
 
 **Source Excerpts**
 
@@ -2765,21 +2765,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 법령 인용(법률/시행령/시행규칙)과 가이드라인 5건은 소스와 정확 일치, 탄탄. 이 케이스 소스에도 없는 'OECD 임상근거·CER 수용' 재등장(#124).
 
 **Source Excerpts**
 
@@ -2946,20 +2946,20 @@ All controls must be documented in a **Cyber‑Security Risk Management File** (
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 이번 배치 최악: 소스가 명시적으로 'RA-01~35 정확한 번호는 미제공, 공식 가이드라인 PDF 참조'라고 disclaimer를 다는데도 무시하고 RA-01~35 전 구간을 확정적으로 창작해 모든 표에 권위 있는 것처럼 사용.
 
 **Source Excerpts**
 
