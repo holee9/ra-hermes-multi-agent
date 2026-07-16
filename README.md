@@ -11,9 +11,14 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ## 현재 상태
 
-**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-16
+**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-17
 
 **최신 완료 작업:**
+- ⚠️ **#123 라운드2 수정 재검증 — 실패 확인, 오히려 악화 (OPEN 유지)** (2026-07-17, commit `fce66f4`): 신규 배치 45케이스(iteration 01-03, **캡처 실패 0건** — iter01은 GX10 부하로 13/15 타임아웃 발생해 타임아웃 90s→180s 상향 후 재실행, 15/15 전건 성공)로 ra_eu 15건 전수 팩트체크.
+  - **결과**: pattern 5(Module/Annex 혼합 라벨) **2/12 → 6/15로 악화**, pattern 6(Rule 9/10/17) 4/15, 라운드1에서 해결됐던 pattern 1-4도 2/15 퇴행. 두 패턴 중 하나 이상 범한 케이스 33%(4/12) → **60%(9/15)**.
+  - **근본 원인 — 금지 문구(prohibition)가 역효과**: it03-ra_eu-005가 라운드2 금지 문구("Do not mix module letters with Annex numbers")를 응답에 그대로 복창해놓고 같은 답변에서 스스로 위반(`Annex IX – QMS assessment (module B)`), 나아가 **"MDR references the same letters but ties them to the specific annexes"라는 새로운 거짓 주장까지 생성**(MDR은 module letter 체계를 전혀 사용하지 않음). "NEVER write X" 방식은 규칙을 행동으로 내면화시키지 못하고 표층 복창만 유발함이 실증됨.
+  - **대조 검증**: #130 대응 행(금지가 아닌 **정답 제시** 방식 — labeling→Annex I Ch.III §23, risk mgmt→Annex I+ISO 14971)은 **15/15 전건 정확** → 라운드3은 positive framing으로 전환 권고.
+  - **신규 오류형 → [#131](https://github.com/holee9/ra-hermes-multi-agent/issues/131) 등록**: Rule↔Class 불일치(`Class IIb under Rule 17` — Rule 17은 항상 IIa), Class↔Annex route 매핑 오류(DoC→`Annex IX §3`, Class IIa→`Annex X`, `Annex VIII`를 design-dossier route로 오용).
 - ⚠️ **#128 ra_kr 감사(audit) 오독 — 프롬프트 수정 시도, 재현 테스트 2건 모두 미해결 확인 (OPEN 유지)** (2026-07-16): `ra-kr` SOUL.md에 Fixed Rule 5(감사/오류보고서는 결함 서술이지 표준이 아님) 신설·강화 2차 시도했으나, 원래 트리거 케이스(it02-ra_kr-005) 재현 테스트에서 여전히 감사 대상 법률번호(20722)를 기준값으로 놓고 판단하는 동일 오류 재현. 원인: 이 케이스는 서로 다른 두 발췌 청크에 흩어진 정보(추상적 오류 서술 + 구체 번호)를 연결하는 교차청크 추론이 필요해 프롬프트 지시만으로는 안정적으로 해결되지 않는 것으로 판단됨 — #118 Part B 방식의 결정론적 코드 레벨 후처리가 대안으로 제안됨(사람 판단 필요, 미착수).
 - ✅ **#123/#124/#125 전체 배치 재-eval 검증 완료 — #124/#125 CLOSE, #123 2차 수정 후 OPEN 유지** (2026-07-16, commit `995f6db`): 신규 45케이스(`kb-eval-checksheet.py --capture-responses`, iteration 01-03) 생성 후 딥리서치 팩트체크(3개 병렬 에이전트, agent-type별).
   - **#124 CLOSE**: 핵심 패턴(OECD/CER 고시번호 창작) 재발 0/15건 확인.
