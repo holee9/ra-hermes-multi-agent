@@ -9,6 +9,7 @@ Covers #83 verification items that are deterministic (no live Hermes/GX10 needed
   - peer-id invariant: a hyphen peer id (ra-us) can never leak into responses
 """
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -299,6 +300,35 @@ def test_shown_source_text_includes_all_wiki_sub_sources():
             "ra_us", shown,
         )
         assert yellow is None, f"{identifier} should verify against wiki_results-derived shown text"
+
+
+# ── #118 follow-up: per-identifier forensic status + request logging ──────
+def test_cited_identifier_status_reports_per_token_verification():
+    shown = "some/path.md K111111 unrelated text"
+    adv = {"recommended_comment": "predicate K111111 확인, 추가로 K222222도 검토", "evidence": [], "summary": ""}
+    status = m._cited_identifier_status(adv, shown)
+    assert status == {"K111111": True, "K222222": False}
+
+
+def test_cited_identifier_status_empty_when_no_identifiers_cited():
+    adv = {"recommended_comment": "no identifiers mentioned here", "evidence": [], "summary": ""}
+    assert m._cited_identifier_status(adv, "any shown text") == {}
+
+
+def test_log_adv_request_includes_cited_identifier_status_when_present(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(m._adv_request_logger, "info", lambda msg: captured.setdefault("line", msg))
+    m._log_adv_request("adv-1", "query", None, {"actor": "ra_us"}, {"K111111": True, "K222222": False})
+    payload = json.loads(captured["line"])
+    assert payload["cited_identifier_status"] == {"K111111": True, "K222222": False}
+
+
+def test_log_adv_request_omits_cited_identifier_status_when_absent(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(m._adv_request_logger, "info", lambda msg: captured.setdefault("line", msg))
+    m._log_adv_request("adv-2", "query", None, {"actor": "ra_us"})
+    payload = json.loads(captured["line"])
+    assert "cited_identifier_status" not in payload
 
 
 # ── peer-id invariant (#83 item 6: no wrong/hyphen peer id) ───────────────

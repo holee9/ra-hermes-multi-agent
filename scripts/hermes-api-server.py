@@ -91,13 +91,27 @@ except OSError:
     pass  # log dir not writable; skip silently
 
 
-def _log_adv_request(request_ref: str, query: str, region_hint: str | None, adv: dict) -> None:
+def _log_adv_request(
+    request_ref: str,
+    query: str,
+    region_hint: str | None,
+    adv: dict,
+    cited_identifier_status: dict[str, bool] | None = None,
+) -> None:
     """Log advisory request input + outcome so unclear_region is immediately diagnosable.
 
     Joinable with Honcho via request_ref. Never raises — logging must not break advisory.
+
+    #118 follow-up: cited_identifier_status records, per identifier token cited
+    in this response, whether it verified against the source shown to the LLM
+    at THIS call (not the full shown_source_text — too large to log). Without
+    this, a disputed citation (fabricated vs. genuinely-shown-but-unlucky RAG
+    hit) cannot be resolved after the fact, since RAG/Layer4 results vary call
+    to call. Omitted (None) when no identifier tokens were cited — kept out of
+    the log line entirely rather than logging an empty dict, to avoid bloat.
     """
     try:
-        _adv_request_logger.info(json.dumps({
+        record = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "request_ref": request_ref,
             "query_len": len(query),
@@ -108,7 +122,10 @@ def _log_adv_request(request_ref: str, query: str, region_hint: str | None, adv:
             "decision": adv.get("decision"),
             "yellow_reason": adv.get("yellow_reason"),
             "confidence": adv.get("confidence"),
-        }, ensure_ascii=False))
+        }
+        if cited_identifier_status:
+            record["cited_identifier_status"] = cited_identifier_status
+        _adv_request_logger.info(json.dumps(record, ensure_ascii=False))
     except Exception:
         pass
 
@@ -491,8 +508,13 @@ def parse_advisory(text: str) -> dict | None:
 # to still fabricate identifiers ~1 in 2 calls when RAG results were weak — this
 # closes the gap with a code-level check instead of relying on model behavior.
 _IDENTIFIER_PATTERNS: tuple[re.Pattern, ...] = (
-    re.compile(r"\bK\d{6}\b"),  # FDA 510(k)
-    re.compile(r"\bP\d{6}\b"),  # FDA PMA
+    # Boundary is "no adjacent Latin letter/digit", NOT \b — Python's \b treats
+    # Hangul as \w (Unicode word chars), so \bK\d{6}\b fails to match natural
+    # Korean phrasing like "K222222도 확인하세요" (particle glued to the token
+    # with no space). Found via test-writing for #118 follow-up; a silent
+    # regex miss would have let an identifier bypass verification entirely.
+    re.compile(r"(?<![A-Za-z0-9])K\d{6}(?![A-Za-z0-9])"),  # FDA 510(k)
+    re.compile(r"(?<![A-Za-z0-9])P\d{6}(?![A-Za-z0-9])"),  # FDA PMA
 )
 
 
@@ -517,9 +539,15 @@ def _shown_source_text(rag_results: list[dict], wiki_results: dict | None) -> st
     return " ".join(parts)
 
 
-def _unverified_identifiers(adv: dict, shown_source_text: str) -> list[str]:
-    """Return identifier-like tokens cited in the advisory output that do not
-    appear (space/hyphen-insensitive) anywhere in shown_source_text."""
+def _cited_identifier_status(adv: dict, shown_source_text: str) -> dict[str, bool]:
+    """#118 follow-up: for every identifier-pattern token cited in the advisory
+    output (evidence/recommended_comment/summary), return {token: verified}
+    where verified means the token appears (space/hyphen-insensitive) in
+    shown_source_text. This is the single source of truth for both the
+    validate_advisory gate (_unverified_identifiers) and the compact forensic
+    log record (_log_adv_request) — the full shown_source_text is NOT logged
+    (size), but this per-token status dict is small and answers the exact
+    dispute question ("was X actually shown at that call?") after the fact."""
     haystack = re.sub(r"[\s-]", "", shown_source_text)
     output_text = " ".join([
         str(adv.get("summary", "") or ""),
@@ -529,7 +557,13 @@ def _unverified_identifiers(adv: dict, shown_source_text: str) -> list[str]:
     found: set[str] = set()
     for pattern in _IDENTIFIER_PATTERNS:
         found.update(pattern.findall(output_text))
-    return [tok for tok in found if re.sub(r"[\s-]", "", tok) not in haystack]
+    return {tok: (re.sub(r"[\s-]", "", tok) in haystack) for tok in sorted(found)}
+
+
+def _unverified_identifiers(adv: dict, shown_source_text: str) -> list[str]:
+    """Return identifier-like tokens cited in the advisory output that do not
+    appear (space/hyphen-insensitive) anywhere in shown_source_text."""
+    return [tok for tok, ok in _cited_identifier_status(adv, shown_source_text).items() if not ok]
 
 
 def validate_advisory(
@@ -1072,8 +1106,13 @@ def ra_advisory():
     response_text, error_detail = _invoke_llm_direct(profile, context, timeout=ADVISORY_TIMEOUT)
     adv = parse_advisory(response_text) if response_text else None
 
+    cited_identifier_status: dict[str, bool] | None = None
     if adv:
         shown_source_text = _shown_source_text(rag_results, wiki_results)
+        # Captured from the raw LLM output BEFORE validate_advisory can replace
+        # adv with a yellow fallback — the citation content must survive into
+        # the log even when the response gets downgraded.
+        cited_identifier_status = _cited_identifier_status(adv, shown_source_text) or None
         adv, vyellow = validate_advisory(adv, actor, shown_source_text)
         if vyellow:
             adv = _yellow_advisory(vyellow, actor, error=str(vyellow))
@@ -1084,7 +1123,7 @@ def ra_advisory():
 
     adv["request_ref"] = request_ref
     _honcho_record("ra_advisory", actor, adv.get("summary", ""), _adv_meta(adv, request_ref))
-    _log_adv_request(request_ref, query, region_hint, adv)
+    _log_adv_request(request_ref, query, region_hint, adv, cited_identifier_status)
     _log_kb_gap(adv, query, request_ref)
     return jsonify(adv)
 
