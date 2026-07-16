@@ -484,11 +484,63 @@ def parse_advisory(text: str) -> dict | None:
     return None
 
 
-def validate_advisory(adv: dict, routed_actor: str) -> tuple[dict, str | None]:
+# @MX:NOTE: [AUTO] #118 (part B) — deterministic cross-check that a specific
+# identifier cited in the advisory output was actually present in the source
+# material shown to the LLM (RAG excerpts, llm-wiki excerpts, openFDA/law.go.kr
+# Layer 4 data), not invented. Prompt guards alone (part A) were observed live
+# to still fabricate identifiers ~1 in 2 calls when RAG results were weak — this
+# closes the gap with a code-level check instead of relying on model behavior.
+_IDENTIFIER_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"\bK\d{6}\b"),  # FDA 510(k)
+    re.compile(r"\bP\d{6}\b"),  # FDA PMA
+)
+
+
+def _shown_source_text(rag_results: list[dict], wiki_results: dict | None) -> str:
+    """Concatenate every piece of source text/identifier actually rendered into
+    the advisory prompt (build_advisory_context / _add_wiki_context), so a cited
+    identifier can be checked against what the model genuinely saw."""
+    parts: list[str] = []
+    for r in rag_results[:8]:
+        parts.append(str(r.get("source_file", "")))
+        parts.append(str(r.get("text", ""))[:300])
+    if wiki_results:
+        for item in wiki_results.get("llm_wiki", []):
+            parts.append(str(item.get("path", "")))
+            parts.append(str(item.get("excerpt", ""))[:500])
+        for item in wiki_results.get("openfda", []):
+            parts.append(str(item.get("k_number", "")))
+            parts.append(str(item.get("product_code", "")))
+            parts.append(str(item.get("device_name", "")))
+        for item in wiki_results.get("law_kr", []):
+            parts.append(str(item.get("summary", "")))
+    return " ".join(parts)
+
+
+def _unverified_identifiers(adv: dict, shown_source_text: str) -> list[str]:
+    """Return identifier-like tokens cited in the advisory output that do not
+    appear (space/hyphen-insensitive) anywhere in shown_source_text."""
+    haystack = re.sub(r"[\s-]", "", shown_source_text)
+    output_text = " ".join([
+        str(adv.get("summary", "") or ""),
+        str(adv.get("recommended_comment", "") or ""),
+        " ".join(str(e) for e in (adv.get("evidence") or [])),
+    ])
+    found: set[str] = set()
+    for pattern in _IDENTIFIER_PATTERNS:
+        found.update(pattern.findall(output_text))
+    return [tok for tok in found if re.sub(r"[\s-]", "", tok) not in haystack]
+
+
+def validate_advisory(
+    adv: dict, routed_actor: str, shown_source_text: str = ""
+) -> tuple[dict, str | None]:
     """Enforce advisory contract. Returns (normalized_adv, yellow_reason_or_None).
 
-    Yellow when: invalid confidence, low confidence (< LOW_CONF = uncertain), or
-    no evidence (accuracy-first: every executable advisory must cite a source).
+    Yellow when: invalid confidence, low confidence (< LOW_CONF = uncertain),
+    no evidence (accuracy-first: every executable advisory must cite a source),
+    or (#118) an identifier cited in the output cannot be verified against the
+    source material actually shown to the LLM.
     actor is ALWAYS the routed underscore actor (never trust LLM spelling) so a
     wrong/hyphen peer id can never leak.
     """
@@ -502,6 +554,8 @@ def validate_advisory(adv: dict, routed_actor: str) -> tuple[dict, str | None]:
         return adv, "low_confidence"
     if not (adv.get("evidence") or []):
         return adv, "no_evidence"
+    if shown_source_text and _unverified_identifiers(adv, shown_source_text):
+        return adv, "unverified_identifier"
     return adv, None
 
 
@@ -561,6 +615,11 @@ def build_advisory_context(
         # to recommended_comment/summary, not just evidence (evidence is already
         # source-path-only, per the confidence>=0.5 rule above).
         "- 510(k)/predicate/등록번호 등 구체적 식별자·문서번호는 evidence(제공된 source)에 실제로 명시된 경우에만 인용한다. source에 없으면 임의의 번호를 만들어내지 말고 recommended_comment/summary에 '문서 확인 필요'라고 명시한다. '예: K123456'처럼 예시용 가상 번호도 제시하지 말고, 식별자 값 자체를 생략한다.",
+        # #118 (part A): evidence array entries were observed appending invented
+        # commentary/identifiers after a plausible-looking source path — guard
+        # the array format explicitly, in addition to the identifier-content
+        # guard above. Part B (validate_advisory) catches what this misses.
+        "- evidence 배열의 각 항목은 위 '관련 문서' 목록에 제시된 경로([N] 뒤의 항목)를 그대로만 사용한다. 괄호 설명, 번호, 추가 식별자 등 부가 텍스트를 덧붙이지 않는다.",
     ]
     return "\n".join(parts)
 
@@ -1014,7 +1073,8 @@ def ra_advisory():
     adv = parse_advisory(response_text) if response_text else None
 
     if adv:
-        adv, vyellow = validate_advisory(adv, actor)
+        shown_source_text = _shown_source_text(rag_results, wiki_results)
+        adv, vyellow = validate_advisory(adv, actor, shown_source_text)
         if vyellow:
             adv = _yellow_advisory(vyellow, actor, error=str(vyellow))
         else:
