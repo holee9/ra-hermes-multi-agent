@@ -237,6 +237,70 @@ def test_validate_confidence_out_of_range_is_yellow():
         assert yellow == "invalid_confidence"
 
 
+# ── #118 part B: unverified-identifier cross-check ────────────────────────
+def test_validate_cites_identifier_present_in_shown_text_ok():
+    shown = "github:holee9/ra-project/foo.md K213497 predicate 510(k) clearance"
+    adv, yellow = m.validate_advisory(
+        {"confidence": 0.8, "evidence": ["github:holee9/ra-project/foo.md"],
+         "recommended_comment": "predicate K213497 확인됨"},
+        "ra_us", shown,
+    )
+    assert yellow is None
+
+
+def test_validate_fabricated_identifier_not_in_shown_text_is_yellow():
+    shown = "github:holee9/ra-project/foo.md some unrelated excerpt text"
+    _, yellow = m.validate_advisory(
+        {"confidence": 0.8, "evidence": ["github:holee9/ra-project (source K123456)"],
+         "recommended_comment": ""},
+        "ra_us", shown,
+    )
+    assert yellow == "unverified_identifier"
+
+
+def test_validate_identifier_check_skipped_when_shown_text_empty():
+    # Backward compatibility: omitting shown_source_text (or passing "") must
+    # not trigger the new check — existing callers/tests are unaffected.
+    adv, yellow = m.validate_advisory(
+        {"confidence": 0.8, "evidence": ["a.md#s"], "recommended_comment": "K123456 인용"},
+        "ra_us",
+    )
+    assert yellow is None
+
+
+def test_validate_identifier_check_hyphen_space_insensitive_match():
+    # A real identifier embedded in a source path/excerpt with different
+    # spacing/hyphenation than the model's citation must still verify.
+    shown = "path/★ FDA 510(k) - K252912/참고자료"
+    adv, yellow = m.validate_advisory(
+        {"confidence": 0.8, "evidence": ["a.md#s"], "recommended_comment": "predicate K252912"},
+        "ra_us", shown,
+    )
+    assert yellow is None
+
+
+def test_shown_source_text_includes_all_wiki_sub_sources():
+    # Boundary check: _shown_source_text must aggregate every wiki_results
+    # sub-key that _add_wiki_context renders into the prompt (llm_wiki,
+    # openfda, law_kr) — a real citation from any of these must verify.
+    rag_results = [{"source_file": "github:holee9/ra-project/a.md", "text": "predicate context"}]
+    wiki_results = {
+        "llm_wiki": [{"path": "wiki/concepts/x.md", "excerpt": "concept excerpt K999999"}],
+        "openfda": [{"k_number": "K888888", "product_code": "ABC", "device_name": "Widget"}],
+        "law_kr": [{"summary": "국내 규정 요약"}],
+    }
+    shown = m._shown_source_text(rag_results, wiki_results)
+    for expected in ("predicate context", "K999999", "K888888", "Widget", "국내 규정 요약"):
+        assert expected in shown
+
+    for identifier in ("K999999", "K888888"):
+        _, yellow = m.validate_advisory(
+            {"confidence": 0.8, "evidence": ["a.md"], "recommended_comment": f"predicate {identifier}"},
+            "ra_us", shown,
+        )
+        assert yellow is None, f"{identifier} should verify against wiki_results-derived shown text"
+
+
 # ── peer-id invariant (#83 item 6: no wrong/hyphen peer id) ───────────────
 def test_yellow_advisory_actor_is_safe():
     ya = m._yellow_advisory("multi_region", None)
