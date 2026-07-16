@@ -158,21 +158,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> QMSR §820.10(c)→ISO 13485 §7.3 준용 등 핵심 판단은 정확. 존재하지 않는 '심박모니터+FDA 코드 LRC' 시나리오 창작 + 'IEC 14971'(오기, 정답 ISO) + 사이버보안 가이던스 연도/제목 오기.
 
 **Source Excerpts**
 
@@ -337,7 +337,7 @@ Please respond with specific gaps, alternative evidence suggestions, or revised 
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -345,12 +345,12 @@ Please respond with specific gaps, alternative evidence suggestions, or revised 
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스 SOP명 'SOP-PMA-001'(Process Monitoring & Analysis, 일반 QMS 절차)을 FDA Premarket Approval로 오독 — Class III/PMA 전체 서사를 창작. 21 CFR 812(IDE)를 무관한 근거로 오인용.
 
 **Source Excerpts**
 
@@ -518,21 +518,21 @@ Please challenge any weak points and suggest supplemental evidence or alternativ
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 핵심 발견(§820.70(i)/§820.180 폐지, ISO 13485 §4.1.6 준용)은 소스와 정확 일치, 가장 강력. '성장형 기기 액세서리(21 CFR 862.1045)' 창작 — 실행 라벨 'Daily Growth' 오독 추정(#125).
 
 **Source Excerpts**
 
@@ -684,21 +684,21 @@ When a QMSR revision introduces new subsection mandates (e.g., §820.35(b‑d)),
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> §820.35 4개 하위조항 중 3개 정정은 정확. (d)항을 '기밀유지'로 재매핑해야 하는데 여전히 'Part 11 적용대상'으로 프레이밍 — 정정 대상 오류 일부 재현.
 
 **Source Excerpts**
 
@@ -862,7 +862,7 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -870,12 +870,12 @@ honcho_conclude:
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스가 '문서 기재값(오류) vs Tier1 정답' 대조표를 명시적으로 제공하는데, 정정 컬럼을 무시하고 원래의 잘못된 매핑을 그대로 확정 사실처럼 재주장 — 평가 목표와 정반대.
 
 **Source Excerpts**
 
@@ -928,20 +928,20 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1117,20 +1117,20 @@ When drafting a PMS/complaint‑handling SOP that must satisfy both EU MDR (Art�
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> CP 7382.850/UDI 폼 등 소스 활용은 양호. Annex XVI를 EUDAMED 데이터모듈로 오인용(실제 '의료목적 없는 제품군'), Annex XV를 PMCF로, Art.10(5)를 분류근거로 오인용 — 체계적 MDR 조항 오배치(#123).
 
 **Source Excerpts**
 
@@ -1319,20 +1319,20 @@ Your feedback will be incorporated before the final submission package is assemb
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> Rule 10/11 분류는 소스와 정확. Art.78-80을 PMCF로, Annex IV를 CER 구조로(실제 EU 적합성선언서), MDCG 2020-5를 사용성공학으로 오설명 — MDR 조항 오배치 패턴(#123).
 
 **Source Excerpts**
 
@@ -1513,20 +1513,20 @@ Your constructive feedback will be incorporated before final submission to the N
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스 구조(§5.11/§5.12) 활용 양호, 기기정보 누락을 블로킹 갭으로 적절히 헤징. PMS/PMCF Plan/Report를 각각 잘못된 Annex/Art에 배치 — 오배치 패턴 반복(#123).
 
 **Source Excerpts**
 
@@ -1716,20 +1716,20 @@ Your constructive feedback will be incorporated before final submission to the N
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 분류(Art.51+Annex VIII)는 소스와 정확 일치. 동일한 Annex VIII를 PMS Plan·PMCF Plan 근거로도 재사용 — 내부 모순(#123).
 
 **Source Excerpts**
 
@@ -1909,20 +1909,20 @@ Your constructive feedback will be incorporated before final submission to the N
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> DMPA 적용성/G2·G3·G4 갭 라벨은 적절히 재사용. 시행령 제16조를 고위험기기 허가절차로 오인용(실제 우수관리체계 인증 — 같은 배치 ra_kr-005 소스와도 모순).
 
 **Source Excerpts**
 
@@ -2104,21 +2104,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 법률/대통령령/총리령 인용과 가이드라인 4건은 소스와 정확 일치. OECD CER 언급은 실제 존재하는 정책(검증됨). KGMP 인증서 만료일(2024-12)은 소스 근거 없이 창작.
 
 **Source Excerpts**
 
@@ -2222,22 +2222,22 @@ Kindly challenge any points you find questionable and propose additional evidenc
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> FDA 제품코드(LLZ/QIH/QDQ)와 PCCP 가이던스 날짜는 소스 직인용, Class 2→3 상향 가능성 적절히 헤징 — fabrication 없음.
 
 **Source Excerpts**
 
@@ -2427,21 +2427,21 @@ Your feedback will be incorporated before finalizing the submission strategy.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> O/△/X 매트릭스 기반 추론은 소스와 잘 일치. 한국 의료기기법에 없는 미국식 세부등급(Class I-a 등) + 'DMPA Annex B'(한국법은 조/항/호 체계) 창작.
 
 **Source Excerpts**
 
@@ -2609,22 +2609,22 @@ honcho_conclude:
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스가 지적하는 정확한 감사 결과(제16조는 SBOM 근거 아님, 실제는 제14조+제13조2항)를 정확히 재현·분리 — 이번 배치 최우수.
 
 **Source Excerpts**
 

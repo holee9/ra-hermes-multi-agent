@@ -168,21 +168,21 @@ honcho_conclude{
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 핵심 판단(510(k)/De Novo/PMA 근거)은 정확하나 De Novo eSTAR 표기가 소스와 자기모순(소스는 2025-10-01부 의무화 명시).
 
 **Source Excerpts**
 
@@ -327,20 +327,20 @@ honcho_conclude
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> QMSR 조항(§820.30-820.40) 세부내용을 창작(MRE 분류체계 등) — 실제 QMSR은 해당 조항 대부분을 폐지하고 ISO 13485 준용으로 대체.
 
 **Source Excerpts**
 
@@ -518,21 +518,21 @@ honcho_conclude
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 분류(892.2050)/IEC 62304 표는 소스와 정확, 플레이스홀더 표기 우수. 812.20(IDE) 오적용 + 검증불가 'FDA 정책메모(2023-02-01)' 인용.
 
 **Source Excerpts**
 
@@ -709,21 +709,21 @@ honcho_conclude
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스는 EU MDR(GSPR/PRRC) 내용인데 US-only(21 CFR/510(k))로 재구성 — 실질적 매칭 실패. 820.30-40 오류 반복 + ISO 14971 판본 왜곡.
 
 **Source Excerpts**
 
@@ -915,21 +915,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> C.3/C.4/E.1/E.2 필수항목 매핑은 소스와 일치. EMC/60601-1-2 항목 오배치, 가이던스 날짜 오기, IEC 60601-2-54 용도 오설명(실제 X-ray 방사선촬영용).
 
 **Source Excerpts**
 
@@ -982,20 +982,20 @@ honcho_conclude:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1154,21 +1154,21 @@ Growth version: daily_growth_v1 – Run date 2026‑07‑28**
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> PSUR/PMCF 템플릿 골격 인식 정확. Annex V/VI를 적합성평가 경로로 오인용(실제 경로는 IX/X/XI), MDCG 2020-16을 분류 가이드로 오설명(실제 IVDR 분류 가이드).
 
 **Source Excerpts**
 
@@ -1219,20 +1219,20 @@ Growth version: daily_growth_v1 – Run date 2026‑07‑28**
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
 - [ ] Source cited
-- [ ] No hallucination
+- [x] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 응답 캡처 실패(timeout) — 콘텐츠 없음, 재실행 필요(내용 문제 아님).
 
 **Source Excerpts**
 
@@ -1309,21 +1309,21 @@ Growth version: daily_growth_v1 – Run date 2026‑07‑28**
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 3개 제품 MDR 분류는 소스와 정확 일치. MDCG 문서 주제 오설명 반복 + Annex XV를 CER로 오인용(실제 CER은 Annex XIV Part A).
 
 **Source Excerpts**
 
@@ -1520,21 +1520,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> TD 구축 워크플로우 충실. Annex 적합성평가 오인용 반복 + Rule 9/10 설명이 실제와 반대로 뒤바뀜(소스에 근거 없음).
 
 **Source Excerpts**
 
@@ -1695,21 +1695,21 @@ Your feedback will be logged as `honcho_conclude` with peer=`ai`. Thank you!
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> KGMP↔ISO↔QMSR 매핑(§820.35 등)은 소스와 정확 일치. 'MFDS 고시 제2017-68호'는 검증 불가.
 
 **Source Excerpts**
 
@@ -1894,21 +1894,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 고시 제2025-22호 세부내용(64개 품목군, IEC 62304 준용 등)은 소스와 정확. 실제 있는 규정변경에 잘못된 고시번호 인용(정답은 제2026-6호).
 
 **Source Excerpts**
 
@@ -2070,21 +2070,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 69% SOP 커버리지/누락문서 8건은 소스 직인용, 근거 가장 탄탄. 미검증 고시번호 + KGMP Annex B-1/C-2 등 소스에 없는 세부구조 창작.
 
 **Source Excerpts**
 
@@ -2240,20 +2240,20 @@ Kindly reply with a brief commentary (max 300 words) and indicate any required
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 소스의 자체 감사결과(보존기간 미확인)는 정확 반영, 에스컬레이션 우수. 시행규칙 제38조의2 오적용(실제 무관 과징금 조항) + 가짜 게시글 URL 3건(#118 패턴이 한국 법령/URL로 확장).
 
 **Source Excerpts**
 
@@ -2413,21 +2413,21 @@ Kindly reply with a brief commentary (max 300 words) and indicate any required
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
+> 얇은 소스 대비 적절히 스코프 제한, 분류를 '확인 필요'로 정직하게 유보. 'MFDS 고시 제2026-02호'는 번호·제목 모두 창작(정답은 제2026-6호).
 
 **Source Excerpts**
 
