@@ -11,9 +11,14 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ## 현재 상태
 
-**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-17
+**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-18
 
 **최신 완료 작업:**
+- ✅ **#123 라운드3(positive framing) — 6개 명시 패턴 전건 해소** (2026-07-18, commit `7e65c70`): 신규 배치 45케이스(**캡처 실패 0건**)로 ra_eu 15건 전수 팩트체크.
+  - **결과**: pattern 5(Module/Annex 혼합) **6/15 → 0/15 완전 해소** — 15건 전체에서 module letter 0회 등장, 라운드2의 날조("MDR도 module letter를 쓴다") 재발 없음. pattern 1-4 퇴행도 **2/15 → 0/15 복구**. pattern 5 또는 6 보유 케이스: 라운드1 33%(4/12) → 라운드2 60%(9/15) → **라운드3 13%(2/15)**.
+  - **🔑 검증된 교훈 — 금지 문구 vs 정답 제시**: 라운드2(금지 강화) 악화 → 라운드3(금지 전면 삭제 + 정답만 서술) 해소. `"Not this"` 컬럼을 통째로 제거하고, Module을 *금지*하는 대신 **"MDR은 Annex 번호로 경로를 부르며 이것이 전부다. Module 표기는 Decision 768/2008/EC 소관이고 MDR은 그 체계를 채택하지 않는다"** 는 **사실 서술로 오답을 존재하지 않게** 만든 것이 결정적. Rule 문언·Class 값은 EUR-Lex 원문 대조 검증.
+  - **잔존 2건 판정**: rule *선택* 오류(원래 pattern 6 정의)는 0/15이고, 잔존 2건은 Rule→*Class 값* 오류로 [#131](https://github.com/holee9/ra-hermes-multi-agent/issues/131) 스코프 — 이 재분류는 자기 수정을 유리하게 볼 여지가 있어 이슈 코멘트에 근거를 명시하고 사람 판단을 요청함(현재 OPEN 유지).
+  - **날조 무게중심 이동**: 라벨 오배치가 정리되자 conformity route 세부·IEC 표준번호·Article 하위구조로 날조가 옮겨감(근본 성향 미해결) → **[#132](https://github.com/holee9/ra-hermes-multi-agent/issues/132) 신규 등록**(IEC 60601-2-33 MRI 표준을 X-ray에 적용, Art.86(1) 하위구조 발명 등), [#131](https://github.com/holee9/ra-hermes-multi-agent/issues/131) 재확인(Class IIa에 Annex X 제시가 4/15로 단일 최다 빈발).
 - ⚠️ **#123 라운드2 수정 재검증 — 실패 확인, 오히려 악화 (OPEN 유지)** (2026-07-17, commit `fce66f4`): 신규 배치 45케이스(iteration 01-03, **캡처 실패 0건** — iter01은 GX10 부하로 13/15 타임아웃 발생해 타임아웃 90s→180s 상향 후 재실행, 15/15 전건 성공)로 ra_eu 15건 전수 팩트체크.
   - **결과**: pattern 5(Module/Annex 혼합 라벨) **2/12 → 6/15로 악화**, pattern 6(Rule 9/10/17) 4/15, 라운드1에서 해결됐던 pattern 1-4도 2/15 퇴행. 두 패턴 중 하나 이상 범한 케이스 33%(4/12) → **60%(9/15)**.
   - **근본 원인 — 금지 문구(prohibition)가 역효과**: it03-ra_eu-005가 라운드2 금지 문구("Do not mix module letters with Annex numbers")를 응답에 그대로 복창해놓고 같은 답변에서 스스로 위반(`Annex IX – QMS assessment (module B)`), 나아가 **"MDR references the same letters but ties them to the specific annexes"라는 새로운 거짓 주장까지 생성**(MDR은 module letter 체계를 전혀 사용하지 않음). "NEVER write X" 방식은 규칙을 행동으로 내면화시키지 못하고 표층 복창만 유발함이 실증됨.
