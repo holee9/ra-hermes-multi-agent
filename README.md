@@ -14,6 +14,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 **✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-19
 
 **최신 완료 작업:**
+- 🩹 **#126 ra_us CFR Part 862/892 오분류 + §830.7·PCC 혼동 — positive framing 수정 (OPEN 유지, 전체 재-eval 대기)** (2026-07-18): 전 사실 eCFR/Cornell LII 검증 후 `ra-us` SOUL.md에 "FDA Citation Reference" 섹션 신설(금지 문구 0건, positive framing). CFR part map(영상=Part 892 / 임상화학=Part 862 / UDI=830 등) + Part 892 영상 섹션표(§892.2050 등) + Part 830 구조(§830.7 부존재 명시) + PCCP 정식명(Pre-Cert Pilot과 구분). 사전 점검(원 실패 2케이스): 영상 SW가 862→**892 정확 인용**, PCCP 정식명 사용·혼동 0. daily-growth/kb-eval는 SOUL.md 매 실행 로드로 다음 배치 자동 반영, 라이브는 서비스 재시작 대기.
 - ✅ **#135 허위 자기검증 + 방어 마커 오발화 — positive framing 수정 + 재-eval 검증 완료, CLOSE** (2026-07-20, commit `db2ceda`+`be112bc`): `daily-growth-runner.py` `build_case_content()` Citation rule 재작성(금지 문구 아닌 positive framing, #123 R2 교훈). 신규 배치 45케이스(캡처 실패 0건) ra_eu 15건 결정론적 측정:
   - **문제1 허위 자기검증**: baseline 1/15 → **0/15 완전 해소**("정확성은 사람 검토자가 확인, 규제 판단으로 마무리" 긍정 서술이 자기검증 문장 자리 제거).
   - **문제2 마커 오발화**: 마커 8개 **전부 케이스 레벨 식별자에 정상 발화, 확립된 참조(Rule/Annex/Art) 인접 오발화 0건**(baseline은 Rule 번호 옆 3회 스탬프). Rule 번호 79회 사실 서술. 개수(5→6케이스)가 아니라 성격이 "늑대소년→정상용도"로 전환됨 — 인용을 (1)확립된 참조=사실 서술 / (2)케이스 레벨 식별자=마커로 구분한 결과.
