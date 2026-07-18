@@ -553,7 +553,18 @@ def build_case_content(agent: Agent, case: SourceCase, run_date: date) -> str:
         # not contain — the model invents a plausible identifier rather than flagging
         # the gap. This assignment text is sent verbatim as the LLM prompt (#113
         # capture_agent_response), so the guard belongs here, not only in advisory.
-        "Citation rule: cite specific identifiers (510(k)/predicate/registration numbers, case IDs) only if they literally appear in the source excerpts below. If none appear, write 'no specific identifier found in source — verify separately' instead of inventing one. Do not provide an illustrative or placeholder identifier either (e.g., 'e.g., K123456') — omit the identifier value entirely rather than showing a made-up example.",
+        # #135: the single "verify separately" marker was over-applied even to
+        # established references the model knew (Rule/Annex/Article numbers),
+        # drowning the items that genuinely need checking. Scope the marker to
+        # case-level identifiers and state established references plainly.
+        "Citation rule: two kinds of citation are handled differently. "
+        "(1) Established regulatory references — classification rule numbers, Annex/Article numbers, standard numbers you are confident of — state plainly as facts; they carry no 'verify' caveat. "
+        "(2) Case-level specific identifiers — 510(k)/predicate/registration numbers, case IDs — belong in the answer only when they literally appear in the source excerpts below. When the source names none, write 'no specific identifier found in source — verify separately' for that item and move on; supply no value, not even an illustrative or placeholder one (e.g. 'e.g., K123456'). The 'verify separately' note is for case (2) only — attaching it to an established reference from case (1) hides the items that genuinely need checking.",
+        # #135: the model volunteered a self-attestation ("no invented
+        # identifiers have been inserted") while inventing identifiers in the
+        # same answer — a claim a reviewer cannot rely on. State positively who
+        # verifies, so the response ends on the regulatory judgment.
+        "Accuracy check: a human reviewer verifies your citations afterwards — that is their role. End on the regulatory judgment and its human-escalation triggers; a closing line vouching that your own answer is error-free or free of invented identifiers is not something a reviewer can act on.",
         "Peer review prompt: Ask one other RA peer to challenge the assumptions, source coverage, and jurisdiction-specific gaps.",
         "Source excerpts:",
     ]
