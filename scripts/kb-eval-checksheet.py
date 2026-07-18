@@ -29,6 +29,14 @@ ROOT = Path(__file__).resolve().parents[1]
 DAILY_RUNNER = ROOT / "scripts" / "daily-growth-runner.py"
 DEFAULT_OUTPUT = ROOT / "docs" / "kb-eval-checksheets"
 DEFAULT_TZ = os.environ.get("AUTO_GROWTH_OPERATION_TZ", "Asia/Seoul")
+
+# #134: surface the C1 structural citation check on every captured response so
+# reviewers get an automatic flag for impossible sub-identifiers (e.g.
+# Art.86(1)(d)). Same linter the live advisory path gates on.
+_lint_spec = importlib.util.spec_from_file_location(
+    "ra_citation_lint", str(ROOT / "scripts" / "ra_citation_lint.py"))
+_citation_lint = importlib.util.module_from_spec(_lint_spec)
+_lint_spec.loader.exec_module(_citation_lint)
 DEFAULT_GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001").rstrip("/")
 
 # @MX:NOTE: [AUTO] #113 — direct LLM completion for checksheet response capture.
@@ -365,6 +373,15 @@ def render_case(
             f"> {response.strip() or '(empty response)'}" if response else "> (empty response)",
             "",
         ])
+        # #134 C1: auto-flag structurally-impossible regulatory citations. Only
+        # deterministic errors are surfaced (semantic C2 is not shipped — high FP).
+        c1_flags = [f for f in _citation_lint.lint_citations(response or "")
+                    if f.get("severity") == _citation_lint.SEV_ERROR]
+        if c1_flags:
+            lines.append("**Citation Lint (C1 — 구조적 인용 오류 자동 감지)**")
+            lines.append("")
+            lines.extend(f"- ⚠️ {f['message']} (`{f['span']}`)" for f in c1_flags)
+            lines.append("")
     elif response_error:
         lines.extend([
             "**Agent Response** — capture failed (fail-safe: fast checks fall back to source-only inference)",

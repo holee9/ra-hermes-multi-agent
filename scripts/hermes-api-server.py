@@ -13,6 +13,7 @@ Pipeline:
 RA classification rules and output format are defined in SKILL.md, not here.
 """
 
+import importlib.util
 import json
 import logging
 import os
@@ -25,6 +26,15 @@ from datetime import date, timedelta
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# #134: code-level regulatory-citation linter (C1 structural check). Loaded by
+# absolute path so it resolves regardless of the service's working directory.
+_lint_spec = importlib.util.spec_from_file_location(
+    "ra_citation_lint",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "ra_citation_lint.py"),
+)
+_citation_lint = importlib.util.module_from_spec(_lint_spec)
+_lint_spec.loader.exec_module(_citation_lint)
 
 API_KEY = os.environ.get("API_SERVER_KEY", "")
 HERMES_BIN = os.environ.get("HERMES_BIN", "/home/abyz-lab/.local/bin/hermes")
@@ -539,6 +549,17 @@ def _shown_source_text(rag_results: list[dict], wiki_results: dict | None) -> st
     return " ".join(parts)
 
 
+def _advisory_output_text(adv: dict) -> str:
+    """The text the model actually produced (summary + recommended_comment +
+    evidence), used by both the #118 identifier check and the #134 citation
+    linter."""
+    return " ".join([
+        str(adv.get("summary", "") or ""),
+        str(adv.get("recommended_comment", "") or ""),
+        " ".join(str(e) for e in (adv.get("evidence") or [])),
+    ])
+
+
 def _cited_identifier_status(adv: dict, shown_source_text: str) -> dict[str, bool]:
     """#118 follow-up: for every identifier-pattern token cited in the advisory
     output (evidence/recommended_comment/summary), return {token: verified}
@@ -549,15 +570,22 @@ def _cited_identifier_status(adv: dict, shown_source_text: str) -> dict[str, boo
     (size), but this per-token status dict is small and answers the exact
     dispute question ("was X actually shown at that call?") after the fact."""
     haystack = re.sub(r"[\s-]", "", shown_source_text)
-    output_text = " ".join([
-        str(adv.get("summary", "") or ""),
-        str(adv.get("recommended_comment", "") or ""),
-        " ".join(str(e) for e in (adv.get("evidence") or [])),
-    ])
+    output_text = _advisory_output_text(adv)
     found: set[str] = set()
     for pattern in _IDENTIFIER_PATTERNS:
         found.update(pattern.findall(output_text))
     return {tok: (re.sub(r"[\s-]", "", tok) in haystack) for tok in sorted(found)}
+
+
+def _citation_errors(adv: dict) -> list[dict]:
+    """#134 C1: structural regulatory-citation errors in the advisory output —
+    a cited article sub-paragraph that cannot exist (e.g. Art.86(1)(d) when
+    Art.86(1) has only a/b/c). Deterministic and table-safe (see
+    ra_citation_lint). Independent of the source: the FINAL advisory must not
+    assert a nonexistent sub-identifier even when a KB source propagates it
+    (that source defect is tracked separately by #133)."""
+    flags = _citation_lint.lint_citations(_advisory_output_text(adv))
+    return [f for f in flags if f.get("severity") == _citation_lint.SEV_ERROR]
 
 
 def _unverified_identifiers(adv: dict, shown_source_text: str) -> list[str]:
@@ -590,6 +618,13 @@ def validate_advisory(
         return adv, "no_evidence"
     if shown_source_text and _unverified_identifiers(adv, shown_source_text):
         return adv, "unverified_identifier"
+    # #134 tier C1: a structurally-impossible regulatory citation (e.g.
+    # Art.86(1)(d)) downgrades to yellow_review, same as an unverified
+    # identifier. C1 is deterministic and table-safe; the semantic C2 check
+    # (subject<->citation mismatch) is a measured non-viable negative result
+    # (see ra_citation_lint) and is intentionally NOT gated here.
+    if _citation_errors(adv):
+        return adv, "citation_error"
     return adv, None
 
 

@@ -280,6 +280,41 @@ def test_validate_identifier_check_hyphen_space_insensitive_match():
     assert yellow is None
 
 
+# ── #134 C1: structural regulatory-citation gate ──────────────────────────
+
+def test_validate_nonexistent_article_subpoint_is_yellow():
+    # Art.86(1) has (a)(b)(c) only — a cited (d) cannot exist and downgrades
+    # to yellow_review (tier C1 hard gate).
+    _, yellow = m.validate_advisory(
+        {"confidence": 0.9, "evidence": ["ra-project/psur.md"],
+         "recommended_comment": "PMCF 결과는 Art.86(1)(d)에 기재합니다."},
+        "ra_eu",
+    )
+    assert yellow == "citation_error"
+
+
+def test_validate_existing_article_subpoint_ok():
+    # Art.86(1)(c) is real — must not gate.
+    _, yellow = m.validate_advisory(
+        {"confidence": 0.9, "evidence": ["ra-project/psur.md"],
+         "recommended_comment": "판매량은 Art.86(1)(c)에 기재합니다."},
+        "ra_eu",
+    )
+    assert yellow is None
+
+
+def test_validate_citation_gate_does_not_fire_on_semantic_c2():
+    # C2 (subject<->citation mismatch, e.g. SSCP->Art.66) is NOT shipped/gated —
+    # only the structural C1 tier gates. A prose SSCP/Art.66 mismatch must pass
+    # the live gate (it is left to persona + human review).
+    _, yellow = m.validate_advisory(
+        {"confidence": 0.9, "evidence": ["ra-project/sscp.md"],
+         "recommended_comment": "The SSCP is prepared per Art. 66."},
+        "ra_eu",
+    )
+    assert yellow is None
+
+
 def test_shown_source_text_includes_all_wiki_sub_sources():
     # Boundary check: _shown_source_text must aggregate every wiki_results
     # sub-key that _add_wiki_context renders into the prompt (llm_wiki,
