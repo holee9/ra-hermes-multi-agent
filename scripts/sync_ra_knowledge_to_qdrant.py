@@ -45,6 +45,7 @@ EXCLUDED_SOURCE_PATTERNS = _env_list(
         "%/wiki/entities/%",
         "%/06_심사_QA이력/%",
         "%/11_일일_리서치로그/%",
+        "%/issue-drafts/%",   # audit/issue-draft process meta, not regulatory knowledge — #128
     ),
 )
 

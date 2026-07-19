@@ -166,6 +166,10 @@ EXCLUDED_SOURCE_PATTERNS: tuple[str, ...] = _env_list(
         "%/wiki/entities/%",       # pre-existing: low-signal entity stubs
         "%/06_심사_QA이력/%",       # QA email logs (contain email/phone PII) — #112
         "%/11_일일_리서치로그/%",    # daily research logs (low-signal) — #112
+        "%/issue-drafts/%",        # audit findings / issue drafts — internal process
+                                    # meta, not regulatory knowledge. Retrieving an
+                                    # audit doc ("X is wrong") let the model invert
+                                    # its finding (#128). Same governance as #112.
     ),
 )
 

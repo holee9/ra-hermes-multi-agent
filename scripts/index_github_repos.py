@@ -59,7 +59,7 @@ INDEX_EXCLUDED_PATH_PATTERNS: tuple[str, ...] = tuple(
     pattern.strip()
     for pattern in os.environ.get(
         "INDEX_EXCLUDED_PATH_PATTERNS",
-        "wiki/entities/,06_심사_QA이력/,11_일일_리서치로그/",
+        "wiki/entities/,06_심사_QA이력/,11_일일_리서치로그/,issue-drafts/",
     ).split(",")
     if pattern.strip()
 )
