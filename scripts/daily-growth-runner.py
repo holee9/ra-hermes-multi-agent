@@ -561,9 +561,14 @@ def build_case_content(agent: Agent, case: SourceCase, run_date: date) -> str:
         # established references the model knew (Rule/Annex/Article numbers),
         # drowning the items that genuinely need checking. Scope the marker to
         # case-level identifiers and state established references plainly.
+        # #129: the source-required category was scoped to US clearance numbers,
+        # so the model still invented Korean regulatory-instrument numbers (e.g.
+        # "MFDS 고시 제2025-XX호", "Notification No. 2022-123", "GMD 2021-06") and
+        # pinned requirements to invented article numbers ("§ 23-44", "제23조").
+        # Widen case (2) to any dated instrument number or specific article number.
         "Citation rule: two kinds of citation are handled differently. "
-        "(1) Established regulatory references — classification rule numbers, Annex/Article numbers, standard numbers you are confident of — state plainly as facts; they carry no 'verify' caveat. "
-        "(2) Case-level specific identifiers — 510(k)/predicate/registration numbers, case IDs — belong in the answer only when they literally appear in the source excerpts below. When the source names none, write 'no specific identifier found in source — verify separately' for that item and move on; supply no value, not even an illustrative or placeholder one (e.g. 'e.g., K123456'). The 'verify separately' note is for case (2) only — attaching it to an established reference from case (1) hides the items that genuinely need checking.",
+        "(1) Framework references — classification rule numbers, the main Annex/Article names of a regulation, ISO/IEC standard numbers you are confident of — state plainly as facts; they carry no 'verify' caveat. "
+        "(2) Instance identifiers — a device clearance/registration number (510(k)/predicate/registration/case ID), OR a specific dated regulatory-instrument number (a notice/decree/gazette number such as 'MFDS 고시 제2025-22호' or 'Notification No. 2022-123'), OR the exact article/section number you cite as the basis for one particular requirement (e.g. '§23-44', '제23조') — belong in the answer only when they literally appear in the source excerpts below. Name the requirement in words; attach a specific number only when the source supplies it. When the source names none, write 'no specific identifier found in source — verify separately' for that item and supply no value — a plausible-looking number invented from memory (e.g. 'K123456', '제2025-XX호', 'GMD 2021-06') is worse than none. The 'verify separately' note is for case (2) only — attaching it to a framework reference from case (1) hides the items that genuinely need checking.",
         # #135: the model volunteered a self-attestation ("no invented
         # identifiers have been inserted") while inventing identifiers in the
         # same answer — a claim a reviewer cannot rely on. State positively who
