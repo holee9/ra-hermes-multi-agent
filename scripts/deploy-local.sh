@@ -77,6 +77,7 @@ echo "=== hermes deploy: $REPO_ROOT/scripts/ → $TARGET/scripts/ ==="
 SCRIPTS_TO_SYNC=(
     hermes-api-server.py
     ra_citation_lint.py
+    peer-comment-poller.py
     knowledge_fetch.py
     index_github_repos.py
     index_ra_knowledge.py
