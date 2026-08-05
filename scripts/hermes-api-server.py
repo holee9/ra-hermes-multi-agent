@@ -13,6 +13,7 @@ Pipeline:
 RA classification rules and output format are defined in SKILL.md, not here.
 """
 
+import hashlib
 import importlib.util
 import json
 import logging
@@ -454,6 +455,68 @@ HONCHO_WORKSPACE = os.environ.get("HONCHO_WORKSPACE", "work")
 def normalize_region_hint(hint: str | None) -> str | None:
     """Normalize a region hint (US/EU/KR or ra_us/ra_eu/ra_kr) -> actor id, or None."""
     return HINT_ALIASES.get((hint or "").lower())
+
+
+# @MX:ANCHOR: content-emptiness gate — reject header-only advisory requests before routing.
+# @MX:REASON: #137 — a mail skeleton with empty header values ("Subject: \nFrom: \nAttachments:")
+# passed the len<=8000 check, routed to unclear_region, and polluted BOTH the Honcho activity
+# history and the KB-gap candidate log at 24/day (935 requests, still arriving). Rejecting
+# before route_advisory_region means neither _honcho_record nor _log_kb_gap is reached.
+# Header LABELS are stripped but their VALUES are kept: a mail whose subject IS the matter
+# ("Subject: FW: AZTEC & H&abyz : Registration in Thailand") must still route normally —
+# stripping whole header lines mis-rejected 12 such real advisories in a log replay.
+_HEADER_LABEL = re.compile(
+    r'(?im)^\s*(subject|from|to|cc|bcc|date|sent|attachments|첨부|제목|보낸사람|받는사람)\s*:[ \t]*'
+)
+# 10 chars is the measured ceiling: at 15 a real advisory ("문서 검토 필요합니다", 11 chars)
+# is mis-rejected. At 10, only "테스트"/"hello"/"회의 일정 조정" are dropped — none of which
+# produced a usable advisory.
+MIN_ADVISORY_CONTENT = int(os.environ.get("MIN_ADVISORY_CONTENT", "10"))
+
+
+def has_substantive_content(query: str) -> bool:
+    """True when content remains after stripping mail header LABELS (values kept)."""
+    return len(_HEADER_LABEL.sub("", query or "").strip()) >= MIN_ADVISORY_CONTENT
+
+
+# @MX:ANCHOR: routing-rejection dedup — suppress repeat advisories for an identical body
+# that already produced a ROUTING REJECTION within the window.
+# @MX:REASON: #138 — one mail was re-submitted 4,030 times over two days (~34 s apart) because
+# the caller never marked it processed, each attempt writing a Honcho record. Only
+# unclear_region/multi_region are suppressed: a log replay showed that suppressing every
+# outcome would have blocked 14 legitimate retries, including parse_or_hermes_failure retries
+# and a low_confidence attempt that succeeded (conf 0.0 -> 0.78) on re-submission. Failure and
+# success paths therefore stay uncached so a retry can still improve the answer.
+DEDUP_SUPPRESSABLE = frozenset({"unclear_region", "multi_region"})
+# 30 min: suppresses 3,970 of the 4,030 loop requests with ZERO legitimate requests blocked in
+# replay. 60 min reaches 4,004 but blocks 3 genuine re-asks.
+ADVISORY_DEDUP_WINDOW = int(os.environ.get("ADVISORY_DEDUP_WINDOW", "1800"))
+_dedup_seen: dict[str, float] = {}
+_DEDUP_MAX_ENTRIES = 512
+
+
+def _dedup_key(query: str) -> str:
+    """Stable key for an advisory body, ignoring mail header labels and whitespace."""
+    return hashlib.sha256(_HEADER_LABEL.sub("", query or "").strip().encode("utf-8")).hexdigest()
+
+
+def is_duplicate_rejection(query: str) -> bool:
+    """True when this exact body was rejected by routing within ADVISORY_DEDUP_WINDOW."""
+    if ADVISORY_DEDUP_WINDOW <= 0:
+        return False
+    now = time.time()
+    if len(_dedup_seen) > _DEDUP_MAX_ENTRIES:
+        cutoff = now - ADVISORY_DEDUP_WINDOW
+        for k in [k for k, ts in _dedup_seen.items() if ts < cutoff]:
+            _dedup_seen.pop(k, None)
+    seen_at = _dedup_seen.get(_dedup_key(query))
+    return seen_at is not None and (now - seen_at) < ADVISORY_DEDUP_WINDOW
+
+
+def mark_rejected(query: str, yellow_reason: str | None) -> None:
+    """Record a routing rejection so identical repeats are suppressed for the window."""
+    if yellow_reason in DEDUP_SUPPRESSABLE:
+        _dedup_seen[_dedup_key(query)] = time.time()
 
 
 def route_advisory_region(query: str, hint: str | None) -> tuple[str | None, str | None]:
@@ -1115,6 +1178,17 @@ def ra_advisory():
     query = str(data.get("query") or data.get("content") or "").strip()
     if not query or len(query) > 8000:
         return jsonify({"error": "query required (<=8000 chars)"}), 400
+    # #137: reject before routing so no Honcho record and no KB-gap entry is written.
+    if not has_substantive_content(query):
+        return jsonify({"error": "query has no substantive content",
+                        "code": "empty_content"}), 400
+    # #138: an identical body already rejected by routing within the window is a caller
+    # re-submission loop, not a new question. Same 400 shape as above — the caller-side
+    # gate treats a missing advisory as fail-closed (allowMutation:false), so suppressing
+    # here cannot open the auto-execution path.
+    if is_duplicate_rejection(query):
+        return jsonify({"error": "duplicate of a recently rejected request",
+                        "code": "duplicate_rejected"}), 400
     wp_context = data.get("wp_context") or {}
     region_hint = str(data.get("region_hint") or "").strip() or None
 
@@ -1122,6 +1196,7 @@ def ra_advisory():
     request_ref = f"adv-{int(time.time())}"
 
     if yellow:
+        mark_rejected(query, yellow)
         adv = _yellow_advisory(yellow, normalize_region_hint(region_hint))
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
