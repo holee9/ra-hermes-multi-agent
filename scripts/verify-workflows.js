@@ -46,10 +46,22 @@ for (const requiredNode of ['Layer 4 조회 준비', 'Layer 4 규제 DB 조회',
   }
 }
 const mailText = JSON.stringify(mailTriage);
-for (const forbidden of ['10cc6bbfde9f63f77dfa3e1ca34ae745b13fd0e2f06bd93b314aafd8227848f7']) {
+// Secret-leak guard. The literal key must NOT live here: this file is committed,
+// so embedding the value to detect it is itself the leak it guards against (the
+// value was exposed in git history until 2026-08-05). Check the env-provided key
+// when available, and always run a shape-based scan so the guard still works when
+// API_SERVER_KEY is unset.
+const secretsToReject = [process.env.API_SERVER_KEY].filter(Boolean);
+for (const forbidden of secretsToReject) {
   if (mailText.includes(forbidden)) {
     throw new Error('mail-triage contains hardcoded API bearer token');
   }
+}
+// Shape-based: a Bearer header carrying a long opaque literal instead of an
+// n8n expression ({{...}} / credential reference).
+const bearerLiteral = /Bearer\s+(?!\{\{)[A-Za-z0-9._-]{32,}/;
+if (bearerLiteral.test(mailText)) {
+  throw new Error('mail-triage contains a hardcoded Bearer literal — use a credential or expression');
 }
 if (!mailText.includes('/v1/knowledge/fetch')) {
   throw new Error('mail-triage does not call Layer 4 knowledge endpoint');
