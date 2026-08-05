@@ -1282,6 +1282,137 @@ def ra_advisory_feedback():
     return jsonify({"status": "recorded", "request_ref": request_ref})
 
 
+# ── Peer comment nudge channel (SPEC-DEVCOMM-001 M1) ─────────────────────────
+# T3610<->raspi5p device notification: raspi5p (or the local poller backstop)
+# POSTs a nudge when a GitHub issue comment is written, so the 40-min-unread
+# problem collapses to <1s (push) / <=5min (poll). This channel is
+# Honcho-INDEPENDENT by design (C2: Honcho failure alerts must not route
+# through Honcho) — it logs and never calls _honcho_record.
+
+# Dedup state: comment_url set, in-memory + file persistence so a service
+# restart does not re-process nudges the poller re-delivers (AC-2).
+PEER_NOTIFY_STATE = os.environ.get(
+    "PEER_NOTIFY_STATE", os.path.expanduser("~/.hermes/peer-notify-seen.json"))
+PEER_NOTIFY_LOG = os.environ.get("PEER_NOTIFY_LOG", "/var/log/peer-notify.jsonl")
+_PEER_SEEN_MAX = 500
+
+_peer_notify_logger = logging.getLogger("ra.peer_notify")
+_peer_notify_logger.setLevel(logging.INFO)
+try:
+    _pn_fh = logging.FileHandler(PEER_NOTIFY_LOG)
+    _pn_fh.setFormatter(logging.Formatter("%(message)s"))
+    _peer_notify_logger.addHandler(_pn_fh)
+except OSError:
+    pass  # log dir not writable; skip silently
+
+_peer_seen: set[str] = set()
+_peer_seen_order: list[str] = []
+
+
+def _peer_seen_load() -> None:
+    """Load the persisted comment_url dedup set. Missing/corrupt file is fine."""
+    try:
+        with open(PEER_NOTIFY_STATE) as f:
+            urls = json.load(f)
+        if isinstance(urls, list):
+            kept = [u for u in urls if isinstance(u, str)][-_PEER_SEEN_MAX:]
+            _peer_seen_order[:] = kept
+            _peer_seen.clear()
+            _peer_seen.update(kept)
+    except (OSError, ValueError):
+        pass
+
+
+def _peer_seen_save() -> None:
+    """Persist the dedup set (best-effort: memory dedup survives a write failure)."""
+    try:
+        state_dir = os.path.dirname(PEER_NOTIFY_STATE)
+        if state_dir:
+            os.makedirs(state_dir, exist_ok=True)
+        with open(PEER_NOTIFY_STATE, "w") as f:
+            json.dump(_peer_seen_order, f)
+    except OSError:
+        pass
+
+
+def _peer_seen_add(comment_url: str) -> None:
+    if comment_url in _peer_seen:
+        return
+    _peer_seen.add(comment_url)
+    _peer_seen_order.append(comment_url)
+    if len(_peer_seen_order) > _PEER_SEEN_MAX:
+        dropped = _peer_seen_order[:-_PEER_SEEN_MAX]
+        _peer_seen_order[:] = _peer_seen_order[-_PEER_SEEN_MAX:]
+        _peer_seen.difference_update(dropped)
+    _peer_seen_save()
+
+
+_peer_seen_load()
+
+
+def _validate_peer_nudge(data: dict) -> str | None:
+    """4-field nudge schema (spec section 3): issue int + 3 non-empty strings."""
+    issue = data.get("issue")
+    if not isinstance(issue, int) or isinstance(issue, bool):
+        return "issue must be an integer"
+    for field in ("comment_url", "author", "ts"):
+        value = data.get(field)
+        if not isinstance(value, str) or not value.strip():
+            return f"{field} must be a non-empty string"
+    return None
+
+
+def _log_peer_event(nudge: dict) -> None:
+    """Emit the peer_comment event in the frozen contract {ts, type, actor, payload}.
+
+    VO note (REQ-DC-002): the only live virtual-office feed is the Honcho adapter
+    (/api/events reads Honcho messages), and C2 forbids Honcho for this channel.
+    The event is therefore emitted as a JSON log line in the frozen event-contract
+    shape; a future non-Honcho VO feed can consume this file directly.
+    Never raises — logging must not break the notify path (REQ-DC-007 analogue).
+    """
+    try:
+        event = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "type": "peer_comment",
+            "actor": nudge["author"],
+            "payload": {
+                "issue": nudge["issue"],
+                "comment_url": nudge["comment_url"],
+                "comment_ts": nudge["ts"],
+            },
+        }
+        _peer_notify_logger.info(json.dumps(event, ensure_ascii=False))
+    except Exception:
+        pass
+
+
+@app.route("/v1/peer/notify", methods=["POST"])
+def peer_notify():
+    """Receive a peer comment nudge (REQ-DC-001/002): dedup -> log event.
+
+    Notification-only channel: the GitHub issue stays the sole permanent ledger
+    (C7 — the nudge carries no comment body). Nothing here touches the
+    /v1/ra/advisory path (REQ-DC-007).
+    """
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(force=True, silent=True) or {}
+    err = _validate_peer_nudge(data)
+    if err:
+        return jsonify({"error": err}), 400
+
+    comment_url = data["comment_url"]
+    if comment_url in _peer_seen:
+        # AC-2: push + polling may deliver the same comment; process once.
+        return jsonify({"status": "duplicate", "comment_url": comment_url})
+
+    _peer_seen_add(comment_url)
+    _log_peer_event(data)
+    return jsonify({"status": "accepted", "comment_url": comment_url})
+
+
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": True, "service": "hermes-api-server"})

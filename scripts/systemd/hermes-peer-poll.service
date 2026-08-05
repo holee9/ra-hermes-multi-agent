@@ -1,0 +1,25 @@
+[Unit]
+Description=RA Hermes Peer Comment Poller (SPEC-DEVCOMM-001 polling backstop)
+After=network.target
+
+[Service]
+Type=oneshot
+User=abyz-lab
+WorkingDirectory=/home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent
+# API_SERVER_KEY must be set in scripts/.env (git-ignored)
+EnvironmentFile=/home/abyz-lab/work/workspace-github/holee9/ra-hermes-multi-agent/scripts/.env
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PEER_POLL_REPO=holee9/ra-hermes-multi-agent
+Environment=PEER_POLL_SELF_LOGIN=holee9
+Environment=PEER_NOTIFY_LOCAL_URL=http://localhost:8643/v1/peer/notify
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/usr/bin/python3 -u scripts/peer-comment-poller.py
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hermes-peer-poll
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

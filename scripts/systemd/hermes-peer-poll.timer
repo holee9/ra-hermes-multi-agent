@@ -1,0 +1,11 @@
+[Unit]
+Description=RA Hermes Peer Comment Poller — 5-minute timer (SPEC-DEVCOMM-001)
+Requires=hermes-peer-poll.service
+
+[Timer]
+# REQ-DC-004: 5-minute polling backstop; start 2 min after boot.
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
