@@ -398,3 +398,75 @@ def test_actor_profile_map_uses_hyphen_only_internally():
     # externally-exposed actor -> internal hermes profile (hyphen dir name)
     assert m.ADVISORY_ACTOR_PROFILE == {"ra_us": "ra-us", "ra_eu": "ra-eu", "ra_kr": "ra-kr"}
     assert set(m.ADVISORY_ACTOR_PROFILE) == {"ra_us", "ra_eu", "ra_kr"}
+
+
+# ── #137 content-emptiness gate ───────────────────────────────────────────
+@pytest.mark.parametrize("query", [
+    "Subject: \nFrom: \nAttachments:",          # the raspi5p hourly phantom body
+    "Subject:\nFrom:\nAttachments:",            # no trailing spaces
+    "제목: \n보낸사람: \n첨부:",                  # Korean header labels
+    "테스트",
+    "hello",
+])
+def test_empty_content_rejected(query):
+    assert m.has_substantive_content(query) is False
+
+
+@pytest.mark.parametrize("query", [
+    # the subject IS the matter — stripping whole header lines would mis-reject this
+    "Subject: FW: FW: AZTEC & H&abyz : Registration in Thailand\nFrom: sales@axtech.co.th\nAttachments:",
+    "문서 검토 필요합니다",                       # 11 chars: real advisory in production logs
+    "EU MDR Annex II 기술문서 구성 항목 확인 부탁드립니다",
+    "FDA 510(k) submission basics",
+])
+def test_substantive_content_accepted(query):
+    assert m.has_substantive_content(query) is True
+
+
+def test_header_labels_stripped_values_kept():
+    # values survive the label strip, so a header-only mail with a real subject passes
+    assert m.has_substantive_content("Subject: MFDS 2등급 인허가 절차") is True
+    # ...while a header skeleton with empty values does not
+    assert m.has_substantive_content("Subject:\nFrom:") is False
+
+
+# ── #138 routing-rejection dedup ──────────────────────────────────────────
+def test_dedup_suppresses_repeat_routing_rejection():
+    m._dedup_seen.clear()
+    q = "오늘 날씨가 좋습니다 일반적인 안부 인사입니다"
+    assert m.is_duplicate_rejection(q) is False
+    m.mark_rejected(q, "unclear_region")
+    assert m.is_duplicate_rejection(q) is True
+
+
+@pytest.mark.parametrize("reason", [
+    "parse_or_hermes_failure",   # a retry must be able to reach the LLM again
+    "low_confidence",            # observed conf 0.0 -> 0.78 on re-submission
+    "no_evidence",
+    None,                        # successful advisory is never cached
+])
+def test_dedup_preserves_retry_for_non_routing_outcomes(reason):
+    m._dedup_seen.clear()
+    q = "eSTAR Labeling IFU Form 3881 predicate device 확인"
+    m.mark_rejected(q, reason)
+    assert m.is_duplicate_rejection(q) is False
+
+
+def test_dedup_scoped_to_identical_body():
+    m._dedup_seen.clear()
+    m.mark_rejected("사내 품질문서 통합관리 절차 검토", "unclear_region")
+    assert m.is_duplicate_rejection("전혀 다른 사안에 대한 자문 요청입니다") is False
+
+
+def test_dedup_key_ignores_header_labels():
+    a = "Subject: EU MDR Annex II 검토\nFrom: x@y.com"
+    b = "EU MDR Annex II 검토\nx@y.com"
+    assert m._dedup_key(a) == m._dedup_key(b)
+
+
+def test_dedup_disabled_when_window_zero(monkeypatch):
+    m._dedup_seen.clear()
+    monkeypatch.setattr(m, "ADVISORY_DEDUP_WINDOW", 0)
+    q = "MFDS 의료기기 1등급 기준 확인"
+    m.mark_rejected(q, "unclear_region")
+    assert m.is_duplicate_rejection(q) is False
