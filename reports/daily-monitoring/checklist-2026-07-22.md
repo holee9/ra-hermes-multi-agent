@@ -1,17 +1,17 @@
 === Daily Monitoring Report ===
-Date: 2026-08-26
-Timestamp: 2026-08-26T08:00:00+09:00
+Date: 2026-07-22
+Timestamp: 2026-07-22T15:46:44+09:00
 
 ## 1. System Status
 =================
 - [x] Honcho API healthy
-- [x] PostgreSQL pgvector ready
-- [x] Redis responsive
-- [x] Honcho deriver running
+- [ ] PostgreSQL not ready ❌ FAILED
+- [ ] Redis not responding ❌ FAILED
+- [ ] Deriver not running ❌ FAILED
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-08-26.json
+Latest report: reports/growth-2026-07-22.json
 
 ### Current Metrics
 {
@@ -94,15 +94,15 @@ Latest report: reports/growth-2026-08-26.json
 ## 3. Growth Loop Status
 =======================
 - [x] daily-growth-runner available
-- [ ] No today's growth execution yet ⚠️  MANUAL CHECK
+- [x] Today's growth execution found
 - [x] Study scheduler checkpoint exists
 Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 7
-- **WARN**: 1
-- **FAIL**: 0
+- **PASS**: 5
+- **WARN**: 0
+- **FAIL**: 3
 
 ## 5. Status
-🟢 **NORMAL** - All critical systems operational
+🔴 **CRITICAL** - Multiple failures detected, immediate action required

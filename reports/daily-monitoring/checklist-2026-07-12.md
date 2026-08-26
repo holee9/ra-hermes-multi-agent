@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-08-26
-Timestamp: 2026-08-26T08:00:00+09:00
+Date: 2026-07-12
+Timestamp: 2026-07-12T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -11,22 +11,47 @@ Timestamp: 2026-08-26T08:00:00+09:00
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-08-26.json
+Latest report: reports/growth-2026-07-12.json
 
 ### Current Metrics
 {
   "correction_rate": {
-    "value": null,
-    "numerator": 0,
-    "denominator": 0,
-    "samples": [],
+    "value": 0.15,
+    "numerator": 3,
+    "denominator": 20,
+    "samples": [
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "actor": "ra_eu",
+        "score": 1,
+        "changed": {
+          "note": "EUDAMED 키워드가 UDI 등록문서를 선택 — clinical evaluation focus와 주제 불일치, 임상평가 근거 없음. CER 문서로 재검색 필요."
+        }
+      },
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "actor": "ra_kr",
+        "score": 1,
+        "changed": {
+          "note": "단일 MFDS가 SAR 시험·세금계산서 이메일(행정 QA 로그)을 오매칭 — KGMP evidence 근거 없음."
+        }
+      },
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "actor": "ra_kr",
+        "score": 1,
+        "changed": {
+          "note": "단일 MFDS가 PMS·CE MDR 일정 이메일을 오매칭 — KGMP focus와 무관."
+        }
+      }
+    ],
     "direction": "down",
     "note": "fraction of human-reviewed decisions where agent was overridden"
   },
   "first_pass_match_accuracy": {
-    "value": null,
-    "numerator": 0,
-    "denominator": 0,
+    "value": 0.7,
+    "numerator": 14,
+    "denominator": 20,
     "direction": "up",
     "note": "fraction of WP match decisions confirmed correct by human"
   },
@@ -71,12 +96,15 @@ Latest report: reports/growth-2026-08-26.json
     "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)"
   },
   "absence_pattern_signals": {
-    "value": 0,
+    "value": 3,
     "yellow_total": 0,
-    "correction_total": 0,
+    "correction_total": 3,
     "yellow_by_domain": {},
-    "correction_by_domain": {},
-    "strongest_domain": null,
+    "correction_by_domain": {
+      "clinical_evaluation": 1,
+      "quality_capa": 2
+    },
+    "strongest_domain": "quality_capa",
     "domains": [
       "clinical_evaluation",
       "coordination",
@@ -84,7 +112,29 @@ Latest report: reports/growth-2026-08-26.json
       "pms_vigilance",
       "quality_capa"
     ],
-    "samples": [],
+    "samples": [
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "domain": "clinical_evaluation",
+        "yellow_reason": null,
+        "record_type": "score_given",
+        "type": "score_given"
+      },
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "domain": "quality_capa",
+        "yellow_reason": null,
+        "record_type": "score_given",
+        "type": "score_given"
+      },
+      {
+        "session": "kb-eval-feedback-2026-06-20",
+        "domain": "quality_capa",
+        "yellow_reason": null,
+        "record_type": "score_given",
+        "type": "score_given"
+      }
+    ],
     "direction": "diagnostic",
     "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger"
   }

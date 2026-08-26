@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-08-26
-Timestamp: 2026-08-26T08:00:00+09:00
+Date: 2026-08-20
+Timestamp: 2026-08-20T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -11,7 +11,7 @@ Timestamp: 2026-08-26T08:00:00+09:00
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-08-26.json
+Latest report: reports/growth-2026-08-20.json
 
 ### Current Metrics
 {
