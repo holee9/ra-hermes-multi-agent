@@ -212,7 +212,7 @@ def fetch_source_candidates(
             FROM ra_knowledge
             WHERE source_path IS NOT NULL
               AND source_path <> ''
-              AND metadata->>'repo' NOT LIKE '%llm-wiki%'  -- #27: Layer 4 on-demand only
+              AND metadata->>'repo' NOT LIKE '%%llm-wiki%%'  -- #27: Layer 4 on-demand only
               AND ({where_sql})
               {entity_filter}
             GROUP BY source_path

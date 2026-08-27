@@ -202,7 +202,7 @@ def fetch_chunks(since_ts: str | None = None, limit: int = MAX_CHUNKS_PER_SESSIO
                 SELECT id, content, source_path, metadata, indexed_at
                 FROM ra_knowledge
                 WHERE indexed_at > %s
-                  AND metadata->>'repo' NOT LIKE '%llm-wiki%'  -- #27: Layer 4 on-demand only
+                  AND metadata->>'repo' NOT LIKE '%%llm-wiki%%'  -- #27: Layer 4 on-demand only
                 ORDER BY indexed_at ASC
                 LIMIT %s
                 """,
@@ -213,7 +213,7 @@ def fetch_chunks(since_ts: str | None = None, limit: int = MAX_CHUNKS_PER_SESSIO
                 """
                 SELECT id, content, source_path, metadata, indexed_at
                 FROM ra_knowledge
-                WHERE metadata->>'repo' NOT LIKE '%llm-wiki%'  -- #27: Layer 4 on-demand only
+                WHERE metadata->>'repo' NOT LIKE '%%llm-wiki%%'  -- #27: Layer 4 on-demand only
                 ORDER BY indexed_at ASC
                 LIMIT %s
                 """,
@@ -248,9 +248,9 @@ def fetch_chunks_for_agent(agent_id: str, since_ts: str | None = None,
 
     if since_ts:
         params.append(since_ts)
-        where = f"({conditions}) AND indexed_at > %s AND metadata->>'repo' NOT LIKE '%llm-wiki%'"
+        where = f"({conditions}) AND indexed_at > %s AND metadata->>'repo' NOT LIKE '%%llm-wiki%%'"
     else:
-        where = f"({conditions}) AND metadata->>'repo' NOT LIKE '%llm-wiki%'"
+        where = f"({conditions}) AND metadata->>'repo' NOT LIKE '%%llm-wiki%%'"
 
     params.append(limit)
 
