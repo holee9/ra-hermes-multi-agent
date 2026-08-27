@@ -216,23 +216,45 @@ def honcho_post(path: str, body: dict) -> dict | None:
     return None
 
 
-def list_sessions(limit: int = 200) -> list[dict]:
-    result = honcho_post("/sessions/list", {"page": 1, "page_size": limit, "size": limit})
-    if isinstance(result, dict):
-        items = result.get("items", result.get("sessions", result.get("data", [])))
-        return items if isinstance(items, list) else []
-    return result or []
+def _list_all_pages(path: str, item_keys: tuple[str, ...]) -> list[dict]:
+    """Fetch every page of a Honcho list endpoint.
+
+    #103: the API reads `page` from the QUERY STRING only — a `page` in the JSON
+    body is silently ignored and every request returns page 1. It also caps the
+    page at 50 items regardless of the requested page_size. Passing page=1 in the
+    body therefore pinned the collector to the oldest 50 sessions (2026-06-05 ~
+    06-25, all June test fixtures) while 167 of 217 sessions went unscanned, which
+    is why every growth metric read 0 for 14 consecutive days.
+    """
+    items: list[dict] = []
+    page = 1
+    while True:
+        sep = "&" if "?" in path else "?"
+        result = honcho_post(f"{path}{sep}page={page}", {})
+        if not isinstance(result, dict):
+            if isinstance(result, list):
+                items.extend(result)
+            break
+        for key in item_keys:
+            chunk = result.get(key)
+            if isinstance(chunk, list):
+                items.extend(chunk)
+                break
+        pages = result.get("pages")
+        if not isinstance(pages, int) or page >= pages:
+            break
+        page += 1
+    return items
 
 
-def list_messages(session_id: str, limit: int = 500) -> list[dict]:
-    result = honcho_post(
-        f"/sessions/{session_id}/messages/list",
-        {"page": 1, "page_size": limit, "size": limit},
+def list_sessions() -> list[dict]:
+    return _list_all_pages("/sessions/list", ("items", "sessions", "data"))
+
+
+def list_messages(session_id: str) -> list[dict]:
+    return _list_all_pages(
+        f"/sessions/{session_id}/messages/list", ("items", "messages", "data")
     )
-    if isinstance(result, dict):
-        items = result.get("items", result.get("messages", result.get("data", [])))
-        return items if isinstance(items, list) else []
-    return result or []
 
 
 def session_identifier(session: dict) -> str:
@@ -427,9 +449,8 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
             meta = msg.get("metadata") or {}
             if meta.get("record_type") != "score_given":
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -474,9 +495,8 @@ def compute_first_pass_match_accuracy(messages_by_session: dict[str, list[dict]]
                 continue
             if not meta.get("has_dimensions"):
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -519,9 +539,8 @@ def compute_confidence_calibration(messages_by_session: dict[str, list[dict]],
             meta = msg.get("metadata") or {}
             if meta.get("record_type") not in ("mail_triaged", "ra_analysis"):
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -542,9 +561,8 @@ def compute_confidence_calibration(messages_by_session: dict[str, list[dict]],
             meta = msg.get("metadata") or {}
             if meta.get("record_type") != "score_given":
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             payload = content.get("payload", {})
             decision_ref = payload.get("decision_ref")
@@ -591,9 +609,8 @@ def compute_warmstart_lift(messages_by_session: dict[str, list[dict]],
             meta = msg.get("metadata") or {}
             if meta.get("record_type") != "score_given":
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             payload = content.get("payload", {})
             ref = payload.get("decision_ref")
@@ -607,9 +624,8 @@ def compute_warmstart_lift(messages_by_session: dict[str, list[dict]],
             meta = msg.get("metadata") or {}
             if meta.get("record_type") not in ("mail_triaged", "ra_analysis"):
                 continue
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -656,9 +672,8 @@ def compute_escalation_precision(messages_by_session: dict[str, list[dict]],
     for session_id, msgs in messages_by_session.items():
         for msg in msgs:
             meta = msg.get("metadata") or {}
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -709,9 +724,8 @@ def compute_autonomous_study_sessions(messages_by_session: dict[str, list[dict]]
         if "study" not in session_id:
             continue
         for msg in msgs:
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -761,9 +775,8 @@ def compute_study_insights_count(messages_by_session: dict[str, list[dict]],
         if "study" not in session_id:
             continue
         for msg in msgs:
-            try:
-                content = json.loads(msg.get("content", "{}"))
-            except (json.JSONDecodeError, TypeError):
+            content = parse_content(msg)
+            if not content:
                 continue
             ts = content.get("ts", "")
             if not is_within_window(ts, since, until):
@@ -891,7 +904,7 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
     print(f"Querying Honcho: {HONCHO_URL}/v3/workspaces/{HONCHO_WS}", flush=True)
     print(f"  window: {since.date()} → {until.date()}", flush=True)
 
-    sessions = list_sessions(limit=500)
+    sessions = list_sessions()
     print(f"  sessions found: {len(sessions)}", flush=True)
 
     messages_by_session: dict[str, list[dict]] = {}
@@ -912,7 +925,7 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
             })
         before_errors = len(API_ERRORS)
         message_fetch_attempts += 1
-        msgs = list_messages(sid, limit=500)
+        msgs = list_messages(sid)
         if len(API_ERRORS) > before_errors:
             message_fetch_failures += 1
         if msgs:
