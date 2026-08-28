@@ -1,164 +1,218 @@
-# KB Eval 채점 백로그 — 우선순위 정렬
+# KB Eval 채점 백로그 — 우선순위 + 기계 검증 요약
 
-생성: 2026-08-28 · 측정 기준 `docs/kb-eval-checksheets/`
+생성 2026-08-28 · 각 케이스 체크시트에 `🔎 기계 검증 요약` 코멘트가 삽입되어 있습니다.
 
 ## 감축 근거
 
 | 단계 | 건수 |
 |---|---:|
 | 전체 케이스 | 648 |
-| 채점 완료 | 59 |
-| 미채점 | 589 |
-| 응답 80자 미만 제외 (채점 불가) | -306 |
-| 채점 가치 있는 미채점 | 283 |
-| **시나리오 중복 제거 후 (실제 목표)** | **143** |
+| 채점 완료 | 120 |
+| 미채점 | 528 |
+| − 응답 부재 (채점 불가) | −120 |
+| 채점 가치 있는 미채점 | 408 |
+| − 동일 `scenario_id` 중복 | −218 |
+| **실제 채점 목표** | **190** |
 
-중복 제거 규칙: 동일 `scenario_id` 는 최신 `base_date`/`iteration` 1건만 채점한다.
+## 검증 분포
+
+- 근거 대조 위험도: 높음 **142** / 중간 **38** / 낮음 **10**
+- C1 린터 구조 오류 검출: **5건**
+- escalation 표현 없음: **0건**
+
+위험도 = 응답의 규제 식별자 중 source excerpt에서 확인된 비율 (30% 미만 높음 / 70% 미만 중간).
 
 ## 채점 순서
 
-| # | base_date | agent | decision_ref | 파일 |
-|---:|---|---|---|---|
-| 1 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-005` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 2 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 3 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 4 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-005` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 5 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 6 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-002` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 7 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 8 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 9 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 10 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 11 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 12 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 13 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 14 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 15 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 16 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 17 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 18 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 19 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 20 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 21 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-03.md` |
-| 22 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 23 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 24 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-24/iteration-02.md` |
-| 25 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-24/iteration-01.md` |
-| 26 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-004` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 27 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-003` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 28 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 29 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 30 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 31 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 32 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 33 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 34 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 35 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 36 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-23/iteration-01.md` |
-| 37 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-03.md` |
-| 38 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-004` | `docs/kb-eval-checksheets/2026-07-22/iteration-03.md` |
-| 39 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-001` | `docs/kb-eval-checksheets/2026-07-22/iteration-03.md` |
-| 40 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 41 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-004` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 42 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-003` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 43 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-002` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 44 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 45 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-004` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 46 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 47 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 48 | 2026-07-22 | ra_kr | `kb-eval-20260722-it03-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-03.md` |
-| 49 | 2026-07-22 | ra_kr | `kb-eval-20260722-it03-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-22/iteration-03.md` |
-| 50 | 2026-07-22 | ra_kr | `kb-eval-20260722-it02-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 51 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 52 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 53 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 54 | 2026-07-22 | ra_eu | `kb-eval-20260722-it02-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-02.md` |
-| 55 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 56 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 57 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 58 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-22/iteration-01.md` |
-| 59 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 60 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-004` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 61 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-003` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 62 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 63 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 64 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 65 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 66 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 67 | 2026-07-21 | ra_eu | `kb-eval-20260721-it03-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-21/iteration-03.md` |
-| 68 | 2026-07-21 | ra_eu | `kb-eval-20260721-it02-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-21/iteration-02.md` |
-| 69 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 70 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 71 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 72 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 73 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-21/iteration-01.md` |
-| 74 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-003` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 75 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 76 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 77 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 78 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 79 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 80 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 81 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-20/iteration-01.md` |
-| 82 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 83 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-004` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 84 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-003` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 85 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 86 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 87 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 88 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 89 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 90 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-19/iteration-01.md` |
-| 91 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 92 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 93 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 94 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 95 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 96 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 97 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 98 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 99 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-18/iteration-01.md` |
-| 100 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 101 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-003` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 102 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-002` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 103 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-001` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 104 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 105 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-003` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 106 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 107 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-002` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 108 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-17/iteration-01.md` |
-| 109 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-005` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 110 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-004` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 111 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 112 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 113 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 114 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 115 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-16/iteration-01.md` |
-| 116 | 2026-07-15 | ra_us | `kb-eval-20260715-it17-ra_us-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 117 | 2026-07-15 | ra_us | `kb-eval-20260715-it17-ra_us-003` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 118 | 2026-07-15 | ra_us | `kb-eval-20260715-it17-ra_us-002` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 119 | 2026-07-15 | ra_us | `kb-eval-20260715-it17-ra_us-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 120 | 2026-07-15 | ra_us | `kb-eval-20260715-it16-ra_us-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-16.md` |
-| 121 | 2026-07-15 | ra_us | `kb-eval-20260715-it16-ra_us-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-16.md` |
-| 122 | 2026-07-15 | ra_us | `kb-eval-20260715-it15-ra_us-004` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
-| 123 | 2026-07-15 | ra_us | `kb-eval-20260715-it15-ra_us-003` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
-| 124 | 2026-07-15 | ra_us | `kb-eval-20260715-it15-ra_us-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
-| 125 | 2026-07-15 | ra_us | `kb-eval-20260715-it14-ra_us-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 126 | 2026-07-15 | ra_us | `kb-eval-20260715-it14-ra_us-002` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 127 | 2026-07-15 | ra_us | `kb-eval-20260715-it14-ra_us-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 128 | 2026-07-15 | ra_us | `kb-eval-20260715-it13-ra_us-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-13.md` |
-| 129 | 2026-07-15 | ra_kr | `kb-eval-20260715-it17-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 130 | 2026-07-15 | ra_kr | `kb-eval-20260715-it17-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 131 | 2026-07-15 | ra_kr | `kb-eval-20260715-it16-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-15/iteration-16.md` |
-| 132 | 2026-07-15 | ra_kr | `kb-eval-20260715-it15-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
-| 133 | 2026-07-15 | ra_kr | `kb-eval-20260715-it15-ra_kr-002` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
-| 134 | 2026-07-15 | ra_kr | `kb-eval-20260715-it14-ra_kr-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 135 | 2026-07-15 | ra_kr | `kb-eval-20260715-it14-ra_kr-004` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 136 | 2026-07-15 | ra_kr | `kb-eval-20260715-it14-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-14.md` |
-| 137 | 2026-07-15 | ra_kr | `kb-eval-20260715-it13-ra_kr-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-13.md` |
-| 138 | 2026-07-15 | ra_eu | `kb-eval-20260715-it17-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 139 | 2026-07-15 | ra_eu | `kb-eval-20260715-it17-ra_eu-004` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 140 | 2026-07-15 | ra_eu | `kb-eval-20260715-it17-ra_eu-003` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 141 | 2026-07-15 | ra_eu | `kb-eval-20260715-it17-ra_eu-001` | `docs/kb-eval-checksheets/2026-07-15/iteration-17.md` |
-| 142 | 2026-07-15 | ra_eu | `kb-eval-20260715-it16-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-16.md` |
-| 143 | 2026-07-15 | ra_eu | `kb-eval-20260715-it15-ra_eu-005` | `docs/kb-eval-checksheets/2026-07-15/iteration-15.md` |
+| # | date | agent | decision_ref | 분량 | 근거일치 | 위험 | C1 | esc |
+|---:|---|---|---|---:|---:|---|---:|---|
+| 1 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-005` | 5,362 | 2/5 (40%) | 중간 | 0 | O |
+| 2 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-004` | 8,291 | 1/7 (14%) | 높음 | 0 | O |
+| 3 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-003` | 7,765 | 0/10 (0%) | 높음 | 0 | O |
+| 4 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-002` | 9,501 | 2/9 (22%) | 높음 | 0 | O |
+| 5 | 2026-07-24 | ra_us | `kb-eval-20260724-it03-ra_us-001` | 7,036 | 0/11 (0%) | 높음 | 0 | O |
+| 6 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-005` | 8,952 | 9/16 (56%) | 중간 | 0 | O |
+| 7 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-004` | 7,033 | 2/8 (25%) | 높음 | 0 | O |
+| 8 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-003` | 8,622 | 1/5 (20%) | 높음 | 0 | O |
+| 9 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-002` | 7,095 | 4/12 (33%) | 중간 | 0 | O |
+| 10 | 2026-07-24 | ra_us | `kb-eval-20260724-it02-ra_us-001` | 8,529 | 4/13 (30%) | 중간 | 0 | O |
+| 11 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-005` | 8,158 | 2/7 (28%) | 높음 | 0 | O |
+| 12 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-004` | 8,006 | 0/9 (0%) | 높음 | 0 | O |
+| 13 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-003` | 9,288 | 2/11 (18%) | 높음 | 0 | O |
+| 14 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-002` | 8,516 | 1/11 (9%) | 높음 | 0 | O |
+| 15 | 2026-07-24 | ra_us | `kb-eval-20260724-it01-ra_us-001` | 7,740 | 6/18 (33%) | 중간 | 0 | O |
+| 16 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-005` | 7,118 | 0/0 (0%) | 낮음 | 0 | O |
+| 17 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-004` | 9,782 | 0/1 (0%) | 높음 | 0 | O |
+| 18 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-003` | 7,695 | 2/5 (40%) | 중간 | 0 | O |
+| 19 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-002` | 7,906 | 0/5 (0%) | 높음 | 0 | O |
+| 20 | 2026-07-24 | ra_kr | `kb-eval-20260724-it03-ra_kr-001` | 8,284 | 0/3 (0%) | 높음 | 0 | O |
+| 21 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-005` | 8,615 | 1/1 (100%) | 낮음 | 0 | O |
+| 22 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-004` | 8,571 | 4/4 (100%) | 낮음 | 0 | O |
+| 23 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-003` | 10,159 | 0/3 (0%) | 높음 | 0 | O |
+| 24 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-002` | 8,777 | 0/5 (0%) | 높음 | 0 | O |
+| 25 | 2026-07-24 | ra_kr | `kb-eval-20260724-it02-ra_kr-001` | 8,590 | 0/3 (0%) | 높음 | 0 | O |
+| 26 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-005` | 11,677 | 0/5 (0%) | 높음 | 0 | O |
+| 27 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-004` | 9,936 | 4/4 (100%) | 낮음 | 0 | O |
+| 28 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-003` | 7,895 | 0/4 (0%) | 높음 | 0 | O |
+| 29 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-002` | 9,582 | 2/7 (28%) | 높음 | 0 | O |
+| 30 | 2026-07-24 | ra_kr | `kb-eval-20260724-it01-ra_kr-001` | 7,662 | 2/3 (66%) | 중간 | 0 | O |
+| 31 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-005` | 10,842 | 5/21 (23%) | 높음 | 0 | O |
+| 32 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-004` | 9,025 | 0/20 (0%) | 높음 | 0 | O |
+| 33 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-003` | 9,688 | 0/18 (0%) | 높음 | 0 | O |
+| 34 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-002` | 11,534 | 7/20 (35%) | 중간 | 0 | O |
+| 35 | 2026-07-24 | ra_eu | `kb-eval-20260724-it03-ra_eu-001` | 9,802 | 3/20 (15%) | 높음 | 0 | O |
+| 36 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-005` | 9,601 | 1/17 (5%) | 높음 | 17 | O |
+| 37 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-004` | 11,313 | 7/22 (31%) | 중간 | 0 | O |
+| 38 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-003` | 10,332 | 2/17 (11%) | 높음 | 0 | O |
+| 39 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-002` | 10,436 | 3/18 (16%) | 높음 | 0 | O |
+| 40 | 2026-07-24 | ra_eu | `kb-eval-20260724-it02-ra_eu-001` | 14,129 | 2/19 (10%) | 높음 | 0 | O |
+| 41 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-005` | 8,700 | 1/20 (5%) | 높음 | 0 | O |
+| 42 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-004` | 9,634 | 3/21 (14%) | 높음 | 0 | O |
+| 43 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-003` | 10,035 | 0/17 (0%) | 높음 | 0 | O |
+| 44 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-002` | 10,291 | 1/16 (6%) | 높음 | 17 | O |
+| 45 | 2026-07-24 | ra_eu | `kb-eval-20260724-it01-ra_eu-001` | 10,164 | 4/15 (26%) | 높음 | 0 | O |
+| 46 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-005` | 5,520 | 0/9 (0%) | 높음 | 0 | O |
+| 47 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-004` | 8,395 | 1/8 (12%) | 높음 | 0 | O |
+| 48 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-003` | 8,322 | 4/15 (26%) | 높음 | 0 | O |
+| 49 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-002` | 7,396 | 0/12 (0%) | 높음 | 0 | O |
+| 50 | 2026-07-23 | ra_us | `kb-eval-20260723-it01-ra_us-001` | 5,714 | 0/8 (0%) | 높음 | 0 | O |
+| 51 | 2026-07-23 | ra_kr | `kb-eval-20260723-it03-ra_kr-005` | 10,547 | 0/3 (0%) | 높음 | 0 | O |
+| 52 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-005` | 8,641 | 0/2 (0%) | 높음 | 0 | O |
+| 53 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-004` | 8,211 | 0/5 (0%) | 높음 | 0 | O |
+| 54 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-003` | 7,794 | 0/4 (0%) | 높음 | 0 | O |
+| 55 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-002` | 8,651 | 0/0 (0%) | 낮음 | 0 | O |
+| 56 | 2026-07-23 | ra_kr | `kb-eval-20260723-it01-ra_kr-001` | 9,049 | 0/1 (0%) | 높음 | 0 | O |
+| 57 | 2026-07-23 | ra_eu | `kb-eval-20260723-it03-ra_eu-005` | 9,677 | 0/21 (0%) | 높음 | 0 | O |
+| 58 | 2026-07-23 | ra_eu | `kb-eval-20260723-it02-ra_eu-005` | 12,621 | 2/14 (14%) | 높음 | 0 | O |
+| 59 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-005` | 8,144 | 6/17 (35%) | 중간 | 0 | O |
+| 60 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-004` | 9,368 | 0/13 (0%) | 높음 | 0 | O |
+| 61 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-003` | 10,661 | 3/19 (15%) | 높음 | 0 | O |
+| 62 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-002` | 11,084 | 7/22 (31%) | 중간 | 0 | O |
+| 63 | 2026-07-23 | ra_eu | `kb-eval-20260723-it01-ra_eu-001` | 10,624 | 3/14 (21%) | 높음 | 0 | O |
+| 64 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-005` | 7,668 | 11/16 (68%) | 중간 | 0 | O |
+| 65 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-004` | 6,522 | 2/8 (25%) | 높음 | 0 | O |
+| 66 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-003` | 7,166 | 0/8 (0%) | 높음 | 0 | O |
+| 67 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-002` | 8,438 | 0/11 (0%) | 높음 | 0 | O |
+| 68 | 2026-07-22 | ra_us | `kb-eval-20260722-it03-ra_us-001` | 6,572 | 1/6 (16%) | 높음 | 0 | O |
+| 69 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-005` | 6,887 | 0/14 (0%) | 높음 | 0 | O |
+| 70 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-004` | 5,623 | 0/12 (0%) | 높음 | 0 | O |
+| 71 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-003` | 9,022 | 0/11 (0%) | 높음 | 0 | O |
+| 72 | 2026-07-22 | ra_us | `kb-eval-20260722-it02-ra_us-002` | 7,562 | 0/11 (0%) | 높음 | 0 | O |
+| 73 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-005` | 9,020 | 4/9 (44%) | 중간 | 0 | O |
+| 74 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-004` | 8,625 | 2/12 (16%) | 높음 | 0 | O |
+| 75 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-003` | 10,282 | 0/6 (0%) | 높음 | 0 | O |
+| 76 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-002` | 6,954 | 0/10 (0%) | 높음 | 0 | O |
+| 77 | 2026-07-22 | ra_us | `kb-eval-20260722-it01-ra_us-001` | 5,522 | 0/7 (0%) | 높음 | 0 | O |
+| 78 | 2026-07-22 | ra_kr | `kb-eval-20260722-it03-ra_kr-005` | 5,892 | 0/1 (0%) | 높음 | 0 | O |
+| 79 | 2026-07-22 | ra_kr | `kb-eval-20260722-it03-ra_kr-004` | 6,858 | 1/2 (50%) | 중간 | 0 | O |
+| 80 | 2026-07-22 | ra_kr | `kb-eval-20260722-it03-ra_kr-003` | 6,993 | 0/11 (0%) | 높음 | 0 | O |
+| 81 | 2026-07-22 | ra_kr | `kb-eval-20260722-it02-ra_kr-005` | 8,694 | 0/3 (0%) | 높음 | 0 | O |
+| 82 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-005` | 9,711 | 0/20 (0%) | 높음 | 0 | O |
+| 83 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-004` | 7,938 | 0/0 (0%) | 낮음 | 0 | O |
+| 84 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-003` | 8,751 | 0/2 (0%) | 높음 | 0 | O |
+| 85 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-002` | 8,406 | 0/5 (0%) | 높음 | 0 | O |
+| 86 | 2026-07-22 | ra_kr | `kb-eval-20260722-it01-ra_kr-001` | 8,550 | 0/1 (0%) | 높음 | 0 | O |
+| 87 | 2026-07-22 | ra_eu | `kb-eval-20260722-it02-ra_eu-005` | 8,987 | 1/19 (5%) | 높음 | 0 | O |
+| 88 | 2026-07-22 | ra_eu | `kb-eval-20260722-it02-ra_eu-002` | 7,880 | 2/17 (11%) | 높음 | 0 | O |
+| 89 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-005` | 8,052 | 2/15 (13%) | 높음 | 0 | O |
+| 90 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-004` | 8,251 | 1/17 (5%) | 높음 | 0 | O |
+| 91 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-003` | 7,381 | 1/15 (6%) | 높음 | 0 | O |
+| 92 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-002` | 10,094 | 7/18 (38%) | 중간 | 0 | O |
+| 93 | 2026-07-22 | ra_eu | `kb-eval-20260722-it01-ra_eu-001` | 7,670 | 2/17 (11%) | 높음 | 0 | O |
+| 94 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-005` | 7,229 | 2/9 (22%) | 높음 | 0 | O |
+| 95 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-004` | 9,647 | 4/13 (30%) | 중간 | 0 | O |
+| 96 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-003` | 7,211 | 2/10 (20%) | 높음 | 0 | O |
+| 97 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-002` | 5,847 | 1/9 (11%) | 높음 | 0 | O |
+| 98 | 2026-07-21 | ra_us | `kb-eval-20260721-it01-ra_us-001` | 7,803 | 1/5 (20%) | 높음 | 0 | O |
+| 99 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-005` | 9,338 | 0/3 (0%) | 높음 | 0 | O |
+| 100 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-004` | 10,416 | 0/5 (0%) | 높음 | 0 | O |
+| 101 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-003` | 9,831 | 0/3 (0%) | 높음 | 0 | O |
+| 102 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-002` | 9,901 | 0/3 (0%) | 높음 | 0 | O |
+| 103 | 2026-07-21 | ra_kr | `kb-eval-20260721-it01-ra_kr-001` | 8,600 | 0/3 (0%) | 높음 | 0 | O |
+| 104 | 2026-07-21 | ra_eu | `kb-eval-20260721-it03-ra_eu-005` | 10,840 | 2/17 (11%) | 높음 | 0 | O |
+| 105 | 2026-07-21 | ra_eu | `kb-eval-20260721-it03-ra_eu-004` | 10,873 | 0/13 (0%) | 높음 | 0 | O |
+| 106 | 2026-07-21 | ra_eu | `kb-eval-20260721-it02-ra_eu-004` | 12,044 | 2/20 (10%) | 높음 | 0 | O |
+| 107 | 2026-07-21 | ra_eu | `kb-eval-20260721-it02-ra_eu-003` | 9,013 | 7/18 (38%) | 중간 | 0 | O |
+| 108 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-005` | 11,068 | 7/23 (30%) | 중간 | 0 | O |
+| 109 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-004` | 9,182 | 0/16 (0%) | 높음 | 0 | O |
+| 110 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-003` | 10,135 | 3/15 (20%) | 높음 | 0 | O |
+| 111 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-002` | 10,007 | 0/18 (0%) | 높음 | 0 | O |
+| 112 | 2026-07-21 | ra_eu | `kb-eval-20260721-it01-ra_eu-001` | 11,254 | 2/18 (11%) | 높음 | 0 | O |
+| 113 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-005` | 8,465 | 0/7 (0%) | 높음 | 0 | O |
+| 114 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-004` | 6,766 | 0/5 (0%) | 높음 | 0 | O |
+| 115 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-003` | 8,923 | 5/12 (41%) | 중간 | 0 | O |
+| 116 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-002` | 6,517 | 0/9 (0%) | 높음 | 0 | O |
+| 117 | 2026-07-20 | ra_us | `kb-eval-20260720-it01-ra_us-001` | 7,309 | 1/1 (100%) | 낮음 | 0 | O |
+| 118 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-005` | 7,863 | 0/1 (0%) | 높음 | 0 | O |
+| 119 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-004` | 7,946 | 1/3 (33%) | 중간 | 0 | O |
+| 120 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-003` | 9,765 | 0/16 (0%) | 높음 | 0 | O |
+| 121 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-002` | 8,861 | 2/3 (66%) | 중간 | 0 | O |
+| 122 | 2026-07-20 | ra_kr | `kb-eval-20260720-it01-ra_kr-001` | 10,002 | 2/6 (33%) | 중간 | 0 | O |
+| 123 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-005` | 12,131 | 2/15 (13%) | 높음 | 0 | O |
+| 124 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-004` | 9,385 | 1/13 (7%) | 높음 | 11 | O |
+| 125 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-003` | 9,300 | 3/17 (17%) | 높음 | 0 | O |
+| 126 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-002` | 10,716 | 0/16 (0%) | 높음 | 0 | O |
+| 127 | 2026-07-20 | ra_eu | `kb-eval-20260720-it01-ra_eu-001` | 9,824 | 3/15 (20%) | 높음 | 0 | O |
+| 128 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-005` | 7,997 | 0/6 (0%) | 높음 | 0 | O |
+| 129 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-004` | 7,601 | 0/10 (0%) | 높음 | 0 | O |
+| 130 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-003` | 7,985 | 0/4 (0%) | 높음 | 0 | O |
+| 131 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-002` | 7,802 | 4/6 (66%) | 중간 | 0 | O |
+| 132 | 2026-07-19 | ra_us | `kb-eval-20260719-it01-ra_us-001` | 7,381 | 0/4 (0%) | 높음 | 0 | O |
+| 133 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-005` | 9,394 | 0/4 (0%) | 높음 | 0 | O |
+| 134 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-004` | 9,283 | 0/6 (0%) | 높음 | 0 | O |
+| 135 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-003` | 9,830 | 0/6 (0%) | 높음 | 0 | O |
+| 136 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-002` | 9,646 | 0/1 (0%) | 높음 | 0 | O |
+| 137 | 2026-07-19 | ra_kr | `kb-eval-20260719-it01-ra_kr-001` | 8,830 | 0/3 (0%) | 높음 | 0 | O |
+| 138 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-005` | 9,506 | 0/15 (0%) | 높음 | 0 | O |
+| 139 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-004` | 9,867 | 8/16 (50%) | 중간 | 0 | O |
+| 140 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-003` | 10,095 | 2/15 (13%) | 높음 | 0 | O |
+| 141 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-002` | 9,481 | 7/19 (36%) | 중간 | 0 | O |
+| 142 | 2026-07-19 | ra_eu | `kb-eval-20260719-it01-ra_eu-001` | 9,387 | 3/17 (17%) | 높음 | 0 | O |
+| 143 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-005` | 8,012 | 1/4 (25%) | 높음 | 0 | O |
+| 144 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-004` | 10,627 | 3/8 (37%) | 중간 | 0 | O |
+| 145 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-003` | 9,324 | 0/4 (0%) | 높음 | 0 | O |
+| 146 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-002` | 6,754 | 0/4 (0%) | 높음 | 0 | O |
+| 147 | 2026-07-18 | ra_us | `kb-eval-20260718-it01-ra_us-001` | 7,033 | 0/5 (0%) | 높음 | 0 | O |
+| 148 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-005` | 8,427 | 0/12 (0%) | 높음 | 0 | O |
+| 149 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-004` | 4,985 | 0/1 (0%) | 높음 | 0 | O |
+| 150 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-003` | 9,077 | 0/3 (0%) | 높음 | 0 | O |
+| 151 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-002` | 10,113 | 0/5 (0%) | 높음 | 0 | O |
+| 152 | 2026-07-18 | ra_kr | `kb-eval-20260718-it01-ra_kr-001` | 9,727 | 0/6 (0%) | 높음 | 0 | O |
+| 153 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-005` | 9,742 | 8/22 (36%) | 중간 | 0 | O |
+| 154 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-004` | 10,829 | 4/11 (36%) | 중간 | 0 | O |
+| 155 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-003` | 10,643 | 2/20 (10%) | 높음 | 0 | O |
+| 156 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-002` | 8,864 | 2/15 (13%) | 높음 | 0 | O |
+| 157 | 2026-07-18 | ra_eu | `kb-eval-20260718-it01-ra_eu-001` | 8,101 | 7/13 (53%) | 중간 | 0 | O |
+| 158 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-005` | 9,343 | 5/11 (45%) | 중간 | 0 | O |
+| 159 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-004` | 7,892 | 2/4 (50%) | 중간 | 0 | O |
+| 160 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-003` | 7,911 | 2/2 (100%) | 낮음 | 0 | O |
+| 161 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-002` | 6,991 | 2/5 (40%) | 중간 | 0 | O |
+| 162 | 2026-07-17 | ra_us | `kb-eval-20260717-it01-ra_us-001` | 7,020 | 2/3 (66%) | 중간 | 0 | O |
+| 163 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-005` | 9,461 | 0/4 (0%) | 높음 | 0 | O |
+| 164 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-004` | 10,593 | 0/3 (0%) | 높음 | 0 | O |
+| 165 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-003` | 10,286 | 0/5 (0%) | 높음 | 0 | O |
+| 166 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-002` | 8,604 | 0/3 (0%) | 높음 | 0 | O |
+| 167 | 2026-07-17 | ra_kr | `kb-eval-20260717-it01-ra_kr-001` | 9,271 | 0/2 (0%) | 높음 | 0 | O |
+| 168 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-005` | 9,099 | 1/12 (8%) | 높음 | 11 | O |
+| 169 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-004` | 8,157 | 0/12 (0%) | 높음 | 0 | O |
+| 170 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-003` | 10,098 | 2/14 (14%) | 높음 | 0 | O |
+| 171 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-002` | 10,712 | 6/19 (31%) | 중간 | 0 | O |
+| 172 | 2026-07-17 | ra_eu | `kb-eval-20260717-it01-ra_eu-001` | 12,916 | 2/15 (13%) | 높음 | 0 | O |
+| 173 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-005` | 8,293 | 0/2 (0%) | 높음 | 0 | O |
+| 174 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-004` | 5,578 | 2/3 (66%) | 중간 | 0 | O |
+| 175 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-003` | 9,521 | 2/7 (28%) | 높음 | 0 | O |
+| 176 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-002` | 6,815 | 2/5 (40%) | 중간 | 0 | O |
+| 177 | 2026-07-16 | ra_us | `kb-eval-20260716-it01-ra_us-001` | 8,265 | 1/5 (20%) | 높음 | 0 | O |
+| 178 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-005` | 8,305 | 0/0 (0%) | 낮음 | 0 | O |
+| 179 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-004` | 7,571 | 1/5 (20%) | 높음 | 0 | O |
+| 180 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-003` | 8,489 | 0/10 (0%) | 높음 | 0 | O |
+| 181 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-002` | 10,318 | 1/7 (14%) | 높음 | 0 | O |
+| 182 | 2026-07-16 | ra_kr | `kb-eval-20260716-it01-ra_kr-001` | 8,799 | 2/4 (50%) | 중간 | 0 | O |
+| 183 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-005` | 585 | 0/0 (0%) | 낮음 | 0 | O |
+| 184 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-004` | 10,400 | 1/15 (6%) | 높음 | 4 | O |
+| 185 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-003` | 12,755 | 2/17 (11%) | 높음 | 0 | O |
+| 186 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-002` | 12,236 | 0/19 (0%) | 높음 | 0 | O |
+| 187 | 2026-07-16 | ra_eu | `kb-eval-20260716-it01-ra_eu-001` | 10,196 | 4/11 (36%) | 중간 | 0 | O |
+| 188 | 2026-07-15 | ra_us | `kb-eval-20260715-it13-ra_us-001` | 11,959 | 0/10 (0%) | 높음 | 0 | O |
+| 189 | 2026-07-15 | ra_kr | `kb-eval-20260715-it13-ra_kr-001` | 12,230 | 0/6 (0%) | 높음 | 0 | O |
+| 190 | 2026-07-15 | ra_eu | `kb-eval-20260715-it13-ra_eu-001` | 11,604 | 1/9 (11%) | 높음 | 0 | O |

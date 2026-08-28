@@ -166,6 +166,29 @@ All controls must be documented in the **Design History File (DHF)** and linked 
 }
 ```
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 188/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 11,197자 | — |
+| 규제 식별자 인용 | 10개 | — |
+| excerpt 근거 일치 | **0/10 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 10개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR 862`, `K123456`, `K234567`, `ISO 13485`, `ISO 14971`, `IEC 62304`, `IEC 60601`, `ISO 10993`, `21 CFR 807`, `art 820`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -370,6 +393,29 @@ Please challenge our classification justification, the completeness of required 
 *Prepared by Theo – EU MDR Regulatory Affairs Specialist*  
 *All statements are based on the current version of MDR (2017/745) and referenced harmonised standards.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 190/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 10,867자 | — |
+| 규제 식별자 인용 | 9개 | — |
+| excerpt 근거 일치 | **1/9 (11%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 8개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex II`, `ISO 14971`, `IEC 60601`, `Annex XIV`, `IEC 62387`, `ISO 10993`, `IEC 62304`, `Article 2`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -570,6 +616,29 @@ Your feedback will be incorporated before final dossier preparation.
 *Prepared by Sam (KR RA Specialist)*  
 *All statements are based on the excerpts provided (Chunk IDs 1131342938714268388 & 385578214769089426) and the latest MFDS revisions up to Jan 2026.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 189/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 11,519자 | — |
+| 규제 식별자 인용 | 6개 | — |
+| excerpt 근거 일치 | **0/6 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 6개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `IEC 62304`, `ISO 14971`, `ISO 13485`, `Annex III`, `21 CFR 801`, `Annex II`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction

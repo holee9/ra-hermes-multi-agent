@@ -1541,6 +1541,29 @@ All collected signals feed into the **PMS Plan’s “Signal Detection Criteria�
 
 > **@RA‑Colleague:** Please challenge the assumptions made above, especially regarding (a) the likely classification routes based on limited data, (b) whether the cited EUDAMED module deadlines fully cover all MDR obligations for PMS/PMCF, and (c) any jurisdiction‑specific nuances that might be missing (e.g., national competent authority requirements in EU Member States). Identify gaps or alternative interpretations so we can refine the draft before submission.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 57/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,897자 | — |
+| 규제 식별자 인용 | 21개 | — |
+| excerpt 근거 일치 | **0/21 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 21개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Art. 33`, `Art. 27`, `Art. 84`, `Annex IX`, `ISO 13485`, `Annex II`, `Annex IV`, `Annex X`, `Annex XI`, `Art. 83`, `Art. 85` 외 9개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2275,6 +2298,29 @@ All collected signals feed into the **PMS Plan’s “Signal Detection Criteria�
 
 > *@RA‑Peer: Please challenge the assumptions made in this draft—especially regarding (1) the applicability of foreign Clinical Evaluation Reports under the Digital Medical Products Act, (2) whether a Class II SaMD can rely on NIDS‑performed GMP assessment without additional KTL/KTR review, and (3) any jurisdiction‑specific gaps that may have been overlooked such as required Korean pilot study or specific labeling formats.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 51/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 9,877자 | — |
+| 규제 식별자 인용 | 3개 | — |
+| excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 3개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `ISO 14971`, `ISO 13485`, `IEC 62443`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction

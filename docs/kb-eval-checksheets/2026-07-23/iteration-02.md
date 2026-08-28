@@ -1485,6 +1485,29 @@ Please challenge the assumptions and flag any overlooked gaps.
 
 Please provide feedback on any missing evidence, alternative routes, or overlooked regulatory obligations.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 58/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 11,845자 | — |
+| 규제 식별자 인용 | 14개 | — |
+| excerpt 근거 일치 | **2/14 (14%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 12개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex XIV`, `Art 86`, `ISO 14971`, `Annex I`, `Annex VIII`, `Annex IX`, `Art 61`, `Art 84`, `Art 83`, `IEC 60601`, `Annex X`, `IEC 62443`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction

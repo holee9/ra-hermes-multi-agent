@@ -139,6 +139,23 @@ Each control should be linked to the corresponding threat in the STRIDE model an
 
 > *Please challenge the assumptions made about device classification, the completeness of the required evidence list, and potential jurisdictional gaps (e.g., EU MDR or MFDS alignments) that might affect our submission strategy.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 117/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 6,840자 | — |
+| 규제 식별자 인용 | 1개 | — |
+| excerpt 근거 일치 | **1/1 (100%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 0개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 낮음**
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -220,6 +237,29 @@ Each control should be linked to the corresponding threat in the STRIDE model an
 
 > @RA‑Colleague – please challenge the assumptions made regarding (a) inferred Class II classification without a stated indication, (b) completeness of the PCCP checklist based solely on the two source excerpts, and (c) any jurisdiction‑specific gaps that might affect submission under the new FDA QMSR effective February 2026.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 116/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 5,757자 | — |
+| 규제 식별자 인용 | 9개 | — |
+| excerpt 근거 일치 | **0/9 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 9개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR 862`, `21 CFR 860.10`, `IEC 62304`, `21 CFR 820.70`, `ISO 14971`, `IEC 82304`, `21 CFR 820`, `ISO 13485`, `21 CFR 807`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -376,6 +416,29 @@ When any of the above triggers are met, the responsible individual must **raise 
 
 **End of Draft**
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 115/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,183자 | — |
+| 규제 식별자 인용 | 12개 | — |
+| excerpt 근거 일치 | **5/12 (41%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 7개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 중간**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR 862.1780`, `21 CFR 11`, `IEC 60601`, `ISO 14971`, `IEC 62304`, `21 CFR 830.30`, `21 CFR 820.35`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -514,6 +577,29 @@ These controls satisfy both FDA guidance and the forthcoming QMSR requirements (
 
 > *@RA‑Peer: Please challenge the assumptions above—particularly the inference that a 510(k) is appropriate without a known predicate, the completeness of the listed regulatory references, and any jurisdiction‑specific gaps (e.g., state‑level medical device cybersecurity statutes).*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 114/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 6,061자 | — |
+| 규제 식별자 인용 | 5개 | — |
+| excerpt 근거 일치 | **0/5 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 5개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR §812.2`, `ISO 13485`, `IEC 62443`, `21 CFR §812.3`, `ISO 14971`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -673,6 +759,29 @@ These controls satisfy both FDA guidance and the forthcoming QMSR requirements (
 
 > *Please review the assumptions made about classification, the completeness of the evidentiary checklist, and any jurisdiction‑specific gaps (e.g., state‑level AI regulations, CMS coverage considerations). Highlight missing citations or alternative pathways that may be more efficient for this AI‑Enabled DSF.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 113/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 7,736자 | — |
+| 규제 식별자 인용 | 7개 | — |
+| excerpt 근거 일치 | **0/7 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 7개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR 862`, `ISO 14971`, `IEC 62304`, `ISO 13485`, `21 CFR 820`, `IEC 62366`, `21 CFR 814.30`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -827,6 +936,29 @@ These controls satisfy both FDA guidance and the forthcoming QMSR requirements (
 *Prepared by:* Theo – EU MDR Regulatory Affairs Specialist  
 *Date:* 2026‑07‑18
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 127/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 9,051자 | — |
+| 규제 식별자 인용 | 15개 | — |
+| excerpt 근거 일치 | **3/15 (20%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 12개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Annex IV`, `Art 85`, `Annex IX`, `Art. 61`, `Art 83`, `ISO 14971`, `Annex II`, `Annex I`, `IEC 62366`, `Art 2`, `Art 84`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -985,6 +1117,29 @@ These controls satisfy both FDA guidance and the forthcoming QMSR requirements (
 
 Your feedback will help ensure the gap analysis is both complete and proportionate.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 126/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 9,934자 | — |
+| 규제 식별자 인용 | 16개 | — |
+| excerpt 근거 일치 | **0/16 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 16개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Annex IX`, `Annex IV`, `Annex X`, `Annex XI`, `Annex XIV`, `Art. 61`, `Art. 84`, `Art. 83`, `Art. 86`, `ISO 14971`, `Annex I` 외 4개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1158,6 +1313,29 @@ Your feedback will help ensure the gap analysis is both complete and proportiona
 
 > *Colleague, please review this draft for: (1) completeness of the identified evidence gaps against the MDR requirements; (2) correctness of the classification reasoning and chosen conformity‑assessment route; (3) any overlooked jurisdiction‑specific obligations (e.g., EUDAMED registration, post‑market trend reporting under Art. 88); and (4) suitability of the escalation triggers for our internal risk‑management framework.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 125/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,512자 | — |
+| 규제 식별자 인용 | 17개 | — |
+| excerpt 근거 일치 | **3/17 (17%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 14개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Annex IX`, `Annex XIV`, `Art. 61`, `ISO 14971`, `Annex I`, `IEC 62366`, `IEC 62304`, `IEC 60601`, `Art. 84`, `Art. 86`, `Annex IV` 외 2개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1320,6 +1498,36 @@ Your feedback will help ensure the gap analysis is both complete and proportiona
 - ⚠️ Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c). (`Art.86(1)(d)`)
 - ⚠️ Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c). (`Art. 86(1)(d)`)
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 124/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,247자 | — |
+| 규제 식별자 인용 | 13개 | — |
+| excerpt 근거 일치 | **1/13 (7%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 12개 | `No hallucination` |
+| C1 린터 구조 오류 | 6건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+⚠️ **C1 구조 오류** (존재할 수 없는 하위 식별자):
+- Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
+- Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
+- Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
+- Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
+- Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Annex IX`, `Annex IV`, `Annex X`, `Art.61`, `Annex XIV`, `Annex II`, `ISO 14971`, `Annex I`, `IEC 60601`, `IEC 62366`, `IEC 62304`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1496,6 +1704,29 @@ All three devices fall into **Class IIa** or **Class IIb** → mandatory inv
 
 ---
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 123/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 11,351자 | — |
+| 규제 식별자 인용 | 15개 | — |
+| excerpt 근거 일치 | **2/15 (13%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 13개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex IX`, `Annex VIII`, `Annex II`, `ISO 14971`, `Annex XIV`, `Art 61`, `Art 84`, `Art 86`, `Annex I`, `Art 10`, `ISO 13485`, `Art 83` 외 1개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1655,6 +1886,29 @@ These controls demonstrate a robust QMS foundation that can satisfy MFDS KGMP ex
 
 *End of regulatory draft.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 122/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 9,317자 | — |
+| 규제 식별자 인용 | 6개 | — |
+| excerpt 근거 일치 | **2/6 (33%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 4개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 중간**
+
+**excerpt에서 확인되지 않은 인용**: `ISO 13485`, `ISO 10993`, `Annex III`, `ISO 14971`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1810,6 +2064,29 @@ These controls demonstrate a robust QMS foundation that can satisfy MFDS KGMP ex
 
 ---
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 121/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,215자 | — |
+| 규제 식별자 인용 | 3개 | — |
+| excerpt 근거 일치 | **2/3 (66%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 1개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 중간**
+
+**excerpt에서 확인되지 않은 인용**: `ISO 14971`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1970,6 +2247,29 @@ These controls demonstrate a robust QMS foundation that can satisfy MFDS KGMP ex
 
 *@RA‑Peer*: Please challenge the assumptions made regarding (1) the classification of this AI‑based software as Class III/IV without a detailed functional description, (2) the sufficiency of citing only Articles 9 and 10 for clinical evidence in lieu of potential hybrid evidence pathways, and (3) any jurisdiction‑specific gaps that may exist between the Digital Medical Device Act and the underlying Medical Device Act, especially concerning labeling exceptions. Your feedback will help ensure full coverage of Korean regulatory obligations.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 120/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,979자 | — |
+| 규제 식별자 인용 | 16개 | — |
+| excerpt 근거 일치 | **0/16 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 16개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Art. 9`, `Art. 10`, `Art. 13`, `Art. 15`, `Art. 17`, `Art. 39`, `Article 39`, `ISO 13485`, `Article 17`, `Article 9`, `Article 10`, `ISO 14155` 외 4개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2118,6 +2418,29 @@ These controls demonstrate a robust QMS foundation that can satisfy MFDS KGMP ex
 
 *Kindly challenge the above points and suggest any additional items that should be incorporated before finalizing.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 119/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 7,287자 | — |
+| 규제 식별자 인용 | 3개 | — |
+| excerpt 근거 일치 | **1/3 (33%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 2개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 중간**
+
+**excerpt에서 확인되지 않은 인용**: `Annex III`, `ISO 14971`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2243,6 +2566,29 @@ These controls demonstrate a robust QMS foundation that can satisfy MFDS KGMP ex
 
 > @RA‑Peer: Please review the assumptions made regarding the KGMP documentation retention requirement and the classification pathway. Are there other MFDS notices or recent guideline updates (e.g., post‑2023 scope extensions on foreign evidence) that might affect the evidentiary expectations for this dossier? Highlight any jurisdiction‑specific gaps not covered here.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 118/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 7,218자 | — |
+| 규제 식별자 인용 | 1개 | — |
+| excerpt 근거 일치 | **0/1 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 1개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `ISO 14971`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
