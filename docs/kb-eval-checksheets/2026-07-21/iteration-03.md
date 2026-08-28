@@ -1323,6 +1323,29 @@ All controls must be documented, verified, and included in the Risk Management R
 
 > @RA‑Colleague: Please challenge the assumptions made regarding (a) the default to Class IIb without a full impact analysis, (b) completeness of the listed evidence requirements for a GUI in an X‑ray suite, and (c) any jurisdiction‑specific gaps that may arise under national implementation provisions (e.g., Germany’s BfArM additional software guidelines). Your feedback will be incorporated before finalizing the submission plan.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 105/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 10,086자 | — |
+| 규제 식별자 인용 | 13개 | — |
+| excerpt 근거 일치 | **0/13 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 13개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex IX`, `Annex X`, `Annex II`, `ISO 14971`, `IEC 62304`, `IEC 62366`, `Annex XIV`, `Art. 83`, `Annex I`, `Annex IV`, `Art. 33`, `Annex VIII` 외 1개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1475,6 +1498,29 @@ These gaps must be resolved before any NB submission can proceed without “ques
 
 Your feedback will be incorporated into the final submission package.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 104/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 10,053자 | — |
+| 규제 식별자 인용 | 17개 | — |
+| excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex IX`, `Annex VIII`, `Annex XIV`, `Art. 61`, `IEC 62366`, `Annex I`, `ISO 14971`, `Art. 84`, `Art. 86`, `Art. 33`, `IEC 60601`, `Annex II` 외 3개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction

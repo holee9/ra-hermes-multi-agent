@@ -1211,6 +1211,29 @@ The route follows the class identified in § 1:
 
 *End of Draft.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 107/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,249자 | — |
+| 규제 식별자 인용 | 18개 | — |
+| excerpt 근거 일치 | **7/18 (38%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 11개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 중간**
+
+**excerpt에서 확인되지 않은 인용**: `Annex IX`, `ISO 13485`, `Annex II`, `ISO 14971`, `Annex I`, `Art. 61`, `Art. 83`, `Art. 84`, `Art. 86`, `Annex IV`, `Art. 33`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1404,6 +1427,29 @@ Until the above items are received, we must pause the NB submission.
 
 Your feedback will ensure the final response fully satisfies the Notified Body’s expectations.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 106/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 11,254자 | — |
+| 규제 식별자 인용 | 20개 | — |
+| excerpt 근거 일치 | **2/20 (10%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 18개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex II`, `Art. 83`, `Annex VIII`, `Annex XIV`, `IEC 62304`, `Annex IX`, `Annex IV`, `Art. 84`, `ISO 13485`, `IEC 60601`, `IEC 62366`, `Annex X` 외 6개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction

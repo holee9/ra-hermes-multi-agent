@@ -229,6 +229,29 @@ Without this core information we cannot:
 
 *End of draft.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 72/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 6,769자 | — |
+| 규제 식별자 인용 | 11개 | — |
+| excerpt 근거 일치 | **0/11 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 11개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR §892.2050`, `21 CFR §807`, `art 892`, `21 CFR §801`, `IEC 60601`, `ISO 10993`, `ISO 14971`, `21 CFR §820`, `ISO 13485`, `21 CFR §820.30`, `IEC 62366`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -383,6 +406,29 @@ Without this core information we cannot:
 
 ---
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 71/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,243자 | — |
+| 규제 식별자 인용 | 11개 | — |
+| excerpt 근거 일치 | **0/11 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 11개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `art 892`, `21 CFR 814`, `ISO 14971`, `ISO 10993`, `21 CFR 830`, `art 820`, `ISO 13485`, `21 CFR 830.10`, `21 CFR 820.30`, `art 807`, `art 830`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -463,6 +509,29 @@ Without this core information we cannot:
 ---  
 *No specific 510(k) identifiers or predicate numbers appear in the source excerpts – verify separately.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 70/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 4,819자 | — |
+| 규제 식별자 인용 | 12개 | — |
+| excerpt 근거 일치 | **0/12 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 12개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR §892`, `21 CFR §807`, `21 CFR §807.91`, `21 CFR §830.10`, `21 CFR §820`, `21 CFR §801`, `ISO 14971`, `IEC 60601`, `IEC 62304`, `art 892`, `art 862`, `ISO 13485`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -604,6 +673,29 @@ Without this core information we cannot:
 
 *End of draft.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 69/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 6,065자 | — |
+| 규제 식별자 인용 | 14개 | — |
+| excerpt 근거 일치 | **0/14 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 14개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `21 CFR §892`, `21 CFR §882`, `21 CFR §807`, `ISO 13485`, `21 CFR §820`, `21 CFR §830`, `21 CFR §807.92`, `21 CFR §807.87`, `IEC 62304`, `21 CFR §820.30`, `ISO 14971`, `21 CFR §801` 외 2개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -911,6 +1003,29 @@ All controls must be documented in the **Risk Management File** (ISO 14971) an
 
 *End of draft.*
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 88/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 7,094자 | — |
+| 규제 식별자 인용 | 17개 | — |
+| excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Annex X`, `Annex II`, `ISO 14971`, `Art. 61`, `Annex XIV`, `Art. 83`, `Art. 84`, `Art. 86`, `IEC 60601`, `IEC 62220`, `IEC 62304` 외 3개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1401,6 +1516,29 @@ Only after these triggers are resolved should the classification be finalized an
 
 ---
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 87/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,205자 | — |
+| 규제 식별자 인용 | 19개 | — |
+| excerpt 근거 일치 | **1/19 (5%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 18개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `Art. 10`, `Annex II`, `Annex III`, `Annex VIII`, `Annex IV`, `Annex IX`, `Annex X`, `Annex XI`, `ISO 14971`, `Art. 84`, `Art. 83`, `Art. 86` 외 6개
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2173,6 +2311,29 @@ No specific case identifiers (e.g., K‑numbers, 510(k) predicates) appear in th
 
 Your feedback will be incorporated before finalizing the submission plan.
 
+<!-- verification-summary -->
+
+**🔎 기계 검증 요약** (우선순위 81/190 · 자동 생성, 판정은 사람이 확정)
+
+| 관측 | 값 | 관련 Fast Check |
+|---|---|---|
+| 응답 분량 | 8,024자 | — |
+| 규제 식별자 인용 | 3개 | — |
+| excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 식별자 | 3개 | `No hallucination` |
+| C1 린터 구조 오류 | 0건 | `No hallucination` |
+| escalation 표현 | 있음 | `Escalation appropriate` |
+| 근거 인용 표현 | 있음 | `Source cited` |
+
+**근거 대조 위험도: 높음**
+
+**excerpt에서 확인되지 않은 인용**: `ISO 14971`, `IEC 62366`, `IEC 62304`
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
+> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+
+<!-- /verification-summary -->
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
