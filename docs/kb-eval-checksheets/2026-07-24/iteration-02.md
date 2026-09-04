@@ -125,25 +125,34 @@ QMSR & Design‑Control Readiness**
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 10/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 10/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 7,768자 | — |
 | 규제 식별자 인용 | 13개 | — |
-| excerpt 근거 일치 | **4/13 (30%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 9개 | `No hallucination` |
+| source excerpt 근거 일치 | **4/13 (30%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 9개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 중간**
 
-**excerpt에서 확인되지 않은 인용**: `art 892`, `21 CFR 892`, `21 CFR §820.35`, `21 CFR 807`, `ISO 14971`, `21 CFR §830.10`, `art 830`, `IEC 60601`, `21 CFR §801`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `21 CFR Part 892`, `21 CFR 892`, `21 CFR §820.35`, `21 CFR 807`, `21 CFR §830.10`, `Part 830`, `21 CFR §801`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -299,25 +308,33 @@ QMSR & Design‑Control Readiness**
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 9/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 9/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 6,335자 | — |
 | 규제 식별자 인용 | 12개 | — |
-| excerpt 근거 일치 | **4/12 (33%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 8개 | `No hallucination` |
+| source excerpt 근거 일치 | **4/12 (33%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 8개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 중간**
 
-**excerpt에서 확인되지 않은 인용**: `ISO 14971`, `21 CFR 803`, `21 CFR 830`, `21 CFR 820.30`, `21 CFR 820.40`, `21 CFR 820.70`, `21 CFR 820.100`, `21 CFR 830.10`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `21 CFR 803`, `21 CFR 830`, `21 CFR 820.30`, `21 CFR 820.40`, `21 CFR 820.70`, `21 CFR 820.100`, `21 CFR 830.10`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -475,25 +492,33 @@ Each control must be evidenced by SOPs, work instructions, and traceable records
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 8/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 8/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 7,939자 | — |
-| 규제 식별자 인용 | 5개 | — |
-| excerpt 근거 일치 | **1/5 (20%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 4개 | `No hallucination` |
+| 규제 식별자 인용 | 6개 | — |
+| source excerpt 근거 일치 | **1/6 (16%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 5개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `21 CFR 820`, `art 820`, `21 CFR 830`, `ISO 13485`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 13485` | ISO 13485 | 의료기기 품질경영시스템 (설계관리·문서관리·구매·생산·CAPA·경영검토) |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `21 CFR 820`, `21 CFR Part 820`, `21 CFR 830`, `Part 820`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -633,25 +658,34 @@ Each control must be evidenced by SOPs, work instructions, and traceable records
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 7/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 7/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 6,315자 | — |
 | 규제 식별자 인용 | 8개 | — |
-| excerpt 근거 일치 | **2/8 (25%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 6개 | `No hallucination` |
+| source excerpt 근거 일치 | **2/8 (25%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 6개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `21 CFR §820`, `ISO 13485`, `21 CFR §820.30`, `ISO 14971`, `21 CFR 801`, `21 CFR 830`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 13485` | ISO 13485 | 의료기기 품질경영시스템 (설계관리·문서관리·구매·생산·CAPA·경영검토) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `21 CFR §820`, `21 CFR §820.30`, `21 CFR 801`, `21 CFR 830`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -824,25 +858,24 @@ Each control must be evidenced by SOPs, work instructions, and traceable records
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 6/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 6/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 8,212자 | — |
 | 규제 식별자 인용 | 16개 | — |
-| excerpt 근거 일치 | **9/16 (56%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 7개 | `No hallucination` |
+| source excerpt 근거 일치 | **8/16 (50%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 8개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 중간**
 
-**excerpt에서 확인되지 않은 인용**: `21 CFR §820`, `21 CFR §830.10`, `ISO 17665`, `ISO 11737`, `21 CFR §820.30`, `21 CFR §11.10`, `ISO 11137`
+**대조표 미수록 인용**: `21 CFR §820`, `21 CFR §830.10`, `ISO 17665`, `ISO 11737`, `21 CFR §820.30`, `21 CFR Part 11`, `21 CFR §11.10`, `ISO 11137`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1043,25 +1076,46 @@ Each control must be evidenced by SOPs, work instructions, and traceable records
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 40/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 40/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 13,347자 | — |
 | 규제 식별자 인용 | 19개 | — |
-| excerpt 근거 일치 | **2/19 (10%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 17개 | `No hallucination` |
+| source excerpt 근거 일치 | **2/19 (10%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 17개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Art. 51`, `Art. 52`, `Annex IX`, `Annex X`, `Annex XI`, `Annex I`, `Art. 84`, `Art. 86`, `Annex XIV`, `Art. 61`, `ISO 14971` 외 5개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Annex VIII` | MDR Annex VIII | Classification rules |
+| `Art. 52` | MDR Article 52 | Conformity assessment procedures |
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+| `Annex XI` | MDR Annex XI | Conformity assessment based on product conformity verification |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 86` | MDR Article 86 | Periodic safety update report (PSUR, Class IIa/IIb/III) |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `Art. 33` | MDR Article 33 | European database on medical devices (Eudamed) |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `Art. 51`, `IEC 62133`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1230,25 +1284,43 @@ If any of these triggers are activated, the regulatory team must be notified and
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 39/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 39/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 9,655자 | — |
 | 규제 식별자 인용 | 18개 | — |
-| excerpt 근거 일치 | **3/18 (16%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| source excerpt 근거 일치 | **3/18 (16%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 15개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `Art. 52`, `Annex IX`, `Annex X`, `Annex XI`, `ISO 14971`, `Annex XIV`, `Art. 61`, `Art. 83`, `Art. 84`, `Art. 86`, `Annex IV`, `IEC 60601` 외 3개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Art. 52` | MDR Article 52 | Conformity assessment procedures |
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+| `Annex XI` | MDR Annex XI | Conformity assessment based on product conformity verification |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `Art. 83` | MDR Article 83 | Post-market surveillance system of the manufacturer |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 86` | MDR Article 86 | Periodic safety update report (PSUR, Class IIa/IIb/III) |
+| `Annex IV` | MDR Annex IV | EU declaration of conformity |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+| `IEC 62304` | IEC 62304 | 의료기기 소프트웨어 생명주기 프로세스 (ISO 14971 참조 권고) |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1408,25 +1480,43 @@ Please provide feedback on any jurisdictional gaps, missing source coverage, or 
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 38/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 38/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 9,551자 | — |
 | 규제 식별자 인용 | 17개 | — |
-| excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| source excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 15개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `Art. 52`, `Annex IX`, `Annex II`, `Annex XI`, `Annex X`, `Annex III`, `Annex XIV`, `Art. 61`, `Art. 84`, `Art. 86`, `ISO 14971`, `Art. 87` 외 3개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Art. 52` | MDR Article 52 | Conformity assessment procedures |
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex II` | MDR Annex II | Technical documentation |
+| `Annex XI` | MDR Annex XI | Conformity assessment based on product conformity verification |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+| `Annex III` | MDR Annex III | Technical documentation on post-market surveillance |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 86` | MDR Article 86 | Periodic safety update report (PSUR, Class IIa/IIb/III) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `Art. 87` | MDR Article 87 | Reporting of serious incidents and field safety corrective actions |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1618,25 +1708,43 @@ Please provide feedback on any jurisdictional gaps, missing source coverage, or 
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 37/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 37/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 10,535자 | — |
 | 규제 식별자 인용 | 22개 | — |
-| excerpt 근거 일치 | **7/22 (31%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| source excerpt 근거 일치 | **7/22 (31%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 15개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 중간**
 
-**excerpt에서 확인되지 않은 인용**: `Art. 52`, `Annex II`, `Annex IV`, `Annex IX`, `Art. 61`, `Art. 83`, `Art. 84`, `Art. 86`, `Art. 85`, `Art. 88`, `Annex III`, `Annex I` 외 3개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Art. 52` | MDR Article 52 | Conformity assessment procedures |
+| `Annex II` | MDR Annex II | Technical documentation |
+| `Annex IV` | MDR Annex IV | EU declaration of conformity |
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `Art. 83` | MDR Article 83 | Post-market surveillance system of the manufacturer |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 86` | MDR Article 86 | Periodic safety update report (PSUR, Class IIa/IIb/III) |
+| `Art. 85` | MDR Article 85 | Post-market surveillance report (Class I) |
+| `Art. 88` | MDR Article 88 | Trend reporting |
+| `Annex III` | MDR Annex III | Technical documentation on post-market surveillance |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1792,32 +1900,53 @@ Please review the assumptions made in this draft (especially the classification 
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 36/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 36/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 8,465자 | — |
 | 규제 식별자 인용 | 17개 | — |
-| excerpt 근거 일치 | **1/17 (5%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 16개 | `No hallucination` |
+| source excerpt 근거 일치 | **1/17 (5%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 16개 | `No hallucination` |
 | C1 린터 구조 오류 | 12건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-⚠️ **C1 구조 오류** (존재할 수 없는 하위 식별자):
+⚠️ **C1 구조 오류** (존재할 수 없는 하위 식별자 — Score 1 후보):
 - Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
 - Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
 - Art.86(1)(e) does not exist — Art.86(1) has only (a)/(b)/(c).
 - Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
 - Art.86(1)(d) does not exist — Art.86(1) has only (a)/(b)/(c).
 
-**excerpt에서 확인되지 않은 인용**: `Annex VIII`, `Art 52`, `Annex IX`, `Annex XI`, `Annex II`, `Annex X`, `ISO 8601`, `Art. 84`, `Art. 83`, `Art. 88`, `Annex XIV`, `Art. 61` 외 4개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Annex VIII` | MDR Annex VIII | Classification rules |
+| `Art 52` | MDR Article 52 | Conformity assessment procedures |
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex XI` | MDR Annex XI | Conformity assessment based on product conformity verification |
+| `Annex II` | MDR Annex II | Technical documentation |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 83` | MDR Article 83 | Post-market surveillance system of the manufacturer |
+| `Art. 88` | MDR Article 88 | Trend reporting |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `ISO 8601`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1982,25 +2111,32 @@ If any of the above triggers are met, the project lead must **escalate to senior
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 25/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 25/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 7,920자 | — |
 | 규제 식별자 인용 | 3개 | — |
-| excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 3개 | `No hallucination` |
+| source excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 3개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `ISO 13485`, `IEC 62304`, `ISO 14971`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 13485` | ISO 13485 | 의료기기 품질경영시스템 (설계관리·문서관리·구매·생산·CAPA·경영검토) |
+| `IEC 62304` | IEC 62304 | 의료기기 소프트웨어 생명주기 프로세스 (ISO 14971 참조 권고) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -2137,25 +2273,34 @@ If any of the above triggers are met, the project lead must **escalate to senior
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 24/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 24/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 8,083자 | — |
 | 규제 식별자 인용 | 5개 | — |
-| excerpt 근거 일치 | **0/5 (0%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 5개 | `No hallucination` |
+| source excerpt 근거 일치 | **0/5 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 5개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `ISO 10993`, `ISO 13485`, `Annex I`, `ISO 14971`, `IEC 62366`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `ISO 10993` | ISO 10993 | 의료기기 생물학적 안전성 평가 — ISO 14971 위험관리에 반영 |
+| `ISO 13485` | ISO 13485 | 의료기기 품질경영시스템 (설계관리·문서관리·구매·생산·CAPA·경영검토) |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -2326,25 +2471,33 @@ Your feedback will help close remaining information gaps before finalizing the M
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 23/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 23/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 9,489자 | — |
 | 규제 식별자 인용 | 3개 | — |
-| excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 3개 | `No hallucination` |
+| source excerpt 근거 일치 | **0/3 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 3개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `IEC 62304`, `IEC 81001`, `IEC 80001`
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `IEC 62304` | IEC 62304 | 의료기기 소프트웨어 생명주기 프로세스 (ISO 14971 참조 권고) |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `IEC 81001`, `IEC 80001`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -2529,19 +2682,21 @@ Your feedback will help close remaining information gaps before finalizing the M
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 22/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 22/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 8,103자 | — |
 | 규제 식별자 인용 | 4개 | — |
-| excerpt 근거 일치 | **4/4 (100%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 0개 | `No hallucination` |
+| source excerpt 근거 일치 | **4/4 (100%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 0개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 낮음**
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -2717,19 +2872,21 @@ All documents must be submitted in Korean (or accompanied by a certified Korean 
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 21/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 21/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 8,147자 | — |
 | 규제 식별자 인용 | 1개 | — |
-| excerpt 근거 일치 | **1/1 (100%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 0개 | `No hallucination` |
+| source excerpt 근거 일치 | **1/1 (100%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 0개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 낮음**
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**

@@ -1325,25 +1325,42 @@ All controls must be documented, verified, and included in the Risk Management R
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 105/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 105/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 10,086자 | — |
 | 규제 식별자 인용 | 13개 | — |
-| excerpt 근거 일치 | **0/13 (0%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 13개 | `No hallucination` |
+| source excerpt 근거 일치 | **0/13 (0%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 13개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `Annex IX`, `Annex X`, `Annex II`, `ISO 14971`, `IEC 62304`, `IEC 62366`, `Annex XIV`, `Art. 83`, `Annex I`, `Annex IV`, `Art. 33`, `Annex VIII` 외 1개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+| `Annex II` | MDR Annex II | Technical documentation |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `IEC 62304` | IEC 62304 | 의료기기 소프트웨어 생명주기 프로세스 (ISO 14971 참조 권고) |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 83` | MDR Article 83 | Post-market surveillance system of the manufacturer |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `Annex IV` | MDR Annex IV | EU declaration of conformity |
+| `Art. 33` | MDR Article 33 | European database on medical devices (Eudamed) |
+| `Annex VIII` | MDR Annex VIII | Classification rules |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
@@ -1500,25 +1517,46 @@ Your feedback will be incorporated into the final submission package.
 
 <!-- verification-summary -->
 
-**🔎 기계 검증 요약** (우선순위 104/190 · 자동 생성, 판정은 사람이 확정)
+**🔎 검증 요약** (우선순위 104/190 · 자동 생성 · 판정은 사람이 확정)
 
 | 관측 | 값 | 관련 Fast Check |
 |---|---|---|
 | 응답 분량 | 10,053자 | — |
 | 규제 식별자 인용 | 17개 | — |
-| excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
-| excerpt 미대조 식별자 | 15개 | `No hallucination` |
+| source excerpt 근거 일치 | **2/17 (11%)** | `Evidence supported` / `Source cited` |
+| excerpt 미대조 | 15개 | `No hallucination` |
 | C1 린터 구조 오류 | 0건 | `No hallucination` |
 | escalation 표현 | 있음 | `Escalation appropriate` |
-| 근거 인용 표현 | 있음 | `Source cited` |
 
 **근거 대조 위험도: 높음**
 
-**excerpt에서 확인되지 않은 인용**: `Annex IX`, `Annex VIII`, `Annex XIV`, `Art. 61`, `IEC 62366`, `Annex I`, `ISO 14971`, `Art. 84`, `Art. 86`, `Art. 33`, `IEC 60601`, `Annex II` 외 3개
+**인용 식별자 ↔ 공식 제목 대조** (외부 규제자료 확인분)
 
-> excerpt는 source의 일부 chunk만 담으므로 미대조 = 창작이 아닙니다.
-> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 하므로,
-> 위 식별자가 source 근거인지 일반 지식인지 확인이 필요합니다.
+| 응답 인용 | 공식 식별 | 공식 주제 |
+|---|---|---|
+| `Annex IX` | MDR Annex IX | Conformity assessment based on a QMS and on assessment of technical documentation |
+| `Annex VIII` | MDR Annex VIII | Classification rules |
+| `Annex XIV` | MDR Annex XIV | Part A: Clinical evaluation (CER) / Part B: Post-market clinical follow-up (PMCF) |
+| `Art. 61` | MDR Article 61 | Clinical evaluation |
+| `IEC 62366` | IEC 62366 | 사용적합성 공학 (usability engineering) — ISO 14971 위험관리 보완 |
+| `Annex I` | MDR Annex I | General safety and performance requirements (GSPR) |
+| `ISO 14971` | ISO 14971 | 의료기기 위험관리 (risk management) — 다른 표준을 잇는 허브 |
+| `Art. 84` | MDR Article 84 | Post-market surveillance plan |
+| `Art. 86` | MDR Article 86 | Periodic safety update report (PSUR, Class IIa/IIb/III) |
+| `Art. 33` | MDR Article 33 | European database on medical devices (Eudamed) |
+| `IEC 60601` | IEC 60601 | 의료용 전기기기 안전·필수성능 |
+| `Annex II` | MDR Annex II | Technical documentation |
+| `Art. 87` | MDR Article 87 | Reporting of serious incidents and field safety corrective actions |
+| `Annex X` | MDR Annex X | Conformity assessment based on type-examination |
+
+> 응답이 위 식별자를 **그 주제 맥락에서** 인용했는지 확인하십시오.
+> 주제가 어긋나면 `No hallucination` 미체크 + Score 1~2 사유가 됩니다 (#134 유형).
+
+**대조표 미수록 인용**: `Art. 2`
+> MDR 주요 조문·부속서 및 표준 6종 외 식별자입니다. source 근거 여부를 직접 확인하십시오.
+
+> excerpt는 source의 일부 chunk만 담으므로 미대조가 곧 창작은 아닙니다.
+> 다만 체크시트 기준상 *"일반 규제 지식만으로 답한 경우는 낮게 평가"* 합니다.
 
 <!-- /verification-summary -->
 **Reviewer Score**
