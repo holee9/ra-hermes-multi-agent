@@ -277,6 +277,20 @@ def test_ts_regression_is_warning_only(ve, schema):
     assert errors == [] and any("ts 역행" in w for w in warns)
 
 
+def test_policy_action_release_and_refuse_invalid_accepted(ve, schema):
+    """#150 P0: delivery-gate `release` and router-spec `refuse-invalid` are additive enum values."""
+    ok = [
+        _ev(kind="policy", payload={"action": "release", "reason": "manual", "ref_evt": "evt_20260909T110000_0001"}),
+        _ev(id="evt_20260909T120000_aa02", kind="policy",
+            payload={"action": "refuse-invalid", "reason": "self-send", "ref_evt": "evt_20260909T110000_0001"}),
+    ]
+    errors, _, _ = _run(ve, schema, ok)
+    assert errors == []
+    bad = [_ev(kind="policy", payload={"action": "drop", "reason": "x"})]
+    errors, _, _ = _run(ve, schema, bad)
+    assert any("@ payload/action" in e for e in errors), errors
+
+
 # ------------------------------------------------------------ CLI / exit
 
 def _cli(*args):

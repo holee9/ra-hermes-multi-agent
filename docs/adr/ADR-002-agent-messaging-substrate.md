@@ -3,7 +3,7 @@
 - 상태: Proposed (사람 승인 전)
 - 날짜: 2026-09-09
 - 근거 문서: `docs/research/2026-09-virtual-office/` (ai-office-benchmark, buzz-analysis, munder-difflin-analysis)
-- 구현 명세: `.moai/specs/SPEC-HIVE-001/spec.md`
+- 구현 명세: `docs/specs/SPEC-HIVE-001.md` (추적 대상. 이전 링크 `.moai/specs/SPEC-HIVE-001/spec.md`는 미추적 스캐폴드였고 원격에 없음)
 
 ## 맥락
 

@@ -89,11 +89,12 @@ v2와 동일. 각 kind의 기본 화행 매핑을 추가한다 — `to`가 있�
 | `artifact` | 산출물 발생 | `artifacts[]` 채움 | `inform` | — |
 | `absence` | 매칭 실패·직능 공백 | `gap_tag`, `case` | `inform` | — |
 | `infra` | 호스트 상태 | `host`, `metric`, `level` | `inform` | — |
-| `policy` | 정책 발화 | `action`(pause/resume/throttle/steer/constrain/stop), `reason`, `target_actor?` | `inform` | — |
+| `policy` | 정책 발화 | `action`(pause/resume/throttle/steer/constrain/stop/release/refuse-invalid), `reason`, `target_actor?`, `ref_evt?` | `inform` | — |
 | `hire_proposal` | 부재 임계 도달 | `gap_tag`, `count`, `window` | `propose` | — |
 | `escalation` | **신규** — 사람 호출 | `reason`(hop-cap/undeliverable/breaker/refuse-deadlock), `ref_evt` | `request` | — |
 
 `policy.action`에 `steer/constrain/stop`이 추가되었다(서킷 브레이커 연동). 기존 `pause/resume/throttle` 유지.
+`release`(전달 게이트 수동 해제, `docs/governance/delivery-gate.md` §4)와 `refuse-invalid`(라우터 검증 거부 기록, `docs/hive/router-spec.md` §3)는 **계약 확장(additive)** 으로 enum에 포함한다 — 기존 action에 매핑하지 않는다. 두 값 모두 `payload.ref_evt`로 대상 메시지를 가리킨다.
 
 **완료·재오픈에는 kind가 없다.** 사람 전용 행위는 OpenProject에서만 일어난다(원칙 4).
 
