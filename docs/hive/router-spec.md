@@ -33,7 +33,7 @@
 [이동]  outbox/<f> → outbox/.sent/<f>
    │
    ▼
-[커밋]  git add -A && git commit  (재시도 + 백오프, 단일 커미터)
+[커밋]  git add <이번 배치가 만든 경로만> && git commit  (재시도 + 백오프, 단일 커미터, §8)
 ```
 
 ---
@@ -43,15 +43,23 @@
 | 필드 | 채우는 법 |
 |---|---|
 | `v` | `"2.1"` |
-| `id` | `evt_<UTC YYYYMMDDTHHMMSS>_<4hex>` |
+| `id` | `evt_<UTC YYYYMMDDTHHMMSS>_<4hex>`. 충돌 시 재발급(§2.1) |
 | `ts` | 처리 시각, ISO-8601 +09:00 |
+| `workspace` | `registry/actors.json`의 해당 actor `workspace`. peer 값 무시 |
 | `actor` | outbox 디렉토리의 actor ID. peer가 쓴 값은 **덮어쓴다** (위장 방지) |
 | `act` | 없으면 kind의 기본 act (계약 §2) |
-| `requires_reply` | peer가 명시하지 않으면 `act ∈ {request, query, propose}` |
-| `hops` | `corr` 없으면 0. 있으면 `log.jsonl`에서 `corr` 이벤트를 찾아 `hops + 1`. 못 찾으면 0 + `policy` 경고 |
+| `requires_reply` | peer가 명시하면 **보존**, 생략하면 `act ∈ {request, query, propose}`로 파생. 명시값이 §3 규칙에 어긋나면 거부 (`hive/PROTOCOL.md` §2와 동일) |
+| `hops` | `corr` 없으면 0. 있으면 `log.jsonl`에서 `corr` 이벤트를 찾아 `hops + 1`. **못 찾으면 거부** (§3 `unknown-corr`) — 0으로 재시작하면 홉 상한을 우회할 수 있다 |
 | `conversation` | `corr` 있으면 원인의 값 상속. 없으면 `conv_<wp>_<kind>_<4hex>` |
+| `null` 필드 | raw 메시지의 `"corr": null`, `"conversation": null` 등 null 값은 **필드 자체를 제거**한다. 스키마는 null을 허용하지 않는다 |
+
+**raw ↔ 정규화 경계.** peer가 outbox에 쓰는 것은 *raw 메시지*(위 표의 필드가 비어 있어도 됨)이고, 스키마 v2.1은 **정규화 이후의 이벤트**에만 적용한다. `log.jsonl`과 inbox에는 정규화 이벤트만 기록된다. 정규화 책임은 라우터에 있다.
 
 MD `normalize()`와 동일 논리. 차이: `to` 기본값이 MD는 `god`, 우리는 **없음** — `to` 없는 outbox 메시지는 관찰 이벤트로 log에만 기록하고 전달하지 않는다.
+
+### 2.1 id 충돌
+
+`id`의 4hex는 랜덤이므로 전역 유일을 가정하지 않는다. 발급 직후 `log.jsonl`·당일 inbox 파일명과 대조해 충돌이면 재발급한다. 전달 재시도 시에는 **처음 발급한 id를 보존**한다(수신자별 중복 전달 방지 키).
 
 ---
 
@@ -63,6 +71,8 @@ MD `normalize()`와 동일 논리. 차이: `to` 기본값이 MD는 `god`, 우리
 | 종결형 act에 `requires_reply: true` | 거부 |
 | `broadcast`에 `requires_reply: true` | `false`로 강제 후 통과 + 경고 |
 | `corr`가 가리키는 이벤트의 `act`가 종결형 | 거부 — 종결형에 답신 금지 |
+| `corr`가 `log.jsonl`에 없음 (`unknown-corr`) | 거부 — 미확인 원인으로 hops를 0으로 재시작하지 않는다 |
+| `corr`가 자신보다 뒤에 기록된 이벤트 | 거부 — 원인은 선행해야 한다 |
 | `to`가 registry에 없음 | §4 undeliverable |
 | `to`의 `status != active` | §4 undeliverable |
 
@@ -106,6 +116,8 @@ if hops > HOP_CAP:
 
 `HOP_CAP` 초기값: **미확정.** n8n 환경변수 `RA_HIVE_HOP_CAP`으로 주입. 운영 첫 2주 관찰 후 설정. 관찰 항목: 정상 종결 스레드의 최대 hops 분포.
 
+**미설정 시 동작:** `RA_HIVE_HOP_CAP`이 없으면 라우터는 `to`가 있는 대화 이벤트를 **전달하지 않는다** (관찰 이벤트만 `log.jsonl`에 기록). 상한 없는 자동 대화는 열지 않는다. P1·P2 테스트는 테스트 전용 값을 명시 주입한다.
+
 ---
 
 ## 7. 거절 교착 감지
@@ -117,6 +129,7 @@ if hops > HOP_CAP:
 ## 8. 커밋
 
 - 라우터 처리 배치 1회 = 커밋 1회. 메시지마다 커밋하지 않는다.
+- **stage는 경로 지정으로만.** `git add -A`는 금지 — 신규 peer의 미처리 outbox, 사람이 편집 중인 `registry/*`·`identity.md`까지 라우터 커밋에 섞인다. 이번 배치가 만든 파일(inbox 기록, `.sent/`·`.rejected/` 이동, `log.jsonl`, `cursor.json`)만 `git add <path>`로 stage한다.
 - 메시지: `hive: route <n> msgs (<actor>→<to> ...)` 
 - `index.lock` 존재 시: 5초 대기 → 재시도 3회 → 실패 시 `policy(action:throttle, reason:"git-lock")` + 다음 배치에서 재시도. stale lock(>60s, 프로세스 없음) 정리.
 - 이 라우터 외 어떤 프로세스도 `ra-hive`에 커밋하지 않는다. peer 컨테이너에는 git 바이너리를 두지 않는다.
@@ -143,7 +156,7 @@ if hops > HOP_CAP:
 | 8 | Execute Command — append log.jsonl, mv .sent, git commit | §8 |
 | 9 | IF escalation exists → Telegram send | 사람 알림 |
 
-폴링 주기 15s는 초기값. `log.jsonl` 지연 허용치는 살의 재생 특성상 수 초면 충분하다(원칙 7 — 실시간 아닌 기록 재생).
+폴링 주기 15s는 **테스트 전용 기본값**이며 운영값은 미확정이다(이슈 #150 "미확정" 항목과 동일 취급). `log.jsonl` 지연 허용치는 살의 재생 특성상 수 초면 충분하다(원칙 7 — 실시간 아닌 기록 재생). 운영 상수(`HOP_CAP`·폴링·브레이커 임계)는 P3/P4에서 사람이 승인한 값으로만 주입한다.
 
 ---
 
