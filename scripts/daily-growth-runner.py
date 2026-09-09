@@ -147,6 +147,12 @@ def source_hash(chunks: list[dict[str, Any]]) -> str:
 # tuned at runtime via env so operations can adjust without a code change.
 
 GROWTH_RANK_MODE = os.environ.get("GROWTH_RANK_MODE", "keyword").strip().lower()
+# #147: keyword-mode relevance floor. Unset (default) keeps the historical behaviour
+# (top-N by score, no floor). When set, sources scoring below it are dropped rather
+# than back-filling a short pool with focus-unrelated material (EUDAMED→UDI pattern).
+# Operations value, not a code constant (G7) — tune via env after measuring.
+_floor_raw = os.environ.get("GROWTH_FOCUS_MIN_RELEVANCE", "").strip()
+GROWTH_FOCUS_MIN_RELEVANCE: int | None = int(_floor_raw) if _floor_raw.lstrip("-").isdigit() else None
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/")
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "qwen3-embedding:latest")
 
@@ -461,6 +467,7 @@ def assemble_cases(
         if vector_order is not None:
             pool = vector_order[:pool_cap]
     scored: list[tuple[int, int, SourceCase]] = []
+    skipped_below_floor: list[str] = []
     for order_idx, source_path in enumerate(pool):
         chunks = fetch_source_chunks(conn, source_path, max_chunks)
         if not chunks:
@@ -476,6 +483,10 @@ def assemble_cases(
         )
         # Vector mode already ranked the pool by relevance; keep that order.
         relevance = 0 if GROWTH_RANK_MODE == "vector" else focus_relevance(focus, source_path, excerpt_text)
+        if (GROWTH_RANK_MODE != "vector" and GROWTH_FOCUS_MIN_RELEVANCE is not None
+                and relevance < GROWTH_FOCUS_MIN_RELEVANCE):
+            skipped_below_floor.append(source_path)
+            continue
         scored.append((
             relevance,
             order_idx,
@@ -490,6 +501,12 @@ def assemble_cases(
         ))
     # Focus-relevant first, then the original (rotation/shuffle/vector) order — stable.
     scored.sort(key=lambda item: (-item[0], item[1]))
+    if skipped_below_floor:
+        print(
+            f"[assemble_cases] {agent.peer_id} focus={focus!r}: {len(skipped_below_floor)} source(s) "
+            f"below GROWTH_FOCUS_MIN_RELEVANCE={GROWTH_FOCUS_MIN_RELEVANCE} skipped",
+            file=sys.stderr,
+        )
     return [case for _, _, case in scored[:cases_per_agent]]
 
 

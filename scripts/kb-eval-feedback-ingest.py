@@ -40,6 +40,13 @@ DIMENSION_LABELS = {
     "No hallucination": "no_hallucination",
     "Escalation appropriate": "escalation_appropriate",
 }
+# #147: case-generation defects (capture timeout, focus↔source mismatch) are recorded
+# as their own field so growth metrics can split agent-attributable from input-side
+# failures — WITHOUT dropping the record from the system-level quality signal.
+CASE_DEFECT_LABELS = {
+    "Capture failed": "capture_failed",
+    "Source mismatch (focus vs source)": "source_mismatch",
+}
 
 
 def checked(mark: str) -> bool:
@@ -95,11 +102,13 @@ def parse_text(source: str, text: str) -> list[dict[str, Any]]:
         score = score_checks[0]
         dimensions = {key: bool(checks.get(label)) for label, key in DIMENSION_LABELS.items()}
         human_correction = bool(checks.get("Human correction needed")) or score == 1
+        case_defect = {key: bool(checks.get(label)) for label, key in CASE_DEFECT_LABELS.items()}
         payload = {
             "decision_ref": current["decision_ref"],
             "target_actor": current["agent"],
             "score": score,
             "dimensions": dimensions,
+            "case_defect": case_defect,
             "delta": {
                 "self_correction": human_correction,
                 "changed": {"note": correction_note or ""} if human_correction and correction_note else {},

@@ -440,6 +440,9 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
     """
     total = 0
     corrected = 0
+    defect_total = 0
+    defect_corrected = 0
+    defect_kinds = {"capture_failed": 0, "source_mismatch": 0}
     samples: list[dict] = []
 
     for session_id, msgs in messages_by_session.items():
@@ -458,23 +461,46 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
             payload = content.get("payload", {})
             total += 1
             delta = payload.get("delta") or {}
-            if delta.get("self_correction") is True:
+            is_corrected = delta.get("self_correction") is True
+            # #147: input-side defects (capture timeout / focus↔source mismatch) are
+            # counted in the system-level rate AND reported separately so the
+            # agent-attributable rate can be read without them.
+            defect = payload.get("case_defect") or {}
+            has_defect = any(bool(defect.get(k)) for k in defect_kinds)
+            if has_defect:
+                defect_total += 1
+                for k in defect_kinds:
+                    if defect.get(k):
+                        defect_kinds[k] += 1
+            if is_corrected:
                 corrected += 1
+                if has_defect:
+                    defect_corrected += 1
                 samples.append({
                     "session": session_id,
                     "actor": payload.get("target_actor"),
                     "score": payload.get("score"),
                     "changed": delta.get("changed", {}),
+                    "case_defect": {k: v for k, v in defect.items() if v} or None,
                 })
 
     rate = corrected / total if total > 0 else None
+    attributable_total = total - defect_total
+    attributable_corrected = corrected - defect_corrected
     return {
         "value": rate,
         "numerator": corrected,
         "denominator": total,
+        "case_defects": {"count": defect_total, "corrected": defect_corrected, **defect_kinds},
+        "agent_attributable": {
+            "value": attributable_corrected / attributable_total if attributable_total > 0 else None,
+            "numerator": attributable_corrected,
+            "denominator": attributable_total,
+        },
         "samples": samples[:5],
         "direction": "down",
-        "note": "fraction of human-reviewed decisions where agent was overridden",
+        "note": "fraction of human-reviewed decisions where agent was overridden "
+                "(system-level; agent_attributable excludes case-generation defects, #147)",
     }
 
 
