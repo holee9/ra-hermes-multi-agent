@@ -162,23 +162,22 @@ Total cases: 15
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §820.30 전문 Reserved, 설계관리는 §820.10(c)가 ISO 13485:2016 §7.3을 incorporation by reference로 끌어오는 단일 경로라는 source 논지를 정확히 인용했고, 잔존 §820.30 인용 전수조사·치환·재감사라는 실행 가능한 시정 계획까지 제시했다. 인용한 식별자(§820.30, §820.10(c), ISO 13485 §7.3, ISO 14971) 중 오적용이 확인된 것이 없다.
 **Source Excerpts**
 
 1. Chunk `1123403925433224246`
@@ -274,22 +273,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 권고 수정(`§820.10(c) → ISO 13485:2016 §7.3`, §820.30 Reserved)과 자매문서 SOP-DHF/DT/DVV-001 일괄 점검까지 정확히 반영한 높은 정합성의 응답이다. 다만 §5에서 '표준 변경관리는 §820.30(Reserved)에 따라'라는 자기모순 문장과 문서·기록보관 근거로 든 `§820.180–§820.210`(QMSR에서 삭제된 조항)이 남아 있어 사람이 삭제해야 한다.
 **Source Excerpts**
 
 1. Chunk `1097299844760913437`
@@ -452,22 +450,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 KPI 매트릭스·9개 프로세스·SPC/Pareto/Ishikawa·CAPA 폐쇄루프를 정확히 반영했고 규제 매핑(§820.250·§820.100·EU MDR Art.10(9)(j))도 source에 있는 그대로다. 다만 문서명 `SOP-PMA-001`의 PMA를 '프로세스 모니터링·분석'이 아니라 Premarket Approval로 오독해 Class III/PMA 경로를 전제로 삼았고, `§820.20`·`§820.30`·`§820.250`·`§820.100`을 QMSR 현행 조항으로 병기했다. 사람이 약어 해석과 경로 전제를 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1039190717614682920`
@@ -646,22 +643,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> X-ray를 Part 892 Class II·510(k)로 본 분류와 'ISO 13485 §4.2.5만으로는 불충분, §820.35가 추가요건'이라는 source 핵심 논지 인용은 정확하다. 반면 설계관리를 `§820.30(b)(c)(d)(e)`, SW 밸리데이션을 `§820.70`, 교육을 `§820.25`로 현행 인용한 것은 QMSR Reserved 조항 오적용이고, 방사선 출력 기준으로 든 `ANSI ASHRAE standards`(공조 규격)는 근거 없는 표준 지정이다.
 **Source Excerpts**
 
 1. Chunk `100539693362657837`
@@ -814,22 +810,21 @@ Please provide comments or additional evidence requirements.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 핵심 지적(§820.30 Reserved, §820.70(i)·§820.180은 구 QSR 조항으로 현행 미존재, 현행 근거는 ISO 13485:2016 §4.1.6)을 정확히 흡수해 갭 표까지 만든 우수 응답이다. 그러나 같은 응답 안에서 기록관리 근거로 `§§820.70-820.100`을, 교육훈련 근거로 `21 CFR 820.25`를 현행 조항처럼 재인용해 스스로 열거한 현행 6개 조항(§820.1·3·7·10·35·45)과 자기모순을 일으킨다. 사람이 이 두 인용을 제거해야 한다.
 **Source Excerpts**
 
 1. Chunk `1139313350636714828`
@@ -1015,22 +1010,21 @@ When any of these triggers are met, the responsible **Regulatory Affairs Lead** 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 3개 제품별 PSUR 주기(2년/1년/2년)와 IEC 62220-1-1 DQE 데이터 연계는 source 매트릭스와 정확히 일치한다. 다만 RMF 근거를 'ISO 14971/Annex I §16-22'로 적었는데 위험관리 GSPR은 Annex I Ch.I §§1-9(§3)이므로 정정이 필요하다.
 **Source Excerpts**
 
 1. Chunk `1039815103287926448`
@@ -1224,22 +1218,21 @@ When any of these triggers are met, the responsible **Regulatory Affairs Lead** 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source(SOP-PMS-001 v0.3)의 'Class III EUDAMED PSUR 의무'를 근거로 Class III를 잠정 추정하고 확정을 유보한 판단은 적절하다. 다만 'Rule 10-b', 'Rule 11-c' 같은 Annex VIII에 존재하지 않는 하위 규칙 표기를 만들어냈으므로 사람이 삭제해야 한다.
 **Source Excerpts**
 
 1. Chunk `108529124691273873`
@@ -1427,22 +1420,21 @@ When any of the above triggers are identified, the RA lead must:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Rule 10(진단용 X-ray→Class IIb)·Rule 11 분류와 PSUR 체계 서술은 source 핵심 포인트와 일치한다. 다만 'Annex I §10–22'를 GSPR 전체로 뭉뚱그리고 RMF를 'Annex I §§18–20'에 귀속시켰는데 §18은 능동기기, 위험관리는 Ch.I §3이므로 사람이 재귀속해야 한다.
 **Source Excerpts**
 
 1. Chunk `447774914011501626`
@@ -1648,22 +1640,21 @@ When any of the above triggers are identified, the RA lead must:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> FSCA→PMS/PMCF 연계와 EUDAMED 보고 경로 전환 서술은 source(SOP-FSCA-001 v0.3)와 부합한다. 다만 FSCA 결과를 RMF에 반영하는 근거를 'Annex I §16-§20'으로 적었는데 위험관리 근거는 Annex I Ch.I §§1-9(§3)이며, 'Class I → Annex IX' 서술도 자기모순이라 정정이 필요하다.
 **Source Excerpts**
 
 1. Chunk `124189968261264047`
@@ -1864,22 +1855,21 @@ Proceed to fill the identified gaps, then re‑evaluate classification; only aft
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Art.86(1)(a)(b)(c) 인용과 Annex IV 자기적합성선언 경로는 정확하다. 다만 IEC 62220-1-1·IEC 62443·ISO 14708·IEC 62366 등 다수 표준이 source excerpt에 없고 대상 제품 적용성도 불명이라(27개 식별자 중 19개 미대조) 사람이 적용 표준 목록을 확정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1024305232637496780`
@@ -2049,22 +2039,21 @@ All identified gaps—particularly device description, intended use, standalone 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 국내 2등급(보조 기능 수준에 따라 상향 가능)이라는 핵심 판단은 excerpt와 일치한다. 그러나 '2등급은 신고가 아니라 허가'라는 경로 결론이 틀렸고(2등급은 인증), 3등급 대응으로 제시한 '전문허가'와 '소프트웨어 제조용 KGMP'는 실재하지 않는 명칭이다.
 **Source Excerpts**
 
 1. Chunk `1112950876551682081`
@@ -2238,22 +2227,21 @@ All identified gaps—particularly device description, intended use, standalone 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 시행일 2025-01-24 / 시행규칙 2025-02-28, 사이버보안 15→35, G2·G3·G4 갭을 excerpt 그대로 사용했다. 그러나 구성요소 단위 성능평가 검증 근거로 인용한 IEC 60812는 FMEA 분석 기법 규격으로 성능평가 근거가 아니며, 'Class II 통합허가(통합신고)'는 존재하지 않는 경로다.
 **Source Excerpts**
 
 1. Chunk `1061576322702878078`
@@ -2432,22 +2420,21 @@ Proceed to collect the missing items; if any trigger above occurs, elevate to se
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 법률 제20139호·대통령령 제35219호·총리령 제1958호와 2024~2025 가이드라인 5종을 excerpt와 일치하게 인용했고 1등급 신고 / 2등급 인증 / 3등급 허가 경로도 정확하다. 다만 2등급 내부에서 인증과 신고를 '전기·전자-제어형 대 소프트웨어 전용'으로 가르는 기준은 출처에 없는 창작 기준이므로 사람이 삭제·정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1002132727008468922`
@@ -2640,22 +2627,21 @@ Consequently, the **Acquisition Workstation and the AI‑enabled post‑processi
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> X-ray 구성요소별 디지털의료제품법 해당성(○/△/X) 판정은 excerpt 표를 정확히 재현했다. 다만 사이버보안 근거로 IEC 82304-1을 들었으나 source가 지목한 표준은 IEC 81001-5-1이며, X-ray 인터록 근거로 인용한 IEC 60601-2-33은 MRI 규격이다. 두 표준 식별자를 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `418096885713027360`
@@ -2838,22 +2824,21 @@ Consequently, the **Acquisition Workstation and the AI‑enabled post‑processi
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> audit #930·plan #935·'법률 제20722호'를 의심 식별자로 표시한 핵심 판단은 소스와 정확히 일치하나, 소스에 없는 'MFDS Classification Rule 9'와 'MFDS Notice No. 2023-XX'를 확립된 근거처럼 제시한 점이 결함이다.
 **Source Excerpts**
 
 1. Chunk `101444507831075103`

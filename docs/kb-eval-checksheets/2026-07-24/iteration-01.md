@@ -183,22 +183,21 @@ When any trigger occurs, the responsible functional owner must be notified and a
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 510(k)/De Novo/PMA 경로별 법적근거·predicate 필요성·심사기간·eSTAR 의무일(2023-10-01/2025-10-01)·FY2025 수수료를 source 표대로 정확히 재현했으나, 존재하지 않는 §820.64(멸균)와 §820.70(i)/(g)(자동화공정·장비)를 소프트웨어 생명주기·human factors 근거로 오적용했다.
 **Source Excerpts**
 
 1. Chunk `1031369836908836097`
@@ -369,22 +368,21 @@ Escalations should be documented in the project’s issue‑tracking system and 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> excerpt[1]의 공통 Deficiency 4종(GSPR 근거부족·임상평가 동등성·PMCF·ISO 14971 부적합)을 gap 목록으로 전환한 구조는 타당하나, 예시 predicate로 'K091123(2020년 clearance)' 등 연도와 K번호 체계가 모순되는 가공 식별자를 제시하고 존재하지 않는 §807.91을 인용했다.
 **Source Excerpts**
 
 1. Chunk `1062884112493939033`
@@ -553,22 +551,21 @@ Escalations should be documented in the project’s issue‑tracking system and 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 807.87·807.92·Form 3881·'General/Specific Intended Use'(1998)와 SW 아키텍처·DICOM·SOUP·IFU의 review/diagnosis 구분까지 excerpt를 충실히 반영했으나, 사이버보안 근거로 §820.30(c)(설계 입력)을 오적용하고 IEC 62304 등급을 'Class C likely'로 source 근거 없이 단정했다.
 **Source Excerpts**
 
 1. Chunk `117114757705580095`
@@ -732,22 +729,21 @@ If any of the above triggers arise, **escalate to senior regulatory manager (Lev
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Cover Letter 필드와 'FDA 510(k) 제출 6~12개월 전 Pre-Sub' 지침을 source에서 정확히 활용했으나, source의 응답목표(서면 70일/회의 100일)를 '100일 서면'으로 뒤바꿔 서술했고 기기 심사에 없는 CRR(Complete Response Request) 용어를 사용했다.
 **Source Excerpts**
 
 1. Chunk `124523812258860464`
@@ -923,23 +919,22 @@ When any of these triggers are hit, the work package should be flagged for human
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> eSTAR Section G 파일 구성과 IEC 62304 A/B/C 위험등급표를 excerpt에 정확히 대응시켜 Class B 판단을 내렸고, 사이버보안·UDI·QMSR·임상데이터 누락을 gap으로 분리해 'verify separately'로 표시한 점까지 source 한계 안에서 일관된다.
 **Source Excerpts**
 
 1. Chunk `1062081291234175249`
@@ -1125,23 +1120,22 @@ When any of these triggers are hit, the work package should be flagged for human
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 동등성 4요건과 MDR 추가요건인 '동일 사용자 유형'을 excerpt에서 정확히 끌어오고 MDCG 2020-5/2020-6/2023-7/2024-3를 각각의 실제 주제(동등성·충분성·Art.61(4)-(6) 면제·CER 내용)로 인용했으며 Art.83~86과 GSPR 귀속에도 오적용이 없다.
 **Source Excerpts**
 
 1. Chunk `1085791997451258236`
@@ -1351,21 +1345,20 @@ The current PSUR draft lacks critical quantitative data (sales, patient exposure
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PSUR 공란 gap 목록 자체는 타당하나 핵심 산출물인 Art.86(1) 항목 대응이 (a)~(d)로 뒤섞이고 없는 (d)를 반복 사용했으며(C1 12건), 'Art.87=trend reporting, Art.88=FSCA'로 주제를 맞바꾸고 Annex XII(NB 증서)·Annex XIII(맞춤형 기기)을 각각 임상평가 요약·PMCF 계획으로 오귀속했다.
 **Source Excerpts**
 
 1. Chunk `108347462317924009`
@@ -1552,23 +1545,22 @@ All risk controls must be documented in the **Risk Management File** and reflect
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PMCF Evaluation Report 필수 섹션 A~G를 source 그대로 매핑하고 E에서 CER/RMF/SSCP 병기까지 정확히 살렸으며, 분류는 정보 부족을 명시한 잠정치로만 제시하고 근거 없는 항목은 '식별자 미발견 — 별도 확인'으로 남겼다.
 **Source Excerpts**
 
 1. Chunk `1032759063790726230`
@@ -1748,22 +1740,21 @@ All controls must be traceable to the risk management file and reflected in the 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> DQE≥65%·TR-2024-015·clock-stop·미응답 시 평가 종료를 excerpt에서 인용해 CER/PMCF/PMS 결손을 정확히 짚었으나, source 표에서 FDA 열 용어인 'Additional Information(AI) Request'를 EU NB의 절차로 옮겨 쓰고 비이식형 기기에 Annex I §19(능동 이식형)를 적용했다.
 **Source Excerpts**
 
 1. Chunk `1005517747960005544`
@@ -1947,22 +1938,21 @@ If any of these items cannot be supplied within the stipulated time‑frames (5�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> TD 작성 8단계와 경제운영자(Art.10/11/13/14) excerpt를 근거로 산출물별 결손을 정리한 점은 타당하나, GSPR 매핑을 'Annex I §§10-22', RMF를 'Annex I §16-22'에 귀속해 RMF 근거(Ch.I §§1-9)를 오적용했고 focus(clinical evaluation)보다 일반 TD gap 분석에 치우쳤다.
 **Source Excerpts**
 
 1. Chunk `105236685415245472`
@@ -2121,22 +2111,21 @@ If any of these items cannot be supplied within the stipulated time‑frames (5�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> KGMP 열의 'ISO 동일' 매핑 해석과 MDSAP 수용 언급은 소스 기반이나, FDA §820.20·§820.35와 MDR Annex IX §3.2를 KGMP 제출 요건으로 오귀속해 관할을 혼동했다.
 **Source Excerpts**
 
 1. Chunk `1012828200772392062`
@@ -2305,22 +2294,21 @@ If any of these items cannot be supplied within the stipulated time‑frames (5�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 고시 제2025-22호의 품목군 26→64 확대·융복합 명확화·IEC 62304 전면 편입을 정확히 인용했으나, 'OECD GD 151'과 MDR Annex VIII 유추를 한국 근거처럼 배치했다.
 **Source Excerpts**
 
 1. Chunk `107140411445338936`
@@ -2478,23 +2466,22 @@ If any of these items cannot be supplied within the stipulated time‑frames (5�
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 1등급 신고·2등급 인증·3/4등급 허가의 한국 경로를 정확히 구분하고 KGMP 핵심 문서 2종을 chunk 인용했으며, 소스에 없는 고시·조문번호는 예외 없이 '별도 확인'으로 표시해 창작이 없다.
 **Source Excerpts**
 
 1. Chunk `341244002941932847`
@@ -2657,22 +2644,21 @@ If any of the above triggers are activated, the responsible RA must log an “Es
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> DR-05/10/11/15/31/32·33/35 공백과 P0·P1 우선도를 소스와 100% 일치시켜 재현했으나, 분류 근거로 의료기기법 '§5'를 창작하고 2등급을 신고 경로로 매핑했다.
 **Source Excerpts**
 
 1. Chunk `1091162552456558927`
@@ -2849,22 +2835,21 @@ If any of the above triggers are activated, the responsible RA must log an “Es
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 고시 제2025-25/23호·디지털 GMP 미시행(별도 고시)·총리령 제2088호와 모니터링 주기를 정확히 반영했으나, 2등급 허가 단정과 '이상사례 통상 7일 보고' 기한을 근거 없이 제시했다.
 **Source Excerpts**
 
 1. Chunk `1131342938714268388`

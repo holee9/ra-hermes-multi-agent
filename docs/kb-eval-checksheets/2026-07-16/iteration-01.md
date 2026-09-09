@@ -185,22 +185,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 EU MDR NB Deficiency 공통 4항목(GSPR 근거 부족·임상 동등성 불충분·PMCF 미비·ISO 14971 부적합)을 FDA AI 대응 항목으로 옮기면서 EU 용어임을 명시한 처리는 적절하다. 다만 라벨링 근거를 `21 CFR 820.120`(구 QSR 기기 라벨링, QMSR Reserved)으로 인용했고 AI 응답 기한을 `usually 30 days`로 단정했는데 실제는 180일이다.
 **Source Excerpts**
 
 1. Chunk `1062884112493939033`
@@ -343,22 +342,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 IFU 예문('not intended for primary diagnosis')과 DICOM·SOUP·IEC 62304 등급 요구를 정확히 인용해 진단 주장 여부가 분류를 가른다는 핵심 판단을 세웠다. 그러나 분류 근거 `21 CFR 862.2255`는 실재하지 않고(영상관리 SW는 Part 892), 제출 서식으로 든 `Form 362`도 510(k) 양식이 아니며, 사용적합성 표준으로 든 `IEC 60601-1-11`은 재택 환경 규격(사용적합성은 60601-1-6)이다.
 **Source Excerpts**
 
 1. Chunk `117114757705580095`
@@ -560,22 +558,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source 2.2절 QMSR↔ISO 13485 매핑표(§820.25 라벨링·포장, §820.30 설계관리, §820.35 기록관리, §820.45 기기 표시 검사, §820.198 불만처리)를 왜곡 없이 증빙 요건으로 전개했다. 다만 이 매핑표는 KB source 자체가 현행 QMSR(실재 조항 §820.1·3·7·10·35·45)과 어긋나는 상태이고, 응답은 여기에 더해 벤치시험·위험관리를 `§820.45`(기기 표시 검사)에 귀속시키는 자체 확대 해석을 했다.
 **Source Excerpts**
 
 1. Chunk `1041077994247338699`
@@ -675,23 +672,22 @@ honcho_conclude:
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Section 524B(b)(3) SBOM 법적 의무, SPDX 2.3+/CycloneDX 1.5+와 NTIA 최소 요소 7필드, STRIDE 위협모델, CMP/VMP 필수·Pen Test 권고 등급을 source 표 그대로 인용하고 각 항목에 excerpt 번호를 붙였다. 인용 식별자 중 오적용·창작이 확인된 것이 없고 SBOM 부재 시 제출 불가라는 escalation 판단도 근거에 부합한다.
 **Source Excerpts**
 
 1. Chunk `129799210478830618`
@@ -865,22 +861,21 @@ All controls should be mapped to identified hazards per ISO 14971 and reflecte
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PCCP 4개 필수항목을 표로 정확히 재현하고 데이터 계보·수용기준·rollback·RWM 누락을 갭으로 지목했다. 그러나 PCCP 가이던스를 `(2025)`로 표기했으나 source는 최종본 2024-12로 명시하고 있고, 시정 조치로 든 `510(k) supplement (Class II)`는 존재하지 않는 제도이며 `field safety notice`는 EU 용어다.
 **Source Excerpts**
 
 1. Chunk `1108970615905232706`
@@ -1061,22 +1056,21 @@ Your feedback will help ensure the gap analysis fully addresses MDR requirements
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 동등성 5요건과 'same kind of user'가 MDR 추가 요건이라는 source [1] 핵심, MDCG 2020-5/2020-6/2023-7 근거 인용이 정확하다. 다만 'Art. 61(1)(a)–(e)'는 MDR Art.61(1)에 없는 하위 항목 표기이므로 삭제·정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1085791997451258236`
@@ -1298,22 +1292,21 @@ The source excerpt (Chunk 1132312459160211217) lists **mandatory sections for 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PMCF Evaluation Report A~G 섹션과 'E항 = CER/RMF/SSCP 영향 명시'를 source와 정확히 대응시킨 점이 정확하다. 다만 SSCP 근거를 'Art. 10(9)'로 제시했는데 SSCP는 MDR Article 32이므로(Art.10(9)는 QMS) 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1032759063790726230`
@@ -1535,22 +1528,21 @@ Please challenge any of the above points and suggest refinements before we final
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 동등성 주장과 Deficiency Letter 대응 구조는 source와 부합하고 RMF는 'Annex I – Risk Management'로 조항 특정 없이 적어 오적용을 피했다. 다만 21개 중 19개 식별자(Annex III·Art.10·Art.85 등)가 excerpt 밖이라 사람이 근거를 확인해야 한다.
 **Source Excerpts**
 
 1. Chunk `1005517747960005544`
@@ -1745,22 +1737,21 @@ Please challenge any of the above points and suggest refinements before we final
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PMCF 결과를 CER·RMF에 반영하라는 핵심 요구는 source 템플릿과 부합한다. 다만 위험관리 근거를 'Annex I & Annex XVII'로 적었는데 MDR Annex XVII은 상관관계표(correlation table)이지 위험관리가 아니며, 'Art.86(1)(d)'는 KB source 자체 표기이므로 양쪽 모두 정정이 필요하다.
 **Source Excerpts**
 
 1. Chunk `108347462317924009`
@@ -1829,7 +1820,7 @@ Please challenge any of the above points and suggest refinements before we final
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -1838,12 +1829,11 @@ Please challenge any of the above points and suggest refinements before we final
 - [ ] Source cited
 - [ ] No hallucination
 - [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 응답 본문이 'response capture error: timed out'으로 116자만 남아 있어 판정 대상 자체가 존재하지 않는다. 규제 식별자 0개·escalation 표현 없음도 캡처 실패의 결과다. 재실행 후 재채점이 필요하며 correction_rate 등 성장 지표에서는 분리해야 한다.
 **Source Excerpts**
 
 1. Chunk `1138445053784347810`
@@ -2026,22 +2016,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 고시 제2025-22호의 품목군 26→64, 융복합의료기기 명확화, 품질관리심사기관 단독심사, IEC 62304 전면 참조를 excerpt대로 정확히 인용했다. 다만 '2·3·4등급은 허가'라는 경로 매핑에서 2등급 인증이 빠졌고, 사이버보안 근거로 든 IEC 62443과 UDI 등록처 'KIMS'는 출처에 없다.
 **Source Excerpts**
 
 1. Chunk `107140411445338936`
@@ -2213,22 +2202,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> KGMP-QMSR-ISO13485 조항 매핑과 MDSAP 실사 대체 가능성을 excerpt대로 인용한 체크리스트는 쓸 만하다. 그러나 source 표에서 미국 QMSR 열에 있는 §820.35(서비스 기록)·§820.20(불만 조사)·§820.180(c)를 'MFDS가 ISO 13485에 추가한 요건'으로 귀속시켰고 §§8.4-8.5도 MFDS 조항처럼 표기했다. 관할 귀속을 사람이 전면 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1012828200772392062`
@@ -2406,22 +2394,21 @@ The D4‑DR‑07 commentary (excerpt [1]) shows a frequent mis‑classificatio
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 제9조·제10조(임상), 제15조(실사용평가), 제13조(준수사항), 제39조(사전검토)를 excerpt대로 정확히 귀속했고 제15조 오인용 지적도 반영했다. 다만 KGMP 근거를 제17조로 적었는데 인증 본체는 제16조이며(제17조는 신청·평가 절차), 2·3등급→허가 매핑도 정정이 필요하다.
 **Source Excerpts**
 
 1. Chunk `399070733591760115`
@@ -2577,22 +2564,21 @@ Your feedback will be incorporated before finalizing the KGMP readiness plan and
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> ISO 13485 문서화 35개 항목 전수 매핑, SOP 커버리지 69%, 미작성 8건이라는 핵심 사실을 excerpt대로 인용해 갭 목록을 만든 점은 정확하다. 다만 PSUR 제출 근거로 든 'MFDS §23-44'는 출처에 없는 창작 조번호이고 2·3등급→허가 매핑도 2등급 인증을 누락했다.
 **Source Excerpts**
 
 1. Chunk `315455402892636179`
@@ -2758,23 +2744,22 @@ The source material concerns **record‑keeping requirements for the Quality Man
 <!-- /verification-summary -->
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 품질매뉴얼 보관기간이 별표2 기준으로 '구체적 기간 미확인, 1차 출처 재확인 필요' 상태임을 그대로 유지하고 5년 등 임의 숫자를 만들지 않았다. 인용 규제 식별자가 0개이며 Tier 1 출처 후보(고시 본문, 의료기기법 시행규칙 별표)도 excerpt대로만 제시했고 미확인 항목을 전부 사람 확인으로 넘겼다. 정정할 사항이 없다.
 **Source Excerpts**
 
 1. Chunk `104161787279348102`
