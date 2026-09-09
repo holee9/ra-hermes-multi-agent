@@ -1,19 +1,31 @@
 # RA Hermes 멀티 에이전트 시스템
 
 > 의료기기 인허가(RA) 도메인의 **정확성·신뢰성 우선** 학습 멀티 에이전트 시스템. 에이전트는 사람 RA 전문가를 *보조*한다.
-> Hermes Agent v0.15.1 / Honcho v0.15.1 기반. 사실 기준일: 2026-06-21.
+> Hermes Agent v0.15.1 / Honcho v0.15.1 기반 설계. 기술 기반 기록: 2026-06-21 / 상태 문서 대조: 2026-09-09 (실서비스 재검증 아님).
 
 **[사용 가이드 →](docs/usage-guide.md)** | [📘 인터랙티브 사용 매뉴얼](docs/user-guide-korean.html) | [마스터 설계서 (Hermes v0.15.1)](docs/RA-multi-agent-master-design.md) | [구현 명세](docs/implementation-spec.md) | [운영 전략](docs/operations-guide.md) | [🌐 원격 접속 가이드](docs/remote-access-guide.md) | [🔧 테스트케일 망 설정 가이드](docs/tailscale-setup-guide.md) | [성장 대시보드 바로보기](https://holee9.github.io/ra-hermes-multi-agent/growth-dashboard.html) | [대시보드 운영 문서](docs/growth-dashboard.md)
 
-GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른다. 기본 운영 경로는 GX10 `gpt-oss:120b`이며, `scripts/configure-glm.sh`로 필요한 프로파일만 OpenAI-compatible GLM endpoint로 바꿀 수 있다.
+GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른다. RA 프로파일 생성과 자문 API의 코드 기본 모델은 GX10 `gpt-oss:120b`다. Honcho 추론 모델과 임베딩 모델은 별도 설정이며, 실제 배포값은 환경에서 확인한다. `scripts/configure-glm.sh`로 필요한 프로파일만 OpenAI-compatible GLM endpoint로 바꿀 수 있다.
 
 ---
 
 ## 현재 상태
 
-**✅ 구축 완료 · 인터랙티브 사용 매뉴얼 배포 · 상세 스크린샷 시스템 완료(19개) · 시스템 운영 가이드 제공** | 최종 갱신: 2026-07-24
+**핵심 골격 구현 · 규제 판단 품질과 성장 측정 검증 진행 중** | 상태 문서 대조: 2026-09-09
 
-**최신 완료 작업:**
+이 프로젝트의 목표는 **공통 지식 기반과 지역별 경험을 축적해 사람 RA 전문가를 보조하는 것**이다. 메일은 입력 채널, 가상 오피스는 관측·자문 창구다. 기능 구현, 운영 반영, 학습 효과 입증은 별도로 판단한다.
+
+| 구분 | 확인된 근거 | 남은 확인 |
+|---|---|---|
+| 자문·학습 골격 | 자문 API, 근거·인용 검증, KB 사례 생성, 피드백·지표 수집 코드 존재 | 코드 존재만으로 현재 배포·실행을 보증하지 않음 |
+| 판단 품질 | [#134](https://github.com/holee9/ra-hermes-multi-agent/issues/134)의 2026-09-09 평가 기록: 190건 중 177건에 사람 정정 필요 표시 | 과거 사례 평가이며 현재 라이브 오류율은 아님. 수정 후 재질의·검증 필요 |
+| 오류 원인 분리 | [#144](https://github.com/holee9/ra-hermes-multi-agent/issues/144) KB 원본, [#145](https://github.com/holee9/ra-hermes-multi-agent/issues/145) KR 판단, [#146](https://github.com/holee9/ra-hermes-multi-agent/issues/146) US 약어 해석, [#147](https://github.com/holee9/ra-hermes-multi-agent/issues/147) 사례 생성 결함 추적 | 원본·검색·응답·평가 오류를 구분한 뒤 해당 경로 재검증 |
+| 성장 측정 | [2026-09-09 모니터링 기록](docs/monitoring/today-status.md)에 핵심 품질 지표 `null`, 자율 학습·insight 0 | 데이터 부재와 수집 결함을 구분해야 함. `NORMAL`은 전문가 성장의 증거가 아님 |
+| 자동화 확대 | 임계값 `null` 정책과 사람 판단 조건 유지 ([#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)) | 유효한 평가·운영 지표로 성숙도를 확인한 뒤 판단 |
+
+현재 상태의 해석과 과거 운영 증거는 [운영 전략 §0](docs/operations-guide.md#0-현재-운영-판정-2026-09-09)을 참조한다. 아래 이력의 완료·배포 표현은 각 기록 시점의 결과이며, 현재 전체 시스템의 무결함·자동화 성숙을 뜻하지 않는다.
+
+**주요 완료·검증 이력 (2026-07-24까지):**
 - ✅ **#133 PSUR 템플릿 Art.86 KB 소스 오류(하위항 라벨 4/5 + IIb 주기) — 소스 교정 + pgvector 전파 + 검증, CLOSE** (2026-07-24, ra-project commit `3eb44ec`): 에이전트 날조 아닌 **KB 원본 데이터 오류**(#127/#128 클래스), #132 작업 중 발견. EUR-Lex CELEX:32017R0745 Art.86 원문으로 독립 재검증(2차 출처 eumdr.com이 "IIa도 매년"으로 오기 → 원문·다수 출처·문서 자체 L46 일치로 기각). `PSUR_템플릿_MDR_Article86.md`: (1) Art.86(1) 하위항 라벨 재매핑 — (a)=benefit-risk(Sec6)·(b)=PMCF(Sec7)·(c)=판매량(Sec2), 존재하지 않는 (d)/(e)와 오배치 (a)를 제거하고 Art.86(1) 본문 인용으로 교체(Sec3/4/5/8 + 체크리스트 3건); (2) Art.86(2) 주기 정정 — Class IIb·III=매년 / IIa=2년마다, L21-22 주기표 + L25/L36/L45 자기모순 정합화. GitHub push → pgvector `ra_knowledge` 재인덱싱(DELETE 19청크, 백업 `backups/ra_knowledge-PSUR_Article86-pre133-2026-07-24.jsonl` → 재삽입 19, new=1/skipped=135). **retrieval store 직접 검증**: 옛 (d)/(e)·`IIa/IIb 2년마다` 잔존 0, 정정 라벨·주기·v1.1 헤더 전부 존재. 라이브 Qdrant는 03:18 자동 동기화. #132가 "에이전트 발명"으로 오진했던 결함의 상당 부분이 실은 이 소스 오류 전파였음이 근본 해결됨.
 - ✅ **#131 Rule↔Class 불일치 + Class↔Annex route 매핑, #130 라벨링/위험관리 Annex 오배치 — Class→Annex 경로 표 신설 + 재-eval 검증, 둘 다 CLOSE** (2026-07-21): "#131/#130(같은 패턴 신규 착수)" 요청으로 두 이슈를 한 세션에서 처리. 재조사 결과 #130의 라벨링(Annex I Ch.III §23)/위험관리(Annex I GSPR+ISO 14971) 항목과 #131의 Rule→Class 고정값 표는 #123 라운드3 positive framing 재작성 때 이미 반영돼 있었음 — 남은 진짜 작업은 #131의 **Class→Annex 적합성평가 경로 표 신설**뿐이었음. EUR-Lex MDR Art.52 원문(2개 출처 교차검증)으로 Class I 자기선언 / Is·Im·Ir→Annex IX Ch.I&III 또는 Annex XI Part A / IIa→Annex IX(+§4) 또는 Annex II&III+Annex XI §10·18 / IIb→Annex IX(+§4) 또는 Annex X+XI / III→Annex IX 또는 Annex X+XI 표를 `ra-eu` SOUL.md에 신설(백업 `SOUL.md.bak-pre-130-131`). 표본 재현 테스트 5건(Class IIa 경로·DoC 근거·Rule 17·라벨링·위험관리) 전부 정상 확인 후, 신규 배치(2026-07-24 dated, 45케이스, 캡처 실패 0건) ra_eu 15건 팩트체크: **Rule→Class 불일치 0/15, Class IIa→Annex X 오배치 0/15(직전 배치 4/15로 단일 최다빈발이었음), DoC→Annex IX §3 오인용 0/15, 라벨링 Annex VI/VII 오인용 0/15, 위험관리 Annex XVII 오인용 0/15** — 5개 결함 패턴 전부 소거 확인.
   - **잔여 관찰(신규 이슈 미등록, 헤지된 경계선 사례)**: `it02-ra_eu-003`에서 GUI Software 분류 근거를 Rule 11 대신 "MDR §22"로 인용(최종 Class 값 IIa 자체는 정확)했고, X-ray Detector에 "Rule 17→IIa; 능동 소스와 연결 시 IIb로 상향될 수 있음"이라는 헤지 표현이 관찰됨 — Rule 17 자체엔 상향 경로가 없으나 "복합기기 구성요소" 논리로 프레이밍돼 원 #131 결함(근거 없는 단정적 발명)과는 결이 다름. 확정 결함으로 보기 어려워 별도 이슈는 등록하지 않고 참고로만 기록.
@@ -94,9 +106,11 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ## 🏗️ 구축된 시스템 구성요소 상세
 
+아래 구성표의 활성·배포·수량은 기존 구축 기록이다. 이번 문서 대조에서는 라이브 서비스나 데이터 수량을 다시 측정하지 않았다. 현재 운영 판정은 위 상태 요약과 운영 전략 §0을 따른다.
+
 ### 🤖 RA 에이전트 (8종 AI 전문가)
 
-**모두 실제 작동 중** - 각 에이전트는 독립 SOUL.md와 전문 분야를 보유:
+**프로파일 구성 및 과거 활성 기록** - 각 에이전트는 독립 SOUL.md와 전문 분야를 보유. 현재 가동 여부는 배포 환경에서 별도 확인한다:
 
 | 에이전트 | 역할 | SOUL.md | Honcho Peer ID | 작동 상태 |
 |---------|------|---------|---------------|----------|
@@ -169,7 +183,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 | **Workspace 2개** | ✅ 구축 완료 | work (업무), infra (인프라) 격리 |
 | **Docker Compose** | ✅ 구축 완료 | 일관 기동 가능, T3610 운영 |
 
-**환경**: T3610 단일 운영, GX10 Qwen3 연동 (tool calling 지원)
+**배치 기준**: Honcho는 T3610, 추론·임베딩은 GX10 연동. Honcho 모델은 `honcho/.env.example`의 섹션별 설정을 참조하며, RA 자문 모델과 동일하다고 가정하지 않는다.
 
 ---
 
@@ -358,9 +372,10 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 > **정정 (2026-06-23)**: 2026-06-19 "T3610 단일 n8n 운영" 선언은 **철회**. 조사 결과 (1) RPi 핵심 RA 워크플로우 32개(ra-reg-monitor·규제기관 스크래핑·Gitea 연동 등)가 이관 대상에서 누락, (2) 외부 도메인 `n8n.abyz-lab.work`가 RPi cloudflared에 묶인 채 T3610으로 전환 안 됨, (3) 4개만 부분 이전된 반쪽짜리 상태. **CLAUDE.md 원 설계(n8n=RPi 정위치)로 복귀**.
 
-**현재 구성 (정정 후):**
-- **RPi**: n8n + OpenProject (n8n 정위치, 36개 워크플로우 운영)
-- **T3610**: Honcho server 전담 (n8n rollback/제거)
+**배치 기준 (정정 및 자문 API 구현 반영):**
+- **RPi / raspi5p**: n8n + OpenProject, 자문 결과의 실행 측. 워크플로우 36개는 2026-06-23 기록이며 현재 수량은 미재검증.
+- **T3610**: Honcho + RA 프로파일·학습 작업 + RA Advisory API. n8n 운영 위치가 아니며, 자문 API가 OpenProject에 직접 쓰지 않는다.
+- **GX10**: LLM 추론·임베딩 백엔드. 모델은 각 소비 경로의 설정을 따른다.
 
 **이후 과제 — 이식성 개편 (별도 SPEC):**
 - 현재 구조는 하드코딩 내부 IP(`172.18.0.1:*` 등)·도메인-인스턴스 결합으로 **머신 종속 → 이전 불가**
@@ -377,10 +392,10 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 | 컴포넌트 | 파일 | 상태 |
 |---|---|---|
 | Honcho 서버 설정 | `honcho/docker-compose.yml`, `init-vector-dim.sql`, `init-workspaces.sh` | 완료, T3610 배포 완료 |
-| n8n 워크플로우 (T3610) | `n8n/workflows/mail-triage.json`, `infra-vote-broadcast.json`, `feedback-recorder.json`, `infra-to-work-bridge.json` | 완료, T3610 단일 운영 전환 |
+| n8n 워크플로우 (RPi 배치 기준) | `n8n/workflows/mail-triage.json`, `infra-vote-broadcast.json`, `feedback-recorder.json`, `infra-to-work-bridge.json` | 구현 파일 존재. T3610 단일 운영 전환은 2026-06-23 철회; 현재 import/활성 상태는 별도 확인 |
 | RA 프로파일 템플릿 | `profiles/honcho-config-templates/` 8종 | 완료 |
 | SOUL.md 페르소나 | `profiles/souls/` 6종 (ra-us/eu/kr, op/n8n-manager, infra) | 완료 |
-| mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` | 완료, #43/#44/#45 안전 게이트 레포 반영 — RPi n8n 재import 필요 |
+| mail-triage 워크플로우 | `n8n/workflows/mail-triage.json` | #43/#44/#45 안전 게이트 구현·과거 smoke 이력. 현재 운영본과 저장소 차이를 확인한 뒤 import 필요 여부 판단 |
 | 브릿지 워크플로우 | `n8n/workflows/infra-to-work-bridge.json` | 완료, relay 조건 env/config 외부화(#45) |
 | 피드백 워크플로우 | `n8n/workflows/feedback-recorder.json` | 완료, 가중치 공식 env/config 외부화(#45) |
 | 투표 집계 인터페이스 | `voting/vote-aggregator.js`, `voting/config/vote-rules.json`, `n8n/workflows/infra-vote-broadcast.json` | 완료 — 초기 2/3 quorum rule, RPi n8n import/activate, webhook smoke 완료 |

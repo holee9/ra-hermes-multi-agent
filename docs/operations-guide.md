@@ -5,11 +5,27 @@
 
 ---
 
-## 0. 현재 운영 판정 (2026-06-21)
+## 0. 현재 운영 판정 (2026-09-09)
 
-자동성장 timer는 **OFF 유지**가 현재 기준이다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 2026-06-16 일괄 보강으로 P0/P1/P2/P3의 repo-side 구현과 RPi smoke는 진행했지만, 자동성장 timer 전환에는 30일 유효 metrics와 사람 승인 조건이 남아 있다.
+이 판정은 저장소 코드·모니터링 문서·원격 이슈를 대조한 결과이며, 서비스·timer·DB를 직접 재검증한 결과는 아니다. **핵심 골격 구현과 전문가 판단의 성숙을 분리**한다. 메일 유입이나 화면 동작만으로 학습 성장을 판정하지 않는다.
 
-| 선행 조건 | 현재 사실 | 이슈 |
+| 확인 영역 | 현재 문서·코드 근거 | 해석 및 잔여 확인 |
+|---|---|---|
+| 시스템 가용성 | [2026-09-09 모니터링](monitoring/today-status.md)은 인프라 정상으로 기록 | 기록 시점의 관측이며, 현재 라이브 상태나 규제 판단 품질을 보증하지 않음 |
+| 성장 측정 | 같은 기록에서 correction/match/calibration/warmstart/escalation 지표가 `null`, study·insight는 0 | 결측을 성능 0점 또는 성장 완료로 해석하지 않음. 입력·peer 기록·수집 경로 확인 필요 ([#103](https://github.com/holee9/ra-hermes-multi-agent/issues/103)) |
+| 평가 증거 | [#134의 2026-09-09 코멘트](https://github.com/holee9/ra-hermes-multi-agent/issues/134#issuecomment-5595688443): 190건 채점 중 177건에 사람 정정 필요 표시 | 과거 응답 채점 결과로, 현재 모델 오류율이나 Honcho ingest 완료를 뜻하지 않음 |
+| 지식·평가 품질 | [#144](https://github.com/holee9/ra-hermes-multi-agent/issues/144) 원본 오류, [#145](https://github.com/holee9/ra-hermes-multi-agent/issues/145)·[#146](https://github.com/holee9/ra-hermes-multi-agent/issues/146) 응답 오류, [#147](https://github.com/holee9/ra-hermes-multi-agent/issues/147) 사례 생성 결함 | 원인별 보정·재질의 결과가 필요. 사례 생성 실패를 에이전트 성능과 합산하지 않도록 분리하는 작업은 아직 추적 중 |
+| 자동화 확대 | `feedback/config/growth-trigger-config.json`의 threshold와 webhook은 `null` | 조건 미정의 정책 유지 ([#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)). 자동성장 timer의 실제 활성 상태는 별도 확인 |
+
+목적에 맞는 검증 순서는 **근거 원본·검색 품질 확인 → 평가 사례와 응답 오류 분리 → 피드백 기록·지표 수집 확인 → 성숙도 판단**이다. 이는 새 자동 실행 순서나 외부 시스템 변경 승인이 아니다. WP 완료·재오픈의 사람 전용 경계와 기존 자동화 전환 조건은 유지한다.
+
+구현 명세서의 `[구현]` 마커는 **코딩 가능한 깊이의 명세**를 뜻한다. 마커만으로 코드 존재·운영 반영·장기 성장까지 완료됐다고 판단하지 않는다. 배포 보고나 Pages 성공도 자문 서비스와 전체 학습 루프의 E2E 통과로 확장 해석하지 않는다.
+
+### 0.1 과거 운영 증거 (2026-06-21)
+
+당시 자동성장 timer는 **OFF 유지**가 기준이었다. `auto-growth-readiness-report.py` 16/16은 activation safety snapshot이며, 각 RA 담당자가 실제 운영 속에서 성장하고 있다는 장기 지표가 아니다. 2026-06-16 일괄 보강으로 P0/P1/P2/P3의 repo-side 구현과 RPi smoke는 진행했지만, 자동성장 timer 전환에는 30일 유효 metrics와 사람 승인 조건이 남아 있었다.
+
+| 선행 조건 | 당시 기록 | 이슈 |
 |---|---|---|
 | 성장 metrics ingestion 유효성 | #64에서 Honcho list API 계약을 POST로 보정. diagnostic report: 32 sessions / 302 messages scanned | #64 |
 | 운영 workflow 런타임 반영 | #43~#45 workflow 4개 RPi n8n import/activate, feedback webhook + mail-triage Yellow smoke 완료 | #43~#45 |
@@ -17,9 +33,9 @@
 | 자동성장 threshold 정책 | threshold null 정책과 validator 구현. 30일 valid metrics 전까지 자동 알림 비활성 | #65 |
 | KB 기반 사람 채점 증거 | 2026-06-20 `docs/kb-eval-checksheets/`에 6회차/90건 채점지 생성. 체크 후 `score_given`으로 ingest 가능 | 운영 |
 
-따라서 현재 작업 초점은 대시보드 열람이 아니라 **성장 입력이 발생하고, 그 입력이 올바른 peer에 기록되며, metrics가 이를 수집해 사람에게 판단 가능한 증거를 제공하는지** 확인하는 것이다.
+당시의 핵심 확인 항목도 **성장 입력이 발생하고, 그 입력이 올바른 peer에 기록되며, metrics가 이를 수집해 사람에게 판단 가능한 증거를 제공하는지**였다.
 
-남은 실행 우선순위는 `ra-growth-metrics.timer`의 다음 scheduled run 확인, 30일 valid metrics 누적, KB 평가 채점지 기반 사람 평가 coverage 확보, 그리고 Green 경로/OpenProject side-effect E2E를 통제 조건에서 추가 확인하는 순서다.
+당시 후속 항목은 `ra-growth-metrics.timer`의 scheduled run 확인, 30일 valid metrics 누적, KB 평가 coverage 확보, 그리고 Green 경로/OpenProject side-effect E2E의 통제 조건 검증이었다. 현재 잔여 상태는 §0과 각 추적 이슈로 확인한다.
 
 ---
 
@@ -575,7 +591,9 @@ timer 실행 내용:
 
 **프로덕션은 새 기능이 아니라 성숙으로 도달한다.** 같은 골격이 학습·평가로 깊어진 상태. 아래는 "Hermes가 이만큼 성숙하면 무엇을 한다"는 성장 트리거 — 미리 일정으로 박지 않고, 조건이 충족되면 실행.
 
-### 5.0 현재 로드맵 (2026-06-16 기준)
+### 5.0 구축 단계 이력 (2026-06-16 기준)
+
+아래 완료 표시는 당시 구현·smoke 이력이다. 현재 운영 성숙도와 잔여 결함은 §0에서 별도로 판단한다.
 
 | 단계 | 상태 | 이슈 |
 |------|------|------|
@@ -595,7 +613,7 @@ timer 실행 내용:
 
 **측정 도구**: `scripts/growth-metrics.py` (systemd 타이머 구현 완료, 운영 활성화 상태는 배포 환경에서 확인).
 
-2026-06-19 모니터링 상태:
+2026-06-19 모니터링 기록 (현재 가동 여부는 재확인 필요):
 
 - `ra-growth-metrics.timer`는 active/enabled이며 매일 02:00 KST에 `ra-growth-metrics.service`를 실행한다.
 - 산출물은 `reports/growth-YYYY-MM-DD.json`이다. `/var/log/ra-growth-metrics.log`는 systemd stdout/stderr 로그 용도이며, 지표 원본은 `reports/` 아래 JSON이다.
@@ -694,7 +712,9 @@ workflow 변경분은 레포에 반영된 것과 RPi n8n에 import된 것이 다
 
 - MVP: 목업으로 프로토타입 확인.
 - 연동: Honcho 활동 기록을 데이터 소스로 전환(`DATA_SOURCE`). 뼈대가 돌면 자동으로 채워짐(뼈대는 시각화 모름).
-- 정교화: 필요 시 Kenney CC0 캐릭터로 교체. 일이 있을 때만 캐릭터가 움직이는 "기록 재생" — 비동기 시스템의 정직한 표현.
+- 관측: 과거 기록은 정적 이력으로, 새 활동만 애니메이션으로 표시한다. 과거 재생을 실제 업무 발생으로 취급하지 않는다.
+- 자문: 사람 입력은 어댑터의 `/api/chat`을 통해 RA Advisory API로 전달된다. 응답 표시용이며 OpenProject 직접 실행 창구가 아니다.
+- 성숙도: 학습량 별과 source coverage는 구현되어 있고 정확도는 `pending`이다. [성숙도 명세 §0](specs/maturity-capability-spec.md#0-구현-상태-대조-2026-09-09)의 부분 구현 상태를 따른다.
 
 ---
 
