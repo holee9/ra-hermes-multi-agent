@@ -25,6 +25,3 @@ SPEC §5 A1–A6. **A1·A2는 이 브랜치에서 이미 충족.**
 
 ### 착수 전 필수
 SPEC §6 C1·C3·C5·C7 대조. C1(actor ID 실명)이 선행.
-
-### 동봉 — 채팅 세션 쓰기 경로
-`n8n/workflows/repo-write-gate.json`: 이후 채팅 세션이 이슈·커밋을 n8n webhook 경유로 직접 쓰기 위한 정문. 자격증명은 n8n에만.

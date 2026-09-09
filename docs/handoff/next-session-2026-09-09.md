@@ -56,5 +56,3 @@
 5. **#148 [HIVE] 계약 v2.1** — `feat/hive-v2.1` 브랜치, `.moai/specs/SPEC-HIVE-001/spec.md`.
    DoD A1·A2 충족 상태. 착수 전 SPEC §6 **C1(actor ID 실명 대조)** 선행.
    이슈 본문: `docs/issues/148-hive-v2.1.md` → `gh issue create --body-file`로 등록.
-6. `n8n/workflows/repo-write-gate.json` 임포트 + `RA_GATE_TOKEN`·`RA_REPO` env 설정 시,
-   이후 채팅 세션이 이슈·커밋을 직접 씀. 브라우저·수작업 불필요.
