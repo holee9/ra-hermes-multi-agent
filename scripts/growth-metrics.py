@@ -216,6 +216,12 @@ def honcho_post(path: str, body: dict) -> dict | None:
     return None
 
 
+# #103: pages that failed mid-walk (or API totals larger than what was collected).
+# Surfaced as ingestion_diagnostics.collection_incomplete so a partial walk is never
+# reported as a complete scan.
+PAGINATION_INCOMPLETE: list[dict] = []
+
+
 def _list_all_pages(path: str, item_keys: tuple[str, ...]) -> list[dict]:
     """Fetch every page of a Honcho list endpoint.
 
@@ -228,12 +234,22 @@ def _list_all_pages(path: str, item_keys: tuple[str, ...]) -> list[dict]:
     """
     items: list[dict] = []
     page = 1
+    pages_expected: int | None = None
+    total_expected: int | None = None
     while True:
         sep = "&" if "?" in path else "?"
         result = honcho_post(f"{path}{sep}page={page}", {})
         if not isinstance(result, dict):
             if isinstance(result, list):
                 items.extend(result)
+            elif result is None and (page > 1 or pages_expected):
+                # #103 review: a page failure after page 1 must not read as a complete
+                # collection — record it so the report can flag incomplete ingestion.
+                PAGINATION_INCOMPLETE.append({
+                    "path": path.split("?")[0], "page_failed": page,
+                    "pages_expected": pages_expected, "items_collected": len(items),
+                    "total_expected": total_expected,
+                })
             break
         for key in item_keys:
             chunk = result.get(key)
@@ -241,9 +257,18 @@ def _list_all_pages(path: str, item_keys: tuple[str, ...]) -> list[dict]:
                 items.extend(chunk)
                 break
         pages = result.get("pages")
+        if isinstance(result.get("total"), int):
+            total_expected = result["total"]
         if not isinstance(pages, int) or page >= pages:
             break
+        pages_expected = pages
         page += 1
+    if total_expected is not None and len(items) < total_expected and not any(
+            e["path"] == path.split("?")[0] for e in PAGINATION_INCOMPLETE):
+        PAGINATION_INCOMPLETE.append({
+            "path": path.split("?")[0], "page_failed": None, "pages_expected": pages_expected,
+            "items_collected": len(items), "total_expected": total_expected,
+        })
     return items
 
 
@@ -927,6 +952,7 @@ def compute_absence_pattern_signals(messages_by_session: dict[str, list[dict]],
 
 def compute_metrics(since: datetime, until: datetime) -> dict:
     API_ERRORS.clear()
+    PAGINATION_INCOMPLETE.clear()
     print(f"Querying Honcho: {HONCHO_URL}/v3/workspaces/{HONCHO_WS}", flush=True)
     print(f"  window: {since.date()} → {until.date()}", flush=True)
 
@@ -993,6 +1019,8 @@ def compute_metrics(since: datetime, until: datetime) -> dict:
             "sessions_with_messages": len(messages_by_session),
             "message_fetch_attempts": message_fetch_attempts,
             "message_fetch_failures": message_fetch_failures,
+            "collection_incomplete": bool(PAGINATION_INCOMPLETE),
+            "incomplete_pages": PAGINATION_INCOMPLETE[:10],
             "empty_cause": empty_cause,
             "session_samples": session_samples,
             "record_contract": contract,
