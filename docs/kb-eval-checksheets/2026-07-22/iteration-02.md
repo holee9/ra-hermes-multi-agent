@@ -268,21 +268,20 @@ Without this core information we cannot:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source가 #951 이월·감사 sweep 인력투입을 기록한 행정 로그라 predicate 전략 판단 근거가 전무한 매칭 실패이며(케이스 생성 단계 결함, 에이전트 과실 아님), 정보 부족을 이유로 작업 중단을 권고한 대응 자체는 합리적이나 DICA(실제 DICE) 등 오기가 있다.
 **Source Excerpts**
 
 1. Chunk `243090506975535922`
@@ -455,21 +454,20 @@ Without this core information we cannot:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source가 4주 연속 착수 실적 없음·인력 배분을 다루는 사내 이월 메모여서 predicate 전략 focus와 주제가 불일치하는 매칭 실패이며(케이스 생성 단계 결함, 에이전트 과실 아님), 응답의 De Novo 근거 21 CFR 814·predicate 근거 §807.93(b) 인용도 오적용이다.
 **Source Excerpts**
 
 1. Chunk `1133221829333770557`
@@ -569,21 +567,20 @@ Without this core information we cannot:
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source가 build_readiness.py 점수(52%→85%)를 다루는 사내 진척 메모라 focus인 '510(k) predicate strategy' 판단 근거를 제공하지 못한 매칭 실패이며(케이스 생성 단계 결함, 에이전트 과실 아님), 응답은 그 위에 존재하지 않는 §807.91 'Refusal of Premarket Notification Submissions'까지 만들어냈다.
 **Source Excerpts**
 
 1. Chunk `322119354378516559`
@@ -742,22 +739,21 @@ Without this core information we cannot:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> FDA Form 3514/3601/3654/3881 등 표지 양식 목록을 source에서 정확히 활용하고 기기 정보 부재를 이유로 분류를 보류한 판단은 타당하나, source 자체가 표지 양식 작성 작업 문서라 focus인 predicate 전략 근거를 제공하지 못해 해당 부분은 전부 일반지식이다.
 **Source Excerpts**
 
 1. Chunk `202395958248735480`
@@ -1092,22 +1088,21 @@ All controls must be documented in the **Risk Management File** (ISO 14971) an
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source 감사문서의 핵심 교정(진단용 X-ray는 Rule 9가 아니라 Rule 10→Class IIb)을 정확히 수용하고 Annex IX/X 경로도 맞으나, RMF를 'Annex I §§16-18'에 귀속하고 Rule 10을 '생리학적 변수 모니터링' 유형으로 설명했으며 source가 함께 제시한 디텍터 Rule 17→IIa는 누락했다.
 **Source Excerpts**
 
 1. Chunk `109229213193581391`
@@ -1627,21 +1622,20 @@ Only after these triggers are resolved should the classification be finalized an
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source가 Art.10(8) 문서 보존기한(비이식 10년·이식 15년) 감사문서뿐이어서 focus인 'MDR classification and conformity route' 판정을 뒷받침할 수 없는 매칭 실패이며(케이스 생성 결함, 에이전트 과실 아님) 응답도 분류 불가를 정직하게 선언했으나, 기술문서 참조를 'Annex II §9'로 적은 오적용이 남는다.
 **Source Excerpts**
 
 1. Chunk `1013295490713979930`
@@ -2428,22 +2422,21 @@ Your feedback will be incorporated before finalizing the submission plan.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 법률 제20139호·대통령령 제35219호·총리령 제1958호와 가이드라인 5종을 chunk 단위로 정확히 인용했으나, excerpt에 없는 '해외자료 수용 확대'를 '소스가 확인한다'며 사실로 귀속시켰다.
 **Source Excerpts**
 
 1. Chunk `1002132727008468922`

@@ -1588,22 +1588,21 @@ All collected signals feed into the **PMS Plan’s “Signal Detection Criteria�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> EUDAMED 모듈 일정·SRN·UDI 발급기관(GS1/HIBCC/ICCBBA)을 excerpt대로 쓰고 Art.83~86·88·Annex XIV Part A/B 주제도 정확하나, 'PMS Plan을 Module 5에 업로드해야 하고 지연 시 Art.84-86 법적 제재'라는 존재하지 않는 의무와 'EOI(Economic Operator Identifier)' 용어를 창작했고 IIa~III 경로에서 Annex IX를 누락했다.
 **Source Excerpts**
 
 1. Chunk `1048620351506847107`
@@ -2354,22 +2353,21 @@ All collected signals feed into the **PMS Plan’s “Signal Detection Criteria�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> NIDS 권한 확대·가이드라인 6종·2026 자율성능인증 예정을 정확히 인용하고 고시번호 부재를 반복 명시했으나, 의료기기법 '제8조(위험기반 분류)'라는 소스에 없는 조문번호를 근거로 제시했다.
 **Source Excerpts**
 
 1. Chunk `1078228256164017760`

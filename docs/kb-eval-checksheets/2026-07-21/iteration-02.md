@@ -1252,22 +1252,21 @@ The route follows the class identified in § 1:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> NB 질의 대응 구조와 DoC→Annex IV·Art.11(EU 대리인) 매핑은 정확하다. 다만 Risk Management File 근거를 'Annex I §§16-22'로 적었는데, RMF의 GSPR 근거는 Annex I Chapter I §§1-9(특히 §3 위험관리 체계)이므로 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1024305232637496780`
@@ -1490,21 +1489,20 @@ Your feedback will ensure the final response fully satisfies the Notified Body�
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 기기정보 부재를 선언하고 TD 8단계·경제운영자 excerpt를 인용한 절차는 타당하나, 핵심 산출물인 등급별 경로표가 'Class I 자기선언=Annex IX', 'Class III=Annex X 필수'로 근본적으로 틀렸고 멸균 밸리데이션 근거로 IEC 60601-1-2/IEC 62366, 멸균 GSPR로 §18, 전기안전으로 §§10-12를 붙여 판단 자체가 성립하지 않는다.
 **Source Excerpts**
 
 1. Chunk `105236685415245472`

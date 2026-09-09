@@ -1529,22 +1529,21 @@ Please provide feedback on any missing evidence, alternative routes, or overlook
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 'Class IIa (MDR §22)' 약칭을 그대로 따르지 않고 '§22는 lay person 조항이지 SaMD 분류 근거가 아니다'라며 Rule 11로 교정한 점은 #134 유형을 스스로 막은 모범 사례이나, RMF 근거를 세 제품 모두 'Annex I §§16-20 / §§17-18'로 적어 RMF 귀속은 여전히 오적용이다.
 **Source Excerpts**
 
 1. Chunk `1138445053784347810`

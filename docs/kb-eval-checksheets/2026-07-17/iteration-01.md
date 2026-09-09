@@ -131,22 +131,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §820.30 전문 Reserved·§820.10(c)→ISO 13485:2016 §7.3 단일 경로를 정확히 인용하고 전수 검색→Change Control→CAPA #921 종결이라는 일정·책임자까지 붙은 실행 계획을 제시했다. 다만 위험 표에서 `device DMRs (Design History File)`로 DMR과 DHF를 동일시했는데 두 기록은 별개라 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1123403925433224246`
@@ -309,22 +308,21 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 정정 권고(`§820.10(c) → ISO 13485:2016 §7.3`)와 자매 SOP 3종을 정확히 인용했다. 그런데 같은 응답의 증빙 표에서 DHF 요건을 다시 `21 CFR 820.30`으로 인용해 source가 지적한 바로 그 오류(§820.30 Reserved)를 재현했고, `SOP-DVV-001`(설계 검증·밸리데이션)을 문서관리 절차로 잘못 배정했다.
 **Source Excerpts**
 
 1. Chunk `1097299844760913437`
@@ -486,22 +484,21 @@ Provide comments on any overlooked regulatory requirements, missing documentatio
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §8.1·8.2.5·8.5.1 partial 상태와 KPI 매트릭스 27셀·SPC/Pareto/Ishikawa·CAPA 트리거를 source 그대로 인용해 갭과 조치를 도출했다. 그러나 `SOP-PMA-001`의 PMA를 Premarket Approval로 오독해 Class III/PMA 전제를 세웠고(source에서 PMA는 프로세스 모니터링·분석 약어), `ISO 13485 §7.1(위험관리)·§8.2(공정 밸리데이션)` 대응도 조항 성격과 어긋난다.
 **Source Excerpts**
 
 1. Chunk `1039190717614682920`
@@ -677,22 +674,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source 2.2절 구조 매핑표(§820.1/3/10/20/25/30/35/45/180/198 ↔ ISO 13485 조항)를 왜곡 없이 재현하고 FR 2024-01709·2025-21955까지 인용한 정합성 높은 응답이다. 다만 §820.180을 '폐지되었으나 여전히 적용된다'고 서술한 자기모순 문장과 실재하지 않는 `Modernized 510(k)` 경로 명칭은 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1041077994247338699`
@@ -876,22 +872,21 @@ honcho_conclude:
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §820.35 추가요건과 ISO 13485 §4.2.5 기본요건의 관계, 서식 F-QMSR-REC-001까지 source에서 정확히 끌어와 기록관리 갭과 cross-walk 작성을 제시했다. 그러나 X-ray 분류를 `21 CFR 862`로(방사선은 Part 892), 보관기간 근거를 `§820.180 ≥10년`으로(QMSR에서 폐지된 조항 + 근거 없는 기간) 인용했고 `Part 111`(건강기능식품 CGMP) 오타 인용도 남아 있다.
 **Source Excerpts**
 
 1. Chunk `100539693362657837`
@@ -1111,22 +1106,21 @@ Your feedback will be used to close any remaining evidence gaps before submissio
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PSUR 주기(2년/1년/2년)와 제품별 PMS 데이터 소스는 source 매트릭스와 정확히 일치한다. 다만 진단용 Handheld X-ray Source를 'Rule 9(치료용)'로, 디텍터를 'Rule 10'으로 배치한 것은 규칙 뒤바뀜이고, RMF 근거 'Art. 10(9)'도 QMS 조항이라 Art.10(2)로 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `1039815103287926448`
@@ -1326,22 +1320,21 @@ Your feedback will be used to close any remaining evidence gaps before submissio
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Annex IV 자기적합성선언·Annex IX QMS 경로 구분과 Art.83 PMS 체계 인용은 정확하다. 다만 'Annex I-§21(usability)'는 오적용으로, 사용적합성은 §5/§22 영역이고 §21은 공급 에너지 위험 방호이므로 사람이 재귀속해야 한다.
 **Source Excerpts**
 
 1. Chunk `1024305232637496780`
@@ -1537,22 +1530,21 @@ When drafting PMS/PMCF plans for mixed hardware‑software radiology products un
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> SaMD PMS 특화 항목(SW 버그, CVE/NVD, IEC 62366 사용성 평가)을 source와 정확히 대응시켰다. 다만 RMF 근거를 '**Annex I**, §10 (risk management)'로 적었는데 Annex I §10은 화학적·물리적·생물학적 특성이고 위험관리는 Ch.I §3이므로 명백한 오적용이다.
 **Source Excerpts**
 
 1. Chunk `1138445053784347810`
@@ -1719,21 +1711,20 @@ When drafting PMS/PMCF plans for mixed hardware‑software radiology products un
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> focus는 PMS and PMCF planning인데 선택된 source는 EUDAMED/GUDID/UDI포털 등록 DB 비교와 UDI 구조 문서뿐이라 PMS·PMCF 계획 수립 근거를 담고 있지 않다. 응답도 UDI 등록 요건을 PMS 증거로 대체했다 — 케이스 생성 단계의 source↔focus 불일치이며 에이전트 책임이 아니다.
 **Source Excerpts**
 
 1. Chunk `1048620351506847107`
@@ -1941,22 +1932,21 @@ Your feedback will help close any remaining documentation gaps before we move to
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> PSUR 섹션 구조와 Annex IV DoC 매핑은 source 템플릿과 대응한다. 다만 RMF 근거를 'Annex I, GSRS'로 적어 GSPR 오타를 냈고, C1 린터가 11회 잡은 'Art.86(1)(d)'는 KB source chunk 108347462317924009 자체의 표기라 KB 원본과 함께 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `108347462317924009`
@@ -2141,22 +2131,21 @@ If any of these elements are missing or ambiguous—particularly the intended us
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 국내 2등급 판정과 변경관리계획·구성요소 성능평가 요구는 excerpt와 일치한다. 그러나 디지털의료제품법 시행일을 'effective 2024-01-24'로 적어 excerpt의 2025-01-24와 어긋나고, '2등급은 신고가 아니라 허가'라는 경로 결론도 틀렸다(2등급은 인증).
 **Source Excerpts**
 
 1. Chunk `1112950876551682081`
@@ -2325,22 +2314,21 @@ Impact of the Korean “Digital Medical Products Act” (디지털의료제품�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 사용적합성 의무화, 사이버보안 15→35, 구성요소 성능평가 2026 시행과 G2·G3·G4 갭을 excerpt대로 정확히 인용했다. 그러나 국내 등급을 EU MDR 체계인 'Class IIa/IIb'로 표기해 관할 체계를 혼용했고(국내는 1~4등급), 'IIa~III은 허가(인증)'라는 경로 서술도 정정이 필요하다.
 **Source Excerpts**
 
 1. Chunk `1061576322702878078`
@@ -2537,22 +2525,21 @@ Impact of the Korean “Digital Medical Products Act” (디지털의료제품�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 법률 제20139호·대통령령 제35219호·총리령 제1958호와 하위고시·가이드라인 5종을 excerpt와 일치하게 인용했고 1등급 신고 / 2등급 인증 / 3등급 허가 경로도 정확하다. 다만 중대 이상사례 'MFDS 7일 보고' 기한과 IEC 82304-1 적용은 출처 없는 단정이라 사람이 확인해야 한다.
 **Source Excerpts**
 
 1. Chunk `1002132727008468922`
@@ -2743,22 +2730,21 @@ Impact of the Korean “Digital Medical Products Act” (디지털의료제품�
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Generator/Detector/Workstation/AI 모듈/DICOM별 해당성 판정을 excerpt 표 그대로 재현한 점이 정확하다. 다만 사이버 취약점 발견 시 'MFDS에 통상 48시간 내 보고'라는 법정 기한은 출처에 없는 창작이고, 'Class II는 허가'라는 경로 매핑도 2등급 인증을 누락했다.
 **Source Excerpts**
 
 1. Chunk `418096885713027360`
@@ -2927,21 +2913,20 @@ Please challenge any assumptions, suggest additional documentation needs, and fl
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source는 '법률 제20722호'가 완전히 다른 법률번호를 잘못 적은 오기라고 지적하는 감사문서인데, 응답은 그 오기를 정답으로 채택해 '법률 제20722호 제40조로 모든 문서를 정정하라'고 지시했다(정확한 번호는 제20139호). 감사 결론을 정반대로 뒤집었으므로 응답 전체를 폐기하고 재작성해야 한다.
 **Source Excerpts**
 
 1. Chunk `101444507831075103`

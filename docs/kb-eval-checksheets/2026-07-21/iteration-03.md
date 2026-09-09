@@ -1366,22 +1366,21 @@ All controls must be documented, verified, and included in the Risk Management R
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Rule 11 영향도별 IIa~III 구분은 excerpt 원문과 일치하나, source 전환기한 표가 'Class IIb 비이식형 = 2028-12-31'인데도 '2027-12-31'로 잘못 읽어 이를 프로젝트 기한·escalation 기준으로 반복 사용했고 사이버보안 근거로 §16.4(방사선 방호)를 붙였다.
 **Source Excerpts**
 
 1. Chunk `1007248354989010815`
@@ -1562,22 +1561,21 @@ Your feedback will be incorporated into the final submission package.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source 매트릭스의 3제품 등급에 Rule 17→IIa·Rule 10→IIb·Rule 11→IIa를 정확히 대응시키고 PSUR 주기·PMCF 조건·정보수집원까지 근거대로 인용했으나, RMF 법적 근거를 'Annex I §17~§20'으로 적어 RMF 귀속을 오적용했다.
 **Source Excerpts**
 
 1. Chunk `1039815103287926448`

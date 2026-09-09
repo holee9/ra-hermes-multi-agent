@@ -205,7 +205,7 @@ All controls must be documented in the **Design History File (DHF)** and linked 
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
@@ -213,13 +213,12 @@ All controls must be documented in the **Design History File (DHF)** and linked 
 - [ ] Evidence supported
 - [ ] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 `RTA`(Refuse to Accept)를 'real-time analysis'로 오독해 존재하지 않는 무선 센서+모바일 앱 실시간 모니터링 기기를 만들어내고, predicate 후보로 `K123456`(JTX, 2023-11-15 허가)·`K234567`(RME, 2024-04-02 허가)이라는 자리표시자 K-number를 실제 허가건처럼 날짜까지 붙여 제시했다. 가이던스 식별자 `2024-009`·`2024-001`·`2023-FDA-AIML`·`GHTF HU-1`, `ISO 14971:2019 (2023 amendment)`도 모두 실재하지 않아 predicate 판단 자체가 성립하지 않는다.
 **Source Excerpts**
 
 1. Chunk `243090506975535922`
@@ -444,22 +443,21 @@ Please challenge our classification justification, the completeness of required 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 'Rule 5/9' 오적용을 명시적으로 반박하고 진단용은 Rule 10, 치료용은 Rule 9로 분기시킨 핵심 판단이 정확하다. 다만 'PMS plan per Annex II-23'(PMS 기술문서는 Annex III)과 IEC 62387 인용이 근거 없이 제시되어 사람이 정정해야 한다.
 **Source Excerpts**
 
 1. Chunk `109229213193581391`
@@ -679,22 +677,21 @@ Your feedback will be incorporated before final dossier preparation.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 고시 제2025-25호·제2025-23호·디지털 GMP·총리령 제2088호를 excerpt대로 인용해 허가·인증·신고 3경로를 정리한 뼈대는 유효하다. 그러나 'OECD CER Acceptance Scope – MFDO Revision 2026-01'은 실재하지 않는 창작 출처이고, 고시 제2025-25호 제4조(사용자 교육·훈련 의무)와 개인정보보호법 시행령 제23조도 근거 없이 붙인 조문이다. 아울러 2등급을 신고로 매핑한 결론도 틀렸다(2등급은 인증).
 **Source Excerpts**
 
 1. Chunk `1131342938714268388`

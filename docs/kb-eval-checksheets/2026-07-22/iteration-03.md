@@ -105,22 +105,21 @@ When a QMSR‑driven SOP introduces new design‑transfer checkpoints and AI mod
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §9.5 체크포인트·DHF/DMR→DDF/MDF 전환·MRE 6유형·EU AI Act Art.17 이중준수를 source[2]에서 정확히 인용했으나, De Novo 근거로 PMA 규정인 21 CFR 814를 제시하고 §820.30을 통째로 'Design Transfer'로 명명했다.
 **Source Excerpts**
 
 1. Chunk `159434114844154818`
@@ -280,22 +279,21 @@ All triggers must be documented in the project risk register and signed off befo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 2025-10-01 SBOM/사이버보안 미비 시 RTA 처리와 CMP 4개 항목(◐/○ 상태 포함)을 source대로 정확히 재현했으나, 해당 정책을 'FDA internal memo'로 규정하고 근거 없는 '48시간 내 FDA 통보' 의무와 IEC 62443-4-2의 잘못된 표제를 덧붙였다.
 **Source Excerpts**
 
 1. Chunk `1052559063111348600`
@@ -463,22 +461,21 @@ All triggers must be documented in the project risk register and signed off befo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> excerpt[1]의 제출 권고 항목(데이터 계보·편향·Human-AI·시판후모니터링·PCCP)을 인용해 gap을 도출한 점은 정확하나, excerpt[2]의 Final(2024-12)/Draft(2025-01-06) 구분 경고를 반영하지 못했고 '성능 편차 >Δ10%' 같은 수치 트리거를 source 근거 없이 만들어냈다.
 **Source Excerpts**
 
 1. Chunk `1132891599852736913`
@@ -634,22 +631,21 @@ All triggers must be documented in the project risk register and signed off befo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> §820.30이 Reserved이고 설계관리는 §820.10(c)→ISO 13485 §7.3 단일 경로라는 source 핵심을 정확히 수용해 잔존 인용 제거 조치를 제시했으나, FDA 실사 대응 근거로 무관한 §807.92(510(k) Summary)를 인용하고 'GSPR 2025-01'이라는 확인 불가 가이던스를 언급했다.
 **Source Excerpts**
 
 1. Chunk `1123403925433224246`
@@ -796,22 +792,21 @@ All triggers must be documented in the project risk register and signed off befo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Gap→조치 4건과 Harmonized/State-of-the-art 표준 목록을 source에서 가장 충실히(10/16) 반영했으나, 'ISO 14971:2021'(실제 2019+A11:2021)·'ISO 20417 usability'(실제는 제조자 제공정보) 등 표준 표기가 어긋나고 QMSR에서 삭제된 §820.25/.30/.70/.100/.198을 현행 요구로 나열했다.
 **Source Excerpts**
 
 1. Chunk `1061533089543682126`
@@ -2029,22 +2024,21 @@ When any trigger occurs, raise an immediate review and allocate resources to clo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 제15조를 임상적 유효성 근거로 쓰지 말고 제9/10조로 정정하라는 방향은 소스와 일치하나, 한국 라벨링 근거로 실재하지 않는 'K-MED-1000 series'를 창작하고 제17조 인증을 의무로 단정했다.
 **Source Excerpts**
 
 1. Chunk `399070733591760115`
@@ -2189,22 +2183,21 @@ When any trigger occurs, raise an immediate review and allocate resources to clo
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> ISO 13485 35개 문서화 항목·SOP 커버리지 69%·미작성 8건을 소스대로 정확히 사용했으나, 한글표시 근거로 소스 밖의 '의료기기법 제25-2조'를 지어냈고 미작성분을 31%(11건)로 계산해 소스의 8건과 어긋난다.
 **Source Excerpts**
 
 1. Chunk `315455402892636179`
@@ -2343,22 +2336,21 @@ All medical devices marketed in Korea are subject to the Korean Good Manufacturi
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 품질매뉴얼 보관기간을 단정하지 않고 별표2 1차 출처 재확인으로 넘긴 핵심 처리는 모범적이나, 'CAP를 30일 내 착수'를 MFDS 시판후조사 규정 근거로 제시한 부분은 창작이다.
 **Source Excerpts**
 
 1. Chunk `104161787279348102`

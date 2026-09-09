@@ -113,22 +113,21 @@ If any of the *human‑escalation triggers* arise, pause work and route the issu
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> SE 5단계 Decision Point(DP1~DP5)를 source[2]대로 정확히 적용해 predicate 전략과 escalation을 도출했으나, source[1]이 X-ray 필수 항목으로 명시한 21 CFR 1020 요건을 evidence 목록에서 완전히 누락했다.
 **Source Excerpts**
 
 1. Chunk `1061195424067242245`
@@ -299,22 +298,21 @@ If any of the *human‑escalation triggers* arise, pause work and route the issu
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 제출 절차 5단계(predicate 조사→SE 비교표→성능·생체적합성·전자파→eSTAR→AI 대응)를 source[2]에 정확히 대응시켰으나, 기기 정보가 전혀 없는 README를 근거로 'image management and processing system, §892.2050 Class II'를 확정 결론으로 단정했다.
 **Source Excerpts**
 
 1. Chunk `906877802391288013`
@@ -477,22 +475,21 @@ If the device under development is a **Class II imaging or software system** wit
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 경로별 법적근거·Class·predicate 필요성 표를 source대로 정확히 옮긴 점은 타당하나, eSTAR 의무일과 FY2025 수수료를 본문에서는 사용하면서 인용표에는 'no specific identifier found in source'로 적어 근거 귀속이 자기모순이다.
 **Source Excerpts**
 
 1. Chunk `1031369836908836097`
@@ -650,22 +647,21 @@ If the device under development is a **Class II imaging or software system** wit
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Predicate 체크리스트(5년/7년, 판매·리콜 확인, IFU 문자비교)와 Split Predicate 금지 취지를 'single primary predicate'로 정확히 반영했으나, §820.30(c)를 사이버보안 근거로, §820.30(e)를 존재하지 않는 'Software product integrity' 조항으로 인용하고 사이버보안 가이던스를 2022년으로 표기했다.
 **Source Excerpts**
 
 1. Chunk `1069833492575158480`
@@ -802,22 +798,21 @@ If the device under development is a **Class II imaging or software system** wit
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Pre-Sub 6~12개월 선행 권고를 source에서 가져온 점은 정확하나, 존재하지 않는 §820.30(c)(3)을 소프트웨어 검증 근거로 인용했고 source에 명시된 문장을 인용하면서도 'no specific identifier found in source'로 표기해 자기모순을 남겼으며 focus인 predicate 전략은 일반론에 머물렀다.
 **Source Excerpts**
 
 1. Chunk `124523812258860464`
@@ -1027,22 +1022,21 @@ The current knowledge base provides only the classification rule and high‑leve
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 Rule 10→Class IIb를 정확히 인용하고 Art.86(1)(a)(b)(c) 구성도 올바르나, RMF를 'GSPR §17~§20'에, 전기안전을 '§20(기계·열)'에 귀속했고 Annex IX·Art.83~86 등 excerpt에 없는 framework 인용에도 【1】 출처표기를 붙여 근거를 과대 귀속했다.
 **Source Excerpts**
 
 1. Chunk `447774914011501626`
@@ -1231,22 +1225,21 @@ The current knowledge base provides only the classification rule and high‑leve
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Art.51+Annex VIII 22규칙·MDCG Manual v2.1.1·Art.87/의료기기법 §31 등 excerpt 활용이 충실하고 Art.86(1)(a)-(c)도 정확하나, RMF를 'Annex I §§15-18'에 귀속하고 멸균 보증 근거로 'Annex I §19(능동 이식형)'를 제시했으며 맞춤형 기기에 Annex X를 연결했다.
 **Source Excerpts**
 
 1. Chunk `1024305232637496780`
@@ -1457,22 +1450,21 @@ The current knowledge base provides only the classification rule and high‑leve
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> DoC를 Annex IV, Basic UDI-DI를 Annex VI Part C, 심볼을 ISO 15223-1로 정확히 귀속하고 템플릿만으로는 분류 불가임을 명시한 점은 타당하나, RMF 근거를 'GSPR §16-22'로 적고 맞춤형·능동이식형에 Annex X 형식검사가 의무라고 서술했다(맞춤형은 Annex XIII).
 **Source Excerpts**
 
 1. Chunk `1085205256397640486`
@@ -1666,22 +1658,21 @@ Your feedback will be incorporated before final submission to the Notified Body.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source의 'X-ray는 Class IIb 이상·NB 필수'를 직접 인용해 Rule 10→IIb·Annex IX 경로와 GSPR §16/§17/§18/§20/§22, Euratom 2013/59 인용까지 정확했으나, Risk Management File 근거를 'MDR Annex I §16~§20'으로 적어 RMF 귀속을 오적용했다.
 **Source Excerpts**
 
 1. Chunk `978896205875274621`
@@ -1806,22 +1797,21 @@ If any of the above triggers are identified during the documentation build, the 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> Annex II §1~§6을 excerpt 표 그대로 매핑하고 Art.83~86·88, Annex IV, Annex XIV Part A/B를 정확히 인용했으나, 'Annex XI은 NB가 불필요한 Class I의 생산적합성 검증 경로'라고 서술해 Annex XI(제품 적합성 검증, NB 개입 경로)의 주제를 오적용했다.
 **Source Excerpts**
 
 1. Chunk `1018876481739455645`
@@ -1983,22 +1973,21 @@ When any of the above triggers occur, the responsible RA should raise a formal i
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 국내 2등급 판정과 근거 가이드라인 3종, 고시번호 부재를 '별도 확인'으로 표시한 처리는 정확하나, 2등급을 허가(허가심사) 경로로 단정해 인증 경로를 배제한 라우팅 판단이 어긋난다.
 **Source Excerpts**
 
 1. Chunk `1112950876551682081`
@@ -2175,21 +2164,20 @@ When any of the above triggers occur, the responsible RA should raise a formal i
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
 - [ ] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> source가 표시기재(라벨링) 체크리스트뿐이어서 focus인 분류·인허가 경로 근거가 전무한 매칭 실패 사례로 케이스 생성 단계 결함이며 에이전트 과실이 아니다; 다만 응답이 채운 등급-경로표(1·2등급 신고 / 3·4등급 허가)는 한국 체계와 불일치한다.
 **Source Excerpts**
 
 1. Chunk `1050588546939300856`
@@ -2344,22 +2332,21 @@ When any of the above triggers occur, the responsible RA should raise a formal i
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 고시 제2025-25호·제2025-23호·총리령 제2088호와 시행일을 소스 그대로 정확히 인용했으나, MFDS 규정에 MDR식 'Annex II'를 적용하고 '제2025-25호가 2등급에 허가를 요구한다'는 소스에 없는 단정을 붙였다.
 **Source Excerpts**
 
 1. Chunk `1131342938714268388`
@@ -2540,22 +2527,21 @@ When any of the above triggers occur, the responsible RA should raise a formal i
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> 의료기기법-시행령-시행규칙-고시 3종의 체계 인용과 고시번호 부재 표시는 소스와 일치하나, X-ray를 'K-Class III'로 단정하고 제출 포털을 HIRA로 잘못 지목했다.
 **Source Excerpts**
 
 1. Chunk `1025612737507787646`
@@ -2719,22 +2705,21 @@ When any trigger fires, the responsible stakeholder must document the issue in t
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Optional Correction Note**
 
->
-
+> GMP 적합인정 절차 흐름·유효기간 3년·NIDS 2025-01-24 업무 개시·가이드라인 6종 일자를 chunk 인용으로 정확히 반영했으나, 2등급을 '제2류 의료기기 허가'로 단정해 인증 경로를 누락했다.
 **Source Excerpts**
 
 1. Chunk `1078228256164017760`
