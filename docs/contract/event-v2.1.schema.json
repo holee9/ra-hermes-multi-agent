@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ra-hermes://contract/event-v2.1",
+  "title": "ra-hermes activity event v2.1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["v", "id", "ts", "workspace", "actor", "kind", "payload"],
+  "properties": {
+    "v": { "enum": ["2", "2.1"] },
+    "id": { "type": "string", "pattern": "^evt_[0-9]{8}T[0-9]{6}_[0-9a-f]{4}$" },
+    "ts": { "type": "string", "format": "date-time" },
+    "workspace": { "type": "string", "minLength": 1 },
+    "actor": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "kind": {
+      "enum": [
+        "case_open", "matching", "comment", "handoff",
+        "vote_call", "vote_cast", "vote_result", "eval3",
+        "artifact", "absence", "infra", "policy", "hire_proposal", "escalation"
+      ]
+    },
+    "case": {
+      "type": "object",
+      "required": ["wp"],
+      "properties": {
+        "wp": { "type": "integer", "minimum": 1 },
+        "regime": { "enum": ["US", "EU", "KR"] }
+      }
+    },
+    "payload": { "type": "object" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "name", "ref"],
+        "properties": {
+          "type": { "type": "string" },
+          "name": { "type": "string" },
+          "ref": { "type": "string", "pattern": "^(gitea|nas)://" }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "required": ["model", "in_tokens", "out_tokens"],
+      "properties": {
+        "model": { "type": "string" },
+        "in_tokens": { "type": "integer", "minimum": 0 },
+        "out_tokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "corr": { "type": "string", "pattern": "^evt_[0-9]{8}T[0-9]{6}_[0-9a-f]{4}$" },
+
+    "to": { "type": "string", "pattern": "^([a-z][a-z0-9_]*|broadcast|human)$" },
+    "act": { "enum": ["request", "inform", "propose", "query", "agree", "refuse", "done"] },
+    "requires_reply": { "type": "boolean" },
+    "hops": { "type": "integer", "minimum": 0 },
+    "conversation": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["to"] },
+      "then": { "required": ["act", "requires_reply", "hops"] }
+    },
+    {
+      "if": { "properties": { "act": { "enum": ["inform", "agree", "refuse", "done"] } }, "required": ["act"] },
+      "then": { "properties": { "requires_reply": { "const": false } } }
+    },
+    {
+      "if": { "properties": { "to": { "const": "broadcast" } }, "required": ["to"] },
+      "then": { "properties": { "requires_reply": { "const": false } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "escalation" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "to": { "const": "human" },
+          "payload": {
+            "required": ["reason", "ref_evt"],
+            "properties": {
+              "reason": { "enum": ["hop-cap", "undeliverable", "breaker", "refuse-deadlock"] }
+            }
+          }
+        },
+        "required": ["to"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "policy" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["action", "reason"],
+            "properties": {
+              "action": { "enum": ["pause", "resume", "throttle", "steer", "constrain", "stop"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "eval3" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "actor": { "const": "human" },
+          "payload": {
+            "required": ["score", "target_evt"],
+            "properties": { "score": { "enum": [1, 2, 3] } }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1512 @@
+From da42774d3e422bb7964683a1d03c9efce19630d6 Mon Sep 17 00:00:00 2001
+From: "Claude (chat)" <claude@abyz-lab.work>
+Date: Wed, 9 Sep 2026 07:46:49 +0000
+Subject: [PATCH] =?UTF-8?q?feat(hive):=20=EC=9D=B4=EB=B2=A4=ED=8A=B8=20?=
+ =?UTF-8?q?=EA=B3=84=EC=95=BD=20v2.1=20=E2=80=94=20=ED=99=94=ED=96=89?=
+ =?UTF-8?q?=C2=B7=ED=99=89=C2=B7=EB=8B=A8=EC=9D=BC=EA=B8=B0=EB=A1=9D?=
+ =?UTF-8?q?=EC=9E=90=C2=B7=EB=B8=8C=EB=A0=88=EC=9D=B4=EC=BB=A4=20+=20SPEC-?=
+ =?UTF-8?q?HIVE-001=20+=20repo-write-gate?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Munder Difflin(MIT) HIVE.md/hive.ts/breaker.ts/message-queue.md 정독 기반.
+결손 D1-D4 해법. 검증기 목업 35건 통과, 위반 6종 감지.
+GOD 배제, 홉 초과 시 폐기 대신 사람 에스컬레이션. 불변 원칙 충돌 0.
+---
+ .moai/specs/SPEC-HIVE-001/spec.md       |  88 ++++++++++++
+ docs/contract/event-contract-v2.1.md    | 180 ++++++++++++++++++++++++
+ docs/contract/event-v2.1.schema.json    | 113 +++++++++++++++
+ docs/governance/circuit-breaker.md      | 115 +++++++++++++++
+ docs/governance/delivery-gate.md        |  77 ++++++++++
+ docs/handoff/next-session-2026-09-09.md |   8 ++
+ docs/hive/hive-layout.md                | 143 +++++++++++++++++++
+ docs/hive/router-spec.md                | 158 +++++++++++++++++++++
+ docs/issues/148-hive-v2.1.md            |  30 ++++
+ docs/skin/avatar-state-machine.md       | 109 ++++++++++++++
+ hive/PROTOCOL.md                        | 126 +++++++++++++++++
+ n8n/workflows/repo-write-gate.json      |  26 ++++
+ tools/apply-hive-v2.1.sh                |  14 ++
+ tools/validate_events.py                | 148 +++++++++++++++++++
+ virtual-office/mock/events-v2.1.jsonl   |  35 +++++
+ 15 files changed, 1370 insertions(+)
+ create mode 100644 .moai/specs/SPEC-HIVE-001/spec.md
+ create mode 100644 docs/contract/event-contract-v2.1.md
+ create mode 100644 docs/contract/event-v2.1.schema.json
+ create mode 100644 docs/governance/circuit-breaker.md
+ create mode 100644 docs/governance/delivery-gate.md
+ create mode 100644 docs/hive/hive-layout.md
+ create mode 100644 docs/hive/router-spec.md
+ create mode 100644 docs/issues/148-hive-v2.1.md
+ create mode 100644 docs/skin/avatar-state-machine.md
+ create mode 100644 hive/PROTOCOL.md
+ create mode 100644 n8n/workflows/repo-write-gate.json
+ create mode 100755 tools/apply-hive-v2.1.sh
+ create mode 100755 tools/validate_events.py
+ create mode 100644 virtual-office/mock/events-v2.1.jsonl
+
+diff --git a/.moai/specs/SPEC-HIVE-001/spec.md b/.moai/specs/SPEC-HIVE-001/spec.md
+new file mode 100644
+index 0000000..c64881b
+--- /dev/null
++++ b/.moai/specs/SPEC-HIVE-001/spec.md
+@@ -0,0 +1,88 @@
++---
++id: SPEC-HIVE-001
++title: 이벤트 계약 v2.1 — 화행·홉 상한·단일 기록자·서킷 브레이커
++status: Planned
++created: 2026-09-09
++updated: 2026-09-09
++tier: M
++owner_device: T3610
++related_issues: [148]
++source_package: docs/contract, docs/hive, docs/governance, docs/skin, hive/PROTOCOL.md, tools/validate_events.py
++---
++
++# SPEC-HIVE-001 — 이벤트 계약 v2.1
++
++## 1. 배경 / 문제 정의
++
++현 이벤트 스키마(`scripts/hermes-api-server.py`)에는 `act`·`requires_reply`·`hops`가 없다. 실측 결손 4건:
++
++| # | 결손 | 결과 |
++|---|---|---|
++| D1 | 화행 부재 | 수신자가 응답 의무를 판정 못함 |
++| D2 | 루프 방어 부재 | peer 간 무한 핑퐁 시 예산 소진까지 정지 수단 없음 |
++| D3 | 동시 쓰기 규율 부재 | 다수 peer 동시 커밋 시 `index.lock` 손상 가능 |
++| D4 | 폭주 사다리 부재 | pause/resume 2단만 존재 |
++
++원천: Munder Difflin `HIVE.md`·`hive.ts`·`breaker.ts`·`message-queue.md` (MIT) 정독. 상세 분석은 이슈 #148.
++
++## 2. 범위
++
++| 포함 | 제외 |
++|---|---|
++| 계약 v2.1 필드 4종 추가 (`to` `act` `requires_reply` `hops`) — additive-only | GOD 에이전트 (원칙 3·4 충돌) |
++| JSON Schema + 검증기 CI 훅 | Munder Difflin 앱 (Electron) |
++| `ra-hive` 저장소 레이아웃 + 단일 커미터 규율 | Buzz 릴레이 (Phase 4 조건부) |
++| n8n 라우터: 이송·홉 가드·에스컬레이션 | `board.md`·`tasks.json`·`memory.md` (OpenProject·Honcho 대체) |
++| 서킷 브레이커 3단 사다리 (관찰 모드 선행) | 도구별 스테이션 시각화 |
++| 살 상태 기계 v2.1 + 목업 35건 | |
++
++## 3. 설계 정본 (이 SPEC이 가리키는 문서)
++
++| 문서 | 역할 |
++|---|---|
++| `docs/contract/event-contract-v2.1.md` | 계약 정본. §3 대화 규칙이 D1·D2 해법 |
++| `docs/contract/event-v2.1.schema.json` | 기계 검증. `actor`에 사람 이름 거부(원칙 9) |
++| `docs/hive/hive-layout.md` | D3 해법. 파일당 단일 기록자·단일 커미터 |
++| `docs/hive/router-spec.md` | n8n 라우터. 홉 초과 시 **폐기 아닌 사람 에스컬레이션** |
++| `docs/governance/circuit-breaker.md` | D4 해법. 한 비트 한 단계, hardStop OFF |
++| `docs/governance/delivery-gate.md` | inbox→peer 턴 전달 조건 |
++| `docs/skin/avatar-state-machine.md` | 살 상태 기계. 봉투 색=화행 |
++| `hive/PROTOCOL.md` | peer 시작 컨텍스트 주입용 규약 |
++
++## 4. 구현 순서
++
++1. 계약 문서 커밋 → `tools/validate_events.py`를 `log.jsonl` 커밋 훅으로 등록
++2. `virtual-office/mock/events-v2.1.jsonl` → 살 `DATA_SOURCE=mock` 재생 확인 (v1 필드명 어댑터 필요 여부 확인)
++3. `ra-hive` 저장소 생성 (DS224+ Gitea) + `registry/actors.json` — **C1 actor ID 실명 대조 후**
++4. `hive/PROTOCOL.md` → Hermes 프로파일(`profiles/souls/*-SOUL.md`) 시작 컨텍스트에 주입
++5. n8n 라우터 플로우 — peer 2명(ra_us·ra_eu)으로 시작
++6. n8n 브레이커 플로우 — 행동 미발화 관찰 모드
++7. 2주 관찰 → `HOP_CAP`·임계 4종 설정 → 행동 발화 ON
++
++## 5. 수용 기준 (DoD)
++
++| 항목 | 기준 |
++|---|---|
++| A1 | `validate_events.py mock/events-v2.1.jsonl` 오류 0 |
++| A2 | 위반 6종 주입 시 exit 1 (자기전달·종결형 답신의무·종결형에 답신·corr 없는 hops·사람 이름 actor·escalation 수신자) |
++| A3 | 살이 v2.1 목업을 재생하며 봉투 색이 `act`를 반영 |
++| A4 | 라우터가 `hops > HOP_CAP` 메시지를 human inbox에 `escalation`으로 전달, 원본 `.rejected/` 보존 |
++| A5 | 라우터 외 프로세스의 `ra-hive` 커밋 0건 |
++| A6 | 브레이커 관찰 모드 2주 로그에 `steering` 이상 발생 시 신호 원천 기록 |
++
++## 6. 레포 정합 필수 확인 (커밋 전)
++
++| # | 항목 | 불일치 시 |
++|---|---|---|
++| C1 | actor ID — `profiles/souls/*` 실명과 `registry/actors.json` 대조 | registry 수정, 계약 무영향 |
++| C3 | `virtual-office.html` DATA_SOURCE 필드명(v1) | 어댑터 1개 |
++| C5 | Hermes가 peer `idle`·`cache_read` 노출 여부 | delivery-gate §8·breaker §4 대체안 |
++| C7 | vote 집계 위치 — 본 SPEC은 `voting/vote-aggregator.js`=n8n 가정 | `vote_result.actor` 조정 |
++
++## 7. 미확정 값 — 실측 후 (지금 정하지 않음)
++
++`HOP_CAP` · 브레이커 임계 4종 · 라우터 폴링 주기 · 전달 최소 간격 · 시작 유예 · `hardStop` ON 여부
++
++## 8. 불변 원칙 영향
++
++충돌 0 · 강화 5 (원칙 3·4·7·8·9) · 유지 4.
+diff --git a/docs/contract/event-contract-v2.1.md b/docs/contract/event-contract-v2.1.md
+new file mode 100644
+index 0000000..52abecf
+--- /dev/null
++++ b/docs/contract/event-contract-v2.1.md
+@@ -0,0 +1,180 @@
++# 활동 이벤트 계약 v2.1
++
++> 상태: 제안 → 사람 승인 시 정본
++> 변경 규칙: **additive-only.** 필드 추가만 허용. 삭제·의미 변경 금지. 위반 시 v3.
++> 원천: 6월 확정 계약 v1(conclusion·투표·매칭·3점평가) → v2 봉투(2026-08 제안) → v2.1 화행·홉 추가(본 문서)
++> 검증: `tools/validate_events.py` + `docs/contract/event-v2.1.schema.json`
++
++---
++
++## 0. 이 계약이 해결하는 결손
++
++| # | v2까지의 결손 | v2.1 해법 | 출처 |
++|---|---|---|---|
++| D1 | 화행 부재 — 수신자가 응답 의무를 판정 못함 | `act` 7종 + `requires_reply` | Munder Difflin HIVE.md §4 (FIPA-lite) |
++| D2 | 루프 방어 부재 — peer 간 무한 핑퐁 | `hops` + 상한 + 종결형 화행 | HIVE.md §4, hive.ts `HOP_CAP` |
++| D3 | 동시 쓰기 규율 부재 | 계약 외 — `docs/hive/hive-layout.md` | HIVE.md §2·§3 |
++| D4 | 폭주 차단 사다리 부재 | 계약 외 — `docs/governance/circuit-breaker.md` | breaker.ts |
++
++D3·D4는 계약이 아니라 **구현 규율**이므로 별도 문서. 본 문서는 D1·D2만 다룬다.
++
++---
++
++## 1. 봉투 (envelope)
++
++```json
++{
++  "v": "2.1",
++  "id": "evt_20260909T091233_a1b2",
++  "ts": "2026-09-09T09:12:33+09:00",
++  "workspace": "work",
++  "actor": "ra_us",
++  "kind": "matching",
++  "case": { "wp": 1042, "regime": "US" },
++  "payload": {},
++  "artifacts": [],
++  "cost": { "model": "qwen3-gx10", "in_tokens": 1820, "out_tokens": 640 },
++  "corr": "evt_20260909T091230_9f3e",
++
++  "to": "ra_eu",
++  "act": "request",
++  "requires_reply": true,
++  "hops": 0,
++  "conversation": "conv_1042_matching"
++}
++```
++
++### 1.1 v2 유지 필드 (변경 없음)
++
++| 필드 | 타입 | 필수 | 규칙 |
++|---|---|---|---|
++| `v` | string | ✓ | `"2.1"` 고정 |
++| `id` | string | ✓ | 시간순 정렬 가능. 형식 `evt_<YYYYMMDDTHHMMSS>_<4hex>`. **전역 유일** |
++| `ts` | string | ✓ | ISO-8601, 타임존 포함 |
++| `workspace` | string | ✓ | `work` \| `infra` \| (신규 workspace 슬러그) |
++| `actor` | string | ✓ | 뼈대 actor ID만. 사람 이름 금지(원칙 9). 사람은 `human` |
++| `kind` | string | ✓ | §2 목록 중 하나 |
++| `case` | object | – | `{wp, regime?}`. 사안 무관 이벤트(infra·policy)는 생략 |
++| `payload` | object | ✓ | kind별 §2. 빈 객체 허용 |
++| `artifacts` | array | – | `[{type, name, ref}]`. `ref`는 `gitea://` 또는 `nas://` URI |
++| `cost` | object | – | `{model, in_tokens, out_tokens}`. 모델 호출 이벤트만 |
++| `corr` | string | – | 원인 이벤트 `id`. 스레딩·애니메이션 연결 |
++
++### 1.2 v2.1 추가 필드
++
++| 필드 | 타입 | 필수 | 규칙 |
++|---|---|---|---|
++| `to` | string | – | 수신자. actor ID \| `broadcast` \| `human`. **없으면 관찰 이벤트**(v2 동작 그대로), **있으면 대화 이벤트**(§3 규칙 적용) |
++| `act` | string | `to` 있을 때 ✓ | `request` \| `inform` \| `propose` \| `query` \| `agree` \| `refuse` \| `done` |
++| `requires_reply` | boolean | `to` 있을 때 ✓ | `act ∈ {request, query, propose}`일 때만 `true` 허용. 그 외 `true`는 **검증 오류** |
++| `hops` | integer | `to` 있을 때 ✓ | 최초 발신 0. 답신(`corr` 있음)은 원인 이벤트 `hops + 1`. 상한 §3.3 |
++| `conversation` | string | – | 스레드 식별자. 답신은 원인의 `conversation` 상속 |
++
++---
++
++## 2. kind 목록
++
++v2와 동일. 각 kind의 기본 화행 매핑을 추가한다 — `to`가 있을 때 `act` 생략 시 이 값이 적용된다.
++
++| kind | 의미 | payload 핵심 | 기본 act | v1 대응 |
++|---|---|---|---|---|
++| `case_open` | WP 생성 관찰 | `source`(mail/office/telegram/op), `title` | `inform` | — |
++| `matching` | 사안-전문가 매칭 판단 | `decision`, `confidence`, `basis[]` | `propose` | 매칭 |
++| `comment` | WP 코멘트 | `text_ref` | `inform` | conclusion |
++| `handoff` | 규제권 간 이관 요청 | `to_actor`, `reason` | `request` | — |
++| `vote_call` | 투표 소집 | `question`, `options[]` | `query` | 투표 |
++| `vote_cast` | 투표 | `choice`, `weight` | `inform` | 투표 |
++| `vote_result` | 집계 (n8n) | `tally`, `decision` | `inform` | 투표 |
++| `eval3` | 사람 3점 사후 평가 | `score`(1–3), `target_evt` | `inform` | 3점평가 |
++| `artifact` | 산출물 발생 | `artifacts[]` 채움 | `inform` | — |
++| `absence` | 매칭 실패·직능 공백 | `gap_tag`, `case` | `inform` | — |
++| `infra` | 호스트 상태 | `host`, `metric`, `level` | `inform` | — |
++| `policy` | 정책 발화 | `action`(pause/resume/throttle/steer/constrain/stop), `reason`, `target_actor?` | `inform` | — |
++| `hire_proposal` | 부재 임계 도달 | `gap_tag`, `count`, `window` | `propose` | — |
++| `escalation` | **신규** — 사람 호출 | `reason`(hop-cap/undeliverable/breaker/refuse-deadlock), `ref_evt` | `request` | — |
++
++`policy.action`에 `steer/constrain/stop`이 추가되었다(서킷 브레이커 연동). 기존 `pause/resume/throttle` 유지.
++
++**완료·재오픈에는 kind가 없다.** 사람 전용 행위는 OpenProject에서만 일어난다(원칙 4).
++
++---
++
++## 3. 대화 규칙 (`to`가 있는 이벤트)
++
++### 3.1 화행 의미
++
++| act | 의미 | 답신 의무 | 종결 |
++|---|---|---|---|
++| `request` | 행위 요청 | 수신자 → `agree` \| `refuse` \| `done` | ✗ |
++| `query` | 정보 질의 | 수신자 → `inform` | ✗ |
++| `propose` | 제안 | 수신자 → `agree` \| `refuse` | ✗ |
++| `inform` | 통지 | 없음 | ✓ |
++| `agree` | 수락 | 없음 (이후 `done`은 별도) | ✓ |
++| `refuse` | 거절 | 없음 | ✓ |
++| `done` | 완료 보고 | 없음 | ✓ |
++
++**종결형(`inform`·`agree`·`refuse`·`done`)에 답신하면 검증 오류.** 이것이 핑퐁을 끊는 1차 방어선이다.
++
++### 3.2 답신 규칙
++
++- 답신은 `corr = 원인 id`, `conversation = 원인 conversation`, `hops = 원인 hops + 1`.
++- 자기 자신에게 발신 금지 (`to == actor` → 라우터 거부).
++- `broadcast`는 발신자 제외 활성 actor 전체. `requires_reply`는 `broadcast`에서 `false` 강제.
++
++### 3.3 홉 상한
++
++- `HOP_CAP` 값은 **운영 실측 후 설정**. 초기 관찰값으로 MD의 12를 참고하되 우리 값은 미확정.
++- `hops > HOP_CAP` 도달 시 라우터는 메시지를 **폐기하지 않는다.** `kind:"escalation"`, `to:"human"`, `payload.reason:"hop-cap"`으로 변환해 사람에게 전달한다.
++- MD 코드는 폐기(`kind:'drop'`)를 선택했다. 우리는 원칙 4에 따라 **사람 호출**을 선택한다 — 12번 오간 논의는 버릴 것이 아니라 사람이 봐야 할 것이다.
++
++### 3.4 거절 교착
++
++- 동일 `conversation`에서 `refuse`가 양방향으로 2회 이상 발생 → 라우터가 `escalation(reason:"refuse-deadlock")` 발화.
++
++---
++
++## 4. 관찰 이벤트 vs 대화 이벤트
++
++```
++to 없음  →  관찰 이벤트. v2와 100% 동일. 살은 이것만 읽어도 v2 동작 유지.
++to 있음  →  대화 이벤트. §3 규칙 적용. 라우터가 inbox로 이송.
++```
++
++살은 두 종류를 구분 없이 `log.jsonl`에서 읽는다. 대화 이벤트는 회의실 애니메이션(`vote_call`)·봉투 비행(`to` 있음)의 원천이 된다.
++
++---
++
++## 5. 하위 호환
++
++- v2 이벤트(`to`·`act`·`hops` 없음)는 v2.1 검증기를 **통과**한다.
++- v2.1 이벤트는 v2 소비자가 추가 필드를 무시하면 그대로 읽힌다.
++- `v` 필드로 소비자가 분기할 수 있으나, 분기 없이도 동작해야 한다.
++
++---
++
++## 6. 매핑 — MD hive 메시지 ↔ 우리 이벤트
++
++| MD `HiveMessage` | 우리 v2.1 | 비고 |
++|---|---|---|
++| `id` | `id` | 형식만 다름 |
++| `conversation` | `conversation` | 동일 |
++| `in_reply_to` | `corr` | 동일 의미 |
++| `from` | `actor` | 우리는 관찰 이벤트와 통합 |
++| `to` | `to` | `god` 없음 — 우리는 `human`만 |
++| `act` | `act` | 7종 동일 |
++| `subject` / `body` | `payload` | 구조화 |
++| `hops` | `hops` | 동일 |
++| `requires_reply` | `requires_reply` | 동일. 파생 규칙 동일 |
++| `needs_human` | `to:"human"` 또는 `kind:"escalation"` | 플래그 대신 수신자로 표현 |
++| `created_at` | `ts` | 동일 |
++
++MD와의 차이는 셋: (1) GOD 부재 — `to:"god"`이 없다, (2) 관찰·대화 이벤트 통합, (3) 홉 초과 시 폐기 대신 에스컬레이션.
++
++---
++
++## 7. 출처
++
++- 6월 확정: 목업=계약(conclusion·투표·매칭·3점평가), 명명 이원화, 사람=최종 결정자
++- 2026-08 제안: 계약 v2 봉투 (virtual-office-v2-proposal)
++- Munder Difflin HIVE.md §4 메시지 스키마, §2 확정 결정 (MIT)
++- Munder Difflin `src/main/hive.ts` — `HOP_CAP=12`, `normalize()` requires_reply 파생, `routeMessage()` 자기전달 차단·폐기 동작
+diff --git a/docs/contract/event-v2.1.schema.json b/docs/contract/event-v2.1.schema.json
+new file mode 100644
+index 0000000..edb0955
+--- /dev/null
++++ b/docs/contract/event-v2.1.schema.json
+@@ -0,0 +1,113 @@
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "ra-hermes://contract/event-v2.1",
++  "title": "ra-hermes activity event v2.1",
++  "type": "object",
++  "additionalProperties": true,
++  "required": ["v", "id", "ts", "workspace", "actor", "kind", "payload"],
++  "properties": {
++    "v": { "enum": ["2", "2.1"] },
++    "id": { "type": "string", "pattern": "^evt_[0-9]{8}T[0-9]{6}_[0-9a-f]{4}$" },
++    "ts": { "type": "string", "format": "date-time" },
++    "workspace": { "type": "string", "minLength": 1 },
++    "actor": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
++    "kind": {
++      "enum": [
++        "case_open", "matching", "comment", "handoff",
++        "vote_call", "vote_cast", "vote_result", "eval3",
++        "artifact", "absence", "infra", "policy", "hire_proposal", "escalation"
++      ]
++    },
++    "case": {
++      "type": "object",
++      "required": ["wp"],
++      "properties": {
++        "wp": { "type": "integer", "minimum": 1 },
++        "regime": { "enum": ["US", "EU", "KR"] }
++      }
++    },
++    "payload": { "type": "object" },
++    "artifacts": {
++      "type": "array",
++      "items": {
++        "type": "object",
++        "required": ["type", "name", "ref"],
++        "properties": {
++          "type": { "type": "string" },
++          "name": { "type": "string" },
++          "ref": { "type": "string", "pattern": "^(gitea|nas)://" }
++        }
++      }
++    },
++    "cost": {
++      "type": "object",
++      "required": ["model", "in_tokens", "out_tokens"],
++      "properties": {
++        "model": { "type": "string" },
++        "in_tokens": { "type": "integer", "minimum": 0 },
++        "out_tokens": { "type": "integer", "minimum": 0 }
++      }
++    },
++    "corr": { "type": "string", "pattern": "^evt_[0-9]{8}T[0-9]{6}_[0-9a-f]{4}$" },
++
++    "to": { "type": "string", "pattern": "^([a-z][a-z0-9_]*|broadcast|human)$" },
++    "act": { "enum": ["request", "inform", "propose", "query", "agree", "refuse", "done"] },
++    "requires_reply": { "type": "boolean" },
++    "hops": { "type": "integer", "minimum": 0 },
++    "conversation": { "type": "string", "minLength": 1 }
++  },
++  "allOf": [
++    {
++      "if": { "required": ["to"] },
++      "then": { "required": ["act", "requires_reply", "hops"] }
++    },
++    {
++      "if": { "properties": { "act": { "enum": ["inform", "agree", "refuse", "done"] } }, "required": ["act"] },
++      "then": { "properties": { "requires_reply": { "const": false } } }
++    },
++    {
++      "if": { "properties": { "to": { "const": "broadcast" } }, "required": ["to"] },
++      "then": { "properties": { "requires_reply": { "const": false } } }
++    },
++    {
++      "if": { "properties": { "kind": { "const": "escalation" } }, "required": ["kind"] },
++      "then": {
++        "properties": {
++          "to": { "const": "human" },
++          "payload": {
++            "required": ["reason", "ref_evt"],
++            "properties": {
++              "reason": { "enum": ["hop-cap", "undeliverable", "breaker", "refuse-deadlock"] }
++            }
++          }
++        },
++        "required": ["to"]
++      }
++    },
++    {
++      "if": { "properties": { "kind": { "const": "policy" } }, "required": ["kind"] },
++      "then": {
++        "properties": {
++          "payload": {
++            "required": ["action", "reason"],
++            "properties": {
++              "action": { "enum": ["pause", "resume", "throttle", "steer", "constrain", "stop"] }
++            }
++          }
++        }
++      }
++    },
++    {
++      "if": { "properties": { "kind": { "const": "eval3" } }, "required": ["kind"] },
++      "then": {
++        "properties": {
++          "actor": { "const": "human" },
++          "payload": {
++            "required": ["score", "target_evt"],
++            "properties": { "score": { "enum": [1, 2, 3] } }
++          }
++        }
++      }
++    }
++  ]
++}
+diff --git a/docs/governance/circuit-breaker.md b/docs/governance/circuit-breaker.md
+new file mode 100644
+index 0000000..76cdba8
+--- /dev/null
++++ b/docs/governance/circuit-breaker.md
+@@ -0,0 +1,115 @@
++# 서킷 브레이커 — 조정 → 제약 → 정지
++
++> 해결하는 결손: **D4 폭주 차단 사다리 부재** (기존 정책은 pause/resume 2단만)
++> 원천: Munder Difflin `src/main/breaker.ts` — 정책 모듈 (MIT). 코드 주석에서 확인한 설계 원칙을 이식.
++> 집행 주체: n8n (라우터와 별도 플로우, 동일 워킹카피). 판단 없음 — 신호 읽고 사다리 규칙 적용.
++> 살의 역할: 레벨 표시(좌석 상태)만. 읽기 전용.
++
++---
++
++## 1. 왜 사다리인가
++
++기존 §7 거버넌스는 예산 초과 시 `pause` 한 단계였다. 문제 둘:
++- 예산에 닿기 전의 순환·오류 폭주를 잡지 못한다.
++- 정지가 유일한 수단이면 정지가 너무 늦거나 너무 이르다.
++
++MD breaker.ts의 원칙: **조정 우선, 한 비트에 한 단계씩, 절대 즉시 정지로 점프하지 않으며, 건강한 비트마다 한 단계 회복.** 그리고 `hardStop`은 기본 OFF — 없으면 사다리는 `constrained`에서 멈추고 절대 죽이지 않는다.
++
++---
++
++## 2. 레벨과 행동
++
++```
++healthy ──trip──▶ steering ──trip──▶ constrained ──trip(+hardStop)──▶ stopped
++   ▲                 │                  │                                │
++   └── 건강 비트 ────┴────── 건강 비트 ─┘                    사람 재개만
++```
++
++| 레벨 | 발생 행동 (레벨 **상승 시 1회**) | peer에게 | 살 표시 |
++|---|---|---|---|
++| `healthy` | 없음 | — | 정상 |
++| `steering` | `policy(action:steer, target_actor, reason)` → 해당 peer inbox | "순환 중. 반복 멈추고 시도 요약 보고" | 좌석 앰버 |
++| `constrained` | `policy(action:constrain, ...)` + 라우터가 해당 actor의 신규 `request`/`propose` 발신을 `.held/`에 보류 | "범위 축소. 진행 중 스레드만" | 좌석 앰버 점멸 |
++| `stopped` | `policy(action:stop, ...)` + `escalation(reason:breaker)` → human | "정지. 재개는 사람" | 좌석 적색 |
++
++행동은 **레벨이 오를 때만** 발화한다. 같은 레벨 유지 중 매 비트 재발송하지 않는다 (MD: *"durable steer message isn't re-sent every beat"*).
++
++---
++
++## 3. 트립 신호
++
++세 원천을 집계한다. 값은 MD 기본값을 **참고값**으로 병기하되 우리 값은 미확정.
++
++| 신호 | 측정 | MD 기본값 | 우리 초기값 |
++|---|---|---|---|
++| 반복 도구 호출 | 동일 도구+동일 입력 연속 횟수 | 8 | 미확정 — Hermes 도구 로그에서 실측 |
++| 오류 폭주 | 진행 없는 연속 api_error/재시도 | 5 | 미확정 |
++| 토큰 속도 | **연속 누적 샘플의 차분** Δout/Δt | 60,000 out tok/min | 미확정. GX10 Qwen3 처리량 기준으로 재산정 |
++| 무진행 | 조율 파일 mtime + 작업 디렉토리 mtime 모두 정지, **연속 2비트** | 2비트 (300s 창) | 동일 채택 |
++
++핵심 규율 셋 — 코드에서 확인:
++1. **속도는 차분이다.** 단일 샘플을 증분으로 취급하지 않는다. 누적 스냅샷 두 개의 차이만 본다.
++2. **무진행은 두 질문이다.** "조율 진행"(메시지 파일)과 "작업 진행"(작업 디렉토리)은 다르다. 20분간 파일 편집·빌드·커밋만 하고 hive 메시지를 안 보낸 peer는 무진행이 아니다. 두 신호 모두 정지일 때만 트립.
++3. **1비트 블립은 트립이 아니다.** 무진행은 연속 2비트를 요구한다.
++
++---
++
++## 4. 예산 — 무엇을 셀 것인가
++
++MD가 #189에서 배운 것: 캐시 읽기 토큰은 요청 횟수에 비례해 자라며 peer의 실제 작업량이 아니다. 두 peer가 4M 상한을 넘은 행에서 캐시 읽기가 98.6~99.2%였다.
++
++| 용도 | 계산 |
++|---|---|
++| **예산 판정** | `work_tokens = in + out + cache_creation` (cache_read 제외) |
++| **비용 표시** | `total_tokens = in + out + cache_read + cache_creation` |
++
++계약 v2.1 `cost` 필드는 현재 `in_tokens`·`out_tokens`만 있다. **`cache_read`·`cache_creation` 추가 필요** — additive-only이므로 v2.1 내 추가 가능. Hermes가 이 값을 노출하는지 **확인 필요**.
++
++---
++
++## 5. 회복
++
++건강한 비트(어떤 트립도 없음)마다 **한 단계 하강**. `stopped`는 예외 — 사람의 `policy(action:resume)` 정문 경유만.
++
++`stopped` → `resume` 시 `healthy`로 직행하지 않고 `steering`에서 재시작한다. 재개 직후 재폭주를 한 단계 빨리 잡기 위함. (MD에 없는 우리 추가.)
++
++---
++
++## 6. hardStop
++
++기본 **OFF.** OFF면 사다리는 `constrained`가 최고 단계이며 `stopped`에 도달하지 않는다.
++
++ON으로 바꾸는 조건: 파일럿 기간 `constrained`가 발생했으나 peer가 제약 안에서 계속 폭주한 사례가 **관찰**된 뒤. 관찰 없이 ON 금지.
++
++`stopped`의 집행은 **Hermes 프로세스 kill이 아니다.** 라우터가 해당 actor의 outbox를 읽지 않고 inbox에 넣지 않는 **격리**다. 프로세스 생사는 infra peer의 영역.
++
++---
++
++## 7. 비트
++
++| 항목 | 값 |
++|---|---|
++| 비트 주기 | 60s (초기값) |
++| 진행 창 | 300s |
++| 대상 | registry `status:active` 전원 |
++| 상태 저장 | `hive/.breaker/<actor>.json` — 라우터 관리, 커밋 대상 |
++
++비트는 `log.jsonl`의 `cost` 필드와 Hermes 도구 로그를 읽는다. **`log.jsonl`에 `cost`가 없는 이벤트가 많으면 속도 트립은 작동하지 않는다** — Phase 1에서 cost 기록률을 먼저 확인.
++
++---
++
++## 8. 정문·창문과의 관계
++
++- 브레이커는 뼈대 내부다. 살은 `policy` 이벤트를 `log.jsonl`에서 읽어 좌석 색만 바꾼다.
++- 사람의 `resume`은 정문(n8n webhook / Telegram / 오피스 컴포저) 경유 → `policy(action:resume)` 이벤트 → 브레이커 상태 갱신. 살이 직접 상태를 쓰지 않는다.
++
++---
++
++## 9. 불변 원칙 정합
++
++| 원칙 | 정합 |
++|---|---|
++| 3 중앙 두뇌 없음 | 브레이커는 판단하지 않는다. 임계와 사다리 규칙만 |
++| 4 사람 = 최종 결정자 | `stopped` 해제는 사람만. `hardStop` 기본 OFF |
++| 7 정직한 표현 | 살은 실제 레벨만 표시 |
++| 9 config-as-code | 임계값은 `hive/.breaker/config.json`, PR로 변경 |
+diff --git a/docs/governance/delivery-gate.md b/docs/governance/delivery-gate.md
+new file mode 100644
+index 0000000..3e300f4
+--- /dev/null
++++ b/docs/governance/delivery-gate.md
+@@ -0,0 +1,77 @@
++# 전달 게이트 — inbox 메시지가 peer의 턴이 되는 조건
++
++> 원천: Munder Difflin `docs/message-queue.md` (MIT). MD가 실운영에서 겪은 사고를 규칙화한 문서.
++> 적용 범위: 라우터가 inbox에 파일을 넣은 **이후**, peer가 그것을 처리하기 시작하는 시점의 통제.
++
++---
++
++## 1. MD가 겪은 사고
++
++인박스 알림이 터미널에 직접 쓰였을 때, 두 번째 기록자가 "프롬프트가 비었나"를 각자 판단했고, 알림 텍스트가 사람이 반쯤 쓴 문장 위에 얹혀 **하나의 뒤섞인 프롬프트로 제출**되었다.
++
++교훈: **"이 peer가 지금 받을 수 있는가"를 판단하는 곳은 한 곳이어야 한다.**
++
++---
++
++## 2. 우리 구조에서의 대응
++
++Hermes peer는 PTY가 아니라 게이트웨이 경유 세션이므로 "사람의 타이핑과 충돌"은 없다. 그러나 동형 문제가 둘 있다:
++
++| MD 문제 | 우리 동형 |
++|---|---|
++| 사람 초안 위에 알림이 얹힘 | peer가 턴 실행 중일 때 새 inbox 메시지가 컨텍스트 중간에 주입됨 |
++| 연속 전송이 TUI를 막음 | 연속 메시지가 한 턴에 몰려 개별 답신 의무가 뒤섞임 |
++
++---
++
++## 3. 게이트 조건 — **전부** 충족 시에만 전달
++
++| 조건 | 이유 | MD 원문 대응 |
++|---|---|---|
++| peer 상태 `idle` | 실행 중 턴을 방해하지 않음 | agent status is `idle` |
++| 자동 전달 미정지 — **또는 사람이 수동 해제** | 층 전체 일시정지 스위치 | auto-delivery not paused / manual release |
++| 시작 유예 경과 | Hermes 세션 초기화 중 | past the boot grace window |
++| 브레이커 레벨 `< stopped` | 격리 중 peer에 전달 안 함 | (우리 추가) |
++| 직전 전달 후 **최소 간격** 경과 | 연속 투입 방지 | 4.5 s since last delivery |
++
++MD의 4.5s는 TUI 특성값. 우리 초기값은 **턴 단위** — 직전 메시지의 처리 결과(outbox 답신 또는 `.done` 이동)가 확인된 뒤 다음 메시지. 시간 간격보다 강한 조건.
++
++---
++
++## 4. 수동 해제
++
++층 전체 일시정지 중에도 사람이 특정 메시지를 **지금 전달**할 수 있다. 수동 해제는 **일시정지 조건만** 우회한다. idle·유예·브레이커·간격은 그대로 적용.
++
++살에서: 정지 중 대기 메시지에 "지금 전달" 표시 → 정문 경유 `policy(action:release, ref_evt)` → 라우터가 해당 메시지에 `manual:true` 표시 후 큐 선두로.
++
++---
++
++## 5. 확인(ack) 규칙
++
++전달 성공은 **peer가 메시지를 읽어 처리를 시작한 것이 확인된 뒤에만** 인정. 실패 시 메시지는 inbox에 그대로 남고 다음 비트에 재시도. 조용히 사라지지 않는다.
++
++확인 신호: Hermes 세션 로그에 해당 `id` 처리 개시 기록, 또는 outbox에 `corr == id`인 답신 출현.
++
++---
++
++## 6. 처리 순서
++
++inbox 내 파일명(`<ts>-<id>.json`)의 사전순 = 도착순. `manual:true`는 예외로 선두. 그 외 재정렬 없음.
++
++---
++
++## 7. 두 개의 큐 — 혼동 방지
++
++| 큐 | 위치 | 내용 |
++|---|---|---|
++| **hive inbox** | `agents/<a>/inbox/` | 라우터가 전달했고 peer가 아직 처리 시작 안 한 메시지 |
++| **Hermes 내부 큐** | Hermes 세션 | Hermes가 받았지만 아직 착수 안 한 입력 |
++
++라우터는 **후자를 보지 못하고 추론하지 않는다.** MD 원문: *"The harness cannot see the Claude queue and never reasons about it."*
++
++---
++
++## 8. 미확인 사항
++
++- Hermes 게이트웨이가 peer의 `idle` 상태를 외부에 노출하는지 — **Hermes 문서 확인 필요.** 노출하지 않으면 outbox 활동 정지 + 도구 로그 정지를 idle 대용으로 사용.
++- 시작 유예 시간 — Hermes 세션 기동 시간 실측 후.
+diff --git a/docs/handoff/next-session-2026-09-09.md b/docs/handoff/next-session-2026-09-09.md
+index 653a58b..6c8e747 100644
+--- a/docs/handoff/next-session-2026-09-09.md
++++ b/docs/handoff/next-session-2026-09-09.md
+@@ -50,3 +50,11 @@
+ 
+ - SPEC-DEVCOMM-001 #143 배포 대기(사람 실터미널), M3/M4 잔여
+ - #137~#140 close 판단, #141 재측정, #142 재확인
++
++## 추가 — 2026-09-09 (채팅 세션, 패치 적용분)
++
++5. **#148 [HIVE] 계약 v2.1** — `feat/hive-v2.1` 브랜치, `.moai/specs/SPEC-HIVE-001/spec.md`.
++   DoD A1·A2 충족 상태. 착수 전 SPEC §6 **C1(actor ID 실명 대조)** 선행.
++   이슈 본문: `docs/issues/148-hive-v2.1.md` → `gh issue create --body-file`로 등록.
++6. `n8n/workflows/repo-write-gate.json` 임포트 + `RA_GATE_TOKEN`·`RA_REPO` env 설정 시,
++   이후 채팅 세션이 이슈·커밋을 직접 씀. 브라우저·수작업 불필요.
+diff --git a/docs/hive/hive-layout.md b/docs/hive/hive-layout.md
+new file mode 100644
+index 0000000..e98bc55
+--- /dev/null
++++ b/docs/hive/hive-layout.md
+@@ -0,0 +1,143 @@
++# hive 레이아웃 및 쓰기 규율
++
++> 해결하는 결손: **D3 동시 쓰기 규율 부재**
++> 원천: Munder Difflin HIVE.md §2 확정 결정 1·2, §3 온디스크 레이아웃 (MIT)
++> 저장 위치: Gitea 저장소 `ra-hive` (신규, DS224+). 정본은 git이며 NAS JSONL은 사영.
++
++---
++
++## 1. 디렉토리
++
++```
++ra-hive/
++  PROTOCOL.md                 # peer 대면 규약 → hive/PROTOCOL.md
++  registry/
++    actors.json               # 로스터 — config-as-code, 변경은 PR
++    workspaces.json           # workspace(=층) 정의
++  log.jsonl                   # append-only 이벤트 로그 (계약 v2.1). 살의 유일 원천
++  agents/<actor_id>/
++    identity.md               # 역할·역량 — PR로만 변경
++    inbox/                    # 라우터가 씀, peer가 읽음
++    inbox/.done/              # 라우터가 옮김 — 삭제 없음, 감사 보존
++    outbox/                   # peer가 씀, 라우터가 비움
++    outbox/.sent/             # 라우터가 옮김
++    cursor.json               # 라우터 관리 { last_processed: "<id>" }
++```
++
++MD와의 차이:
++- `board.md`(공동 편집 블랙보드) **없음** — 단일 서기가 GOD이므로. OpenProject WP가 대체.
++- `tasks.json` **없음** — OpenProject WP가 원장.
++- `memory.md` **없음** — Honcho가 학습 계층. 파일 메모리를 두면 이중 원천.
++- `registry.json` → `registry/` 디렉토리로 분리. 로스터와 workspace를 각각 PR 단위로.
++
++---
++
++## 2. 쓰기 규율 — 누가 무엇을 쓰는가
++
++| 경로 | 기록자 | 읽는 자 |
++|---|---|---|
++| `agents/<a>/outbox/` | **peer `a`만** | 라우터 |
++| `agents/<a>/inbox/` | **라우터만** | peer `a` |
++| `agents/<a>/inbox/.done/` | 라우터만 | 감사 |
++| `agents/<a>/cursor.json` | 라우터만 | 라우터 |
++| `log.jsonl` | **라우터만** | 살, 감사, 정책 엔진 |
++| `registry/*` | **사람 (PR 머지)** | 라우터, 살 |
++| `agents/<a>/identity.md` | 사람 (PR 머지) | peer `a` 시작 시 |
++| `PROTOCOL.md` | 사람 (PR 머지) | 모든 peer 시작 시 |
++
++**불변 규칙 4가지**
++
++1. **파일당 단일 기록자.** 어떤 파일도 두 프로세스가 쓰지 않는다. 위 표에 없는 조합은 금지.
++2. **단일 커미터.** git 커밋은 **라우터(n8n)만** 수행한다. peer는 git을 호출하지 않는다. `.git/index.lock` 손상의 원천 제거.
++3. **메시지 1건 = 파일 1개.** 공유 메일박스 파일 금지. 임시 파일 → `rename`으로 원자적 기록.
++4. **삭제 없음.** 처리분은 `.done/`·`.sent/`로 이동. 감사 추적은 삭제로 끊기지 않는다.
++
++---
++
++## 3. 원자적 기록 — peer 측 구현
++
++```bash
++# peer가 outbox에 쓸 때
++tmp="$OUTBOX/.tmp-$$-$RANDOM"
++printf '%s' "$json" > "$tmp"
++mv "$tmp" "$OUTBOX/$(date -u +%Y%m%dT%H%M%S)-$(openssl rand -hex 2).json"
++```
++
++`.tmp-*` 접두 파일은 라우터가 무시한다. `mv`는 같은 파일시스템 내에서 원자적이다.
++
++---
++
++## 4. registry/actors.json
++
++```json
++{
++  "version": 1,
++  "actors": {
++    "ra_us": {
++      "workspace": "work",
++      "role": "US 규제 전문가",
++      "display_name": "Mike",
++      "modalities": ["text", "docx", "xlsx"],
++      "seat": { "floor": 1, "x": 4, "y": 4 },
++      "status": "active",
++      "hermes_profile": "ra_us",
++      "host": "t3610"
++    },
++    "ra_eu": { "workspace": "work", "role": "EU 규제 전문가", "display_name": "Theo",
++               "modalities": ["text", "docx"], "seat": { "floor": 1, "x": 6, "y": 4 },
++               "status": "active", "hermes_profile": "ra_eu", "host": "t3610" },
++    "ra_kr": { "workspace": "work", "role": "KR 규제 전문가", "display_name": "Sam",
++               "modalities": ["text", "docx"], "seat": { "floor": 1, "x": 8, "y": 4 },
++               "status": "active", "hermes_profile": "ra_kr", "host": "t3610" },
++    "ra_case": { "workspace": "work", "role": "사안 관리", "display_name": "Margot",
++                 "modalities": ["text"], "seat": { "floor": 1, "x": 4, "y": 8 },
++                 "status": "active", "hermes_profile": "ra_case", "host": "t3610" },
++    "op_manager": { "workspace": "work", "role": "자동화·OpenProject", "display_name": "Olly",
++                    "modalities": ["text"], "seat": { "floor": 1, "x": 6, "y": 8 },
++                    "status": "active", "hermes_profile": "op_manager", "host": "rpi5" },
++    "infra_t3610": { "workspace": "infra", "role": "T3610 운영", "display_name": "Finn",
++                     "modalities": ["text"], "seat": { "floor": 2, "x": 4, "y": 4 },
++                     "status": "active", "hermes_profile": "infra_t3610", "host": "t3610" },
++    "infra_gx10": { "workspace": "infra", "role": "GX10 운영", "display_name": "Leo",
++                    "modalities": ["text"], "seat": { "floor": 2, "x": 6, "y": 4 },
++                    "status": "active", "hermes_profile": "infra_gx10", "host": "gx10" },
++    "infra_rpi": { "workspace": "infra", "role": "Raspberry Pi 운영", "display_name": "Gus",
++                   "modalities": ["text"], "seat": { "floor": 2, "x": 8, "y": 4 },
++                   "status": "active", "hermes_profile": "infra_rpi", "host": "rpi5" }
++  }
++}
++```
++
++- `display_name`은 **살에서만** 사용. 이벤트·메시지에 절대 등장하지 않는다(원칙 9). 이 파일이 매핑 테이블의 유일 위치다.
++- `status`: `active` \| `paused` \| `archived`. 라우터는 `active`에만 전달. `broadcast` 팬아웃 대상도 `active`만.
++- 좌석은 6월 구성원 화면의 좌표 체계(1F (4,4) 등)를 그대로 따른다.
++- **주의:** 위 actor ID·역할은 6월 설계의 workspace 구성(RA 3종 + op_manager + n8n_manager / infra 3종)을 기준으로 작성했다. 현 레포의 실제 ID와 다르면 **레포가 정본**이다. `n8n_manager`는 라우터 자신이므로 actor로 등록하지 않았다 — 이 판단은 확인 필요.
++
++---
++
++## 5. registry/workspaces.json
++
++```json
++{
++  "version": 1,
++  "workspaces": {
++    "work":  { "floor": 1, "label": "업무", "seats": 8 },
++    "infra": { "floor": 2, "label": "인프라", "seats": 4 }
++  },
++  "reserved_floors": [3]
++}
++```
++
++새 workspace = 새 항목 + 새 층. 프랙탈 원칙의 파일 표현.
++
++---
++
++## 6. 빈 좌석 = 부재
++
++`seats`보다 `active` actor 수가 적으면 그 차이가 빈 좌석이다. 살은 빈 좌석에 `absence` 이벤트 카운터를 표기한다. 채용은 `hire_proposal` → 사람 승인 → 이 파일에 PR로 actor 추가 → 라우터가 다음 커밋부터 인식.
++
++---
++
++## 7. Gitea 백업
++
++기존 Gitea 백업 스크립트(2주 주기, DS224+)에 `ra-hive` 저장소를 포함한다. 추가 작업 없음 — 저장소 목록에 1행 추가.
+diff --git a/docs/hive/router-spec.md b/docs/hive/router-spec.md
+new file mode 100644
+index 0000000..d798de2
+--- /dev/null
++++ b/docs/hive/router-spec.md
+@@ -0,0 +1,158 @@
++# 라우터 명세 (n8n)
++
++> 역할: MD의 "메인 프로세스 라우터"에 해당. 판단 없는 기계. GOD 기능 중 **이송·집계·에스컬레이션**만 맡는다. 조정(adjudication)은 맡지 않는다 — 그것은 사람이다.
++> 호스트: Raspi5P (n8n 기가동). 파일 접근은 Gitea 클론 워킹카피.
++> 원천: Munder Difflin `src/main/hive.ts` `routeMessage()`·`deliver()`·`normalize()` (MIT)
++
++---
++
++## 1. 흐름
++
++```
++[감시]  agents/*/outbox/*.json  (폴링, .tmp-* 제외)
++   │
++   ▼
++[정규화]  v · id · ts · actor · hops · requires_reply · conversation 채움
++   │
++   ▼
++[검증]  schema v2.1 + 규칙 (§3)  ── 실패 → outbox/.rejected/ + log(kind:policy, action:refuse-invalid)
++   │
++   ▼
++[홉 가드]  hops > HOP_CAP → escalation(hop-cap) → human inbox
++   │
++   ▼
++[수신자 해석]  to → 대상 목록 (§4)
++   │
++   ▼
++[전달]  각 대상 inbox/ 에 원자적 기록
++   │
++   ▼
++[기록]  log.jsonl 에 append — **실제 전달된 대상만**
++   │
++   ▼
++[이동]  outbox/<f> → outbox/.sent/<f>
++   │
++   ▼
++[커밋]  git add -A && git commit  (재시도 + 백오프, 단일 커미터)
++```
++
++---
++
++## 2. 정규화 규칙
++
++| 필드 | 채우는 법 |
++|---|---|
++| `v` | `"2.1"` |
++| `id` | `evt_<UTC YYYYMMDDTHHMMSS>_<4hex>` |
++| `ts` | 처리 시각, ISO-8601 +09:00 |
++| `actor` | outbox 디렉토리의 actor ID. peer가 쓴 값은 **덮어쓴다** (위장 방지) |
++| `act` | 없으면 kind의 기본 act (계약 §2) |
++| `requires_reply` | peer가 명시하지 않으면 `act ∈ {request, query, propose}` |
++| `hops` | `corr` 없으면 0. 있으면 `log.jsonl`에서 `corr` 이벤트를 찾아 `hops + 1`. 못 찾으면 0 + `policy` 경고 |
++| `conversation` | `corr` 있으면 원인의 값 상속. 없으면 `conv_<wp>_<kind>_<4hex>` |
++
++MD `normalize()`와 동일 논리. 차이: `to` 기본값이 MD는 `god`, 우리는 **없음** — `to` 없는 outbox 메시지는 관찰 이벤트로 log에만 기록하고 전달하지 않는다.
++
++---
++
++## 3. 검증 규칙 (스키마 외)
++
++| 규칙 | 실패 시 |
++|---|---|
++| `to == actor` (자기 전달) | 거부 |
++| 종결형 act에 `requires_reply: true` | 거부 |
++| `broadcast`에 `requires_reply: true` | `false`로 강제 후 통과 + 경고 |
++| `corr`가 가리키는 이벤트의 `act`가 종결형 | 거부 — 종결형에 답신 금지 |
++| `to`가 registry에 없음 | §4 undeliverable |
++| `to`의 `status != active` | §4 undeliverable |
++
++거부된 메시지는 `outbox/.rejected/`로 이동하고 `log.jsonl`에 `kind:"policy", payload.action:"refuse-invalid", payload.reason:<규칙>`을 기록한다. peer의 다음 인박스에 사유를 `inform`으로 넣는다.
++
++---
++
++## 4. 수신자 해석
++
++```
++to == "human"      → human inbox (별도: agents/human/inbox/, 사람은 살·Telegram·OpenProject로 읽음)
++to == "broadcast"  → registry.actors 중 status==active, id != actor
++to == <actor_id>   → [to] (자기 자신 제외는 §3에서 이미 거부)
++```
++
++**undeliverable** (수신자 없음·비활성): MD는 GOD으로 바운스한다. 우리는 **사람으로 바운스**한다 — `escalation(reason:"undeliverable", ref_evt:<id>)`을 human inbox에 넣고, 원 메시지는 `.rejected/`에 보존. **조용히 사라지는 메시지는 없다.**
++
++---
++
++## 5. 전달 기록 원칙
++
++MD 코드 주석 그대로: *"의도가 아니라 실제 전달된 대상을 기록한다 — 바운스·폐기된 메시지가 전달된 것으로 읽히지 않도록."*
++
++`log.jsonl` 항목의 `payload.delivered_to: [...]`에 실제 inbox 기록에 성공한 actor만 넣는다. `broadcast`가 5명 중 3명에게만 성공하면 3명만 기록하고 나머지는 `undeliverable` 에스컬레이션.
++
++---
++
++## 6. 홉 가드
++
++```
++if hops > HOP_CAP:
++    write escalation {
++      kind: "escalation", to: "human", act: "request", requires_reply: true, hops: 0,
++      payload: { reason: "hop-cap", ref_evt: <id>, conversation: <conv>, hops_reached: <hops> }
++    } → human inbox
++    move original → outbox/.rejected/
++    log both
++```
++
++**폐기하지 않는다.** MD `routeMessage()`는 `kind:'drop'`으로 폐기하지만, 우리는 12번 오간 스레드를 사람이 봐야 할 것으로 취급한다(원칙 4).
++
++`HOP_CAP` 초기값: **미확정.** n8n 환경변수 `RA_HIVE_HOP_CAP`으로 주입. 운영 첫 2주 관찰 후 설정. 관찰 항목: 정상 종결 스레드의 최대 hops 분포.
++
++---
++
++## 7. 거절 교착 감지
++
++같은 `conversation`에서 `act:refuse`가 **서로 다른 두 actor**로부터 각 1회 이상 → `escalation(reason:"refuse-deadlock")`. 이후 그 conversation의 신규 메시지는 사람 응답 전까지 `.held/`에 보류.
++
++---
++
++## 8. 커밋
++
++- 라우터 처리 배치 1회 = 커밋 1회. 메시지마다 커밋하지 않는다.
++- 메시지: `hive: route <n> msgs (<actor>→<to> ...)` 
++- `index.lock` 존재 시: 5초 대기 → 재시도 3회 → 실패 시 `policy(action:throttle, reason:"git-lock")` + 다음 배치에서 재시도. stale lock(>60s, 프로세스 없음) 정리.
++- 이 라우터 외 어떤 프로세스도 `ra-hive`에 커밋하지 않는다. peer 컨테이너에는 git 바이너리를 두지 않는다.
++
++---
++
++## 9. 인박스 → peer 전달 (drain gate)
++
++라우터가 inbox에 파일을 넣는 것과, peer가 그것을 **읽어 처리하기 시작하는 것**은 별개다. 후자는 `docs/governance/delivery-gate.md`.
++
++---
++
++## 10. n8n 노드 구성 (제안)
++
++| 순번 | 노드 | 역할 |
++|---|---|---|
++| 1 | Schedule Trigger (15s) | 폴링 시작 |
++| 2 | Execute Command `find agents/*/outbox -maxdepth 1 -name '*.json' ! -name '.tmp-*'` | 대기 메시지 수집 |
++| 3 | Code (JS) — normalize + validate | §2·§3 |
++| 4 | IF hops > cap | §6 분기 |
++| 5 | Code — resolve targets | §4 |
++| 6 | Execute Command — atomic write to inbox | 전달 |
++| 7 | Code — build log entries (delivered_to 실측) | §5 |
++| 8 | Execute Command — append log.jsonl, mv .sent, git commit | §8 |
++| 9 | IF escalation exists → Telegram send | 사람 알림 |
++
++폴링 주기 15s는 초기값. `log.jsonl` 지연 허용치는 살의 재생 특성상 수 초면 충분하다(원칙 7 — 실시간 아닌 기록 재생).
++
++---
++
++## 11. 관찰 항목 (Phase 1 실측)
++
++| 항목 | 이유 |
++|---|---|
++| 정상 스레드 hops 분포 | `HOP_CAP` 설정 |
++| 배치당 메시지 수 | 폴링 주기 조정 |
++| git commit 소요·lock 충돌 빈도 | 단일 커미터 검증 |
++| undeliverable 발생률 | registry 정합성 |
++| Raspi5P CPU/메모리 증분 | 호스트 적합성 |
+diff --git a/docs/issues/148-hive-v2.1.md b/docs/issues/148-hive-v2.1.md
+new file mode 100644
+index 0000000..8fe0082
+--- /dev/null
++++ b/docs/issues/148-hive-v2.1.md
+@@ -0,0 +1,30 @@
++## [HIVE] 이벤트 계약 v2.1 — 화행·홉 상한·단일 기록자·서킷 브레이커
++
++**SPEC**: `.moai/specs/SPEC-HIVE-001/spec.md` · **브랜치**: `feat/hive-v2.1`
++
++### 배경
++Munder Difflin(MIT) `HIVE.md`·`hive.ts`·`breaker.ts`·`message-queue.md` 정독 결과, 현 설계 결손 4건 확인. `scripts/hermes-api-server.py`에 `act`·`requires_reply`·`hops` 없음(실측).
++
++| # | 결손 | 해법 | 문서 |
++|---|---|---|---|
++| D1 | 화행 부재 | `act` 7종 + `requires_reply` | docs/contract/event-contract-v2.1.md |
++| D2 | 루프 방어 부재 | `hops` 상한 → **사람 에스컬레이션**(MD는 폐기) | docs/hive/router-spec.md §6 |
++| D3 | 동시 쓰기 규율 부재 | 단일 커미터·파일당 단일 기록자 | docs/hive/hive-layout.md |
++| D4 | 폭주 사다리 부재 | steer→constrain→stop | docs/governance/circuit-breaker.md |
++
++### 검증 완료
++- 목업 35건 `tools/validate_events.py` 통과 (오류 0)
++- 위반 6종 주입 → 전부 감지, exit 1
++- `actor:"Mike"` 스키마 거부 = 원칙 9 강제
++
++### 채택하지 않음
++GOD 에이전트 · MD 앱 · Stop 훅 자율 루프 · board.md/tasks.json/memory.md · MemPalace · LimeZu 타일셋. Buzz는 Phase 4 조건부.
++
++### DoD
++SPEC §5 A1–A6. **A1·A2는 이 브랜치에서 이미 충족.**
++
++### 착수 전 필수
++SPEC §6 C1·C3·C5·C7 대조. C1(actor ID 실명)이 선행.
++
++### 동봉 — 채팅 세션 쓰기 경로
++`n8n/workflows/repo-write-gate.json`: 이후 채팅 세션이 이슈·커밋을 n8n webhook 경유로 직접 쓰기 위한 정문. 자격증명은 n8n에만.
+diff --git a/docs/skin/avatar-state-machine.md b/docs/skin/avatar-state-machine.md
+new file mode 100644
+index 0000000..bcfec91
+--- /dev/null
++++ b/docs/skin/avatar-state-machine.md
+@@ -0,0 +1,109 @@
++# 살 — 아바타 상태 기계와 이벤트 매핑
++
++> 원천: Munder Difflin `SPEC.md` §4 (Sims 메타포 — 이벤트를 행동으로), `MEMORY_GRAPH_SPEC.md` §4 (화행 색상)
++> 적용: 살은 `log.jsonl`만 읽는다(원칙 6). 아래 매핑은 **읽은 이벤트 → 화면 상태** 변환 규칙이며, 살은 어떤 상태도 뼈대에 쓰지 않는다.
++
++---
++
++## 1. 지배 원칙 — SPEC.md에서
++
++> *"Every animation should actually tell you something you didn't know. If walking-to-the-shelf doesn't convey 'is reading a file' faster than a text label, we built a toy."*
++
++우리 원칙 7(정직한 표현)과 같은 결론이다. 규칙: **이벤트 없는 애니메이션 없음. 정보 없는 애니메이션 없음.**
++
++---
++
++## 2. 상태
++
++```
++idle ─────case_open/handoff(to=나)─────▶ alert
++alert ────matching/comment/vote_cast───▶ working(station)
++working ──artifact────────────────────▶ carrying(→desk) ──▶ idle
++working ──vote_call───────────────────▶ meeting(회의실)
++meeting ──vote_result─────────────────▶ idle
++any ──────to=human 발신───────────────▶ waiting(우편함)
++any ──────policy(steer)───────────────▶ working (좌석 앰버)
++any ──────policy(constrain)───────────▶ working (좌석 앰버 점멸)
++any ──────policy(stop)────────────────▶ blocked (좌석 적색, 정지)
++any ──────infra(level=down, host=내 host)▶ ghost ──30s──▶ 반투명
++idle ─────absence(gap=내 역할 근접)────▶ (빈 좌석 카운터 +1)
++```
++
++MD와의 차이: MD는 Claude Code 훅(`PreToolUse` 등)이 원천. 우리는 **계약 v2.1 이벤트**가 원천. 훅 수준 도구 이벤트는 우리 계약에 없으므로 "파일 선반·터미널 스테이션" 같은 도구별 스테이션은 채택하지 않는다.
++
++---
++
++## 3. 스테이션 — kind → 위치
++
++| kind (관찰) | 스테이션 | 정보 |
++|---|---|---|
++| `matching`, `comment` | 자기 책상 | 판단 중 |
++| `handoff` (발신) | 수신자 책상으로 걸어감 → 봉투 전달 → 복귀 | 이관 |
++| `vote_call` | 관련 actor 전원 회의실 이동 | 투표 소집 |
++| `vote_result` | 회의실 → 각자 책상 | 종결 |
++| `artifact` | 자기 책상 → 파일 캐비닛 → 복귀 | 산출물 발생 |
++| `to == human` | 우편함 앞 대기 (손 흔듦) | 사람 입력 필요 |
++| `escalation` | 우편함 + 배지 | 긴급 |
++| `infra` | 2F 해당 호스트 좌석 카드 갱신 | 헬스 |
++| `absence` | 빈 좌석 카운터 | 부재 누적 |
++| `hire_proposal` | 빈 좌석에 제안 카드 | 채용 제안 |
++
++---
++
++## 4. 봉투 — 대화 이벤트의 시각화
++
++`to`가 있는 모든 이벤트 = 봉투 1개가 `actor` 책상에서 `to` 책상으로 비행. `broadcast`는 발신자에서 전원으로 팬아웃(가늘게).
++
++**봉투 색 = `act`.** MEMORY_GRAPH_SPEC §4.1의 원칙 — 그래프 엣지와 바닥의 봉투가 같은 시각 언어.
++
++| act | 색 (제안) | 의미 |
++|---|---|---|
++| `request` | 앰버 | 행위 요청 |
++| `query` | 하늘 | 질의 |
++| `propose` | 보라 | 제안 |
++| `inform` | 회백 | 통지 (종결) |
++| `agree` | 청록 | 수락 (종결) |
++| `refuse` | 적갈 | 거절 (종결) |
++| `done` | 녹색 | 완료 (종결) |
++
++종결형 4종은 채도를 낮춰 "이 스레드는 여기서 끝난다"가 색으로 읽히게 한다.
++
++`hops` 표시: 봉투에 작은 숫자. 상한 근접(예: 상한의 80%)에서 봉투 테두리 점멸 — 사람이 개입 시점을 미리 안다.
++
++---
++
++## 5. 관계 그래프 뷰 (타임라인 뷰 보강)
++
++MEMORY_GRAPH_SPEC를 축소 이식:
++- 노드 = actor (좌석 색), `human`·`broadcast`는 의사 노드.
++- 엣지 = 정렬된 (actor, to) 쌍당 1개, 굵기 = 메시지 수, 색 = 최근 `act`.
++- 레이아웃: 힘 기반, 결정적 시드, 드래그 고정. **의존성 추가 없이** 50줄 시뮬레이션.
++- 렌더: **SVG.** MEMORY_GRAPH_SPEC §7의 판정 그대로 — 100노드 미만 정적 데이터 뷰는 SVG가 맞다. Pixi는 바닥에만.
++- 우리 추가: `escalation` 엣지는 `human`으로 향하는 굵은 적색 — 사람이 어디서 호출됐는지 한눈에.
++
++이 뷰는 **감사 리플레이(§11)의 구조적 보조**다. 시간축이 "언제"를, 그래프가 "누가 누구와"를 답한다.
++
++---
++
++## 6. 사람 아바타
++
++- 좌석 앞에서 Space → 해당 actor 지정 컴포저. 발신은 정문(n8n webhook) 경유만.
++- 우편함에 대기 봉투 있으면 사람 아바타 머리 위 배지 수 표시.
++- 사람의 `eval3` 발화 = 사람 아바타가 대상 actor 책상으로 걸어가 별점 부착. 실제 이벤트이므로 정직.
++
++---
++
++## 7. 채택하지 않은 MD 시각 요소
++
++| 요소 | 사유 |
++|---|---|
++| 도구별 스테이션(파일 선반·터미널·웹 포털·MCP 코너) | 우리 계약에 도구 수준 이벤트 없음. 추가하면 계약 팽창 |
++| GOD 좌석 확대(1.4×)·이중 테두리 | GOD 없음 |
++| 라이브 터미널 패널 | 뼈대는 살의 존재를 모른다. PTY 노출은 관찰자 원칙 위반 |
++| LimeZu 타일셋 | 별도 라이선스. Kenney CC0 경로 유지 |
++
++---
++
++## 8. 목업 데이터
++
++`mock/events-v2.1.jsonl` — 계약 v2.1 준수 샘플 40건. `DATA_SOURCE=mock`에서 재생해 위 상태 기계를 검증한다. 원칙 8(목업=계약)의 v2.1 갱신.
+diff --git a/hive/PROTOCOL.md b/hive/PROTOCOL.md
+new file mode 100644
+index 0000000..380b7bd
+--- /dev/null
++++ b/hive/PROTOCOL.md
+@@ -0,0 +1,126 @@
++# PROTOCOL.md — peer가 지켜야 할 규약
++
++> 이 문서는 모든 Hermes peer의 시작 컨텍스트에 주입된다.
++> 대상: `ra_us` `ra_eu` `ra_kr` `ra_case` `op_manager` `n8n_manager` `infra_t3610` `infra_gx10` `infra_rpi`
++> 사람 이름(Mike·Theo 등)은 여기 등장하지 않는다. 너는 actor ID로만 존재한다.
++
++---
++
++## 1. 너의 디렉토리
++
++```
++hive/agents/<너의 actor ID>/
++  identity.md      너의 역할·역량. 시작 시 읽는다. 쓰지 않는다.
++  inbox/           너에게 온 메시지. 읽는다. 쓰지 않는다.
++  inbox/.done/     라우터가 처리 완료분을 옮긴다. 손대지 않는다.
++  outbox/          네가 보낼 메시지를 여기 쓴다. 유일한 쓰기 위치.
++  cursor.json      라우터가 관리. 손대지 않는다.
++```
++
++**너는 `outbox/` 외의 어떤 파일도 쓰지 않는다.** 다른 peer의 디렉토리, `log.jsonl`, `registry/` — 전부 금지. git 명령을 호출하지 않는다. 커밋은 라우터(n8n)만 한다.
++
++---
++
++## 2. 메시지 보내기
++
++`outbox/`에 JSON 파일 1개를 쓴다. 파일명은 `<ts>-<임의4hex>.json`. **임시 파일에 쓴 뒤 rename**한다 — 라우터가 반쯤 쓰인 파일을 읽지 않도록.
++
++```json
++{
++  "kind": "handoff",
++  "case": { "wp": 1042, "regime": "US" },
++  "to": "ra_eu",
++  "act": "request",
++  "payload": { "to_actor": "ra_eu", "reason": "EU MDR Annex I 해당 여부 확인 필요" },
++  "corr": null,
++  "conversation": null
++}
++```
++
++`v` `id` `ts` `actor` `hops` `requires_reply`는 **라우터가 채운다.** 네가 쓰면 덮어쓴다.
++
++### 수신자 `to`
++
++| 값 | 의미 |
++|---|---|
++| actor ID | 그 peer에게 |
++| `broadcast` | 활성 peer 전원에게 (너 제외). 답신 요구 불가 |
++| `human` | 사람에게. 판단·승인·해소 불가 충돌일 때만 |
++
++**너 자신에게는 보낼 수 없다.**
++
++---
++
++## 3. 화행 `act` — 무엇을 요구하는가
++
++| act | 쓸 때 | 상대의 의무 |
++|---|---|---|
++| `request` | 행위를 요청할 때 | `agree`·`refuse`·`done` 중 하나로 답 |
++| `query` | 정보를 물을 때 | `inform`으로 답 |
++| `propose` | 판단·매칭을 제안할 때 | `agree`·`refuse`로 답 |
++| `inform` | 알릴 때 | **없음** |
++| `agree` | 수락할 때 | 없음 |
++| `refuse` | 거절할 때 | 없음. 이유를 `payload.reason`에 |
++| `done` | 완료를 보고할 때 | 없음 |
++
++`inform` `agree` `refuse` `done`은 **종결형**이다. 종결형에 답하지 않는다. "확인했습니다"를 `inform`으로 되돌려 보내는 것이 핑퐁의 시작이다 — 하지 않는다.
++
++---
++
++## 4. 답신 규칙
++
++- 답신은 `corr`에 원인 메시지의 `id`, `conversation`에 원인의 `conversation`을 넣는다.
++- `requires_reply: true`인 메시지에는 답한다. `false`인 메시지에는 답하지 않는다.
++- 한 스레드에서 오간 횟수(`hops`)가 상한에 이르면 라우터가 사람을 부른다. 네가 할 일은 없다 — 다만 그 전에 결론을 내는 것이 낫다.
++- 같은 스레드에서 `refuse`를 두 번 받으면 더 밀지 않는다. 라우터가 사람을 부른다.
++
++---
++
++## 5. 인박스 처리
++
++1. 작업 시작 시 `inbox/`를 읽는다. `.done/`은 읽지 않는다.
++2. 각 메시지에 대해: `requires_reply`면 답신을 `outbox/`에 쓴다. 아니면 읽고 넘어간다.
++3. 처리했다고 파일을 옮기거나 지우지 않는다. 라우터가 한다.
++4. 같은 `id`를 다시 봐도 다시 처리하지 않는다.
++
++---
++
++## 6. 사람을 부를 때
++
++`to: "human"`은 다음에만 쓴다:
++- 결정이 필요하다 (완료·재오픈·범위 변경은 사람만 한다)
++- 두 peer의 판단이 충돌하고 스레드로 해소되지 않는다
++- 파괴적 작업, 외부 발송, 비용 급증이 예상된다
++
++일상 질의를 사람에게 보내지 않는다. 다른 peer에게 `query`한다.
++
++---
++
++## 7. 하지 않는 것
++
++- 다른 peer의 `identity.md`·`memory` 편집 — 상대가 배울 것은 상대가 결정한다
++- `log.jsonl` 직접 기록 — 라우터가 네 outbox를 보고 기록한다
++- git 호출
++- 사람 이름 사용 — 너는 `ra_us`이지 Mike가 아니다. Mike는 화면 위의 이름이다
++- 종결형 메시지에 대한 답신
++- `broadcast`에 `requires_reply: true`
++
++---
++
++## 8. 서킷 브레이커 안내
++
++라우터가 너를 지켜본다. 같은 도구를 반복 호출하거나, 오류가 연속되거나, 토큰이 급증하면 `policy` 메시지가 인박스에 온다.
++
++| action | 뜻 | 네가 할 것 |
++|---|---|---|
++| `steer` | 너는 순환하고 있다 | 반복을 멈추고, 시도한 것을 요약해 `inform`으로 보고 |
++| `constrain` | 범위를 줄인다 | 지시된 범위 안에서만 계속 |
++| `stop` | 정지 | 현재 턴을 마치고 멈춘다. 재개는 사람이 한다 |
++
++`steer` 메시지를 받고 같은 행동을 계속하면 다음 단계로 간다.
++
++---
++
++## 9. 이 문서의 출처
++
++Munder Difflin `hive/PROTOCOL.md` 패턴 및 `HIVE.md` §2·§4 (MIT). GOD 에이전트 관련 규칙은 제거되고 `human`으로 대체되었다.
+diff --git a/n8n/workflows/repo-write-gate.json b/n8n/workflows/repo-write-gate.json
+new file mode 100644
+index 0000000..784a34f
+--- /dev/null
++++ b/n8n/workflows/repo-write-gate.json
+@@ -0,0 +1,26 @@
++{
++  "name": "repo-write-gate",
++  "nodes": [
++    {"parameters":{"httpMethod":"POST","path":"gate/repo-write","responseMode":"lastNode","options":{}},
++     "name":"Webhook","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[0,0]},
++    {"parameters":{"conditions":{"string":[{"value1":"={{$json.headers['x-gate-token']}}","value2":"={{$env.RA_GATE_TOKEN}}"}]}},
++     "name":"토큰 검증","type":"n8n-nodes-base.if","typeVersion":1,"position":[220,0]},
++    {"parameters":{"dataType":"string","value1":"={{$json.body.kind}}","rules":{"rules":[{"value2":"issue"},{"value2":"issue_comment"},{"value2":"commit"}]}},
++     "name":"kind 분기","type":"n8n-nodes-base.switch","typeVersion":1,"position":[440,-40]},
++    {"parameters":{"command":"=cd $RA_REPO && printf '%s' {{JSON.stringify($json.body.body)}} > /tmp/issue-body.md && gh issue create --repo holee9/ra-hermes-multi-agent --title {{JSON.stringify($json.body.title)}} --body-file /tmp/issue-body.md --label {{JSON.stringify($json.body.label || 'hive')}}"},
++     "name":"gh issue create","type":"n8n-nodes-base.executeCommand","typeVersion":1,"position":[680,-160]},
++    {"parameters":{"command":"=cd $RA_REPO && printf '%s' {{JSON.stringify($json.body.body)}} > /tmp/c.md && gh issue comment {{$json.body.number}} --repo holee9/ra-hermes-multi-agent --body-file /tmp/c.md"},
++     "name":"gh issue comment","type":"n8n-nodes-base.executeCommand","typeVersion":1,"position":[680,-40]},
++    {"parameters":{"command":"=cd $RA_REPO && git fetch -q && git checkout -q -B {{$json.body.branch}} origin/{{$json.body.base || 'main'}} && node -e \"const f=JSON.parse(process.argv[1]);const fs=require('fs'),p=require('path');for(const [k,v] of Object.entries(f)){fs.mkdirSync(p.dirname(k),{recursive:true});fs.writeFileSync(k,Buffer.from(v,'base64'))}\" {{JSON.stringify(JSON.stringify($json.body.files))}} && git add -A && git -c user.name='Claude (chat via gate)' -c user.email='claude@abyz-lab.work' commit -q -m {{JSON.stringify($json.body.message)}} && git push -q -u origin {{$json.body.branch}} && echo pushed"},
++     "name":"git commit push","type":"n8n-nodes-base.executeCommand","typeVersion":1,"position":[680,80]},
++    {"parameters":{"respondWith":"json","responseBody":"={\"ok\":false,\"error\":\"unauthorized\"}","options":{"responseCode":401}},
++     "name":"401","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[440,140]}
++  ],
++  "connections": {
++    "Webhook":{"main":[[{"node":"토큰 검증","type":"main","index":0}]]},
++    "토큰 검증":{"main":[[{"node":"kind 분기","type":"main","index":0}],[{"node":"401","type":"main","index":0}]]},
++    "kind 분기":{"main":[[{"node":"gh issue create","type":"main","index":0}],[{"node":"gh issue comment","type":"main","index":0}],[{"node":"git commit push","type":"main","index":0}]]}
++  },
++  "settings":{"executionOrder":"v1"},
++  "meta":{"note":"env: RA_GATE_TOKEN(공유 비밀), RA_REPO(레포 클론 경로). gh는 Raspi5P에 로그인된 상태 전제. 노출: work.abyz-lab.work/gate/repo-write (Cloudflare Access 뒤). 파괴적 동작(force-push·delete·close) 없음 — 설계상 제외."}
++}
+diff --git a/tools/apply-hive-v2.1.sh b/tools/apply-hive-v2.1.sh
+new file mode 100755
+index 0000000..b8cf82e
+--- /dev/null
++++ b/tools/apply-hive-v2.1.sh
+@@ -0,0 +1,14 @@
++#!/usr/bin/env bash
++# 1회 실행: 패치 적용 → 브랜치 push → 이슈 #148 등록 → 이슈 번호를 SPEC에 반영
++set -euo pipefail
++cd "$(git rev-parse --show-toplevel)"
++git checkout -q -b feat/hive-v2.1 2>/dev/null || git checkout -q feat/hive-v2.1
++git am --3way "${1:-0001-hive-v2.1.patch}"
++python3 tools/validate_events.py virtual-office/mock/events-v2.1.jsonl
++git push -u origin feat/hive-v2.1
++N=$(gh issue create --repo holee9/ra-hermes-multi-agent --title "[HIVE] 이벤트 계약 v2.1 — 화행·홉 상한·단일 기록자·서킷 브레이커" --body-file docs/issues/148-hive-v2.1.md --label hive 2>/dev/null | grep -oE '[0-9]+$')
++echo "issue #$N"
++sed -i "s/related_issues: \[148\]/related_issues: [$N]/" .moai/specs/SPEC-HIVE-001/spec.md
++git mv docs/issues/148-hive-v2.1.md "docs/issues/$N-hive-v2.1.md" 2>/dev/null || true
++git commit -qam "docs(#$N): SPEC-HIVE-001 이슈 번호 반영" && git push -q
++echo "done — feat/hive-v2.1 pushed, issue #$N"
+diff --git a/tools/validate_events.py b/tools/validate_events.py
+new file mode 100755
+index 0000000..635bbeb
+--- /dev/null
++++ b/tools/validate_events.py
+@@ -0,0 +1,148 @@
++#!/usr/bin/env python3
++"""
++계약 v2.1 검증기.
++
++검사 항목:
++  1. JSON Schema (docs/contract/event-v2.1.schema.json)
++  2. 대화 규칙 — 자기전달·종결형 답신·broadcast 답신의무·requires_reply 파생
++  3. 홉 체인 — corr가 가리키는 이벤트 존재, hops == 원인.hops+1, conversation 상속
++  4. id 유일성, ts 단조성(경고)
++  5. 홉 상한 — --hop-cap 지정 시 초과 이벤트 보고(에스컬레이션 대상)
++
++사용:
++  python3 tools/validate_events.py mock/events-v2.1.jsonl
++  python3 tools/validate_events.py log.jsonl --hop-cap 12 --strict
++종료코드: 0 통과 / 1 오류 / 2 입력 문제
++의존: jsonschema (pip install jsonschema --break-system-packages)
++"""
++import argparse, json, sys
++from pathlib import Path
++
++try:
++    import jsonschema
++except ImportError:
++    print("jsonschema 미설치: pip install jsonschema", file=sys.stderr)
++    sys.exit(2)
++
++TERMINAL = {"inform", "agree", "refuse", "done"}
++OBLIGATING = {"request", "query", "propose"}
++DEFAULT_ACT = {
++    "case_open": "inform", "matching": "propose", "comment": "inform", "handoff": "request",
++    "vote_call": "query", "vote_cast": "inform", "vote_result": "inform", "eval3": "inform",
++    "artifact": "inform", "absence": "inform", "infra": "inform", "policy": "inform",
++    "hire_proposal": "propose", "escalation": "request",
++}
++
++
++def load_jsonl(path):
++    events = []
++    with open(path, encoding="utf-8") as f:
++        for n, line in enumerate(f, 1):
++            line = line.strip()
++            if not line:
++                continue
++            try:
++                events.append((n, json.loads(line)))
++            except json.JSONDecodeError as e:
++                events.append((n, {"__parse_error__": str(e)}))
++    return events
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("jsonl")
++    ap.add_argument("--schema", default=str(Path(__file__).resolve().parent.parent / "docs/contract/event-v2.1.schema.json"))
++    ap.add_argument("--hop-cap", type=int, default=None)
++    ap.add_argument("--strict", action="store_true", help="경고도 오류로")
++    a = ap.parse_args()
++
++    schema = json.load(open(a.schema, encoding="utf-8"))
++    validator = jsonschema.Draft202012Validator(schema)
++    events = load_jsonl(a.jsonl)
++
++    errors, warns = [], []
++    by_id = {}
++    last_ts = None
++
++    def err(n, ev, msg): errors.append(f"L{n} {ev.get('id','?')}: {msg}")
++    def warn(n, ev, msg): warns.append(f"L{n} {ev.get('id','?')}: {msg}")
++
++    # pass 1: schema + index
++    for n, ev in events:
++        if "__parse_error__" in ev:
++            errors.append(f"L{n}: JSON 파싱 실패 — {ev['__parse_error__']}")
++            continue
++        for e in validator.iter_errors(ev):
++            err(n, ev, f"schema: {e.message} @ {'/'.join(map(str, e.absolute_path)) or '<root>'}")
++        eid = ev.get("id")
++        if eid:
++            if eid in by_id:
++                err(n, ev, f"id 중복 (첫 등장 L{by_id[eid][0]})")
++            else:
++                by_id[eid] = (n, ev)
++        ts = ev.get("ts")
++        if ts and last_ts and ts < last_ts:
++            warn(n, ev, f"ts 역행 ({last_ts} → {ts})")
++        if ts:
++            last_ts = ts
++
++    # pass 2: conversation rules
++    for n, ev in events:
++        if "__parse_error__" in ev or "to" not in ev:
++            continue
++        actor, to, act = ev.get("actor"), ev["to"], ev.get("act")
++        rr, hops, corr = ev.get("requires_reply"), ev.get("hops"), ev.get("corr")
++
++        if to == actor:
++            err(n, ev, "자기 전달 (to == actor)")
++        if act in TERMINAL and rr is True:
++            err(n, ev, f"종결형 act={act}에 requires_reply=true")
++        if to == "broadcast" and rr is True:
++            err(n, ev, "broadcast에 requires_reply=true")
++        if act in OBLIGATING and rr is False and to != "broadcast":
++            warn(n, ev, f"act={act}인데 requires_reply=false — 의도적이면 허용")
++        # comment는 범용 답신 운반체, artifact는 done 동반이 정상 — 기본 act 이탈 경고 면제
++        exp = DEFAULT_ACT.get(ev.get("kind"))
++        if act and exp and act != exp and ev.get("kind") not in ("policy", "escalation", "comment", "artifact"):
++            warn(n, ev, f"kind={ev['kind']} 기본 act={exp}, 실제 {act}")
++
++        if corr:
++            if corr not in by_id:
++                err(n, ev, f"corr {corr} 가 로그에 없음")
++            else:
++                _, src = by_id[corr]
++                if src.get("act") in TERMINAL:
++                    err(n, ev, f"종결형 이벤트 {corr}(act={src.get('act')})에 답신")
++                sh = src.get("hops", 0)
++                if hops != sh + 1:
++                    err(n, ev, f"hops={hops}, 기대값 {sh + 1} (corr hops={sh})")
++                if src.get("conversation") and ev.get("conversation") != src.get("conversation"):
++                    err(n, ev, f"conversation 불일치: {ev.get('conversation')} ≠ 원인 {src.get('conversation')}")
++        else:
++            if hops not in (0, None):
++                err(n, ev, f"corr 없는데 hops={hops} (최초 발신은 0)")
++
++        if a.hop_cap is not None and hops is not None and hops > a.hop_cap:
++            warn(n, ev, f"hops={hops} > HOP_CAP={a.hop_cap} → 에스컬레이션 대상")
++
++    # refuse-deadlock
++    refusers = {}
++    for n, ev in events:
++        if ev.get("act") == "refuse" and ev.get("conversation"):
++            refusers.setdefault(ev["conversation"], set()).add(ev.get("actor"))
++    for conv, who in refusers.items():
++        if len(who) >= 2:
++            warn(0, {"id": conv}, f"거절 교착: {sorted(who)} 상호 refuse → 에스컬레이션 대상")
++
++    total = sum(1 for _, e in events if "__parse_error__" not in e)
++    conv = sum(1 for _, e in events if "to" in e)
++    print(f"이벤트 {total}건 (대화 {conv}, 관찰 {total - conv})")
++    for w in warns: print(f"  WARN  {w}")
++    for e in errors: print(f"  ERROR {e}")
++    fail = bool(errors) or (a.strict and warns)
++    print("결과:", "실패" if fail else "통과", f"— 오류 {len(errors)}, 경고 {len(warns)}")
++    sys.exit(1 if fail else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/virtual-office/mock/events-v2.1.jsonl b/virtual-office/mock/events-v2.1.jsonl
+new file mode 100644
+index 0000000..4d92bc7
+--- /dev/null
++++ b/virtual-office/mock/events-v2.1.jsonl
+@@ -0,0 +1,35 @@
++{"v":"2.1","id":"evt_20260909T090000_0001","ts":"2026-09-09T09:00:00+09:00","workspace":"work","actor":"op_manager","kind":"case_open","case":{"wp":1042},"payload":{"source":"mail","title":"Cyan FPD 510(k) 예비 검토 — EU 병행 여부"}}
++{"v":"2.1","id":"evt_20260909T090012_0002","ts":"2026-09-09T09:00:12+09:00","workspace":"work","actor":"ra_case","kind":"matching","case":{"wp":1042,"regime":"US"},"payload":{"decision":"ra_us","confidence":0.82,"basis":["510(k) 키워드","FPD 제품군"]},"cost":{"model":"qwen3-gx10","in_tokens":1420,"out_tokens":210},"to":"ra_us","act":"propose","requires_reply":true,"hops":0,"conversation":"conv_1042_matching"}
++{"v":"2.1","id":"evt_20260909T090140_0003","ts":"2026-09-09T09:01:40+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1042,"regime":"US"},"payload":{"text_ref":"op://wp/1042/c1"},"cost":{"model":"qwen3-gx10","in_tokens":2210,"out_tokens":480},"to":"ra_case","act":"agree","requires_reply":false,"hops":1,"conversation":"conv_1042_matching","corr":"evt_20260909T090012_0002"}
++{"v":"2.1","id":"evt_20260909T090305_0004","ts":"2026-09-09T09:03:05+09:00","workspace":"work","actor":"ra_us","kind":"handoff","case":{"wp":1042,"regime":"US"},"payload":{"to_actor":"ra_eu","reason":"제목에 EU 병행 언급 — MDR 해당성 확인 필요"},"to":"ra_eu","act":"request","requires_reply":true,"hops":0,"conversation":"conv_1042_eu_check"}
++{"v":"2.1","id":"evt_20260909T090450_0005","ts":"2026-09-09T09:04:50+09:00","workspace":"work","actor":"ra_eu","kind":"comment","case":{"wp":1042,"regime":"EU"},"payload":{"text_ref":"op://wp/1042/c2"},"cost":{"model":"qwen3-gx10","in_tokens":3100,"out_tokens":620},"to":"ra_us","act":"agree","requires_reply":false,"hops":1,"conversation":"conv_1042_eu_check","corr":"evt_20260909T090305_0004"}
++{"v":"2.1","id":"evt_20260909T090610_0006","ts":"2026-09-09T09:06:10+09:00","workspace":"work","actor":"ra_eu","kind":"matching","case":{"wp":1042,"regime":"EU"},"payload":{"decision":"class_IIa","confidence":0.61,"basis":["MDR Annex VIII rule 10"]},"cost":{"model":"qwen3-gx10","in_tokens":2800,"out_tokens":390},"to":"ra_us","act":"propose","requires_reply":true,"hops":0,"conversation":"conv_1042_class"}
++{"v":"2.1","id":"evt_20260909T090730_0007","ts":"2026-09-09T09:07:30+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1042,"regime":"US"},"payload":{"text_ref":"op://wp/1042/c3","reason":"US 관점에서 IIb 가능성 — 동적 영상 기능 확인 전 단정 불가"},"cost":{"model":"qwen3-gx10","in_tokens":2650,"out_tokens":410},"to":"ra_eu","act":"refuse","requires_reply":false,"hops":1,"conversation":"conv_1042_class","corr":"evt_20260909T090610_0006"}
++{"v":"2.1","id":"evt_20260909T090905_0008","ts":"2026-09-09T09:09:05+09:00","workspace":"work","actor":"ra_eu","kind":"vote_call","case":{"wp":1042,"regime":"EU"},"payload":{"question":"Cyan FPD EU 분류","options":["IIa","IIb","보류-정보부족"]},"to":"broadcast","act":"query","requires_reply":false,"hops":0,"conversation":"conv_1042_vote"}
++{"v":"2.1","id":"evt_20260909T091010_0009","ts":"2026-09-09T09:10:10+09:00","workspace":"work","actor":"ra_us","kind":"vote_cast","case":{"wp":1042},"payload":{"choice":"보류-정보부족","weight":1},"to":"ra_eu","act":"inform","requires_reply":false,"hops":1,"conversation":"conv_1042_vote","corr":"evt_20260909T090905_0008"}
++{"v":"2.1","id":"evt_20260909T091022_0010","ts":"2026-09-09T09:10:22+09:00","workspace":"work","actor":"ra_kr","kind":"vote_cast","case":{"wp":1042},"payload":{"choice":"IIa","weight":1},"to":"ra_eu","act":"inform","requires_reply":false,"hops":1,"conversation":"conv_1042_vote","corr":"evt_20260909T090905_0008"}
++{"v":"2.1","id":"evt_20260909T091035_0011","ts":"2026-09-09T09:10:35+09:00","workspace":"work","actor":"ra_case","kind":"vote_cast","case":{"wp":1042},"payload":{"choice":"보류-정보부족","weight":1},"to":"ra_eu","act":"inform","requires_reply":false,"hops":1,"conversation":"conv_1042_vote","corr":"evt_20260909T090905_0008"}
++{"v":"2.1","id":"evt_20260909T091100_0012","ts":"2026-09-09T09:11:00+09:00","workspace":"work","actor":"n8n_router","kind":"vote_result","case":{"wp":1042},"payload":{"tally":{"IIa":1,"보류-정보부족":2},"decision":"보류-정보부족","delivered_to":["ra_us","ra_eu","ra_kr","ra_case"]},"to":"broadcast","act":"inform","requires_reply":false,"hops":0,"conversation":"conv_1042_vote"}
++{"v":"2.1","id":"evt_20260909T091130_0013","ts":"2026-09-09T09:11:30+09:00","workspace":"work","actor":"ra_eu","kind":"comment","case":{"wp":1042,"regime":"EU"},"payload":{"text_ref":"op://wp/1042/c4","summary":"동적 영상 기능 사양서 요청 — 분류 보류"},"to":"human","act":"request","requires_reply":true,"hops":0,"conversation":"conv_1042_human_q"}
++{"v":"2.1","id":"evt_20260909T093000_0014","ts":"2026-09-09T09:30:00+09:00","workspace":"work","actor":"human","kind":"comment","case":{"wp":1042},"payload":{"text_ref":"op://wp/1042/c5","summary":"사양서 첨부 — 정지 영상 전용"},"to":"ra_eu","act":"inform","requires_reply":false,"hops":1,"conversation":"conv_1042_human_q","corr":"evt_20260909T091130_0013"}
++{"v":"2.1","id":"evt_20260909T093210_0015","ts":"2026-09-09T09:32:10+09:00","workspace":"work","actor":"ra_eu","kind":"artifact","case":{"wp":1042,"regime":"EU"},"payload":{},"artifacts":[{"type":"docx","name":"EU_분류_검토_1042.docx","ref":"gitea://ra-ops/artifacts/1042/EU_분류_검토_1042.docx"}],"cost":{"model":"qwen3-gx10","in_tokens":4100,"out_tokens":1850},"to":"ra_us","act":"done","requires_reply":false,"hops":0,"conversation":"conv_1042_class"}
++{"v":"2.1","id":"evt_20260909T093400_0016","ts":"2026-09-09T09:34:00+09:00","workspace":"work","actor":"ra_us","kind":"artifact","case":{"wp":1042,"regime":"US"},"payload":{},"artifacts":[{"type":"xlsx","name":"510k_predicate_비교_1042.xlsx","ref":"gitea://ra-ops/artifacts/1042/510k_predicate_비교_1042.xlsx"}],"cost":{"model":"qwen3-gx10","in_tokens":3900,"out_tokens":1420}}
++{"v":"2.1","id":"evt_20260909T100000_0017","ts":"2026-09-09T10:00:00+09:00","workspace":"work","actor":"human","kind":"eval3","case":{"wp":1042},"payload":{"score":3,"target_evt":"evt_20260909T093210_0015"}}
++{"v":"2.1","id":"evt_20260909T100005_0018","ts":"2026-09-09T10:00:05+09:00","workspace":"work","actor":"human","kind":"eval3","case":{"wp":1042},"payload":{"score":2,"target_evt":"evt_20260909T090610_0006","note":"근거 부족 상태에서 제안"}}
++{"v":"2.1","id":"evt_20260909T101500_0019","ts":"2026-09-09T10:15:00+09:00","workspace":"work","actor":"op_manager","kind":"case_open","case":{"wp":1043},"payload":{"source":"telegram","title":"XPE 소프트웨어 변경 — IEC 62304 영향 평가"}}
++{"v":"2.1","id":"evt_20260909T101520_0020","ts":"2026-09-09T10:15:20+09:00","workspace":"work","actor":"ra_case","kind":"absence","case":{"wp":1043},"payload":{"gap_tag":"sw_lifecycle_62304","case":1043,"note":"소프트웨어 수명주기 전문 actor 없음 — ra_us 임시 배정"}}
++{"v":"2.1","id":"evt_20260909T101530_0021","ts":"2026-09-09T10:15:30+09:00","workspace":"work","actor":"ra_case","kind":"matching","case":{"wp":1043,"regime":"US"},"payload":{"decision":"ra_us","confidence":0.44,"basis":["부재 대체 배정"]},"to":"ra_us","act":"propose","requires_reply":true,"hops":0,"conversation":"conv_1043_matching"}
++{"v":"2.1","id":"evt_20260909T101700_0022","ts":"2026-09-09T10:17:00+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1043},"payload":{"text_ref":"op://wp/1043/c1"},"to":"ra_case","act":"agree","requires_reply":false,"hops":1,"conversation":"conv_1043_matching","corr":"evt_20260909T101530_0021"}
++{"v":"2.1","id":"evt_20260909T103000_0023","ts":"2026-09-09T10:30:00+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1043},"payload":{"text_ref":"op://wp/1043/c2"},"cost":{"model":"qwen3-gx10","in_tokens":5200,"out_tokens":900}}
++{"v":"2.1","id":"evt_20260909T103100_0024","ts":"2026-09-09T10:31:00+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1043},"payload":{"text_ref":"op://wp/1043/c3"},"cost":{"model":"qwen3-gx10","in_tokens":5400,"out_tokens":910}}
++{"v":"2.1","id":"evt_20260909T103200_0025","ts":"2026-09-09T10:32:00+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1043},"payload":{"text_ref":"op://wp/1043/c4"},"cost":{"model":"qwen3-gx10","in_tokens":5600,"out_tokens":905}}
++{"v":"2.1","id":"evt_20260909T103300_0026","ts":"2026-09-09T10:33:00+09:00","workspace":"work","actor":"n8n_breaker","kind":"policy","payload":{"action":"steer","target_actor":"ra_us","reason":"repeated-tool: 동일 도구 호출 8회 연속 (wp 1043)"},"to":"ra_us","act":"inform","requires_reply":false,"hops":0,"conversation":"conv_breaker_ra_us"}
++{"v":"2.1","id":"evt_20260909T103500_0027","ts":"2026-09-09T10:35:00+09:00","workspace":"work","actor":"ra_us","kind":"comment","case":{"wp":1043},"payload":{"text_ref":"op://wp/1043/c5","summary":"steer 수신 — 시도 요약: 62304 클래스 판정에 필요한 SOUP 목록 부재. 사람 확인 필요"},"to":"human","act":"request","requires_reply":true,"hops":0,"conversation":"conv_1043_human_q"}
++{"v":"2.1","id":"evt_20260909T110000_0028","ts":"2026-09-09T11:00:00+09:00","workspace":"work","actor":"ra_case","kind":"hire_proposal","payload":{"gap_tag":"sw_lifecycle_62304","count":4,"window":"30d","branch":"agent","note":"독립 직능 — 에이전트 채용 제안"},"to":"human","act":"propose","requires_reply":true,"hops":0,"conversation":"conv_hire_sw_lifecycle"}
++{"v":"2.1","id":"evt_20260909T110500_0029","ts":"2026-09-09T11:05:00+09:00","workspace":"infra","actor":"infra_gx10","kind":"infra","payload":{"host":"gx10","metric":"gpu_mem_pct","level":"warn","value":91}}
++{"v":"2.1","id":"evt_20260909T110530_0030","ts":"2026-09-09T11:05:30+09:00","workspace":"infra","actor":"infra_gx10","kind":"policy","payload":{"action":"throttle","reason":"gx10 gpu_mem 91% — 동시성 3→2 임시","target_actor":"*"}}
++{"v":"2.1","id":"evt_20260909T111000_0031","ts":"2026-09-09T11:10:00+09:00","workspace":"infra","actor":"infra_t3610","kind":"infra","payload":{"host":"t3610","metric":"mem_pct","level":"ok","value":68}}
++{"v":"2.1","id":"evt_20260909T113000_0032","ts":"2026-09-09T11:30:00+09:00","workspace":"work","actor":"ra_kr","kind":"matching","case":{"wp":1044,"regime":"KR"},"payload":{"decision":"ra_kr","confidence":0.9,"basis":["MFDS 인허가"]},"to":"ra_case","act":"propose","requires_reply":true,"hops":0,"conversation":"conv_1044_matching"}
++{"v":"2.1","id":"evt_20260909T113100_0033","ts":"2026-09-09T11:31:00+09:00","workspace":"work","actor":"ra_case","kind":"comment","case":{"wp":1044},"payload":{"text_ref":"op://wp/1044/c1","reason":"wp 1044는 아직 case_open 전 — 선행 절차 위반"},"to":"ra_kr","act":"refuse","requires_reply":false,"hops":1,"conversation":"conv_1044_matching","corr":"evt_20260909T113000_0032"}
++{"v":"2.1","id":"evt_20260909T113200_0034","ts":"2026-09-09T11:32:00+09:00","workspace":"work","actor":"ra_kr","kind":"comment","case":{"wp":1044},"payload":{"text_ref":"op://wp/1044/c2","reason":"메일 수신 확인됨 — op_manager 지연"},"to":"ra_case","act":"refuse","requires_reply":false,"hops":0,"conversation":"conv_1044_matching"}
++{"v":"2.1","id":"evt_20260909T113230_0035","ts":"2026-09-09T11:32:30+09:00","workspace":"work","actor":"n8n_router","kind":"escalation","payload":{"reason":"refuse-deadlock","ref_evt":"evt_20260909T113200_0034","conversation":"conv_1044_matching","actors":["ra_case","ra_kr"]},"to":"human","act":"request","requires_reply":true,"hops":0,"conversation":"conv_1044_matching"}
+-- 
+2.43.0
+
