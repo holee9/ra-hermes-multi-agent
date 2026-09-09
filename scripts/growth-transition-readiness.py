@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -28,15 +29,36 @@ def load_json(path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+# Only dated snapshots count. `growth-diagnostic-*.json` and other growth* files are
+# NOT reports: sorting by filename let "growth-diagnostic-2026-06-16.json" sort after
+# "growth-2026-09-09.json" and be picked as the latest report (#103, #65, #40 review).
+REPORT_NAME = re.compile(r"^growth-(\d{4}-\d{2}-\d{2})\.json$")
+
+
+def report_date(path: Path) -> str | None:
+    m = REPORT_NAME.match(path.name)
+    return m.group(1) if m else None
+
+
 def load_reports(limit: int = 30) -> list[dict[str, Any]]:
-    reports = []
-    for path in sorted(REPORTS_DIR.glob("growth*.json")):
+    """Dated growth-YYYY-MM-DD.json snapshots, oldest → newest by DATE (not filename)."""
+    dated = []
+    for path in REPORTS_DIR.glob("growth-*.json"):
+        day = report_date(path)
+        if day is None:
+            continue
         data = load_json(path)
         if not isinstance(data.get("metrics"), dict):
             continue
         data["_path"] = str(path.relative_to(ROOT))
-        reports.append(data)
-    return reports[-limit:]
+        data["_date"] = day
+        dated.append(data)
+    dated.sort(key=lambda r: r["_date"])
+    return dated[-limit:]
+
+
+def unique_days(reports: list[dict[str, Any]]) -> int:
+    return len({r["_date"] for r in reports if r.get("_date")})
 
 
 def metric_value(report: dict[str, Any], name: str) -> Any:
@@ -69,8 +91,9 @@ def main() -> None:
     ]
 
     latest_absence = ((latest.get("metrics") or {}).get("absence_pattern_signals") or {})
+    valid_days = unique_days(valid_reports)   # distinct dates, not file count
     form_conditions = {
-        "valid_metrics_days": len(valid_reports),
+        "valid_metrics_days": valid_days,
         "requires_valid_metrics_days": args.min_valid_days,
         "latest_messages_scanned": latest.get("messages_scanned", 0),
         "latest_empty_cause": (latest.get("ingestion_diagnostics") or {}).get("empty_cause"),
@@ -78,7 +101,7 @@ def main() -> None:
         "null_thresholds": null_thresholds,
     }
     form_ready = (
-        len(valid_reports) >= args.min_valid_days
+        valid_days >= args.min_valid_days
         and len(null_thresholds) == 0
         and metric_value(latest, "correction_rate") is not None
         and metric_value(latest, "first_pass_match_accuracy") is not None
@@ -94,7 +117,9 @@ def main() -> None:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "reports_loaded": len(reports),
         "valid_reports": len(valid_reports),
+        "valid_metrics_days": valid_days,
         "latest_report": latest.get("_path"),
+        "latest_report_date": latest.get("_date"),
         "threshold_policy": {
             "ready_for_definition": len(valid_reports) > 0,
             "status": "ready_for_human_policy" if len(valid_reports) > 0 else "blocked_by_metrics_ingestion",
