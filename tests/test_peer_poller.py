@@ -204,3 +204,55 @@ def test_post_nudge_retries_at_most_three_times(env, monkeypatch):
     with pytest.raises(RuntimeError):
         p.post_nudge(p.build_nudge(PEER_COMMENT))
     assert len(attempts) == 3
+
+
+# ── #143 review: shared account + pagination ──────────────────────────────
+MARKER = "<!-- peer:t3610 -->"
+PEER_SAME_ACCOUNT = {**PEER_COMMENT, "user": {"login": SELF}, "body": "Pi 측 코멘트"}
+OWN_MARKED = {**SELF_COMMENT, "body": f"T3610 측 코멘트\n{MARKER}"}
+
+
+def test_same_account_peer_comment_is_kept_when_login_filter_off():
+    # both devices post as holee9 — a login-only filter dropped every peer comment (kept=0)
+    kept = p.filter_comments([PEER_SAME_ACCOUNT, OWN_MARKED], "", MARKER)
+    assert kept == [PEER_SAME_ACCOUNT]
+
+
+def test_marker_excludes_own_device_comments_regardless_of_login():
+    assert p.filter_comments([OWN_MARKED], "", MARKER) == []
+    assert p.filter_comments([OWN_MARKED], "someone-else", MARKER) == []
+
+
+def test_login_filter_only_when_explicitly_set():
+    assert p.filter_comments([PEER_SAME_ACCOUNT], "", "") == [PEER_SAME_ACCOUNT]
+    assert p.filter_comments([PEER_SAME_ACCOUNT], SELF, "") == []
+
+
+def test_default_self_login_is_empty():
+    assert p.SELF_LOGIN == ""
+
+
+def test_fetch_comments_walks_all_pages(monkeypatch):
+    pages = {1: [dict(PEER_COMMENT, id=i) for i in range(100)],
+             2: [dict(PEER_COMMENT, id=i) for i in range(100, 130)]}
+    calls = []
+
+    def fake_run(cmd, **kw):
+        endpoint = cmd[2]
+        page = int(endpoint.rsplit("page=", 1)[1])
+        calls.append(endpoint)
+        return type("R", (), {"returncode": 0, "stdout": json.dumps(pages[page]), "stderr": ""})()
+
+    monkeypatch.setattr(p.subprocess, "run", fake_run)
+    got = p.fetch_comments("holee9/ra-hermes-multi-agent", "2026-08-05T00:00:00Z")
+    assert len(got) == 130 and len(calls) == 2
+    assert "per_page=100&page=1" in calls[0] and "page=2" in calls[1]
+
+
+def test_fetch_comments_fails_closed_when_window_exceeds_page_ceiling(monkeypatch):
+    monkeypatch.setattr(p, "MAX_PAGES", 2)
+    full = [dict(PEER_COMMENT, id=i) for i in range(100)]
+    monkeypatch.setattr(p.subprocess, "run", lambda cmd, **kw: type(
+        "R", (), {"returncode": 0, "stdout": json.dumps(full), "stderr": ""})())
+    with pytest.raises(RuntimeError, match="window too wide"):
+        p.fetch_comments("holee9/ra-hermes-multi-agent", "2026-08-05T00:00:00Z")
