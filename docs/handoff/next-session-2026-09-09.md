@@ -50,3 +50,8 @@
 
 - SPEC-DEVCOMM-001 #143 배포 대기(사람 실터미널), M3/M4 잔여
 - #137~#140 close 판단, #141 재측정, #142 재확인
+
+## 추가 — 2026-09-09 (벤치마크 반영)
+
+5. **#150 [HIVE] 이벤트 계약 v2.1** — `.moai/specs/SPEC-HIVE-001/spec.md`, 근거 `docs/adr/ADR-002`, 분석 `docs/research/2026-09-virtual-office/`.
+   DoD A1·A2 충족. 착수 전 SPEC §6 **C1(actor ID 실명 대조)** 선행.
