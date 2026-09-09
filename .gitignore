@@ -342,3 +342,29 @@ playwright-report/
 .moai/config/sections/feedback.yaml
 .moai/config/sections/handoff.yaml
 .moai/config/sections/report.yaml
+
+# ===========================================
+# AI coding-agent artifacts — NEVER tracked
+# (Claude Code / MoAI / Codex / Cursor / Gemini …)
+# Local-only; the remote holds project source and docs only.
+# ===========================================
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.claudeignore
+.worktreeinclude
+.mcp.json
+.moai/
+.moai-backups/
+.git_hooks/
+docs/archive/moai/
+AGENTS.md
+.codex/
+.cursor/
+.cursorrules
+.gemini/
+GEMINI.md
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
