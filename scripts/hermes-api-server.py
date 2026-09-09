@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import subprocess
 import time
 import urllib.request
@@ -495,13 +496,21 @@ _dedup_seen: dict[str, float] = {}
 _DEDUP_MAX_ENTRIES = 512
 
 
-def _dedup_key(query: str) -> str:
-    """Stable key for an advisory body, ignoring mail header labels and whitespace."""
-    return hashlib.sha256(_HEADER_LABEL.sub("", query or "").strip().encode("utf-8")).hexdigest()
+def _dedup_key(query: str, region_hint: str | None = None, wp: object = None) -> str:
+    """Stable idempotency key for an advisory attempt.
+
+    Body (mail header labels/whitespace ignored) + the caller-supplied context that can
+    legitimately change the routing outcome: a normalized region_hint and the WP id.
+    #138 review: keying on the body alone made a re-ask that ADDED region_hint=KR after
+    an unclear_region rejection look like the same failed retry (400 duplicate_rejected).
+    """
+    body = _HEADER_LABEL.sub("", query or "").strip()
+    ctx = f"|hint={normalize_region_hint(region_hint) or ''}|wp={wp if wp not in (None, '') else ''}"
+    return hashlib.sha256((body + ctx).encode("utf-8")).hexdigest()
 
 
-def is_duplicate_rejection(query: str) -> bool:
-    """True when this exact body was rejected by routing within ADVISORY_DEDUP_WINDOW."""
+def is_duplicate_rejection(query: str, region_hint: str | None = None, wp: object = None) -> bool:
+    """True when this body + same routing context was rejected within ADVISORY_DEDUP_WINDOW."""
     if ADVISORY_DEDUP_WINDOW <= 0:
         return False
     now = time.time()
@@ -509,14 +518,15 @@ def is_duplicate_rejection(query: str) -> bool:
         cutoff = now - ADVISORY_DEDUP_WINDOW
         for k in [k for k, ts in _dedup_seen.items() if ts < cutoff]:
             _dedup_seen.pop(k, None)
-    seen_at = _dedup_seen.get(_dedup_key(query))
+    seen_at = _dedup_seen.get(_dedup_key(query, region_hint, wp))
     return seen_at is not None and (now - seen_at) < ADVISORY_DEDUP_WINDOW
 
 
-def mark_rejected(query: str, yellow_reason: str | None) -> None:
-    """Record a routing rejection so identical repeats are suppressed for the window."""
+def mark_rejected(query: str, yellow_reason: str | None,
+                  region_hint: str | None = None, wp: object = None) -> None:
+    """Record a routing rejection so identical repeats (same context) are suppressed."""
     if yellow_reason in DEDUP_SUPPRESSABLE:
-        _dedup_seen[_dedup_key(query)] = time.time()
+        _dedup_seen[_dedup_key(query, region_hint, wp)] = time.time()
 
 
 def route_advisory_region(query: str, hint: str | None) -> tuple[str | None, str | None]:
@@ -1186,17 +1196,21 @@ def ra_advisory():
     # re-submission loop, not a new question. Same 400 shape as above — the caller-side
     # gate treats a missing advisory as fail-closed (allowMutation:false), so suppressing
     # here cannot open the auto-execution path.
-    if is_duplicate_rejection(query):
-        return jsonify({"error": "duplicate of a recently rejected request",
-                        "code": "duplicate_rejected"}), 400
     wp_context = data.get("wp_context") or {}
     region_hint = str(data.get("region_hint") or "").strip() or None
+    wp_id = wp_context.get("wp_id") if isinstance(wp_context, dict) else None
+    # Context (hint / WP) is part of the key: a corrected re-ask is a NEW question (#138).
+    if is_duplicate_rejection(query, region_hint, wp_id):
+        return jsonify({"error": "duplicate of a recently rejected request",
+                        "code": "duplicate_rejected"}), 400
 
     actor, yellow = route_advisory_region(query, region_hint)
-    request_ref = f"adv-{int(time.time())}"
+    # #141: second-resolution refs collided within the same second; the suffix makes the
+    # ref usable as a join key across request log → advisory → feedback.
+    request_ref = f"adv-{int(time.time())}-{secrets.token_hex(2)}"
 
     if yellow:
-        mark_rejected(query, yellow)
+        mark_rejected(query, yellow, region_hint, wp_id)
         adv = _yellow_advisory(yellow, normalize_region_hint(region_hint))
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))

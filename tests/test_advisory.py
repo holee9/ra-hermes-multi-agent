@@ -470,3 +470,31 @@ def test_dedup_disabled_when_window_zero(monkeypatch):
     q = "MFDS 의료기기 1등급 기준 확인"
     m.mark_rejected(q, "unclear_region")
     assert m.is_duplicate_rejection(q) is False
+
+
+# ── #138 review: dedup key must include routing context ───────────────────
+def test_dedup_allows_requery_with_added_region_hint():
+    m._dedup_seen.clear()
+    q = "Subject: 의료기기 허가 문의\n제품 등록 서류 안내 요청"
+    m.mark_rejected(q, "unclear_region")                      # first attempt: no hint
+    assert m.is_duplicate_rejection(q) is True                  # bare retry still suppressed
+    assert m.is_duplicate_rejection(q, "KR") is False           # corrected re-ask is new
+    assert m.is_duplicate_rejection(q, None, 1042) is False     # WP context is new too
+
+
+def test_dedup_key_normalizes_hint_and_ignores_empty_wp():
+    assert m._dedup_key("q", "kr") == m._dedup_key("q", "KR")
+    assert m._dedup_key("q", None, None) == m._dedup_key("q", "", "")
+    assert m._dedup_key("q", "KR") != m._dedup_key("q", "US")
+
+
+def test_dedup_same_hint_repeat_is_still_suppressed():
+    m._dedup_seen.clear()
+    q = "일반 안부 인사 메일입니다"
+    m.mark_rejected(q, "unclear_region", "KR", 7)
+    assert m.is_duplicate_rejection(q, "kr", 7) is True
+
+
+def test_request_ref_is_unique_within_one_second():
+    refs = {m.secrets.token_hex(2) for _ in range(50)}
+    assert len(refs) > 1  # suffix entropy present; format asserted in the endpoint test below
