@@ -13,7 +13,11 @@ successful run (the next timer run re-fetches; server dedup absorbs overlap).
 
 Config (env, via scripts/.env — no hardcoded URLs/tokens, C5):
   PEER_POLL_REPO          repo to poll        (default holee9/ra-hermes-multi-agent)
-  PEER_POLL_SELF_LOGIN    own GitHub login    (default holee9)
+  PEER_POLL_SELF_LOGIN    own GitHub login — ONLY when devices use different accounts
+                          (default empty: both devices post as holee9, #143)
+  PEER_POLL_SELF_MARKER   marker this device puts in its own comments, e.g.
+                          "<!-- peer:t3610 -->" — comments containing it are skipped
+  PEER_POLL_MAX_PAGES     pagination ceiling per run (default 10 x 100 comments)
   PEER_POLL_STATE         last_seen state file (default ~/.hermes/peer-poll-state.json)
   PEER_NOTIFY_LOCAL_URL   local notify URL    (default http://localhost:8643/v1/peer/notify)
   API_SERVER_KEY          Bearer key for the notify endpoint (required unless --dry-run)
@@ -34,7 +38,13 @@ import urllib.request
 
 GH_BIN = os.environ.get("GH_BIN", "/usr/bin/gh")
 POLL_REPO = os.environ.get("PEER_POLL_REPO", "holee9/ra-hermes-multi-agent")
-SELF_LOGIN = os.environ.get("PEER_POLL_SELF_LOGIN", "holee9")
+# #143: empty by default — both devices share the holee9 account, so a login filter
+# would drop the peer's comments too. Set only when the devices use distinct accounts.
+SELF_LOGIN = os.environ.get("PEER_POLL_SELF_LOGIN", "")
+# Device marker embedded in comments THIS device posts (e.g. "<!-- peer:t3610 -->").
+SELF_MARKER = os.environ.get("PEER_POLL_SELF_MARKER", "")
+PAGE_SIZE = 100
+MAX_PAGES = int(os.environ.get("PEER_POLL_MAX_PAGES", "10"))
 POLL_STATE = os.environ.get(
     "PEER_POLL_STATE", os.path.expanduser("~/.hermes/peer-poll-state.json"))
 NOTIFY_URL = os.environ.get(
@@ -77,9 +87,7 @@ def _default_last_seen() -> str:
         "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - FIRST_RUN_LOOKBACK_SECONDS))
 
 
-def fetch_comments(repo: str, since: str) -> list:
-    """List issue comments updated since <since> via gh api (repo-wide endpoint)."""
-    endpoint = f"repos/{repo}/issues/comments?since={since}&per_page=100"
+def _gh_api_list(endpoint: str) -> list:
     result = subprocess.run(
         [GH_BIN, "api", endpoint], capture_output=True, text=True, timeout=GH_TIMEOUT)
     if result.returncode != 0:
@@ -91,13 +99,51 @@ def fetch_comments(repo: str, since: str) -> list:
     return data
 
 
-def filter_comments(comments: list, self_login: str) -> list:
-    """Keep only comments authored by someone other than our own account."""
+def fetch_comments(repo: str, since: str) -> list:
+    """List ALL issue comments updated since <since> (repo-wide endpoint, paginated).
+
+    #143 review: a single per_page=100 request silently dropped everything past the
+    first page, and the cursor then advanced past the dropped comments. Pages are
+    walked until a short page; MAX_PAGES bounds a runaway window.
+    """
+    comments: list = []
+    for page in range(1, MAX_PAGES + 1):
+        endpoint = f"repos/{repo}/issues/comments?since={since}&per_page={PAGE_SIZE}&page={page}"
+        chunk = _gh_api_list(endpoint)
+        comments.extend(chunk)
+        if len(chunk) < PAGE_SIZE:
+            return comments
+    raise RuntimeError(
+        f"more than {MAX_PAGES * PAGE_SIZE} comments since {since} — window too wide, "
+        "not advancing cursor (fail-closed)")
+
+
+def is_self_comment(comment: dict, self_login: str, self_marker: str) -> bool:
+    """Own-device detection (anti-loop).
+
+    #143 review: both devices post as the SAME GitHub account (holee9), so filtering by
+    login alone dropped every peer comment (kept=0). Device identity therefore lives in
+    the comment body: a device that posts comments tags them with SELF_MARKER
+    (PEER_POLL_SELF_MARKER, e.g. "<!-- peer:t3610 -->") and its own poller ignores those.
+    Login filtering is applied only when PEER_POLL_SELF_LOGIN is explicitly set, for
+    setups where the devices really use different accounts.
+    """
+    if self_marker and self_marker in (comment.get("body") or ""):
+        return True
+    login = (comment.get("user") or {}).get("login")
+    return bool(self_login) and login == self_login
+
+
+def filter_comments(comments: list, self_login: str, self_marker: str = "") -> list:
+    """Keep comments that did not originate from this device (see is_self_comment)."""
     kept = []
     for c in comments:
         login = (c.get("user") or {}).get("login")
-        if login and login != self_login:
-            kept.append(c)
+        if not login:
+            continue
+        if is_self_comment(c, self_login, self_marker):
+            continue
+        kept.append(c)
     return kept
 
 
@@ -165,7 +211,7 @@ def run(dry_run: bool = False) -> int:
         _log("error", stream=sys.stderr, stage="fetch", detail=str(exc))
         return 2
 
-    peers = filter_comments(comments, SELF_LOGIN)
+    peers = filter_comments(comments, SELF_LOGIN, SELF_MARKER)
 
     if dry_run:
         for c in peers:
