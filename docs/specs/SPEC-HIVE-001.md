@@ -39,7 +39,7 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 |---|---|---|---|
 | **P0 정본·경계 확정** | 추적 SPEC(본 문서), actor→profile→host 매핑(A4 §4.1), raw/정규화 경계(A5 §2, A6 §2), action enum 확장(A1), 미확인 corr 거부(A5 §3), 상수 "테스트 전용" 표기 | 사람 승인 (ADR 상태 전환 + 파일럿 범위) | 문서 작업 완료, 승인 대기 |
 | **P1 검증기·회귀 고정** | 최상위 타입, ts 포맷, 필드 타입 안전성, corr 인과·선행·스키마오류 참조, id 중복, 종료코드 | §5 검증 행렬 통과 | 완료 (tests 46건) |
-| **P2 격리 라우터** | normalize → validate → route → audit → archive 상태 머신, dry-run 기본, 중복 키·수신자별 전달 상태·재시작 복구·단일 lock | 외부 쓰기 없이 장애 주입 통과 | 미착수 |
+| **P2 격리 라우터** | normalize → validate → route → deliver → audit → archive 상태 머신, dry-run 기본, 중복 키·수신자별 전달 상태·재시작 복구·단일 lock — **Python 참조 구현** `tools/hive_router.py` (n8n 이식은 P4) | 외부 쓰기 없이 장애 주입 통과 (`tests/test_hive_router.py`) | 참조 구현 완료, 리뷰 대기 |
 | **P3 최소 런타임 연결** | `ra_us`·`ra_eu` 2개 peer, 수락/처리 신호, drain gate, hop guard, 수동 pause/resume | 사람 승인한 메시지 예산·실행 시간·복구 절차 | 미착수 |
 | **P4 제한 운영·VO 연결** | n8n 변경 사전 보고 후 파일럿, 기존 VO 피드 유지 + 읽기 전용 projection 비교 | 운영 증거 리뷰 후 별도 승인 | 미착수 |
 
@@ -70,9 +70,22 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 | D5 | 홉 상한 초과는 경고(에스컬레이션 대상), `--strict`에서 실패 | `test_hop_cap_is_warning_and_strict_makes_it_fail` |
 | D6 | id 중복 → 오류, ts 역행 → 경고 | `test_duplicate_id_is_error`, `test_ts_regression_is_warning_only` |
 
-### 5.3 내구성·권한·게이트·운영 안전 (P2 이후 — 미구현)
+### 5.3 내구성·권한·게이트 (P2 — `tests/test_hive_router.py`, 참조 구현 기준)
 
-#150 리뷰 §3의 내구성(inbox 쓰기 직후·로그 append 전후·archive 갱신 전·git 실패), 권한·동시성(outbox 위장·경로 이탈·n8n 중첩·lock), 게이트·폭주(busy/startup/paused, 읽음≠완료, 1회 에스컬레이션·통지), 운영 안전(비밀값 최소화, 원장 중복 없음, OP close/reopen 자동화 없음, VO 직접 쓰기 없음) 항목은 **P2 라우터 구현과 함께** 테스트로 고정한다. 본 SPEC에서는 기준만 예약한다.
+| # | 기준 | 테스트 |
+|---|---|---|
+| R1 | dry-run은 어떤 파일도 쓰지 않는다 (CLI 기본) | `test_dry_run_writes_nothing`, `test_cli_dry_run_default_and_exit_codes` |
+| R2 | 정상 request: inbox 원자 기록 → log `delivered_to`=실제 성공분 → `.sent/` → cursor; 산출 log가 검증기 오류 0 | `test_request_is_delivered_logged_archived` |
+| R3 | 답신은 corr 원인의 conversation 상속·hops+1; 종결형 답신·미확인 corr·자기전달·broadcast 답신요구 → `.rejected/` + `policy(refuse-invalid)` + peer inform | `test_reply_inherits_*`, `test_invalid_message_is_rejected_*`, `test_reply_to_terminal_*` |
+| R4 | 비활성 수신자·기록 실패 수신자 → human `escalation(undeliverable)`, 원본 보존 | `test_paused_target_is_escalated_*`, `test_unwritable_target_inbox_*` |
+| R5 | broadcast는 발신자 제외 active 전원; 부분 실패 시 성공/미전달 분리 보존 | `test_broadcast_fans_out_*`, `test_partial_broadcast_*` |
+| R6 | HOP_CAP 미설정 → 대화 이벤트 보류(전달 없음); 초과 → `escalation(hop-cap)` 1회, 원본 `.rejected/` | `test_hop_cap_unset_holds_*`, `test_hop_cap_exceeded_*` |
+| R7 | 장애 주입(inbox 기록 직후 / log append 직전·직후 / archive 직전) 후 재시작 → 중복 inbox·중복 log 없이 완주 | `test_crash_then_restart_*`, `test_partial_broadcast_*` |
+| R8 | actor는 outbox 디렉토리가 정본(payload 위장 무시); registry 밖 outbox 무시·보고; `.tmp-*` 무시 | `test_actor_is_taken_from_outbox_directory_*`, `test_outbox_outside_registry_*`, `test_tmp_files_are_ignored` |
+| R9 | 단일 실행 lock: 살아있는 pid → 거부(exit 2), 죽은 pid만 인계, 손상 lock은 삭제하지 않음 | `test_lock_held_by_live_pid_*` |
+| R10 | id 충돌 시 재발급, 재시도 시 처음 발급 id 보존 | `test_id_collision_is_reissued_*` |
+
+P2에서 **다루지 않은** 행렬 항목(P3/P4로 이월): n8n 배치 중첩·breaker 플로우와의 동시 요청, 사람 registry PR과 라우터 커밋 충돌(git 커밋은 참조 구현 범위 밖 — `run()`이 stage 경로 목록만 반환), busy/startup/paused 게이트(delivery-gate — Hermes idle 신호 실측 필요), 읽음≠완료 확인 신호, breaker 레벨 통지, 비밀값 최소화·원장 중복·OP close/reopen·VO 직접 쓰기 회귀(운영 안전).
 
 ## 6. 미확정 (실측 또는 사람 결정 필요)
 

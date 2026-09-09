@@ -142,6 +142,10 @@ if hops > HOP_CAP:
 
 ---
 
+## 9.1 참조 구현 (P2)
+
+`tools/hive_router.py` — 이 명세의 §1~§8을 Python으로 옮긴 **격리 참조 구현**. n8n Code 노드로 이식(P4)할 때 동작 기준이 된다. dry-run이 기본(`--execute` 없이는 무쓰기), `.router/journal/<id>.json`에 단계별 진행을 먼저 기록해 재시작 시 중복 없이 이어가며, git 커밋은 하지 않고 stage 경로 목록만 반환한다. 검증: `python3 -m pytest tests/test_hive_router.py`.
+
 ## 10. n8n 노드 구성 (제안)
 
 | 순번 | 노드 | 역할 |
