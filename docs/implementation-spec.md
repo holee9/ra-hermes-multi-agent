@@ -4,7 +4,7 @@
 > **원칙**: 인터페이스는 엄격히 고정, 내부 구현은 위임. 이 시스템은 *학습하며 성장*하므로, 평가로 수렴할 규칙(투표·가중치·임계)은 **의도적 공백**으로 둔다 — 미결이 아니라 설계다. 그 부분은 인터페이스만 만들고 내부는 운영·학습이 채운다.
 > **정확성 우선 원칙**: 의료기기 인허가 도메인에서 속도보다 정확성이 항상 우선한다. **Cold start(임계값 미설정) 상태에서는 모든 판단을 Yellow 게이트(사람 확인)로 처리한다.** 자동 처리 비중은 학습·평가 누적 이후에만 단계적으로 확대한다.
 > **성숙도 표기**: `[구현]` 코딩 가능 깊이로 명세 / `[IF]` 인터페이스만 — 내부는 PoC·학습이 채움(임의 구현 금지, 비워두거나 사람에게 질의).
-> 사실 기준일 2026-06-21. 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
+> 원 설계 기준일 2026-06-21. 구성·구현 현황 부분 개정: 2026-09-09 (코드·기록 대조, 라이브 재검증 아님). 상세 설계 근거는 RA-multi-agent-master-design.md 참조.
 
 ---
 
@@ -22,22 +22,21 @@
 ## 1. 시스템 구성 (전체 골격)
 
 ```
-업무 workspace (T3610 단일 운영)           인프라 workspace (T3610 단일 운영)
+업무 workspace (Honcho: T3610)            인프라 workspace (Honcho: T3610)
  ├ ra_us / ra_eu / ra_kr (Hermes 프로파일)  ├ infra_t3610 / infra_gx10 / infra_rpi
  ├ op_manager                              └ (셋이 투표로 종합 판단)
  └ n8n_manager
         │                                         │
-   [n8n: mail-triage, 게이트, 출력]  ←브릿지(n8n)←┘
+   [RPi n8n: mail-triage, 게이트, 출력] ←브릿지(n8n)←┘
         │
-   OpenProject (WP, RPi)  ·  Honcho(T3610)  ·  GX10 Qwen3(추론)
+   OpenProject (WP, RPi)  ·  Honcho(T3610)  ·  GX10(추론·임베딩)
         │
-   가상 오피스 웹앱 (Honcho 활동 기록 단방향 읽기)
-
-※ 2026-06-19: T3610 단일 n8n 운영으로 전환
-   - 이전: T3610(개발) → RPi(운영) 배포 방식
-   - 현재: T3610에서 Honcho + n8n 통합 운영
-   - RPi는 OpenProject 전담
+   가상 오피스 웹앱 (활동 관측 + 별도 사람→RA 자문 입력)
 ```
+
+2026-06-19의 T3610 단일 n8n 운영 선언은 2026-06-23 철회됐다. 배치 기준은 **RPi=n8n·OpenProject, T3610=Honcho·RA 자문/학습, GX10=추론·임베딩**이다. 근거는 [README의 배치 정정](../README.md#n8n-운영-위치--rpi-단일-2026-06-23-정정)과 [RA Advisory API](ra-advisory-api.md)다. 각 서비스의 현재 활성 상태는 이 구성도만으로 판정하지 않는다.
+
+자문 경로는 `raspi5p 또는 사람 입력 → T3610 /v1/ra/advisory → 실행 측 재검증`이다. T3610은 자문과 Honcho 기록을 담당하며 OpenProject에 직접 쓰지 않는다. 가상 오피스 자문은 응답 표시용으로, OpenProject 실행 경로가 아니다.
 
 ---
 
@@ -46,7 +45,7 @@
 ### 2.1 Honcho 서버 `[구현]`
 - 스택: API(:8000) + deriver + PostgreSQL(pgvector/pgvector:pg15) + Redis. docker-compose.
 - 환경: `DB_CONNECTION_URI=postgresql+psycopg://...`(프리픽스 필수), `CACHE_URL=redis://...`, `CACHE_ENABLED=true`.
-- LLM 위임: Deriver/Dialectic/Summary/Dream의 `*_MODEL_CONFIG__OVERRIDES__BASE_URL`을 GX10 Qwen3로. **tool calling 지원 필수.**
+- LLM 위임: Deriver/Dialectic/Summary/Dream의 `*_MODEL_CONFIG__OVERRIDES__BASE_URL`을 GX10 등 설정된 OpenAI-compatible endpoint로 지정한다. **tool calling 지원 필수.** Honcho의 모델은 `honcho/.env.example`의 `GX10_MODEL`과 섹션별 설정을 따른다. RA 자문 기본 `ADVISORY_LLM_MODEL=gpt-oss:120b`, 프로파일 생성 기본 `MODEL_DEFAULT=gpt-oss:120b`, 임베딩 `qwen3-embedding:latest`는 서로 다른 설정이다.
 - workspace 2개 생성: `work`, `infra`.
 - 포트 바인딩: API·PG는 LAN(0.0.0.0) 오픈 — T3610 멀티 장비 접근 목적. PG 호스트 포트는 5433(호스트 기존 5432 충돌 회피). Redis는 루프백(127.0.0.1) 유지.
 - 빠른 경로: elkimek/honcho-self-hosted 자동 스크립트 활용 가능.
@@ -185,10 +184,12 @@ npm test
 - **가중치 반영** `[IF]`: 평가가 사안 영역별 가중치를 조정하는 *연결*만 구현. 조정 공식은 비움 — 학습이 정함. 평가된 결정만 반영, 무평가=중립.
 
 ### 2.7 가상 오피스 웹앱 `[구현]`
-- 현 virtual-office.html이 목업 기반 프로토타입(완성). 
-- **데이터 소스** `[구현]`: `DATA_SOURCE` 환경변수로 목업↔Honcho 전환. Honcho 활동 기록을 이벤트 배열로 읽어 재생.
+- `virtual-office.html`과 Honcho 어댑터의 관측·자문 경로가 구현되어 있다. 현재 배포 여부와 화면 동작은 별도 검증한다.
+- **데이터 소스** `[구현]`: `DATA_SOURCE` 환경변수로 목업↔Honcho 전환. 과거 활동은 이력으로 표시하고 새 활동을 관측해 애니메이션으로 표현한다. 과거 기록 재생을 실제 업무 수행으로 표시하지 않는다.
 - 캐릭터: 코드 픽셀 기본값. Kenney CC0 PNG로 교체 가능(sprite 경로, pixel-character-guide.md).
-- 배포: Docker 단일 컨테이너. 관찰자(읽기 전용) — 뼈대 무개입.
+- 배포: Docker 단일 컨테이너. 활동 관측은 읽기 전용이다.
+- **사람→RA 자문** `[구현]`: `POST /api/chat` → 어댑터 → `/v1/ra/advisory`, `GET /api/chat/{request_id}`로 결과 조회. 일반 자문 클라이언트와 동일한 경로이며, 어댑터는 Honcho·n8n·OpenProject를 직접 변경하지 않는다. [자문 채널 명세](specs/advisory-chat-channel-spec.md) 참조.
+- **성숙도 표시**: 학습량 별과 `coverage_sources`/`coverage_pct`, KB 갭 관측이 구현되어 있다. `accuracy`는 코드상 `pending`이며, 학습량·자기 신뢰도를 검증된 정확도로 취급하지 않는다. [성숙도 명세](specs/maturity-capability-spec.md) 참조.
 
 ---
 

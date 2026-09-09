@@ -1,19 +1,29 @@
 # SPEC — Maturity Capability (별 역량 다축 진화 + (c) KB 갭 탐지 루프 통합)
 
-> **Document type**: 설계(PLAN) 전용 SPEC. 구현(Run phase)은 별도 사용자 승인 단계에서 진행.
-> **Status**: PROPOSED — Phase 1(KB 갭 탐지 루프)과 Phase 2(별 다축 진화) 구현은 모두 GATE-3(사람 승인) 영역.
-> **Date**: 2026-07-10.
+> **Document type**: 설계 SPEC 및 구현 상태 대조 기록. 아래 요구사항은 원 설계를 보존한다.
+> **Status**: Phase 1(KB 갭)·Phase 2 coverage 구현 확인. 정확도 축은 후속 이관·코드상 `pending`. #106은 2026-07-10 종료됐으며 전체 3축 구현 완료를 뜻하지 않는다.
+> **Date**: 원 설계 2026-07-10 / 구현 상태 대조 2026-09-09 (라이브 재검증 아님).
 > **Tracking issue**: #106 ([ENHANCEMENT][GROWTH-14] 별(maturity) 시스템 역량 기반 진화 + (c) KB 갭 탐지 루프 통합).
 
 ---
 
+## 0. 구현 상태 대조 (2026-09-09)
+
+| 범위 | 코드에서 확인한 상태 | 운영 증거·잔여 항목 |
+|---|---|---|
+| Phase 1: KB 갭 후보 | `hermes-api-server.py`의 `_log_kb_gap()`, 어댑터의 `readKbGaps()`·`/api/kb-gaps`, VO 표시 경로 구현 | [#106 종료 코멘트](https://github.com/holee9/ra-hermes-multi-agent/issues/106#issuecomment-4935818730)에 2026-07-10 라이브 검증 기록. 현재 재검증은 아님 |
+| Phase 2: volume·coverage | `computeAgentLevels()`가 학습량 별과 `coverage_sources`·`coverage_pct`를 별도 반환 | coverage 분모는 `KB_TOTAL_SOURCES` 설정. 전체 KB의 의미적 충족률을 자동 입증하지 않음 |
+| Phase 2: accuracy | `accuracy: 'pending'` 유지 | #106에서 #69~72 평가 데이터 의존으로 이관. 채점지 존재만으로 정확도 표시·ingest 완료를 주장하지 않음 |
+
+별은 여전히 학습량 기준이며 coverage가 별을 자동 재산정하지 않는다. KB 갭은 보완 **후보** 신호이지 확인된 원본 결함이나 측정 정확도가 아니다. 아래 Phase 2 요구사항 중 정확도 통합 등 남은 내용은 구현 결과와 구분해 읽는다. 자동화·사람 승인 경계는 변경하지 않는다.
+
 ## 1. Overview / Problem
 
-RA 전문가 에이전트(ra_us/ra_eu/ra_kr)의 성숙도를 표시하는 **별(★ 1~5)** 시스템은 현재 **학습량(volume) 단일 축**이다. ra_kr이 2026-07-09 누적 61 case로 최초 별5 달성했으나, 별이 volume만 반영하므로 KB(지식베이스) 확장·점프 시 의미가 퇴색한다.
+설계 당시 RA 전문가 에이전트(ra_us/ra_eu/ra_kr)의 성숙도를 표시하는 **별(★ 1~5)** 시스템은 **학습량(volume) 단일 축**이었다. ra_kr이 2026-07-09 누적 61 case로 최초 별5를 달성했다는 기록이 있으나, 별이 volume만 반영하므로 KB(지식베이스) 확장·점프 시 의미가 퇴색한다. 현재 구현의 추가 coverage와 미구현 accuracy는 §0을 참조한다.
 
-사용자의 본래 목적은 **"부족한 부분을 사용자가 개선"** 루프다. 이 루프의 핵심이 **(c) KB 갭 탐지**이며, 갭 탐지가 생성하는 실측 데이터(정확도·커버리지)가 별 역량 진화의 입력이 된다. 본 SPEC은 이 둘을 통합 설계한다.
+사용자의 본래 목적은 **"부족한 부분을 사용자가 개선"** 루프다. **(c) KB 갭 탐지**는 보완 후보를 제공하고, 학습 기록은 source coverage를, 검증된 평가는 정확도 축의 근거를 제공한다. 본 SPEC은 이 관측 정보를 성숙도 표시에 연결하는 설계다.
 
-### 1.1 현재 별 시스템 (volume 단일 축)
+### 1.1 설계 당시 별 시스템 (volume 단일 축)
 
 - `virtual-office/virtual-office-honcho-adapter.js:156` `levelFromCount(count)` — 별 = 순수 `daily_growth_case` 누적 case 수.
 - `virtual-office-honcho-adapter.js:152` `@MX:NOTE` — "star mapping uses daily_growth_case cumulative count (learning VOLUME only, not accuracy)".
@@ -61,7 +71,7 @@ Phase 1(KB 갭 탐지)의 탐지 신호는 **이미 advisory 응답 경로에서
 
 ### 3.1 Phase 1이 선행하는 이유 (데이터 생성이 Phase 2 전제)
 
-Phase 2의 정확도·커버리지 축은 **실측 데이터**를 필요로 한다. 현재 그 데이터가 없다(정확도 `pending`). Phase 1 갭 탐지 루프가 "어떤 주제가 부족한가" 실측 데이터를 생성하고, 이것이 커버리지 축의 입력이 된다. 정확도 축은 사람 KB-eval(#69~72)이 별개로 공급한다. 따라서 Phase 1 → Phase 2 순서가 자연스럽다.
+Phase 2의 정확도·커버리지 축은 **실측 데이터**를 필요로 한다. 구현된 coverage는 `growth_case`의 서로 다른 source 수로 계산하며, Phase 1 갭 후보는 부족한 주제의 관측 정보로 따로 표시한다. 정확도 축은 검증된 KB-eval(#69~72)의 연결이 필요해 코드상 `pending`이다. 갭 후보의 수나 모델 confidence로 정확도를 대신하지 않는다.
 
 ### 3.2 갭 탐지는 신규 추론이 아니다 (로깅·서피스만)
 
