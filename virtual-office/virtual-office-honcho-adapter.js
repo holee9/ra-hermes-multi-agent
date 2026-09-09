@@ -576,6 +576,17 @@ const server = http.createServer(async (req, res) => {
   // GET /api/chat/{request_id} — poll advisory status/result
   // @MX:SPEC: REQ-AC-009
   if (req.method === 'GET' && parsedUrl.pathname.startsWith('/api/chat/')) {
+    // #104 review: the poll endpoint returned advisory results without any token check.
+    // Same single-user token gate as POST /api/chat; an unguessable UUID is not auth.
+    if (CHAT_AUTH_TOKEN) {
+      const auth = req.headers.authorization || '';
+      const token = auth.replace(/^Bearer\s+/i, '');
+      if (token !== CHAT_AUTH_TOKEN) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'unauthorized' }));
+        return;
+      }
+    }
     const requestId = decodeURIComponent(parsedUrl.pathname.slice('/api/chat/'.length));
     const entry = advisoryRequests.get(requestId);
     if (!entry) {
