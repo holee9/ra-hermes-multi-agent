@@ -33,22 +33,36 @@ function aggregate(votes) {
   const topic = votes[0].topic;
   const rules = loadRules();
 
-  const tally = { approve: 0, reject: 0, abstain: 0 };
-  for (const v of votes) {
-    const normalized = v.vote?.toLowerCase();
-    if (normalized in tally) {
-      tally[normalized]++;
-    }
-  }
-
   const quorum = rules.quorum ?? null;
   const weights = rules.weights ?? {};
   const majorityThreshold = rules.majority_threshold ?? null;
   const fallbackMethod = rules.fallback_method ?? 'simple_majority';
 
-  // 정족수 미충족 → pending
+  // 입력 무결성 (#82 리뷰 재현: 동일 actor 2표로 quorum 충족, 다른 topic 표가 섞여 가결).
+  // 정족수·비율에는 (a) 같은 topic, (b) 유효한 vote 값, (c) actor당 1표(첫 표만),
+  // (d) weights가 정의돼 있으면 명단 안의 actor만 포함한다. 제외분은 ignored로 보고한다.
+  const allowed = Object.keys(weights);
+  const ignored = { topic_mismatch: [], invalid_vote: [], duplicate_actor: [], unknown_actor: [] };
+  const seenActors = new Set();
+  const counted = [];
+  for (const v of votes) {
+    const normalized = v?.vote?.toLowerCase();
+    if (v?.topic !== topic) { ignored.topic_mismatch.push(v); continue; }
+    if (!(normalized === 'approve' || normalized === 'reject' || normalized === 'abstain')) { ignored.invalid_vote.push(v); continue; }
+    if (!v.actor) { ignored.unknown_actor.push(v); continue; }
+    if (allowed.length > 0 && !allowed.includes(v.actor)) { ignored.unknown_actor.push(v); continue; }
+    if (seenActors.has(v.actor)) { ignored.duplicate_actor.push(v); continue; }
+    seenActors.add(v.actor);
+    counted.push({ actor: v.actor, vote: normalized, topic });
+  }
+  votes = counted;
+
+  const tally = { approve: 0, reject: 0, abstain: 0 };
+  for (const v of votes) tally[v.vote]++;
+
+  // 정족수 미충족 → pending (고유 actor의 유효표 기준)
   if (quorum !== null && votes.length < quorum) {
-    return { topic, result: 'pending', method: 'quorum_not_met', tally, quorum_required: quorum, votes_received: votes.length };
+    return { topic, result: 'pending', method: 'quorum_not_met', tally, quorum_required: quorum, votes_received: votes.length, ignored };
   }
 
   // 가중치 적용 (설정된 경우)
@@ -65,7 +79,7 @@ function aggregate(votes) {
 
   const totalDecisive = weightedApprove + weightedReject;
   if (totalDecisive === 0) {
-    return { topic, result: 'pending', method: 'all_abstained', tally };
+    return { topic, result: 'pending', method: 'all_abstained', tally, ignored };
   }
 
   const approveRatio = weightedApprove / totalDecisive;
@@ -84,7 +98,9 @@ function aggregate(votes) {
     method,
     tally,
     weighted: { approve: weightedApprove, reject: weightedReject },
-    approve_ratio: Math.round(approveRatio * 100) / 100
+    approve_ratio: Math.round(approveRatio * 100) / 100,
+    voters: votes.map(v => v.actor),
+    ignored
   };
 }
 
