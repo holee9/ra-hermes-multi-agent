@@ -21,6 +21,19 @@
 | **Honcho peer 매핑** | `~/.hermes/honcho.json`(공용) `hosts.hermes_ra-us → aiPeer ra_us, workspace work`, 동일하게 ra-eu/ra-kr/op-manager/n8n-manager/infra-*. **profile 이름 → 호스트 키 `hermes_<profile>`**(client.py:36-41), 블록이 없으면 빈 블록(=peer 미지정 → 기본 host `hermes` 동작으로 추정, 미실측). 실험 profile `ra-us-p30test`는 블록이 **없으므로** 실험 전에 `hosts.hermes_ra-us-p30test = {aiPeer: ra_us_p30test, workspace: <실험 workspace>}`를 추가해야 운영 `ra_us` peer와 분리된다 | JSON 구조 파서(URL·키 마스킹) |
 | **profile create 의미** | `hermes profile create <name>`: fresh + 번들 스킬; `--clone`: config.yaml·.env·SOUL.md·skills 복사; `--clone-all`: 전체 상태 복사(런타임 파일은 제거). `--no-skills`: 스킬 없음 | `profile create --help`, `profiles.py:13-15,54-78` |
 
+## 0.1 실험 profile 준비 결과 (2026-09-10, 사용자 승인 후 Claude 세션 실행 — LLM 호출 없음)
+
+| 단계 | 결과 |
+|---|---|
+| 백업 | `~/.hermes/honcho.json.bak-p30-20260910-190916` (sha256 c557b57c…) |
+| profile 생성 | `hermes profile create ra-us-p30test --clone-from ra-us --clone --no-alias` → `config.yaml`(11.7KB, 기본 스키마 + ra-us memory/model 값 병합), `SOUL.md`, 번들 스킬 18 카테고리 복사. `auth.json`·`.env`·`state.db`·`honcho.json` **없음**(profile-local) |
+| 도구 비활성 | `tools disable`(공백 구분) 16개 → resolved: **`skills`·`memory`만 enabled**, 나머지 전부 disabled. `platform_toolsets.cli=[kanban, memory, skills]`에 `kanban`이 남지만 `tools disable kanban`은 "Unknown toolset"이고 toolsets.py 정의상 `HERMES_KANBAN_TASK` env가 있을 때만 활성(일회성 호출에는 없음) — 실행 전 `-t memory,skills` 명시로 이중 제한 |
+| MCP | 없음 (`mcp list`) |
+| Honcho | CLI가 자동으로 `hosts.hermes_ra-us-p30test`(aiPeer `ra-us-p30test`, workspace `work`) 추가 → `aiPeer ra_us_p30test`, `workspace work_p30test`로 수정. 기존 host 블록·baseUrl **동일**(백업과 JSON 구조 비교, codex 독립 확인) |
+| 자격증명 | profile-local `auth.json`·`.env` 없음. model provider custom(GX10 base_url)이라 키 불필요로 추정; 공용 `~/.hermes/.env`(OPENROUTER_API_KEY 등)를 읽을 수 있음 — 실험 입력이 외부 provider를 요구하지 않도록 한정 |
+
+**미해결(실험 전 필수) — `ra-expert` 스킬 해석.** 스킬 preload는 `SKILLS_DIR = HERMES_HOME/skills`(+`skills.external_dirs`)에서만 찾고, `-p <profile>`은 `HERMES_HOME`을 profile 디렉터리로 바꾼다(`profiles.py:1162`). `ra-expert`는 `~/.hermes/skills/ra-expert → /opt/hermes-ra/skills/ra-expert`(공용 symlink)에만 있고, `ra-us`·`ra-us-p30test` profile의 `skills/`에는 **없다**(`hermes -p ra-us skills list` = 0개, `ra-us/sessions/` 비어 있음). 찾지 못하면 `cli.py:13218` `ValueError("Unknown skill(s): …")`로 호출이 **실패**한다. 따라서 (a) 실험 profile에는 `/opt/hermes-ra/skills/ra-expert`를 **복사**(symlink는 `skill_manage` 쓰기가 /opt로 새므로 금지)해야 하고, (b) **운영 `hermes -p ra-us … --skills ra-expert`도 같은 이유로 실패할 가능성**이 있다 — 가설이며 미확인: 응답 로그(`/var/log/hermes-responses.jsonl` 마지막 2026-06-24, `ra-advisory-requests.jsonl` 마지막 2026-08-05)에 최근 트래픽이 없어 로그로는 판정 불가. A부 §1의 API 서비스 `HERMES_HOME`/`HERMES_PROFILES_DIR` 값과, 승인된 실험 호출 1회의 exit/stderr로 확정한다.
+
 ## 1. host 전체 hermes 호출자 목록 — (1)
 
 ```bash
