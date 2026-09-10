@@ -23,6 +23,7 @@ import secrets
 import subprocess
 import time
 import urllib.request
+import uuid
 import urllib.error
 from datetime import date, timedelta
 from flask import Flask, request, jsonify
@@ -1205,9 +1206,10 @@ def ra_advisory():
                         "code": "duplicate_rejected"}), 400
 
     actor, yellow = route_advisory_region(query, region_hint)
-    # #141: second-resolution refs collided within the same second; the suffix makes the
-    # ref usable as a join key across request log → advisory → feedback.
-    request_ref = f"adv-{int(time.time())}-{secrets.token_hex(2)}"
+    # #141: the ref is the join key across request log → advisory → feedback, so it must be
+    # unique per request. A 122-bit random UUID (not a 16-bit suffix on a second stamp —
+    # codex review) gives that in practice; the "adv-" prefix keeps existing log consumers.
+    request_ref = f"adv-{uuid.uuid4()}"
 
     if yellow:
         mark_rejected(query, yellow, region_hint, wp_id)
