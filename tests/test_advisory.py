@@ -595,3 +595,99 @@ def test_nonzero_exit_diagnostic_goes_to_server_log_only(monkeypatch, caplog):
         out, err = m._invoke_hermes("ra-us", "ctx")
     assert "exit 3" in caplog.text and "ra-us" in caplog.text                  # 메타데이터만 (profile·코드·길이)
     assert "secret-trace" not in caplog.text and "secret-trace" not in err      # 원문은 로그에도 남기지 않음
+
+
+# ── #150 P3-0 (세션 모델 A): HIVE 수락 계약 endpoint ──────────────────────────────────
+def _hive_client(monkeypatch, run=None, ledger_path=""):
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "HIVE_LEDGER_PATH", ledger_path)
+    m._hive_ledger.clear()
+    m._profile_busy.clear()
+    if run is not None:
+        monkeypatch.setattr(m.subprocess, "run", run)
+    return m.app.test_client()
+
+
+H = {"Authorization": "Bearer test-key"}
+
+
+def test_hive_state_idle_then_busy_during_subprocess(monkeypatch):
+    seen = {}
+
+    def run(*a, **k):
+        seen["state_during"] = m._hive_state_for("ra_us")["value"]
+        return _Proc(0, "ok")
+    client = _hive_client(monkeypatch, run)
+    st = client.get("/v1/hive/state/ra_us", headers=H).get_json()
+    assert st["value"] == "idle" and st["scope"] == "this-api-process-only" and st["generation"] == m.HIVE_GENERATION
+    assert st["observed_at"].endswith("+00:00")                                  # tz 있는 시각 (drain _normalize 요구)
+    m._invoke_hermes("ra-us", "ctx")
+    assert seen["state_during"] == "busy"
+    assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["value"] == "idle"   # 슬롯 해제
+    assert client.get("/v1/hive/state/ra_kr", headers=H).status_code == 404          # 파일럿 2 peer 한정
+    assert client.get("/v1/hive/state/ra_us").status_code == 401
+
+
+def test_hive_submit_accepts_runs_and_records_ledger(monkeypatch):
+    calls = []
+
+    def run(cmd, **k):
+        calls.append(cmd)
+        return _Proc(0, "answer")
+    client = _hive_client(monkeypatch, run)
+    body = {"actor": "ra_eu", "msg_id": "evt_1", "payload": {"id": "evt_1", "kind": "handoff", "payload": {"x": 1}}}
+    r = client.post("/v1/hive/submit", json=body, headers=H)
+    assert r.status_code == 200
+    j = r.get_json()
+    assert j["result"] == "accepted" and j["status"] == "completed" and j["output"] == "answer"
+    assert calls[0][1:3] == ["-p", "ra-eu"] and json.loads(calls[0][4]) == body["payload"]  # 문맥 = payload 만
+    lk = client.get("/v1/hive/lookup/evt_1", headers=H).get_json()
+    assert lk["known"] is True and lk["status"] == "completed" and lk["generation"] == m.HIVE_GENERATION
+    assert client.get("/v1/hive/lookup/evt_nope", headers=H).status_code == 404
+
+
+def test_hive_submit_duplicate_msg_id_is_idempotent(monkeypatch):
+    calls = []
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"))
+    body = {"actor": "ra_us", "msg_id": "evt_2", "payload": {"id": "evt_2"}}
+    client.post("/v1/hive/submit", json=body, headers=H)
+    r = client.post("/v1/hive/submit", json=body, headers=H)
+    assert r.get_json()["result"] == "duplicate" and r.get_json()["status"] == "completed" and len(calls) == 1
+
+
+def test_hive_submit_rejects_when_profile_busy(monkeypatch):
+    client = _hive_client(monkeypatch)
+    m._profile_busy["ra-us"] = 1                                                   # 다른 요청이 점유 중
+    r = client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_3", "payload": {"id": "evt_3"}}, headers=H)
+    assert r.status_code == 409 and r.get_json()["result"] == "reject-busy"
+    assert client.get("/v1/hive/lookup/evt_3", headers=H).status_code == 404       # 거절은 원장에 남지 않음
+
+
+def test_hive_submit_failed_subprocess_is_recorded_not_completed(monkeypatch):
+    client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(1, "partial", "err"))
+    r = client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_4", "payload": {"id": "evt_4"}}, headers=H)
+    j = r.get_json()
+    assert j["status"] == "failed" and j["error"] == "hermes exit 1" and j["output"] == ""
+    assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["value"] == "idle"   # 실패 후 점유 해제
+
+
+@pytest.mark.parametrize("body,code", [
+    ({"actor": "ra_kr", "msg_id": "evt_5", "payload": {"id": "evt_5"}}, 400),
+    ({"actor": "ra_us", "msg_id": "nope", "payload": {"id": "nope"}}, 400),
+    ({"actor": "ra_us", "msg_id": "evt_6", "payload": {"id": "evt_other"}}, 400),
+    ({"actor": "ra_us", "msg_id": "evt_7", "payload": "text"}, 400),
+])
+def test_hive_submit_validation(monkeypatch, body, code):
+    client = _hive_client(monkeypatch)
+    assert client.post("/v1/hive/submit", json=body, headers=H).status_code == code
+
+
+def test_hive_ledger_persists_and_survives_restart(monkeypatch, tmp_path):
+    path = str(tmp_path / "ledger.jsonl")
+    client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(0, "a"), ledger_path=path)
+    client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_8", "payload": {"id": "evt_8"}}, headers=H)
+    lines = [json.loads(x) for x in open(path, encoding="utf-8")]
+    assert [x["status"] for x in lines] == ["accepted", "completed"]              # accept 가 실행보다 먼저 영속
+    m._hive_ledger.clear()                                                        # 재시작 흉내
+    lk = client.get("/v1/hive/lookup/evt_8", headers=H).get_json()
+    assert lk["known"] is True and lk["status"] == "completed"
