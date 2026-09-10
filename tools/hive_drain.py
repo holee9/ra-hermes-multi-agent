@@ -12,6 +12,8 @@ Hermes 상태 소스·입력 sink는 주입되는 콜러블이며 여기서 추�
 - 턴 단위 최소 간격: 직전 전달분이 `handled`로 확인되기 전에는 다음 메시지를 넣지 않는다.
 - 수신측 compare-and-accept 계약이 없으면(sink가 accept 신호를 주지 않으면) **배치당 peer별 1건**.
 - 상태 값이 GATE_MAX_AGE보다 오래됐으면 stale로 강등한다.
+- dry-run(기본)은 어떤 파일도 쓰지 않고 sink도 부르지 않는다. execute에서도 sink 호출 전에 `submitting`을 저널에
+  영속하며, 저장 실패·중단 뒤 재시작은 sink를 다시 부르지 않고 수신측 안정 id 조회(lookup)로만 복구한다.
 - 배치당 1건은 속도 제한이지 원자성 보장이 아니다(TOCTOU는 수신측 직렬 수락만 없앤다).
 - 현재 RA peer의 실제 진입점은 hermes-api-server의 일회성 `hermes -p` subprocess다(delivery-gate §3.1) —
   이 모듈은 그 경로에 입력을 주입하지 않으며, 주입은 P3-0 수락 계약 실측 뒤에만 sink로 붙인다.
@@ -148,7 +150,9 @@ class Drain:
     source: Callable[[str], GateState | None] | None = None      # actor → 상태 (없으면 unavailable)
     sink: Callable[[str, Path, str | None], bool] | None = None  # (actor, file, accept_token) → 수신측이 받았는가
     handled: Callable[[str], bool] = lambda _id: False           # §5.1 handled 확인 — 기본은 '미확인'
+    lookup: Callable[[str, str], bool | None] | None = None      # (actor, msg_id) → 수신측이 이 id를 받았는가 (안정 id 조회)
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
+    execute: bool = False                                        # False = dry-run: 어떤 파일도 쓰지 않고 sink도 부르지 않는다
 
     def _journal_path(self, actor: str) -> Path:
         return self.root / ".drain" / f"{actor}.json"
@@ -164,6 +168,8 @@ class Drain:
         return j
 
     def _save(self, actor: str, j: dict):
+        if not self.execute:
+            return
         p = self._journal_path(actor)
         p.parent.mkdir(parents=True, exist_ok=True)
         tmp = p.with_name(f".tmp-{p.name}")
@@ -175,9 +181,10 @@ class Drain:
         for mid, rec in list(j["written"].items()):
             if rec.get("status") != "written" or not self.handled(mid):
                 continue
-            for f in inbox.glob(f"*-{mid}.json"):
-                (inbox / ".done").mkdir(exist_ok=True)
-                f.replace(inbox / ".done" / f.name)
+            if self.execute:
+                for f in inbox.glob(f"*-{mid}.json"):
+                    (inbox / ".done").mkdir(exist_ok=True)
+                    f.replace(inbox / ".done" / f.name)
             rec["status"] = "handled"
             if j["last_written"] == mid:
                 j["last_written"] = None
@@ -191,24 +198,53 @@ class Drain:
                 continue
             j = self._load(peer.actor)
             self._settle(peer.actor, inbox, j)
+            amb = self._resolve_submitting(peer.actor, j)
+            if amb is not None:                                     # 제출 결과 불명 → 재전송 금지, 조회로만 복구
+                self._save(peer.actor, j)
+                out.append(amb)
+                continue
             peer.last_written = j["last_written"] or peer.last_written   # 저널이 정본, 없으면 호출자 상태
-            pending = {mid for mid, rec in j["written"].items() if rec.get("status") == "written"}
+            pending = {mid for mid, rec in j["written"].items() if rec.get("status") in ("written", "submitting")}
             state = _query(self.source, peer.actor)
             d = decide(peer, state, next_message(inbox, pending), self.now(), self.cfg, self.handled)
             if state is not None and state.error and d.action == "hold":
                 d.reason = f"{d.reason}:{state.error}"
-            if d.action == "deliver" and self.sink is not None:
-                token = state.accept_token if state else None
-                if self.sink(peer.actor, d.src, token):
-                    j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"),
-                                              "accept_token": token, "status": "written"}
-                    j["last_written"] = d.msg_id
-                    peer.last_written = d.msg_id
-                else:
-                    d = Decision(peer.actor, d.src, d.msg_id, "hold", "sink-refused")
+            if d.action == "deliver" and self.execute and self.sink is not None:
+                d = self._submit(peer, d, state.accept_token if state else None, j)
             self._save(peer.actor, j)
             out.append(d)
         return out
+
+    def _submit(self, peer: Peer, d: Decision, token: str | None, j: dict) -> Decision:
+        """intent-before-submit: sink 호출 **전에** `submitting`을 저널에 영속한다. sink 뒤 저장이 실패해도
+        재시작이 sink를 다시 부르지 않는다(중복 전달 금지) — 결과는 lookup으로만 복구한다."""
+        j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"), "accept_token": token,
+                                  "status": "submitting"}
+        self._save(peer.actor, j)
+        if self.sink(peer.actor, d.src, token):
+            j["written"][d.msg_id]["status"] = "written"
+            j["last_written"] = d.msg_id
+            peer.last_written = d.msg_id
+            return d
+        del j["written"][d.msg_id]                                  # 수신측이 명시적으로 거절 — 전달 안 됨
+        return Decision(peer.actor, d.src, d.msg_id, "hold", "sink-refused")
+
+    def _resolve_submitting(self, actor: str, j: dict) -> Decision | None:
+        """이전 실행이 sink 뒤·저장 전에 죽은 `submitting` 기록의 복구. 수신측 안정 id 조회(lookup)가 있으면
+        결과로 확정하고, 없으면 `ambiguous-submit` 보류(사람 확인) — 어느 경우에도 sink를 다시 부르지 않는다."""
+        for mid, rec in j["written"].items():
+            if rec.get("status") != "submitting":
+                continue
+            got = self.lookup(actor, mid) if self.lookup else None
+            if got is True:
+                rec["status"] = "written"
+                j["last_written"] = mid
+                return None
+            if got is False:
+                del j["written"][mid]                               # 수신측에 없음 → 다음 배치에서 정상 재판정
+                return None
+            return Decision(actor, None, mid, "hold", f"ambiguous-submit:{mid}")
+        return None
 
 
 def main(argv=None) -> int:
@@ -216,8 +252,9 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="hive drain gate — dry-run 판정 출력 (소스·sink 미주입 = 전달 없음)")
     ap.add_argument("root")
     ap.add_argument("--peer", action="append", default=[], help="actor id (반복 가능)")
+    ap.add_argument("--execute", action="store_true", help="저널·.done 정리를 실제로 쓴다 (sink는 CLI에서 주입 불가 → 전달 없음)")
     a = ap.parse_args(argv)
-    for d in Drain(Path(a.root)).run([Peer(p) for p in a.peer]):
+    for d in Drain(Path(a.root), execute=a.execute).run([Peer(p) for p in a.peer]):
         print(json.dumps({"actor": d.actor, "msg": d.msg_id, "action": d.action, "reason": d.reason}, ensure_ascii=False))
     return 0
 

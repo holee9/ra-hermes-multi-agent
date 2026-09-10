@@ -42,7 +42,7 @@ def _msg(hive, actor, n=1, manual=False, mid=None):
 
 def _drain(hive, state=None, sink=None, handled=lambda _id: False, cfg=None):
     return hd.Drain(hive, cfg=cfg or hd.Config(), source=(lambda actor: state) if state is not None else None,
-                    sink=sink, handled=handled, now=lambda: NOW)
+                    sink=sink, handled=handled, now=lambda: NOW, execute=True)
 
 
 def test_no_source_means_unavailable_and_no_delivery(hive):
@@ -166,7 +166,7 @@ def test_source_exception_is_unknown_hold_not_crash(hive):
             raise RuntimeError("socket down")
         return hd.GateState("idle", NOW)
     sent = []
-    res = hd.Drain(hive, source=boom, sink=lambda a, f, t: sent.append(a) or True, now=lambda: NOW).run(
+    res = hd.Drain(hive, source=boom, sink=lambda a, f, t: sent.append(a) or True, now=lambda: NOW, execute=True).run(
         [hd.Peer("ra_us"), hd.Peer("ra_eu")])
     assert res[0].action == "hold" and res[0].reason.startswith("state-unknown:RuntimeError")
     assert res[1].action == "deliver" and sent == ["ra_eu"]                # 다른 peer는 계속 처리
@@ -183,7 +183,7 @@ def test_accept_token_reaches_sink_and_is_journaled(hive):
     _, mid = _msg(hive, "ra_us")
     got = []
     hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW, accept_token="tok-7"),
-             sink=lambda a, f, t: got.append(t) or True, now=lambda: NOW).run([hd.Peer("ra_us")])
+             sink=lambda a, f, t: got.append(t) or True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert got == ["tok-7"]
     j = json.loads((hive / ".drain" / "ra_us.json").read_text())
     assert j["written"][mid] == {"ts": NOW.isoformat(timespec="seconds"), "accept_token": "tok-7", "status": "written"}
@@ -195,7 +195,7 @@ def test_written_message_is_never_reselected_and_moves_to_done_after_handled(hiv
     p2, m2 = _msg(hive, "ra_us", 2)
     sent = []
     mk = lambda handled: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
-                                  sink=lambda a, f, t: sent.append(f.name) or True, handled=handled, now=lambda: NOW)
+                                  sink=lambda a, f, t: sent.append(f.name) or True, handled=handled, now=lambda: NOW, execute=True)
     assert mk(lambda i: False).run([hd.Peer("ra_us")])[0].action == "deliver" and sent == [p1.name]
     d = mk(lambda i: False).run([hd.Peer("ra_us")])[0]                       # 새 프로세스(새 Peer): 저널이 정본
     assert d.action == "hold" and d.reason == f"awaiting-handled:{m1}" and sent == [p1.name]
@@ -234,5 +234,62 @@ def test_router_inbox_output_feeds_drain(tmp_path):
     assert d.action == "hold" and d.reason == "state-unavailable" and inbox_files[0].exists()
     sent = []
     d = hd.Drain(root, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: sent.append(f) or True,
-                 now=lambda: NOW).run([hd.Peer("ra_eu")])[0]
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_eu")])[0]
     assert d.action == "deliver" and sent == inbox_files
+
+
+# ---------------------------------------------------------------- codex 재현 2건 (b777b13)
+
+def test_dry_run_writes_nothing_and_calls_no_sink(hive, capsys):
+    """P2: 기본(dry-run)은 .drain 저널·.done 이동·sink 호출이 없다."""
+    _msg(hive, "ra_us")
+    before = sorted(str(p) for p in hive.rglob("*"))
+    called = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: called.append(f) or True,
+                 handled=lambda i: True, now=lambda: NOW).run([hd.Peer("ra_us")])[0]
+    assert d.action == "deliver" and called == []                              # 판정만
+    assert sorted(str(p) for p in hive.rglob("*")) == before and not (hive / ".drain").exists()
+    hd.main([str(hive), "--peer", "ra_us"])
+    assert not (hive / ".drain").exists()
+
+
+def test_save_failure_after_sink_never_resubmits(hive, monkeypatch):
+    """P1: sink True → 저널 저장 OSError → 재시작. sink는 총 1회. lookup 없으면 ambiguous 보류, lookup으로만 복구."""
+    p1, m1 = _msg(hive, "ra_us", 1)
+    calls = []
+    mk = lambda lookup=None: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
+                                     sink=lambda a, f, t: calls.append(f.name) or True, lookup=lookup,
+                                     now=lambda: NOW, execute=True)
+    dr = mk()
+    real_save = dr._save
+    n = {"k": 0}
+
+    def flaky(actor, j):
+        n["k"] += 1
+        if n["k"] == 2:                                                       # submitting 영속(1) 뒤, 결과 저장(2)에서 실패
+            raise OSError("disk full")
+        real_save(actor, j)
+    monkeypatch.setattr(dr, "_save", flaky)
+    with pytest.raises(OSError):
+        dr.run([hd.Peer("ra_us")])
+    assert calls == [p1.name]
+    j = json.loads((hive / ".drain/ra_us.json").read_text())
+    assert j["written"][m1]["status"] == "submitting"
+    d = mk().run([hd.Peer("ra_us")])[0]                                       # 재시작, lookup 없음
+    assert d.action == "hold" and d.reason == f"ambiguous-submit:{m1}" and calls == [p1.name]
+    d = mk(lookup=lambda a, i: True).run([hd.Peer("ra_us")])[0]                # 수신측이 받았음 → written 확정
+    assert calls == [p1.name]
+    j = json.loads((hive / ".drain/ra_us.json").read_text())
+    assert j["written"][m1]["status"] == "written" and j["last_written"] == m1
+    assert d.reason == f"awaiting-handled:{m1}" or d.action == "none"
+
+
+def test_lookup_false_allows_normal_resubmission(hive, monkeypatch):
+    p1, m1 = _msg(hive, "ra_us", 1)
+    (hive / ".drain").mkdir()
+    (hive / ".drain/ra_us.json").write_text(json.dumps({"written": {m1: {"ts": "x", "accept_token": None,
+                                                                          "status": "submitting"}}, "last_written": None}))
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: calls.append(f.name) or True,
+                 lookup=lambda a, i: False, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "deliver" and calls == [p1.name]                       # 수신측에 없음 → 정상 재판정 후 1회 전달
