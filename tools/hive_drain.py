@@ -16,6 +16,8 @@ Hermes 상태 소스·입력 sink는 주입되는 콜러블이며 여기서 추�
   영속하며, 저장 실패·중단 뒤 재시작은 sink를 다시 부르지 않고 수신측 안정 id 조회(lookup)로만 복구한다.
 - execute 실행은 `.drain/lock`(flock) 단일 소유 — read-submit-save를 한 프로세스만 수행. 수신측은 sink에 명시된
   msg_id로 멱등이어야 한다(P3-0 수락 계약 인수 항목). 저널은 fsync 후 rename, 손상 저널은 덮어쓰지 않고 보류.
+- sink에는 Path가 아니라 O_NOFOLLOW FD에서 읽어 `payload.id == 파일명 id`를 대조한 bytes를 넘긴다. 실제 adapter도
+  이 bytes(또는 동등 보호)를 그대로 써야 하며 경로를 다시 열지 않는다.
 - 배치당 1건은 속도 제한이지 원자성 보장이 아니다(TOCTOU는 수신측 직렬 수락만 없앤다).
 - 현재 RA peer의 실제 진입점은 hermes-api-server의 일회성 `hermes -p` subprocess다(delivery-gate §3.1) —
   이 모듈은 그 경로에 입력을 주입하지 않으며, 주입은 P3-0 수락 계약 실측 뒤에만 sink로 붙인다.
@@ -135,19 +137,31 @@ class _Fs:
         finally:
             os.close(sfd)
 
-    def is_regular(self, path: Path) -> bool:
-        """sink에 넘기기 직전 검사: root 안의 일반 파일이고 어느 구성요소도 symlink가 아니다."""
+    def read_verified(self, path: Path, msg_id: str) -> bytes | None:
+        """sink 인계용: O_NOFOLLOW로 연 FD에서 읽고(검사 후 교체 불가), 일반 파일이며 payload.id == 파일명 id 일 때만
+        bytes를 돌려준다. 아니면 None."""
         try:
-            r = self.rel(path)
-            dfd = self.dir_fd(r.parent)
+            fd = self.open_file(path, os.O_RDONLY)
         except (DrainError, OSError):
-            return False
+            return None
         try:
-            return stat.S_ISREG(os.lstat(r.name, dir_fd=dfd).st_mode)
-        except OSError:
-            return False
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                return None
+            data = b""
+            while True:
+                chunk = os.read(fd, 65536)
+                if not chunk:
+                    break
+                data += chunk
         finally:
-            os.close(dfd)
+            os.close(fd)
+        try:
+            obj = json.loads(data.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        if not isinstance(obj, dict) or obj.get("id") != msg_id:
+            return None
+        return data
 INBOX_NAME = re.compile(r"^(?P<ts>\d{8}T\d{6}[^-]*)-(?P<id>evt_[A-Za-z0-9_]+)\.json$")
 
 
@@ -268,7 +282,9 @@ class Drain:
     root: Path
     cfg: Config = field(default_factory=Config)
     source: Callable[[str], GateState | None] | None = None      # actor → 상태 (없으면 unavailable)
-    sink: Callable[[str, Path, str, str | None], bool] | None = None  # (actor, file, msg_id, accept_token) → 수신측이 받았는가; 수신측은 msg_id로 멱등
+    sink: Callable[[str, str, bytes, str | None], bool] | None = None  # (actor, msg_id, payload_bytes, accept_token) → 수신측이 받았는가
+    # sink는 Path가 아니라 **이 프로세스가 O_NOFOLLOW로 읽어 id를 대조한 bytes**를 받는다 — 검사 후 파일 교체(TOCTOU)로
+    # 다른 내용이 수신측에 들어가는 경로를 닫는다. 수신측은 msg_id로 멱등.
     handled: Callable[[str], bool] = lambda _id: False           # §5.1 handled 확인 — 기본은 '미확인'
     lookup: Callable[[str, str], bool | None] | None = None      # (actor, msg_id) → 수신측이 이 id를 받았는가 (안정 id 조회)
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
@@ -380,12 +396,13 @@ class Drain:
     def _submit(self, peer: Peer, d: Decision, token: str | None, j: dict) -> Decision:
         """intent-before-submit: sink 호출 **전에** `submitting`을 저널에 영속한다. sink 뒤 저장이 실패해도
         재시작이 sink를 다시 부르지 않는다(중복 전달 금지) — 결과는 lookup으로만 복구한다."""
-        if not self.fs.is_regular(d.src):                            # symlink·비정규 파일은 sink에 넘기지 않는다
-            return Decision(peer.actor, d.src, d.msg_id, "hold", "path-escape")
+        payload = self.fs.read_verified(d.src, d.msg_id)             # 같은 FD의 bytes만 인계 — Path 재열기 없음
+        if payload is None:
+            return Decision(peer.actor, d.src, d.msg_id, "hold", "payload-mismatch")
         j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"), "accept_token": token,
                                   "status": "submitting"}
         self._save(peer.actor, j)
-        if self.sink(peer.actor, d.src, d.msg_id, token):
+        if self.sink(peer.actor, d.msg_id, payload, token):
             j["written"][d.msg_id]["status"] = "written"
             j["last_written"] = d.msg_id
             peer.last_written = d.msg_id
