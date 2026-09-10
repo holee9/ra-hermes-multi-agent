@@ -1504,16 +1504,31 @@ def _ledger_load() -> str:
     if not HIVE_LEDGER_PATH:
         _ledger_health["status"] = "memory"
         return "memory"
-    if _hive_ledger and _ledger_health["status"] in ("ok", "degraded"):
-        return _ledger_health["status"]
-    status = "ok"
-    marker = HIVE_LEDGER_PATH + ".created"                       # 원장이 한 번이라도 만들어졌다는 표식
+    marker = HIVE_LEDGER_PATH + ".created"                       # 원장 정체성 표식: 첫 줄 header 의 ledger_id 를 담는다
+    # codex 재현(b82a5d4): 캐시가 있으면 존재 검사를 건너뛰어 런타임 유실을 못 보고 append 가 새 파일을 만들었다.
+    # → 호출마다 존재·정체성을 확인한다(전체 재읽기는 캐시가 비었을 때만).
     if not os.path.exists(HIVE_LEDGER_PATH):
         # 표식 없음 = 아직 초기화 전(new, 실행 허용) / 표식 있음 = 원장 유실(missing, 실행 거절)
         _ledger_health["status"] = "missing" if os.path.exists(marker) else "new"
         return _ledger_health["status"]
     try:
+        with open(marker, encoding="utf-8") as mf:
+            expected_id = mf.read().strip()
+    except FileNotFoundError:
+        expected_id = None                                       # 파일은 있는데 표식이 없다 → 정체성 확인 불가
+    status = "ok"
+    try:
         with open(HIVE_LEDGER_PATH, encoding="utf-8") as f:
+            header = f.readline()
+            try:
+                h = json.loads(header) if header.strip() else {}
+            except json.JSONDecodeError:
+                h = {}
+            if not isinstance(h, dict) or h.get("ledger_id") is None or h.get("ledger_id") != expected_id:
+                _ledger_health["status"] = "degraded"           # 다른 원장으로 바뀌었거나 header 없음
+                return "degraded"
+            if _hive_ledger and _ledger_health["status"] in ("ok", "degraded"):
+                return _ledger_health["status"]                  # 존재·정체성 확인됨, 내용은 캐시 유지
             for line in f:
                 if not line.strip():
                     continue
@@ -1539,14 +1554,27 @@ def _ledger_write(rec: dict) -> None:
     """영속 실패 시 메모리도 바꾸지 않는다 (codex 재현: 없는 부모 디렉터리 → 500 뒤 재시도가 duplicate
     accepted 를 돌려주고 lock 이 영구 잔존). 파일 먼저, 성공 후 메모리."""
     if HIVE_LEDGER_PATH:
-        with open(HIVE_LEDGER_PATH, "a", encoding="utf-8") as f:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            f.flush()
-            os.fsync(f.fileno())
+        line = json.dumps(rec, ensure_ascii=False) + "\n"
         if _ledger_health["status"] == "new":
+            # 초기화: 원장 파일을 O_EXCL 로 만들고 첫 줄에 ledger_id header, 표식에 같은 id 를 쓴다.
+            ledger_id = f"{HIVE_GENERATION}-{uuid.uuid4().hex[:8]}"
+            fd = os.open(HIVE_LEDGER_PATH, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(json.dumps({"ledger_id": ledger_id, "created": _hive_now()}) + "\n" + line)
+                f.flush()
+                os.fsync(f.fileno())
             with open(HIVE_LEDGER_PATH + ".created", "w", encoding="utf-8") as mf:
-                mf.write(HIVE_GENERATION)
+                mf.write(ledger_id)
+                mf.flush()
+                os.fsync(mf.fileno())
             _ledger_health["status"] = "ok"                          # 초기화 완료
+        else:
+            # append 는 파일을 **만들지 않는다**: 유실됐으면 FileNotFoundError → 호출자가 취소한다.
+            fd = os.open(HIVE_LEDGER_PATH, os.O_WRONLY | os.O_APPEND)
+            with os.fdopen(fd, "a", encoding="utf-8") as f:
+                f.write(line)
+                f.flush()
+                os.fsync(f.fileno())
     _hive_ledger[rec["msg_id"]] = rec
 
 
