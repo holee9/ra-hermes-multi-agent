@@ -86,6 +86,10 @@ _PRODUCT_CODE_MAP = {
 
 # Module-level cache: {repo: (file_list, fetch_time)}
 _wiki_file_cache: dict = {}
+# #108: tree listing completeness per repo — {"files": n, "truncated": bool}
+WIKI_TREE_STATUS: dict = {}
+WIKI_TREE_PAGE_SIZE = int(os.environ.get("GITEA_TREE_PAGE_SIZE", "1000"))
+WIKI_TREE_MAX_PAGES = int(os.environ.get("GITEA_TREE_MAX_PAGES", "50"))
 
 
 def _http_get(url: str, headers: dict | None = None, timeout: int = TIMEOUT) -> bytes | None:
@@ -112,28 +116,61 @@ def _get_wiki_files() -> list[str]:
     if GITEA_WIKI_REPO in _wiki_file_cache:
         return _wiki_file_cache[GITEA_WIKI_REPO]
 
-    url = f"{GITEA_URL}/api/v1/repos/{GITEA_WIKI_REPO}/git/trees/HEAD?recursive=true"
-    body = _http_get(url, _gitea_headers())
-    if not body:
-        return []
-    try:
-        data = json.loads(body)
-        files = [
-            f["path"]
-            for f in data.get("tree", [])
-            if f.get("type") == "blob" and f["path"].endswith(".md")
-            and not f["path"].startswith(".obsidian")
-        ]
-        _wiki_file_cache[GITEA_WIKI_REPO] = files
-        return files
-    except Exception:
-        return []
+    # #108 review: one recursive call returned `truncated: true` at the 1000-entry cap and
+    # the flag was ignored, so most of the wiki was invisible to matching. Walk the
+    # tree API pages (per_page/page) until the server says it is no longer truncated.
+    files: list[str] = []
+    seen: set[str] = set()
+    truncated = False
+    for page in range(1, WIKI_TREE_MAX_PAGES + 1):
+        url = (f"{GITEA_URL}/api/v1/repos/{GITEA_WIKI_REPO}/git/trees/HEAD"
+               f"?recursive=true&per_page={WIKI_TREE_PAGE_SIZE}&page={page}")
+        body = _http_get(url, _gitea_headers())
+        if not body:
+            if page > 1:
+                truncated = True   # earlier pages loaded; this one did not → partial listing
+            break
+        try:
+            data = json.loads(body)
+        except ValueError:
+            return []
+        entries = data.get("tree") or []
+        new = 0
+        for f in entries:
+            path = f.get("path", "")
+            if f.get("type") == "blob" and path.endswith(".md") and not path.startswith(".obsidian") \
+                    and path not in seen:
+                seen.add(path)
+                files.append(path)
+                new += 1
+        truncated = bool(data.get("truncated"))
+        if not truncated or not entries or (new == 0 and page > 1):
+            break
+    else:
+        truncated = True
+    WIKI_TREE_STATUS[GITEA_WIKI_REPO] = {"files": len(files), "truncated": truncated}
+    if truncated:
+        logging.warning("llm-wiki tree listing incomplete (%d files loaded, truncated=true)", len(files))
+    _wiki_file_cache[GITEA_WIKI_REPO] = files
+    return files
 
 
 def _tokenize(text: str) -> set[str]:
-    """Lowercase + split on non-alphanumeric. Drop short tokens."""
-    tokens = re.split(r"[^a-z0-9]+", text.lower())
-    return {t for t in tokens if len(t) >= 3}
+    """Lowercase + split on non-word characters. Keeps Hangul/CJK tokens.
+
+    #108 review: the a-z/0-9 split dropped every Hangul character, so a purely Korean
+    query produced an empty token set and matched nothing. Latin/digit tokens need
+    3+ chars; Hangul/CJK tokens need 2+ (Korean regulatory terms are short).
+    """
+    tokens = re.split(r"[^a-z0-9가-힣一-鿿]+", text.lower())
+    out: set[str] = set()
+    for t in tokens:
+        if not t:
+            continue
+        min_len = 2 if re.search(r"[가-힣一-鿿]", t) else 3
+        if len(t) >= min_len:
+            out.add(t)
+    return out
 
 
 def _score_file(path: str, query_tokens: set[str]) -> float:
