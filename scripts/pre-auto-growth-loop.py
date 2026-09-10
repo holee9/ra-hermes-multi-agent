@@ -195,8 +195,13 @@ def check_deriver_flush(env: dict[str, str]) -> dict[str, Any]:
     ]
     result = run_command(cmd, env, timeout=60)
     value = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else ""
+    # #136: distinguish "the probe could not run" (docker socket unreachable, compose
+    # missing, exec failure) from "the setting is actually False". Both keep the gate
+    # CLOSED; only the reported cause differs so the operator fixes the right thing.
+    probe = "ok" if result.ok and value in ("True", "False") else "unavailable"
     return {
-        "ok": result.ok and value == "True",
+        "ok": probe == "ok" and value == "True",
+        "probe": probe,
         "value": value,
         "command": result.to_report(),
     }
@@ -281,8 +286,15 @@ def wait_for_drain(
 # @MX:REASON: Cyclomatic complexity 17; inspects deriver_flush / pending-queue / backlog signals to decide loop continuation. An incorrect verdict risks a runaway or premature stop of autonomous growth.
 def evaluate_iteration(report: dict[str, Any], max_pending: int, pending_scope: str) -> list[str]:
     failures: list[str] = []
-    if not report["deriver_flush"]["ok"]:
-        failures.append("DERIVER_FLUSH_ENABLED is not True")
+    flush = report["deriver_flush"]
+    if not flush["ok"]:
+        if flush.get("probe", "ok") == "unavailable":
+            stderr = (flush.get("command") or {}).get("stderr", "")
+            failures.append(
+                "DERIVER_FLUSH_ENABLED probe unavailable (docker/compose exec did not run — "
+                f"not a setting=False verdict): {stderr[:160] or 'no output'}")
+        else:
+            failures.append("DERIVER_FLUSH_ENABLED is not True")
     pending_before = pending_for_scope(report["queue_before"], pending_scope)
     if pending_before > max_pending:
         failures.append(f"{pending_scope} queue pending before loop is {pending_before}")
