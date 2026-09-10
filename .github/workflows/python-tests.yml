@@ -4,9 +4,10 @@
 # tools/hive_router.py and tools/hive_drain.py on every push/PR. No secrets,
 # no runtime access: these suites use temporary hives only.
 #
-# Scope note: this is the CI guard codex asked for on #150 — local "N passed"
-# was not branch protection. Other Python suites that import scripts/ with
-# runtime dependencies (Flask, Honcho URLs) are intentionally not here yet.
+# Scope: the whole tests/ tree. Every suite mocks its I/O — a scan for un-mocked
+# urlopen/requests/socket calls in tests/ returns nothing, so CI touches no Honcho,
+# Qdrant, GX10 or GitHub endpoint. The skill-resolution regression skips on runners
+# without Hermes profiles.
 
 name: Python Tests
 
@@ -15,20 +16,16 @@ on:
     branches: [main]
     paths:
       - "tools/**"
-      - "tests/test_validate_events.py"
-      - "tests/test_hive_router.py"
-      - "tests/test_hive_drain.py"
-      - "tests/fixtures/**"
+      - "scripts/**"
+      - "tests/**"
       - "docs/contract/event-v2.1.schema.json"
       - "virtual-office/mock/events-v2.1.jsonl"
       - ".github/workflows/python-tests.yml"
   pull_request:
     paths:
       - "tools/**"
-      - "tests/test_validate_events.py"
-      - "tests/test_hive_router.py"
-      - "tests/test_hive_drain.py"
-      - "tests/fixtures/**"
+      - "scripts/**"
+      - "tests/**"
       - "docs/contract/event-v2.1.schema.json"
       - "virtual-office/mock/events-v2.1.jsonl"
       - ".github/workflows/python-tests.yml"
@@ -47,6 +44,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: python -m pip install --disable-pip-version-check "pytest>=8" "jsonschema>=4.19"
-      - name: Run hive regression (validator / router / drain / thread)
-        run: python -m pytest tests/test_validate_events.py tests/test_hive_router.py tests/test_hive_drain.py tests/test_hive_thread.py -q -p no:cacheprovider
+        run: python -m pip install --disable-pip-version-check "pytest>=8" "jsonschema>=4.19" "flask>=3" "pyyaml>=6"
+      - name: Run Python regression (tests/)
+        run: python -m pytest tests -q -p no:cacheprovider
