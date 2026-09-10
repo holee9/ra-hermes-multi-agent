@@ -22,10 +22,12 @@ Hermes 상태 소스·입력 sink는 주입되는 콜러블이며 여기서 추�
 """
 from __future__ import annotations
 
+import errno
 import fcntl
 import json
 import os
 import re
+import stat
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -36,6 +38,116 @@ STATES = ("idle", "busy", "unknown", "stale", "unavailable")
 
 class DrainError(Exception):
     pass
+
+
+class _Fs:
+    """경계 보장 파일 접근 (P2 라우터와 동일 원칙, codex 재현: `.drain/lock`을 외부 파일로 symlink → run([])만으로
+    외부 PID 덮어쓰기). root 디렉터리 FD에서 O_NOFOLLOW|O_DIRECTORY로 내려가고 최종 항목도 lstat+O_NOFOLLOW —
+    lock · 저널 · tmp · .done 이동 · sink에 넘기는 inbox 파일 모두 이 경로를 쓴다."""
+
+    def __init__(self, root: Path):
+        self.root = Path(root)
+        self.root_resolved = self.root.resolve()
+
+    def rel(self, path: Path) -> Path:
+        try:
+            r = Path(path).relative_to(self.root)
+        except ValueError:
+            raise DrainError(f"경로 이탈 차단: {path} 는 hive root 아래가 아님") from None
+        if any(part in ("", ".", "..") for part in r.parts):
+            raise DrainError(f"경로 이탈 차단: {path}")
+        return r
+
+    def dir_fd(self, rel_dir: Path, create: bool = False) -> int:
+        fd = os.open(self.root_resolved, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            for part in rel_dir.parts:
+                try:
+                    if stat.S_ISLNK(os.lstat(part, dir_fd=fd).st_mode):
+                        raise DrainError(f"경로 이탈 차단: {self.root / rel_dir} — {part} 는 symlink")
+                except FileNotFoundError:
+                    if not create:
+                        raise
+                    os.mkdir(part, 0o755, dir_fd=fd)
+                try:
+                    nfd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                except OSError as e:
+                    if e.errno == errno.ELOOP:
+                        raise DrainError(f"경로 이탈 차단: {self.root / rel_dir} — {part} 는 symlink") from None
+                    raise
+                os.close(fd)
+                fd = nfd
+            return fd
+        except BaseException:
+            os.close(fd)
+            raise
+
+    def open_file(self, path: Path, flags: int, create_dirs: bool = False) -> int:
+        r = self.rel(path)
+        dfd = self.dir_fd(r.parent, create=create_dirs)
+        try:
+            try:
+                if stat.S_ISLNK(os.lstat(r.name, dir_fd=dfd).st_mode):
+                    raise DrainError(f"경로 이탈 차단: {path} 는 symlink")
+            except FileNotFoundError:
+                pass
+            try:
+                return os.open(r.name, flags | os.O_NOFOLLOW, 0o644, dir_fd=dfd)
+            except OSError as e:
+                if e.errno == errno.ELOOP:
+                    raise DrainError(f"경로 이탈 차단: {path} 는 symlink") from None
+                raise
+        finally:
+            os.close(dfd)
+
+    def read_text(self, path: Path) -> str:
+        fd = self.open_file(path, os.O_RDONLY)
+        with os.fdopen(fd, "r", encoding="utf-8") as f:
+            return f.read()
+
+    def write_atomic(self, path: Path, data: str):
+        r = self.rel(path)
+        dfd = self.dir_fd(r.parent, create=True)
+        try:
+            tmp = f".tmp-{os.getpid()}-{r.name}"
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644, dir_fd=dfd)
+            try:
+                os.write(fd, data.encode("utf-8"))
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            os.rename(tmp, r.name, src_dir_fd=dfd, dst_dir_fd=dfd)   # 대상이 symlink이면 링크 자체가 교체됨
+            os.fsync(dfd)
+        finally:
+            os.close(dfd)
+
+    def rename(self, src: Path, dest: Path):
+        rs, rd = self.rel(src), self.rel(dest)
+        sfd = self.dir_fd(rs.parent)
+        try:
+            if stat.S_ISLNK(os.lstat(rs.name, dir_fd=sfd).st_mode):
+                raise DrainError(f"경로 이탈 차단: {src} 는 symlink")
+            dfd = self.dir_fd(rd.parent, create=True)
+            try:
+                os.rename(rs.name, rd.name, src_dir_fd=sfd, dst_dir_fd=dfd)
+            finally:
+                os.close(dfd)
+        finally:
+            os.close(sfd)
+
+    def is_regular(self, path: Path) -> bool:
+        """sink에 넘기기 직전 검사: root 안의 일반 파일이고 어느 구성요소도 symlink가 아니다."""
+        try:
+            r = self.rel(path)
+            dfd = self.dir_fd(r.parent)
+        except (DrainError, OSError):
+            return False
+        try:
+            return stat.S_ISREG(os.lstat(r.name, dir_fd=dfd).st_mode)
+        except OSError:
+            return False
+        finally:
+            os.close(dfd)
 INBOX_NAME = re.compile(r"^(?P<ts>\d{8}T\d{6}[^-]*)-(?P<id>evt_[A-Za-z0-9_]+)\.json$")
 
 
@@ -104,7 +216,7 @@ def next_message(inbox: Path, exclude: set[str] | frozenset[str] = frozenset()) 
     candidates = []
     for f in sorted(inbox.glob("*.json")):
         m = INBOX_NAME.match(f.name)
-        if not m or f.name.startswith(".tmp-") or m.group("id") in exclude:
+        if not m or f.name.startswith(".tmp-") or m.group("id") in exclude or f.is_symlink() or not f.is_file():
             continue
         manual = False
         try:
@@ -169,9 +281,14 @@ class Drain:
 
     # 단일 소유: read-submit-save 전체를 한 프로세스만 수행한다(codex 재현: 두 프로세스가 같은 저널을 읽고
     # 각각 submit → sink 2회). OS flock — 보유 프로세스가 죽으면 커널이 해제한다.
+    @property
+    def fs(self) -> _Fs:
+        if getattr(self, "_fs", None) is None:
+            self._fs = _Fs(self.root)
+        return self._fs
+
     def acquire_lock(self):
-        (self.root / ".drain").mkdir(parents=True, exist_ok=True)
-        fd = os.open(self.root / ".drain" / "lock", os.O_RDWR | os.O_CREAT, 0o644)
+        fd = self.fs.open_file(self.root / ".drain" / "lock", os.O_RDWR | os.O_CREAT, create_dirs=True)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
@@ -189,15 +306,14 @@ class Drain:
     def _load(self, actor: str) -> dict | None:
         """None = 저널이 있으나 손상됨 → 이 actor는 아무것도 하지 않고 보류(덮어쓰지 않는다)."""
         p = self._journal_path(actor)
-        if not p.exists():
-            j = {}
-        else:
-            try:
-                j = json.loads(p.read_text(encoding="utf-8"))
-                if not isinstance(j, dict) or not isinstance(j.get("written", {}), dict):
-                    return None
-            except (OSError, json.JSONDecodeError):
+        try:
+            j = json.loads(self.fs.read_text(p))
+            if not isinstance(j, dict) or not isinstance(j.get("written", {}), dict):
                 return None
+        except FileNotFoundError:
+            j = {}
+        except (OSError, json.JSONDecodeError, DrainError):
+            return None                                              # 손상 또는 경로 이탈 → 보류
         j.setdefault("written", {})                  # id → {"ts", "accept_token", "status": submitting|written|handled}
         j.setdefault("last_written", None)
         return j
@@ -205,21 +321,7 @@ class Drain:
     def _save(self, actor: str, j: dict):
         if not self.execute:
             return
-        p = self._journal_path(actor)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        tmp = p.with_name(f".tmp-{p.name}")
-        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
-        try:
-            os.write(fd, json.dumps(j, ensure_ascii=False, indent=1).encode("utf-8"))
-            os.fsync(fd)                                             # 내용 → 디스크
-        finally:
-            os.close(fd)
-        os.replace(tmp, p)
-        dfd = os.open(p.parent, os.O_RDONLY)
-        try:
-            os.fsync(dfd)                                            # rename → 디스크
-        finally:
-            os.close(dfd)
+        self.fs.write_atomic(self._journal_path(actor), json.dumps(j, ensure_ascii=False, indent=1))
 
     def _settle(self, actor: str, inbox: Path, j: dict) -> None:
         """written 중 handled 확인된 것을 .done/으로 정리하고 last_written 을 비운다."""
@@ -228,8 +330,7 @@ class Drain:
                 continue
             if self.execute:
                 for f in inbox.glob(f"*-{mid}.json"):
-                    (inbox / ".done").mkdir(exist_ok=True)
-                    f.replace(inbox / ".done" / f.name)
+                    self.fs.rename(f, inbox / ".done" / f.name)
             rec["status"] = "handled"
             if j["last_written"] == mid:
                 j["last_written"] = None
@@ -248,6 +349,11 @@ class Drain:
             inbox = self.root / "agents" / peer.actor / "inbox"
             if not inbox.is_dir():
                 out.append(Decision(peer.actor, None, None, "none", "no-inbox"))
+                continue
+            try:
+                os.close(self.fs.dir_fd(self.fs.rel(inbox)))            # inbox 경로 구성요소에 symlink 없음
+            except (DrainError, OSError) as e:
+                out.append(Decision(peer.actor, None, None, "hold", f"path-escape:{e}"))
                 continue
             j = self._load(peer.actor)
             if j is None:
@@ -274,6 +380,8 @@ class Drain:
     def _submit(self, peer: Peer, d: Decision, token: str | None, j: dict) -> Decision:
         """intent-before-submit: sink 호출 **전에** `submitting`을 저널에 영속한다. sink 뒤 저장이 실패해도
         재시작이 sink를 다시 부르지 않는다(중복 전달 금지) — 결과는 lookup으로만 복구한다."""
+        if not self.fs.is_regular(d.src):                            # symlink·비정규 파일은 sink에 넘기지 않는다
+            return Decision(peer.actor, d.src, d.msg_id, "hold", "path-escape")
         j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"), "accept_token": token,
                                   "status": "submitting"}
         self._save(peer.actor, j)
