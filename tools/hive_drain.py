@@ -14,13 +14,17 @@ Hermes 상태 소스·입력 sink는 주입되는 콜러블이며 여기서 추�
 - 상태 값이 GATE_MAX_AGE보다 오래됐으면 stale로 강등한다.
 - dry-run(기본)은 어떤 파일도 쓰지 않고 sink도 부르지 않는다. execute에서도 sink 호출 전에 `submitting`을 저널에
   영속하며, 저장 실패·중단 뒤 재시작은 sink를 다시 부르지 않고 수신측 안정 id 조회(lookup)로만 복구한다.
+- execute 실행은 `.drain/lock`(flock) 단일 소유 — read-submit-save를 한 프로세스만 수행. 수신측은 sink에 명시된
+  msg_id로 멱등이어야 한다(P3-0 수락 계약 인수 항목). 저널은 fsync 후 rename, 손상 저널은 덮어쓰지 않고 보류.
 - 배치당 1건은 속도 제한이지 원자성 보장이 아니다(TOCTOU는 수신측 직렬 수락만 없앤다).
 - 현재 RA peer의 실제 진입점은 hermes-api-server의 일회성 `hermes -p` subprocess다(delivery-gate §3.1) —
   이 모듈은 그 경로에 입력을 주입하지 않으며, 주입은 P3-0 수락 계약 실측 뒤에만 sink로 붙인다.
 """
 from __future__ import annotations
 
+import fcntl
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -28,6 +32,10 @@ from pathlib import Path
 from typing import Callable
 
 STATES = ("idle", "busy", "unknown", "stale", "unavailable")
+
+
+class DrainError(Exception):
+    pass
 INBOX_NAME = re.compile(r"^(?P<ts>\d{8}T\d{6}[^-]*)-(?P<id>evt_[A-Za-z0-9_]+)\.json$")
 
 
@@ -148,22 +156,49 @@ class Drain:
     root: Path
     cfg: Config = field(default_factory=Config)
     source: Callable[[str], GateState | None] | None = None      # actor → 상태 (없으면 unavailable)
-    sink: Callable[[str, Path, str | None], bool] | None = None  # (actor, file, accept_token) → 수신측이 받았는가
+    sink: Callable[[str, Path, str, str | None], bool] | None = None  # (actor, file, msg_id, accept_token) → 수신측이 받았는가; 수신측은 msg_id로 멱등
     handled: Callable[[str], bool] = lambda _id: False           # §5.1 handled 확인 — 기본은 '미확인'
     lookup: Callable[[str, str], bool | None] | None = None      # (actor, msg_id) → 수신측이 이 id를 받았는가 (안정 id 조회)
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
     execute: bool = False                                        # False = dry-run: 어떤 파일도 쓰지 않고 sink도 부르지 않는다
 
+    _lock_fd: int | None = None
+
     def _journal_path(self, actor: str) -> Path:
         return self.root / ".drain" / f"{actor}.json"
 
-    def _load(self, actor: str) -> dict:
-        p = self._journal_path(actor)
+    # 단일 소유: read-submit-save 전체를 한 프로세스만 수행한다(codex 재현: 두 프로세스가 같은 저널을 읽고
+    # 각각 submit → sink 2회). OS flock — 보유 프로세스가 죽으면 커널이 해제한다.
+    def acquire_lock(self):
+        (self.root / ".drain").mkdir(parents=True, exist_ok=True)
+        fd = os.open(self.root / ".drain" / "lock", os.O_RDWR | os.O_CREAT, 0o644)
         try:
-            j = json.loads(p.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            os.close(fd)
+            raise DrainError("drain lock 보유 중 — 다른 drain 프로세스가 실행 중이므로 거부") from None
+        os.ftruncate(fd, 0)
+        os.write(fd, str(os.getpid()).encode())
+        self._lock_fd = fd
+
+    def release_lock(self):
+        if self._lock_fd is not None:
+            os.close(self._lock_fd)                                 # close = 커널 해제
+            self._lock_fd = None
+
+    def _load(self, actor: str) -> dict | None:
+        """None = 저널이 있으나 손상됨 → 이 actor는 아무것도 하지 않고 보류(덮어쓰지 않는다)."""
+        p = self._journal_path(actor)
+        if not p.exists():
             j = {}
-        j.setdefault("written", {})                  # id → {"ts", "accept_token", "status": written|handled}
+        else:
+            try:
+                j = json.loads(p.read_text(encoding="utf-8"))
+                if not isinstance(j, dict) or not isinstance(j.get("written", {}), dict):
+                    return None
+            except (OSError, json.JSONDecodeError):
+                return None
+        j.setdefault("written", {})                  # id → {"ts", "accept_token", "status": submitting|written|handled}
         j.setdefault("last_written", None)
         return j
 
@@ -173,8 +208,18 @@ class Drain:
         p = self._journal_path(actor)
         p.parent.mkdir(parents=True, exist_ok=True)
         tmp = p.with_name(f".tmp-{p.name}")
-        tmp.write_text(json.dumps(j, ensure_ascii=False, indent=1), encoding="utf-8")
-        tmp.replace(p)
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        try:
+            os.write(fd, json.dumps(j, ensure_ascii=False, indent=1).encode("utf-8"))
+            os.fsync(fd)                                             # 내용 → 디스크
+        finally:
+            os.close(fd)
+        os.replace(tmp, p)
+        dfd = os.open(p.parent, os.O_RDONLY)
+        try:
+            os.fsync(dfd)                                            # rename → 디스크
+        finally:
+            os.close(dfd)
 
     def _settle(self, actor: str, inbox: Path, j: dict) -> None:
         """written 중 handled 확인된 것을 .done/으로 정리하고 last_written 을 비운다."""
@@ -190,6 +235,14 @@ class Drain:
                 j["last_written"] = None
 
     def run(self, peers: list[Peer]) -> list[Decision]:
+        if self.execute:
+            self.acquire_lock()
+        try:
+            return self._run(peers)
+        finally:
+            self.release_lock()
+
+    def _run(self, peers: list[Peer]) -> list[Decision]:
         out = []
         for peer in peers:
             inbox = self.root / "agents" / peer.actor / "inbox"
@@ -197,6 +250,9 @@ class Drain:
                 out.append(Decision(peer.actor, None, None, "none", "no-inbox"))
                 continue
             j = self._load(peer.actor)
+            if j is None:
+                out.append(Decision(peer.actor, None, None, "hold", "journal-corrupt"))
+                continue
             self._settle(peer.actor, inbox, j)
             amb = self._resolve_submitting(peer.actor, j)
             if amb is not None:                                     # 제출 결과 불명 → 재전송 금지, 조회로만 복구
@@ -221,7 +277,7 @@ class Drain:
         j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"), "accept_token": token,
                                   "status": "submitting"}
         self._save(peer.actor, j)
-        if self.sink(peer.actor, d.src, token):
+        if self.sink(peer.actor, d.src, d.msg_id, token):
             j["written"][d.msg_id]["status"] = "written"
             j["last_written"] = d.msg_id
             peer.last_written = d.msg_id

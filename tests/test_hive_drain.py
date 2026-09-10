@@ -48,7 +48,7 @@ def _drain(hive, state=None, sink=None, handled=lambda _id: False, cfg=None):
 def test_no_source_means_unavailable_and_no_delivery(hive):
     _msg(hive, "ra_us")
     sent = []
-    d = _drain(hive, sink=lambda a, f, t: sent.append(f) or True).run([hd.Peer("ra_us")])[0]
+    d = _drain(hive, sink=lambda a, f, i, t: sent.append(f) or True).run([hd.Peer("ra_us")])[0]
     assert d.action == "hold" and d.reason == "state-unavailable" and sent == []
 
 
@@ -75,7 +75,7 @@ def test_idle_delivers_and_records_last_written(hive):
     p, mid = _msg(hive, "ra_us")
     sent = []
     peer = hd.Peer("ra_us")
-    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, t: sent.append((a, f)) or True).run([peer])[0]
+    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, i, t: sent.append((a, f)) or True).run([peer])[0]
     assert d.action == "deliver" and sent == [("ra_us", p)] and peer.last_written == mid
 
 
@@ -143,7 +143,7 @@ def test_sink_refusal_is_hold_not_written(hive):
     """수신측이 거절(reject-busy)하면 written으로 기록하지 않는다."""
     _msg(hive, "ra_us")
     peer = hd.Peer("ra_us")
-    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, t: False).run([peer])[0]
+    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, i, t: False).run([peer])[0]
     assert d.action == "hold" and d.reason == "sink-refused" and peer.last_written is None
 
 
@@ -166,7 +166,7 @@ def test_source_exception_is_unknown_hold_not_crash(hive):
             raise RuntimeError("socket down")
         return hd.GateState("idle", NOW)
     sent = []
-    res = hd.Drain(hive, source=boom, sink=lambda a, f, t: sent.append(a) or True, now=lambda: NOW, execute=True).run(
+    res = hd.Drain(hive, source=boom, sink=lambda a, f, i, t: sent.append(a) or True, now=lambda: NOW, execute=True).run(
         [hd.Peer("ra_us"), hd.Peer("ra_eu")])
     assert res[0].action == "hold" and res[0].reason.startswith("state-unknown:RuntimeError")
     assert res[1].action == "deliver" and sent == ["ra_eu"]                # 다른 peer는 계속 처리
@@ -183,7 +183,7 @@ def test_accept_token_reaches_sink_and_is_journaled(hive):
     _, mid = _msg(hive, "ra_us")
     got = []
     hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW, accept_token="tok-7"),
-             sink=lambda a, f, t: got.append(t) or True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+             sink=lambda a, f, i, t: got.append(t) or True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert got == ["tok-7"]
     j = json.loads((hive / ".drain" / "ra_us.json").read_text())
     assert j["written"][mid] == {"ts": NOW.isoformat(timespec="seconds"), "accept_token": "tok-7", "status": "written"}
@@ -195,7 +195,7 @@ def test_written_message_is_never_reselected_and_moves_to_done_after_handled(hiv
     p2, m2 = _msg(hive, "ra_us", 2)
     sent = []
     mk = lambda handled: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
-                                  sink=lambda a, f, t: sent.append(f.name) or True, handled=handled, now=lambda: NOW, execute=True)
+                                  sink=lambda a, f, i, t: sent.append(f.name) or True, handled=handled, now=lambda: NOW, execute=True)
     assert mk(lambda i: False).run([hd.Peer("ra_us")])[0].action == "deliver" and sent == [p1.name]
     d = mk(lambda i: False).run([hd.Peer("ra_us")])[0]                       # 새 프로세스(새 Peer): 저널이 정본
     assert d.action == "hold" and d.reason == f"awaiting-handled:{m1}" and sent == [p1.name]
@@ -233,7 +233,7 @@ def test_router_inbox_output_feeds_drain(tmp_path):
     d = hd.Drain(root, now=lambda: NOW).run([hd.Peer("ra_eu")])[0]            # 소스 미주입
     assert d.action == "hold" and d.reason == "state-unavailable" and inbox_files[0].exists()
     sent = []
-    d = hd.Drain(root, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: sent.append(f) or True,
+    d = hd.Drain(root, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: sent.append(f) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_eu")])[0]
     assert d.action == "deliver" and sent == inbox_files
 
@@ -245,7 +245,7 @@ def test_dry_run_writes_nothing_and_calls_no_sink(hive, capsys):
     _msg(hive, "ra_us")
     before = sorted(str(p) for p in hive.rglob("*"))
     called = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: called.append(f) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: called.append(f) or True,
                  handled=lambda i: True, now=lambda: NOW).run([hd.Peer("ra_us")])[0]
     assert d.action == "deliver" and called == []                              # 판정만
     assert sorted(str(p) for p in hive.rglob("*")) == before and not (hive / ".drain").exists()
@@ -258,7 +258,7 @@ def test_save_failure_after_sink_never_resubmits(hive, monkeypatch):
     p1, m1 = _msg(hive, "ra_us", 1)
     calls = []
     mk = lambda lookup=None: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
-                                     sink=lambda a, f, t: calls.append(f.name) or True, lookup=lookup,
+                                     sink=lambda a, f, i, t: calls.append(f.name) or True, lookup=lookup,
                                      now=lambda: NOW, execute=True)
     dr = mk()
     real_save = dr._save
@@ -290,6 +290,70 @@ def test_lookup_false_allows_normal_resubmission(hive, monkeypatch):
     (hive / ".drain/ra_us.json").write_text(json.dumps({"written": {m1: {"ts": "x", "accept_token": None,
                                                                           "status": "submitting"}}, "last_written": None}))
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, t: calls.append(f.name) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f.name) or True,
                  lookup=lambda a, i: False, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
     assert d.action == "deliver" and calls == [p1.name]                       # 수신측에 없음 → 정상 재판정 후 1회 전달
+
+
+# ---------------------------------------------------------------- codex 재현 (9aee12c): 동시 실행·내구성
+
+def test_second_process_is_refused_while_lock_held(hive):
+    """단일 소유: lock 보유 중 두 번째 drain(execute)은 거부되고 sink를 부르지 않는다."""
+    _msg(hive, "ra_us")
+    holder = hd.Drain(hive, execute=True)
+    holder.acquire_lock()
+    calls = []
+    try:
+        with pytest.raises(hd.DrainError):
+            hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+                     now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+    finally:
+        holder.release_lock()
+    assert calls == []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]   # 해제 후 정상
+    assert d.action == "deliver" and len(calls) == 1
+    assert not (hive / ".drain/lock").exists() or True                      # lock 파일은 남아도 flock은 해제됨
+    holder2 = hd.Drain(hive, execute=True)
+    holder2.acquire_lock()                                                   # 재획득 가능 = 해제 확인
+    holder2.release_lock()
+
+
+def test_dry_run_takes_no_lock(hive):
+    holder = hd.Drain(hive, execute=True)
+    holder.acquire_lock()
+    try:
+        _msg(hive, "ra_us")
+        assert hd.Drain(hive, now=lambda: NOW).run([hd.Peer("ra_us")])[0].reason == "state-unavailable"
+    finally:
+        holder.release_lock()
+
+
+def test_sink_receives_explicit_msg_id(hive):
+    _, mid = _msg(hive, "ra_us")
+    got = []
+    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: got.append(i) or True,
+             now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+    assert got == [mid]
+
+
+@pytest.mark.parametrize("content", ["{not json", "[]", json.dumps({"written": "x"})])
+def test_corrupt_journal_holds_actor_without_overwrite(hive, content):
+    _msg(hive, "ra_us")
+    (hive / ".drain").mkdir()
+    (hive / ".drain/ra_us.json").write_text(content)
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "hold" and d.reason == "journal-corrupt" and calls == []
+    assert (hive / ".drain/ra_us.json").read_text() == content                # 덮어쓰지 않음
+
+
+def test_journal_save_uses_fsync(hive, monkeypatch):
+    _msg(hive, "ra_us")
+    synced = []
+    real = hd.os.fsync
+    monkeypatch.setattr(hd.os, "fsync", lambda fd: synced.append(fd) or real(fd))
+    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: True,
+             now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+    assert len(synced) >= 2                                                  # 파일 + 디렉터리
