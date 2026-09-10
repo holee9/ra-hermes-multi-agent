@@ -25,12 +25,29 @@ function loadRules() {
  * @param {Array<{actor: string, vote: string, topic: string}>} votes
  * @returns {{ topic: string, result: string, method: string, tally: object }}
  */
+function isNonEmptyString(x) {
+  return typeof x === 'string' && x.trim().length > 0;
+}
+
 function aggregate(votes) {
-  if (!votes || votes.length === 0) {
+  // #82 리뷰 2차: 배열이 아닌 입력, null/비객체 레코드, 비문자열 vote/actor/topic은 예외가
+  // 아니라 구조화된 결과로 돌려준다. optional chaining은 타입 보호가 아니다.
+  if (votes === null || votes === undefined || (Array.isArray(votes) && votes.length === 0)) {
     return { topic: '', result: 'pending', method: 'no_votes', tally: {} };
   }
+  if (!Array.isArray(votes)) {
+    return { topic: '', result: 'invalid_input', method: 'not_an_array', tally: {}, ignored: {} };
+  }
 
-  const topic = votes[0].topic;
+  // topic은 첫 번째 "레코드로서 유효한" 표에서 취하되, 비어 있지 않은 문자열이어야 한다.
+  // 작업 대상(topic) 없는 결정은 가결하지 않는다 (#82 리뷰: topic 없는 approve 2표가 approved).
+  const firstRecord = votes.find(v => v && typeof v === 'object' && !Array.isArray(v));
+  const topic = firstRecord && isNonEmptyString(firstRecord.topic) ? firstRecord.topic : null;
+  if (topic === null) {
+    return { topic: '', result: 'pending', method: 'no_topic', tally: { approve: 0, reject: 0, abstain: 0 },
+             ignored: { invalid_record: votes.filter(v => !(v && typeof v === 'object' && !Array.isArray(v))),
+                        topic_mismatch: votes.filter(v => v && typeof v === 'object' && !Array.isArray(v)) } };
+  }
   const rules = loadRules();
 
   const quorum = rules.quorum ?? null;
@@ -42,14 +59,15 @@ function aggregate(votes) {
   // 정족수·비율에는 (a) 같은 topic, (b) 유효한 vote 값, (c) actor당 1표(첫 표만),
   // (d) weights가 정의돼 있으면 명단 안의 actor만 포함한다. 제외분은 ignored로 보고한다.
   const allowed = Object.keys(weights);
-  const ignored = { topic_mismatch: [], invalid_vote: [], duplicate_actor: [], unknown_actor: [] };
+  const ignored = { invalid_record: [], topic_mismatch: [], invalid_vote: [], duplicate_actor: [], unknown_actor: [] };
   const seenActors = new Set();
   const counted = [];
   for (const v of votes) {
-    const normalized = v?.vote?.toLowerCase();
-    if (v?.topic !== topic) { ignored.topic_mismatch.push(v); continue; }
+    if (!(v && typeof v === 'object' && !Array.isArray(v))) { ignored.invalid_record.push(v); continue; }
+    const normalized = typeof v.vote === 'string' ? v.vote.toLowerCase() : null;
+    if (v.topic !== topic) { ignored.topic_mismatch.push(v); continue; }
     if (!(normalized === 'approve' || normalized === 'reject' || normalized === 'abstain')) { ignored.invalid_vote.push(v); continue; }
-    if (!v.actor) { ignored.unknown_actor.push(v); continue; }
+    if (!isNonEmptyString(v.actor)) { ignored.unknown_actor.push(v); continue; }
     if (allowed.length > 0 && !allowed.includes(v.actor)) { ignored.unknown_actor.push(v); continue; }
     if (seenActors.has(v.actor)) { ignored.duplicate_actor.push(v); continue; }
     seenActors.add(v.actor);
