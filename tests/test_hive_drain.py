@@ -357,3 +357,75 @@ def test_journal_save_uses_fsync(hive, monkeypatch):
     hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: True,
              now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert len(synced) >= 2                                                  # 파일 + 디렉터리
+
+
+# ---------------------------------------------------------------- codex 재현 (360cd45): 경로 이탈
+
+def test_symlinked_lock_outside_root_is_refused(hive, tmp_path):
+    """`.drain/lock` → root 밖 파일 symlink: run([])만으로 외부 파일이 덮어써지던 결함."""
+    outside = tmp_path.parent / f"{tmp_path.name}-preserve.txt"
+    outside.write_text("keep me")
+    (hive / ".drain").mkdir()
+    (hive / ".drain/lock").symlink_to(outside)
+    with pytest.raises(hd.DrainError):
+        hd.Drain(hive, execute=True).run([])
+    assert outside.read_text() == "keep me"
+
+
+def test_symlinked_drain_dir_outside_root_is_refused(hive, tmp_path):
+    ext = tmp_path.parent / f"{tmp_path.name}-ext"
+    ext.mkdir()
+    (hive / ".drain").symlink_to(ext)
+    with pytest.raises(hd.DrainError):
+        hd.Drain(hive, execute=True).run([])
+    assert list(ext.iterdir()) == []
+
+
+def test_symlinked_journal_is_held_not_read_or_written(hive, tmp_path):
+    _msg(hive, "ra_us")
+    outside = tmp_path.parent / f"{tmp_path.name}-journal.json"
+    outside.write_text(json.dumps({"written": {}, "last_written": None}))
+    (hive / ".drain").mkdir()
+    (hive / ".drain/ra_us.json").symlink_to(outside)
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "hold" and d.reason == "journal-corrupt" and calls == []
+    assert json.loads(outside.read_text()) == {"written": {}, "last_written": None}
+
+
+def test_symlinked_inbox_file_is_not_handed_to_sink(hive, tmp_path):
+    outside = tmp_path.parent / f"{tmp_path.name}-secret.json"
+    outside.write_text(json.dumps({"id": "evt_x"}))
+    link = hive / "agents/ra_us/inbox/20260910T120001p0900-evt_20260910T120000_0001.json"
+    link.symlink_to(outside)
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "none" and calls == []                                # 후보에서 제외
+
+
+def test_symlinked_inbox_dir_outside_root_is_held(hive, tmp_path):
+    ext = tmp_path.parent / f"{tmp_path.name}-inbox"
+    ext.mkdir()
+    (ext / "20260910T120001p0900-evt_20260910T120000_0001.json").write_text(json.dumps({"id": "evt_x"}))
+    inbox = hive / "agents/ra_us/inbox"
+    inbox.rmdir()
+    inbox.symlink_to(ext)
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "hold" and d.reason.startswith("path-escape") and calls == []
+
+
+def test_done_dir_symlink_outside_root_blocks_settle(hive, tmp_path):
+    p1, m1 = _msg(hive, "ra_us", 1)
+    ext = tmp_path.parent / f"{tmp_path.name}-done"
+    ext.mkdir()
+    (hive / "agents/ra_us/inbox/.done").symlink_to(ext)
+    (hive / ".drain").mkdir()
+    (hive / ".drain/ra_us.json").write_text(json.dumps({"written": {m1: {"ts": "x", "accept_token": None,
+                                                                          "status": "written"}}, "last_written": m1}))
+    with pytest.raises(hd.DrainError):
+        hd.Drain(hive, handled=lambda i: True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+    assert p1.exists() and list(ext.iterdir()) == []
