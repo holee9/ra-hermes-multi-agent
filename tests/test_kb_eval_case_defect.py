@@ -62,7 +62,29 @@ def test_parser_backward_compatible_with_sheets_lacking_defect_boxes():
     text = _sheet("Score 3 - pass / usable without correction")
     text = "\n".join(line for line in text.splitlines() if not any(k in line for k in ingest.CASE_DEFECT_LABELS))
     [rec] = ingest.parse_text("sheet", text)
+    assert rec["case_defect"] is None                                         # 항목 없음 = 미평가 (결함 없음 아님)
+
+
+def test_parser_explicit_unchecked_boxes_are_evaluated_not_legacy():
+    text = _sheet("Score 3 - pass / usable without correction")
+    [rec] = ingest.parse_text("sheet", text)
     assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": False}
+
+
+def test_end_to_end_legacy_sheet_counts_as_unevaluated_in_metrics():
+    """codex #147: 구 시트를 새로 ingest 해도 metrics 가 '평가 완료'로 오인하지 않는다 (파서→지표 연결)."""
+    legacy = _sheet("Score 3 - pass / usable without correction")
+    legacy = "\n".join(line for line in legacy.splitlines() if not any(k in line for k in ingest.CASE_DEFECT_LABELS))
+    new = _sheet("Score 3 - pass / usable without correction")
+    recs = ingest.parse_text("legacy", legacy) + ingest.parse_text("new", new)
+    since = datetime(2026, 7, 16, tzinfo=timezone.utc)
+    until = datetime(2026, 7, 17, tzinfo=timezone.utc)
+    msgs = {"f": [{"content": json.dumps({"ts": f"2026-07-16T0{i}:00:00+00:00", "type": "score_given",
+                                          "payload": {**r, "target_actor": "ra_eu"}}),
+                   "metadata": {"record_type": "score_given", "actor": "human"}, "peer_name": "ra_eu"}
+                  for i, r in enumerate(recs, 1)]}
+    r = gm.compute_correction_rate(msgs, since, until)
+    assert r["denominator"] == 2 and r["case_defects"]["unevaluated_legacy"] == 1
 
 
 def test_checksheet_template_emits_defect_boxes():
@@ -83,7 +105,7 @@ def _score_msg(ts: str, corrected: bool, defect: dict | None = None) -> dict:
             "metadata": {"record_type": "score_given", "actor": "human"}, "peer_name": "ra_eu"}
 
 
-def test_correction_rate_reports_system_and_agent_attributable_split():
+def test_correction_rate_reports_system_and_conditional_split():
     since = datetime(2026, 7, 16, tzinfo=timezone.utc)
     until = datetime(2026, 7, 17, tzinfo=timezone.utc)
     msgs = {"feedback": [
@@ -95,8 +117,11 @@ def test_correction_rate_reports_system_and_agent_attributable_split():
     ]}
     r = gm.compute_correction_rate(msgs, since, until)
     assert r["denominator"] == 5 and r["numerator"] == 3 and r["value"] == 0.6   # system-level keeps all
-    assert r["case_defects"] == {"count": 2, "corrected": 2, "capture_failed": 1, "source_mismatch": 1}
-    assert r["agent_attributable"] == {"value": 1 / 3, "numerator": 1, "denominator": 3}
+    assert r["case_defects"] == {"count": 2, "corrected": 2, "capture_failed": 1, "source_mismatch": 1,
+                                 "unevaluated_legacy": 2}                      # 3번·4번: case_defect 키 없음
+    cond = r["excluding_case_defects"]
+    assert (cond["value"], cond["numerator"], cond["denominator"]) == (1 / 3, 1, 3)
+    assert "NOT agent attribution" in cond["meaning"] and "agent_attributable" not in r
     assert any(s.get("case_defect") == {"capture_failed": True} for s in r["samples"])
 
 
@@ -105,7 +130,40 @@ def test_correction_rate_without_defect_field_is_unchanged():
     until = datetime(2026, 7, 17, tzinfo=timezone.utc)
     r = gm.compute_correction_rate({"f": [_score_msg("2026-07-16T01:00:00+00:00", True)]}, since, until)
     assert r["value"] == 1.0 and r["case_defects"]["count"] == 0
-    assert r["agent_attributable"] == {"value": 1.0, "numerator": 1, "denominator": 1}
+    assert r["case_defects"]["unevaluated_legacy"] == 1                        # 결함 없음이 아니라 미평가
+    cond = r["excluding_case_defects"]
+    assert (cond["value"], cond["numerator"], cond["denominator"]) == (1.0, 1, 1)
+
+
+def test_conditional_rate_does_not_claim_attribution_for_co_occurring_defects():
+    """codex #147 재현: 입력 결함(source_mismatch)+교정 1건 + 정상 1건 → 전체 0.5, 조건부 0.0.
+    조건부 0.0은 '입력 결함 표시 없는 사례의 교정률'이지 에이전트 무결함 판정이 아니다 — 명칭·meaning으로 고정."""
+    since = datetime(2026, 7, 16, tzinfo=timezone.utc)
+    until = datetime(2026, 7, 17, tzinfo=timezone.utc)
+    msgs = {"f": [
+        _score_msg("2026-07-16T01:00:00+00:00", True, {"source_mismatch": True}),   # 입력+출력 동시 결함 가능
+        _score_msg("2026-07-16T02:00:00+00:00", False, {"capture_failed": False, "source_mismatch": False}),
+    ]}
+    r = gm.compute_correction_rate(msgs, since, until)
+    assert r["value"] == 0.5 and r["case_defects"]["corrected"] == 1
+    assert r["excluding_case_defects"]["value"] == 0.0
+    assert r["case_defects"]["unevaluated_legacy"] == 0                       # 둘 다 평가 완료
+    assert "attribution" in r["excluding_case_defects"]["meaning"]
+
+
+def test_four_way_split_input_only_normal_and_legacy():
+    since = datetime(2026, 7, 16, tzinfo=timezone.utc)
+    until = datetime(2026, 7, 17, tzinfo=timezone.utc)
+    msgs = {"f": [
+        _score_msg("2026-07-16T01:00:00+00:00", False, {"capture_failed": True}),                    # 입력만 결함, 미교정
+        _score_msg("2026-07-16T02:00:00+00:00", True, {"capture_failed": False, "source_mismatch": False}),  # 정상 평가, 교정
+        _score_msg("2026-07-16T03:00:00+00:00", False),                                                # legacy 미평가
+    ]}
+    r = gm.compute_correction_rate(msgs, since, until)
+    assert r["denominator"] == 3 and r["numerator"] == 1
+    assert r["case_defects"]["count"] == 1 and r["case_defects"]["corrected"] == 0
+    assert r["case_defects"]["unevaluated_legacy"] == 1
+    assert r["excluding_case_defects"]["denominator"] == 2 and r["excluding_case_defects"]["numerator"] == 1
 
 
 # ------------------------------------------------------------- assemble_cases floor
