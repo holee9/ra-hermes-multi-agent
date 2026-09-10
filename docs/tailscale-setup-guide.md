@@ -11,7 +11,7 @@
 ### 1. Tailscale VPN (가장 권장) ✅
 
 **설치 이유:**
-- 🏠 **가정 IP 활용**: T3610의 사내 IP(`192.168.100.200`)를 집에서도 사용 가능
+- 🏠 **원격 접속**: 집에서는 T3610의 **Tailscale IP**(`tailscale ip -4`로 확인)로 직접 접속한다. 사내 LAN IP(`192.168.100.200`)를 밖에서 그대로 쓰려면 별도로 T3610(또는 사내 노드)을 **subnet router**로 광고·승인해야 한다 — Tailscale 설치만으로 자동 성립하지 않는다 (https://tailscale.com/docs/route)
 - 🔒 **보안성 강화**: 엔드투트 암호화된 터널, 별도의 포트 노출 없음
 - 📱 **모바일 친화적**: 스마트폰에서도 안전하게 접속 가능
 - 🌐 **DNS 제공**: `hermes.tailnet.ts.net` 같은 도메인으로 접속 가능
@@ -89,13 +89,17 @@ unzip ngrok-v3-stable-linux-amd64.zip
 **테스트케일 망 환경에서 사용:**
 
 ```bash
-# 테스트케일 망에서 T3610로 SSH 터널링 생성
-ssh -R 8000:localhost:8000 -R 3001:localhost:3001 user@192.168.100.200
+# 클라이언트(집 PC)에서 T3610의 서비스를 내 localhost로 끌어오기 = 로컬 포워딩 -L
+#   -L <내포트>:<T3610에서 본 주소>:<T3610포트>
+ssh -L 8000:localhost:8000 -L 3001:localhost:3001 user@<T3610 주소>
+#   (사내: 192.168.100.200 / 외부: Tailscale IP)
 
-# 테스트케일 망에서 접속
+# 클라이언트에서 접속
 http://localhost:8000
 http://localhost:3001
 ```
+
+> `-R`(원격 포워딩)은 반대 방향 — 내 PC의 포트를 T3610 쪽에 여는 옵션이므로 이 용도에는 맞지 않는다.
 
 **단순한 포트 포워딩으로는 부족함:**
 - T3610는 현재 로컬 바인딩(127.0.0.1)만 허용
@@ -107,16 +111,16 @@ http://localhost:3001
 
 ### Tailscale 사용 경우 (권장)
 
-**예시 설정 (T3610 Tailscale IP: 100.100.50.50):**
+**예시 (T3610: 사내망 `192.168.100.200` / Tailscale `100.119.79.28` — `tailscale ip -4`로 재확인):**
 ```bash
-# Honcho API (Swagger UI)
-https://100.100.50.50:8000/docs
+# Honcho API (Swagger UI) — 서비스는 평문 http로 바인딩됨 (Tailscale 터널이 암호화 담당)
+http://100.119.79.28:8000/docs        # 사내: http://192.168.100.200:8000/docs
 
 # 가상 오피스
-https://100.100.50.50:3001
+http://100.119.79.28:3001             # 사내: http://192.168.100.200:3001
 
 # API 직접 호출
-curl https://100.100.50.50:8000/v3/sessions/list
+curl http://100.119.79.28:8000/v3/sessions/list
 ```
 
 ### NGROK 사용 경우 (개발용)
