@@ -99,4 +99,16 @@ gh api "repos/.../issues/150/comments?per_page=20"
 - 게이트를 바꾸지 않는다. WP close/reopen 사람 전용, n8n 변경 사전 보고, KB 레포 읽기 전용은 그대로다.
 - 신원 인증을 제공하지 않는다(§4 6행).
 
+## 7. 이 규약을 어디서 다시 만나는가
+
+재개 시 발견되도록 세션 인계 기록에서 이 문서를 링크했다. 그 링크의 정확한 위치와 성격은 다음과 같다.
+
+| 항목 | 값 |
+|---|---|
+| 경로 | `~/.claude/projects/-home-abyz-lab-work-workspace-github-holee9-ra-hermes-multi-agent/memory/next-session-entrypoint.md` |
+| 버전 관리 | **아니다.** 저장소 밖의 로컬 세션 메모리이며 커밋되지 않는다 |
+| 범위 | 이 머신의 Claude 세션에만 보인다. Codex 나 다른 호스트에서는 조회되지 않는다 |
+
+따라서 **추적되는 저장소 파일(`docs/`, `.claude/`, `CLAUDE.md`)에서 이 문서를 가리키는 링크는 없다.** `grep` 으로 0건이 나오는 것이 정상이다. 저장소 쪽 진입점은 이 파일 자체와 #150 원장이다.
+
 관련: #150, #143(기기간 알림 계약 — 다른 채널), `docs/peer-notify-contract.md`
