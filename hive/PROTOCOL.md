@@ -1,7 +1,7 @@
 # PROTOCOL.md — peer가 지켜야 할 규약
 
 > 이 문서는 모든 Hermes peer의 시작 컨텍스트에 주입된다.
-> 대상: `ra_us` `ra_eu` `ra_kr` `ra_case` `op_manager` `n8n_manager` `infra_t3610` `infra_gx10` `infra_rpi`
+> 대상: `registry/actors.json`에 등록된 actor. 현재 실행 가능 프로필이 확인된 것은 `ra_us` `ra_eu` `ra_kr` `op_manager` `infra_t3610` `infra_gx10` `infra_rpi` (매핑표: `docs/hive/hive-layout.md` §4.1). `ra_case`는 프로필 미존재로 `paused`. `n8n_manager`는 라우터 자신이므로 peer가 아니다.
 > 사람 이름(Mike·Theo 등)은 여기 등장하지 않는다. 너는 actor ID로만 존재한다.
 
 ---
@@ -37,7 +37,7 @@ hive/agents/<너의 actor ID>/
 }
 ```
 
-`v` `id` `ts` `actor` `hops` `requires_reply`는 **라우터가 채운다.** 네가 쓰면 덮어쓴다.
+위 형식은 **raw 메시지**다. `v` `id` `ts` `workspace` `actor` `hops` `conversation`은 **라우터가 채운다** — 네가 쓰면 덮어쓴다. `corr`·`conversation`을 모르면 생략하거나 `null`로 둔다(라우터가 제거·생성). `requires_reply`는 네가 명시하면 **보존**되고, 생략하면 `act`에서 파생된다(`request`·`query`·`propose`만 `true`). 종결형이나 `broadcast`에 `true`를 쓰면 거부된다. 정규화 규칙 전체: `docs/hive/router-spec.md` §2.
 
 ### 수신자 `to`
 

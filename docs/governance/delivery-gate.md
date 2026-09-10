@@ -52,6 +52,20 @@ MD의 4.5s는 TUI 특성값. 우리 초기값은 **턴 단위** — 직전 메�
 
 확인 신호: Hermes 세션 로그에 해당 `id` 처리 개시 기록, 또는 outbox에 `corr == id`인 답신 출현.
 
+### 5.1 전달 상태는 다섯 개다 — 파일 전달 ≠ 처리 완료
+
+| 상태 | 뜻 | 증거 | 기록 주체 |
+|---|---|---|---|
+| `written` | 라우터가 inbox에 파일을 썼다 | inbox 파일 존재, `log.jsonl` `delivered_to` | 라우터 |
+| `accepted` | peer가 파일을 읽어 처리를 시작했다 | Hermes 세션 로그의 `id` 처리 개시 | 라우터가 세션 로그에서 확인 |
+| `processing` | peer 턴 진행 중 | 세션 활동 | 라우터는 추론하지 않는다 (§7) |
+| `handled` | peer가 이 메시지에 대한 의무를 마쳤다 | `requires_reply:true` → outbox 답신(`corr == id`) 출현; `inform` 등 답신 없는 메시지 → peer가 outbox에 `kind:comment, act:done, corr:id, payload.ack:true`를 **선택적으로** 남기거나, 라우터가 세션 로그의 턴 종료를 확인 | 라우터 |
+| `outcome` | 업무 결과가 원장에 반영됐다 | OpenProject 코멘트/상태, `artifact` 이벤트 | OpenProject·이벤트 로그 |
+
+- 라우터가 파일을 `inbox/.done/`으로 옮기는 것은 `handled` **확인 이후의 정리 동작**이지 완료의 증거가 아니다. 라우터 자신의 이동 기록으로 완료를 증명하지 않는다.
+- 활동이 잠잠하다는 이유로 `handled`나 `idle`을 추정하지 않는다. 확인 신호가 없으면 상태는 `written`에 머문다.
+- 답신 없는 `inform`의 `handled` 확인 방식(선택적 ack 이벤트 vs 세션 로그 턴 종료)은 P3에서 Hermes 실측 후 하나로 고정한다.
+
 ---
 
 ## 6. 처리 순서
@@ -73,5 +87,5 @@ inbox 내 파일명(`<ts>-<id>.json`)의 사전순 = 도착순. `manual:true`는
 
 ## 8. 미확인 사항
 
-- Hermes 게이트웨이가 peer의 `idle` 상태를 외부에 노출하는지 — **Hermes 문서 확인 필요.** 노출하지 않으면 outbox 활동 정지 + 도구 로그 정지를 idle 대용으로 사용.
+- Hermes 게이트웨이가 peer의 `idle` 상태를 외부에 노출하는지 — **Hermes 문서 확인 필요.** 노출하지 않으면 idle 조건을 **`unavailable`로 기록하고 자동 전달을 하지 않는다**(수동 해제 §4만 가능). outbox·도구 로그가 잠잠하다는 것을 idle의 대용 증거로 쓰지 않는다 — 잠잠함은 실행 중 추론일 수도, 죽은 세션일 수도 있다.
 - 시작 유예 시간 — Hermes 세션 기동 시간 실측 후.

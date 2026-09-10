@@ -80,30 +80,30 @@ mv "$tmp" "$OUTBOX/$(date -u +%Y%m%dT%H%M%S)-$(openssl rand -hex 2).json"
       "modalities": ["text", "docx", "xlsx"],
       "seat": { "floor": 1, "x": 4, "y": 4 },
       "status": "active",
-      "hermes_profile": "ra_us",
+      "hermes_profile": "ra-us",
       "host": "t3610"
     },
     "ra_eu": { "workspace": "work", "role": "EU 규제 전문가", "display_name": "Theo",
                "modalities": ["text", "docx"], "seat": { "floor": 1, "x": 6, "y": 4 },
-               "status": "active", "hermes_profile": "ra_eu", "host": "t3610" },
+               "status": "active", "hermes_profile": "ra-eu", "host": "t3610" },
     "ra_kr": { "workspace": "work", "role": "KR 규제 전문가", "display_name": "Sam",
                "modalities": ["text", "docx"], "seat": { "floor": 1, "x": 8, "y": 4 },
-               "status": "active", "hermes_profile": "ra_kr", "host": "t3610" },
+               "status": "active", "hermes_profile": "ra-kr", "host": "t3610" },
     "ra_case": { "workspace": "work", "role": "사안 관리", "display_name": "Margot",
                  "modalities": ["text"], "seat": { "floor": 1, "x": 4, "y": 8 },
-                 "status": "active", "hermes_profile": "ra_case", "host": "t3610" },
+                 "status": "paused", "hermes_profile": null, "host": null },
     "op_manager": { "workspace": "work", "role": "자동화·OpenProject", "display_name": "Olly",
                     "modalities": ["text"], "seat": { "floor": 1, "x": 6, "y": 8 },
-                    "status": "active", "hermes_profile": "op_manager", "host": "rpi5" },
+                    "status": "active", "hermes_profile": "op-manager", "host": "t3610" },
     "infra_t3610": { "workspace": "infra", "role": "T3610 운영", "display_name": "Finn",
                      "modalities": ["text"], "seat": { "floor": 2, "x": 4, "y": 4 },
-                     "status": "active", "hermes_profile": "infra_t3610", "host": "t3610" },
+                     "status": "active", "hermes_profile": "infra-t3610", "host": "t3610" },
     "infra_gx10": { "workspace": "infra", "role": "GX10 운영", "display_name": "Leo",
                     "modalities": ["text"], "seat": { "floor": 2, "x": 6, "y": 4 },
-                    "status": "active", "hermes_profile": "infra_gx10", "host": "gx10" },
+                    "status": "active", "hermes_profile": "infra-gx10", "host": "t3610" },
     "infra_rpi": { "workspace": "infra", "role": "Raspberry Pi 운영", "display_name": "Gus",
                    "modalities": ["text"], "seat": { "floor": 2, "x": 8, "y": 4 },
-                   "status": "active", "hermes_profile": "infra_rpi", "host": "rpi5" }
+                   "status": "active", "hermes_profile": "infra-rpi", "host": "t3610" }
   }
 }
 ```
@@ -111,7 +111,27 @@ mv "$tmp" "$OUTBOX/$(date -u +%Y%m%dT%H%M%S)-$(openssl rand -hex 2).json"
 - `display_name`은 **살에서만** 사용. 이벤트·메시지에 절대 등장하지 않는다(원칙 9). 이 파일이 매핑 테이블의 유일 위치다.
 - `status`: `active` \| `paused` \| `archived`. 라우터는 `active`에만 전달. `broadcast` 팬아웃 대상도 `active`만.
 - 좌석은 6월 구성원 화면의 좌표 체계(1F (4,4) 등)를 그대로 따른다.
-- **주의:** 위 actor ID·역할은 6월 설계의 workspace 구성(RA 3종 + op_manager + n8n_manager / infra 3종)을 기준으로 작성했다. 현 레포의 실제 ID와 다르면 **레포가 정본**이다. `n8n_manager`는 라우터 자신이므로 actor로 등록하지 않았다 — 이 판단은 확인 필요.
+- `n8n_manager`는 라우터 자신이므로 actor로 등록하지 않는다. `hive/PROTOCOL.md` 대상 목록도 동일.
+
+### 4.1 actor ↔ Hermes 프로필 ↔ 호스트 매핑 (실측 2026-09-09)
+
+**actor ID와 프로필 ID는 별개 식별자다.** actor ID(=Honcho peer ID)는 밑줄(`ra_us`), Hermes 프로필 디렉토리는 하이픈(`ra-us`) — `.claude/rules/autonomous-study-bootstrap-safety.md`의 규약과 동일하며 `profiles/setup.sh`가 `id//-/_`로 변환한다. `hermes_profile`에는 **하이픈 프로필 ID**를 적는다.
+
+| actor | hermes_profile | 프로필 존재 (`~/.hermes/profiles/`, T3610) | SOUL | 실행 방식 | status |
+|---|---|---|---|---|---|
+| `ra_us` | `ra-us` | ✓ | `ra-us-SOUL.md` | Hermes 게이트웨이 세션 (T3610) | active |
+| `ra_eu` | `ra-eu` | ✓ | `ra-eu-SOUL.md` | 동일 | active |
+| `ra_kr` | `ra-kr` | ✓ | `ra-kr-SOUL.md` | 동일 | active |
+| `ra_case` | — | **✗** (setup.sh 생성 목록에 없음) | 없음 | 미정 — 프로필·SOUL이 PR로 추가되기 전까지 `paused` | paused |
+| `op_manager` | `op-manager` | ✓ | `op-manager-SOUL.md` | Hermes 세션 (현재 T3610에 생성됨; rpi5 상주 여부 미확인) | active |
+| `infra_t3610` | `infra-t3610` | ✓ | `infra-SOUL.md` (공유) | Hermes 세션 | active |
+| `infra_gx10` | `infra-gx10` | ✓ | `infra-SOUL.md` (공유) | Hermes 세션 (T3610에 생성됨; gx10 상주 여부 미확인) | active |
+| `infra_rpi` | `infra-rpi` | ✓ | `infra-SOUL.md` (공유) | Hermes 세션 (T3610에 생성됨; rpi5 상주 여부 미확인) | active |
+| `n8n_manager` | `n8n-manager` | ✓ | `n8n-manager-SOUL.md` | **peer 아님** — 라우터(n8n) 자신 | 미등록 |
+
+- `host`는 **프로필이 실제로 생성·기동되는 호스트**를 적는다. 현재 `profiles/setup.sh`는 8개 프로필을 실행 호스트(T3610)에 모두 만들므로 실측값은 전부 `t3610`이다. 다른 호스트로 옮기려면 그 호스트에서 setup.sh를 실행하고 이 표를 PR로 갱신한다 — registry에 적혀 있다는 이유만으로 실행 가능하다고 보지 않는다.
+- registry에 없는 actor를 라우터가 임의로 만들지 않는다(§6 채용 절차).
+- P3 파일럿 대상은 이 표에서 `active`이고 프로필이 확인된 RA peer **2개**(`ra_us`, `ra_eu`)로 한정한다(#150 리뷰 P3).
 
 ---
 
