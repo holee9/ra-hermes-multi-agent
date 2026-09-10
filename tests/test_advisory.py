@@ -755,7 +755,7 @@ def test_hive_ledger_persists_and_survives_restart(monkeypatch, tmp_path):
     client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(0, "a"), ledger_path=path)
     _submit(client, "ra_us", "evt_8")
     lines = [json.loads(x) for x in open(path, encoding="utf-8")]
-    assert [x["status"] for x in lines] == ["submitted", "completed"]              # 실행 전 영속, 'started' 없음(관측 불가)
+    assert lines[0].get("ledger_id") and [x["status"] for x in lines[1:]] == ["submitted", "completed"]   # header + 실행 전 영속
     assert (tmp_path / "ledger.jsonl.created").exists()                           # 초기화 표식
     m._hive_ledger.clear()                                                        # 재시작 흉내
     lk = client.get("/v1/hive/lookup/evt_8", headers=H).get_json()
@@ -784,7 +784,8 @@ def test_hive_lookup_unknown_when_ledger_file_missing_or_degraded(monkeypatch, t
     (tmp_path / "ledger.jsonl.created").write_text("gen")                         # 예전에 존재했던 원장이 사라짐 = 유실
     r = client.get("/v1/hive/lookup/evt_x", headers=H)
     assert r.status_code == 200 and r.get_json()["known"] is None and r.get_json()["reason"] == "ledger-missing"
-    (tmp_path / "ledger.jsonl").write_text('{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')
+    (tmp_path / "ledger.jsonl.created").write_text("L1")
+    (tmp_path / "ledger.jsonl").write_text('{"ledger_id": "L1"}\n{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')
     m._hive_ledger.clear()
     m._ledger_health["status"] = "memory"
     r = client.get("/v1/hive/lookup/evt_ok", headers=H).get_json()
@@ -797,21 +798,21 @@ def test_hive_final_ledger_write_failure_is_visible_in_lookup(monkeypatch, tmp_p
     """codex: 최종 write 실패 후 메모리 상태와 응답이 어긋나던 문제 — persisted=False 로 구분."""
     path = tmp_path / "ledger.jsonl"
     client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(0, "a"), ledger_path=str(path))
-    real_open = open
+    real_fsync = m.os.fsync
     n = {"k": 0}
 
-    def flaky_open(p, *a, **k):
-        if str(p) == str(path) and "a" in (a[0] if a else k.get("mode", "")):
-            n["k"] += 1
-            if n["k"] == 2:                                                      # submitted 는 성공, completed 에서 실패
-                raise OSError("disk full")
-        return real_open(p, *a, **k)
-    monkeypatch.setattr("builtins.open", flaky_open)
+    def flaky_fsync(fd):
+        n["k"] += 1
+        if n["k"] == 3:                                                          # header+submitted(1), 표식(2) 성공, completed(3) 실패
+            raise OSError("disk full")
+        return real_fsync(fd)
+    monkeypatch.setattr(m.os, "fsync", flaky_fsync)
     r = _submit(client, "ra_us", "evt_11").get_json()
     assert r["result"] == "accepted" and r["status"] == "completed" and r["ledger_warning"] == "OSError"
     lk = client.get("/v1/hive/lookup/evt_11", headers=H).get_json()
     assert lk["status"] == "completed" and lk["certainty"] == "recorded-memory-only"
-    assert [json.loads(x)["status"] for x in path.read_text().splitlines()] == ["submitted"]   # 파일에는 submitted 만
+    # fsync 실패 = 내구성 불확실: 파일에 completed 줄이 남았을 수도, 아닐 수도 있다 — 그래서 memory-only 로 표시한다
+    assert [json.loads(x).get("status") for x in path.read_text().splitlines()][1] == "submitted"
     assert not m._profile_lock("ra-us").locked()
 
 
@@ -826,7 +827,8 @@ def test_hive_submit_fail_closed_on_memory_missing_or_degraded_ledger(monkeypatc
     (tmp_path / "ledger.jsonl.created").write_text("gen")                         # 유실
     client = _hive_client(monkeypatch, run, ledger_path=str(path))
     assert _submit(client, "ra_us", "evt_21").get_json()["ledger"] == "missing"
-    path.write_text('{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')   # 손상
+    (tmp_path / "ledger.jsonl.created").write_text("L1")
+    path.write_text('{"ledger_id": "L1"}\n{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')   # 손상
     m._hive_ledger.clear()
     m._ledger_health["status"] = "memory"
     assert _submit(client, "ra_us", "evt_22").get_json()["ledger"] == "degraded"
@@ -848,3 +850,46 @@ def test_hive_submit_same_id_different_binding_is_conflict(monkeypatch):
                                              "accept_token": m.HIVE_GENERATION}, headers=H)   # 같은 id, 다른 actor
     assert r.status_code == 409 and r.get_json()["recorded_actor"] == "ra_us"
     assert _submit(client, "ra_us", "evt_30", {"x": 1}).get_json()["result"] == "duplicate" and len(calls) == 1
+
+
+def test_runtime_ledger_loss_is_detected_and_never_recreated(monkeypatch, tmp_path):
+    """codex 재현(b82a5d4): evt_a 200 → 원장 파일만 삭제(표식 유지) → evt_b 200 → 캐시 초기화 → evt_a 200, CLI 3회."""
+    calls = []
+    path = tmp_path / "ledger.jsonl"
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"), ledger_path=str(path))
+    assert _submit(client, "ra_us", "evt_a").get_json()["result"] == "accepted"
+    path.unlink()                                                                 # 런타임 유실, 표식은 남음
+    r = _submit(client, "ra_us", "evt_b")
+    assert r.status_code == 503 and r.get_json()["ledger"] == "missing" and not path.exists()   # 재생성 없음
+    m._hive_ledger.clear()
+    m._ledger_health["status"] = "memory"                                         # 재시작 흉내
+    r = _submit(client, "ra_us", "evt_a")
+    assert r.status_code == 503 and r.get_json()["ledger"] == "missing"
+    assert len(calls) == 1 and not m._profile_lock("ra-us").locked()
+    lk = client.get("/v1/hive/lookup/evt_a", headers=H).get_json()
+    assert lk["known"] is None and lk["reason"] == "ledger-missing"
+
+
+def test_ledger_identity_mismatch_is_degraded(monkeypatch, tmp_path):
+    """원장이 다른 파일로 바뀌면(header ledger_id ≠ 표식) 실행 거절."""
+    calls = []
+    path = tmp_path / "ledger.jsonl"
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"), ledger_path=str(path))
+    assert _submit(client, "ra_us", "evt_c").get_json()["result"] == "accepted"
+    path.write_text('{"ledger_id": "someone-else"}\n')                            # 교체
+    r = _submit(client, "ra_us", "evt_d")
+    assert r.status_code == 503 and r.get_json()["ledger"] == "degraded" and len(calls) == 1
+    path.write_text('{"msg_id": "evt_x"}\n')                                      # header 없음
+    assert _submit(client, "ra_us", "evt_e").get_json()["ledger"] == "degraded" and len(calls) == 1
+
+
+def test_ledger_loss_between_submit_and_completion_write_is_not_recreated(monkeypatch, tmp_path):
+    path = tmp_path / "ledger.jsonl"
+
+    def run(cmd, **k):
+        path.unlink()                                                             # 실행 중 유실
+        return _Proc(0, "a")
+    client = _hive_client(monkeypatch, run, ledger_path=str(path))
+    r = _submit(client, "ra_us", "evt_f").get_json()
+    assert r["result"] == "accepted" and r["ledger_warning"] == "FileNotFoundError" and not path.exists()
+    assert client.get("/v1/hive/lookup/evt_f", headers=H).get_json()["certainty"] == "recorded-memory-only"
