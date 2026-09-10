@@ -19,22 +19,23 @@
 ## 1. host 전체 hermes 호출자 목록 — (1)
 
 ```bash
-# 실행 중 hermes 프로세스 — pid/부모/실행시간 + argv 는 profile 인자만 (전체 argv 덤프 금지)
-ps -eo pid,ppid,etime,user,args | grep -E '[h]ermes' | sed -E 's/(-p [^ ]+).*/\1/' | cut -c1-120
+# 실행 중 hermes 프로세스 — pid/부모/실행시간/사용자 + `-p <profile>` 토큰만 (그 외 argv 는 출력하지 않는다)
+ps -eo pid,ppid,etime,user,args | awk '/[h]ermes/ {p=""; for(i=5;i<=NF;i++) if($i=="-p"){p=$(i+1)}; print $1,$2,$3,$4,"profile="p}'
 # systemd 단위·타이머 (이름·상태만)
 systemctl list-units --all --no-pager --plain | grep -iE 'hermes' | awk '{print $1, $3, $4}'
 systemctl list-timers --all --no-pager --plain | grep -iE 'hermes|growth|study|advisory' | awk '{print $NF, $(NF-1)}'
-# cron — hermes 를 부르는 줄만
-crontab -l 2>/dev/null | grep -n hermes; sudo grep -ln hermes /etc/cron.d/* 2>/dev/null
-# 두 서비스의 환경 — **라이브 PID** 를 systemd 에서 읽고, HERMES*/HIVE* 키만 (값에 토큰이 있으면 가린다)
+# cron — hermes 를 부르는 줄의 **개수와 줄 번호만** (원문 출력 금지)
+crontab -l 2>/dev/null | grep -n hermes | cut -d: -f1 | tr '\n' ' '; echo
+sudo grep -ln hermes /etc/cron.d/* 2>/dev/null
+# 두 서비스의 환경 — 라이브 PID, **정확한 변수명 allowlist** 의 값만 출력. 그 외 변수는 이름만 (값 없음)
 GW=$(systemctl show -p MainPID --value hermes-gateway); API=$(systemctl show -p MainPID --value hermes-api-server)
-sudo cat /proc/$GW/environ  | tr '\0' '\n' | grep -E '^(HERMES|HIVE)[A-Z_]*=' | sed -E 's/(KEY|TOKEN|SECRET)=.*/\1=***/'
-sudo cat /proc/$API/environ | tr '\0' '\n' | grep -E '^(HERMES|HIVE)[A-Z_]*=' | sed -E 's/(KEY|TOKEN|SECRET)=.*/\1=***/'
-# gateway 와 RA profile 의 저장소 경로 키만
+ALLOW='^(HERMES_HOME|HERMES_PROFILE|HERMES_PROFILES_DIR|HERMES_BIN|HERMES_TIMEOUT|HIVE_LEDGER_PATH|HIVE_SUBMIT_ENABLED|KNOWLEDGE_SCRIPT|RAG_SCRIPT)='
+for P in $GW $API; do echo "== pid $P"; sudo cat /proc/$P/environ | tr '\0' '\n' | grep -E "$ALLOW"; echo "-- other names:"; sudo cat /proc/$P/environ | tr '\0' '\n' | grep -vE "$ALLOW" | cut -d= -f1 | sort | tr '\n' ' '; echo; done
+# gateway 와 RA profile 의 저장소 경로 키만 (값에 URL·자격증명이 있으면 키만 남긴다)
 grep -nE '^(state|session|profile|home|data)[a-z_]*:' ~/.hermes/config.yaml ~/.hermes/profiles/ra-us/config.yaml ~/.hermes/profiles/ra-eu/config.yaml
 ```
 
-**allowlist(정확히 이 명령만, 다른 것은 실행하지 않는다):** `ps`, `systemctl list-units/list-timers/show`, `crontab -l`, `grep -ln` on `/etc/cron.d`, `/proc/<pid>/environ` 읽기(필터), `grep -n` on 위 3개 config.yaml.
+**allowlist(정확히 이 명령만, 다른 것은 실행하지 않는다):** `ps -eo … | awk`(위 형태), `systemctl list-units/list-timers/show`, `crontab -l | grep -n | cut`, `sudo grep -ln hermes /etc/cron.d/*`, `/proc/<pid>/environ` 읽기(위 ALLOW 필터·이름만 출력), `grep -nE` on 위 3개 config.yaml. 환경 값이 출력되는 변수는 ALLOW 9개뿐이며 그중 자격증명은 없다(API_SERVER_KEY·HONCHO_*·ADVISORY_LLM_URL 등은 이름만).
 
 기록: 호출자 목록(프로세스/서비스/cron), 각 호출자의 profile, gateway가 `ra-*` profile을 로드하는지 여부(`environ`·`config.yaml` 근거). **결론 형식**: "API 서버 외 `ra-us`/`ra-eu` 호출자 있음/없음(근거)". 있으면 API profile lock은 그 호출자를 덮지 못하므로 §3.1 범위 한정을 유지하고 설계를 다시 검토한다.
 
@@ -46,7 +47,7 @@ ls -lt --time-style=full-iso ~/.hermes/profiles/ra-us/sessions | head -5
 # hermes CLI 옵션 — 주의: --help 에 hook 이 없다고 hook 이 없는 것이 아니다(코드 경로 §2 후보가 정본). 참고용
 $HOME/.local/bin/hermes --help 2>&1 | grep -iE 'hook|session|resume|json' | head -10
 # 세션 DB 스키마 (개시/턴 메타 컬럼 유무)
-sqlite3 ~/.hermes/profiles/ra-us/state.db '.schema' 2>/dev/null | head -40
+sqlite3 -readonly ~/.hermes/profiles/ra-us/state.db '.schema' 2>/dev/null | head -40
 ```
 
 후보(codex, 설치 Hermes `f8adefde` 코드 읽기 — 실행·설치 없음): `agent/turn_context.py:238` inbound user turn의 조기 `_persist_session`, `:316` `pre_llm_call` hook(session_id/task_id/turn_id/user_message). CLI one-shot 경로는 `cli.py:13443` → `run_conversation` → `build_turn_context`. **둘 다 fail-soft** — 신호 부재를 미수신으로 읽으면 안 된다. 재사용 원칙: 기존 훅/저장 관측을 쓰고, 보존은 `msg_id ↔ session_id/turn_id/generation` 메타데이터만(본문 아님). 의미 구분 고정: 턴 준비 진입 ≠ 모델 수락 ≠ handled(§5.1).
@@ -56,7 +57,7 @@ sqlite3 ~/.hermes/profiles/ra-us/state.db '.schema' 2>/dev/null | head -40
 sed -n 225,260p ~/.hermes/hermes-agent/agent/turn_context.py; sed -n 300,330p ~/.hermes/hermes-agent/agent/turn_context.py
 grep -n "pre_llm_call\|_persist_session" -r ~/.hermes/hermes-agent/agent ~/.hermes/hermes-agent/hermes_cli 2>/dev/null | head
 # 최근 one-shot 호출 뒤 profile sessions/state.db 에 turn 메타가 남는지 (승인된 호출 1회 후)
-sqlite3 ~/.hermes/profiles/ra-us/state.db 'select * from sqlite_master where type="table"' 2>/dev/null
+sqlite3 -readonly ~/.hermes/profiles/ra-us/state.db 'select name from sqlite_master where type="table"' 2>/dev/null
 ```
 
 기록: "CLI가 입력 읽기/처리 개시를 외부에 알리는 방법 있음/없음" + 있으면 어느 훅/저장에서 `session_id/turn_id`를 읽을 수 있는지. 없으면 §3.1대로 `submitted`→`completed` 사이는 unknown으로 유지하고 P3에서 개시 신호 없이 운영 가능한지(턴 단위 간격 + reply 기반 handled만으로) 판단한다.
@@ -65,15 +66,21 @@ sqlite3 ~/.hermes/profiles/ra-us/state.db 'select * from sqlite_master where typ
 
 빌더는 LLM을 부르지 않는다. 실제 호출은 **agentic CLI**(`--skills ra-expert`)라 읽기 전용이 아니다: 도구 실행, 파일 쓰기, Honcho 기록, 세션 저장, GX10 추론이 일어난다. profile·시각 승인은 도구의 외부 영향을 막지 못한다.
 
-### 3.0 실행안 (사람 승인 대상 — 승인 없이는 §3 실행 금지)
+### 3.0 실행안 (사람 승인 대상 — 승인 없이는 §3 실행 금지) — **강제 가능한 설정으로만**
 
-| 항목 | 한정 |
+관측된 활성 도구면(이 세션, `hermes tools list`, 기본 profile 기준 — `ra-us`는 `hermes -p ra-us tools list --summary`로 다시 확인): `terminal`·`file`·`code_execution`·`browser`·`web`·`messaging`·`cronjob`·`delegation`·`computer_use`·`image_gen`·`tts`·`moa`·`todo`·`session_search`·`clarify`·`vision`·`memory`·`skills` 활성, MCP `filesystem` 전체 활성. 즉 일회성 호출 하나가 셸 실행·파일 쓰기·메시지 발송·cron 등록을 할 수 있다. **profile 사본은 도구·MCP·자격증명을 격리하지 않는다** — 아래는 CLI가 실제로 강제하는 설정이다.
+
+| 항목 | 강제 수단 (실행 전 검증 명령) |
 |---|---|
-| 도구 | ra-expert 스킬이 부를 수 있는 도구 목록을 먼저 열거(`~/.hermes/profiles/ra-us/skills` 또는 스킬 정의 읽기). OpenProject·메일·외부 API 쓰기 도구가 있으면 **실험에서 비활성**(스킬 옵션 또는 실험용 profile 사본 `ra-us-p30test`로 격리). T3610은 OP를 쓰지 않는다는 계약 C를 실험에서도 지킨다 |
-| 대상 | 실험용 profile 사본 1개(운영 `ra-us` 상태·세션에 섞지 않음). Honcho 기록은 실험 세션 id 로 표시해 성장 지표에서 제외(`purpose: p30-measure`) |
-| 예산 | 호출 3회 이내(3턴 1·5턴 1·재시도 1), 호출당 timeout 900s, GX10 토큰 상한은 profile 설정값 |
-| 중지 조건 | 도구가 파일 시스템 밖(네트워크 쓰기)으로 나가는 로그가 보이면 즉시 중단·기록. timeout 1회 초과 시 중단 |
-| 기록 | 응답 본문은 붙이지 않고 품질 판정만; 토큰은 §3.2 정의대로 |
+| 도구 비활성 | 실험 profile에서 `hermes -p ra-us-p30test tools disable terminal,file,code_execution,browser,web,messaging,cronjob,delegation,computer_use,image_gen,tts,moa,todo,session_search,clarify,vision` → `hermes -p ra-us-p30test tools list --summary`로 **memory·skills만 enabled** 확인 후 진행 |
+| MCP | `hermes -p ra-us-p30test mcp list` → `filesystem` 등 서버가 있으면 `hermes -p ra-us-p30test mcp remove <name>` → 다시 `mcp list`가 비어 있음을 확인 |
+| 호출 단위 이중 제한 | `-t memory,skills`(활성 toolset 명시)와 `--max-turns 6`을 **매 호출**에 붙인다 |
+| 자격증명 | `hermes -p ra-us-p30test config show`(값 없이 키만 확인)·`hermes -p ra-us-p30test secrets`로 실험 profile이 어떤 auth/secret 저장소를 읽는지 확인. 운영 `ra-us`와 같은 `auth.json`을 공유하면 그 사실을 기록한다(격리 아님). skill `ra-expert`가 외부 API 키를 요구하면 실험에서는 그 스킬 도구를 쓰지 않는 입력으로 한정 |
+| 스킬 | `hermes skills list`에서 `ra-expert`가 local/enabled로 확인됨(이 세션). 스킬 목록은 **활성 권한 목록이 아니다** — 스킬이 호출하는 도구는 위 toolset 제한을 받는다 |
+| 예산·시간 | 호출 3회 이내(3턴 1·5턴 1·재시도 1), `timeout 900` 래퍼(`time`은 제한이 아니다), GX10 토큰 상한은 profile 모델 설정값을 기록 |
+| 중지 조건 | 응답 로그에 terminal/file/messaging 도구 호출 흔적이 보이면 즉시 중단·기록(도구가 비활성이면 있어선 안 된다). timeout 1회 초과 시 중단 |
+| 성장 지표 제외 근거 | `scripts/growth-metrics.py` 69–74행: 지표는 metadata `record_type ∈ EXPECTED_GROWTH_RECORD_TYPES`(score_given·mail_triaged·ra_analysis·study_session_complete·study_insight)만 집계. CLI 직접 호출의 Honcho memory 쓰기에는 `record_type`이 없어 `unclassified`(360행)로 분류돼 **성장 지표에는 들어가지 않는다**. 단 `sessions_scanned/messages_scanned` 수집 진단 카운트에는 포함될 수 있으므로 실험 세션 id를 #150에 남긴다. `purpose` 태그만으로 제외되는 것이 아니다 |
+| 기록 | 응답 본문 미기록, 품질 판정·토큰·시간만. 실험 profile은 실측 후 `hermes profile delete ra-us-p30test`(사람) |
 
 ### 3.1 입력
 
@@ -86,7 +93,8 @@ python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T
 python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T091100_0012 --json     > /tmp/ctx-5turn.json
 python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T091100_0012            > /tmp/ctx-5turn.txt
 # (b) 실제 호출 — §3.0 승인 후, 실험용 profile 로만
-time $HOME/.local/bin/hermes -p ra-us-p30test -z "$(cat /tmp/ctx-3turn.txt)" --skills ra-expert > /tmp/out-3turn.txt
+# 실행 전: tools list --summary 가 memory·skills 만, mcp list 가 비어 있음을 확인했는가?
+timeout 900 $HOME/.local/bin/hermes -p ra-us-p30test -t memory,skills --max-turns 6 -z "$(cat /tmp/ctx-3turn.txt)" --skills ra-expert > /tmp/out-3turn.txt; echo "exit=$?"
 ```
 
 ### 3.2 토큰 정의
