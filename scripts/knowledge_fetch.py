@@ -53,9 +53,9 @@ TIMEOUT = int(os.environ.get("LAYER4_TIMEOUT", "8"))
 _DATA_GO_KR_BASE = "https://apis.data.go.kr/1471000"
 # `query_field`: 질문에서 뽑은 품목 키워드를 실을 서비스별 **공식 검색 파라미터**(data.go.kr 요청 명세,
 # #37 codex 지적: 이전에는 키워드를 요청에 싣지 않아 모든 질문이 동일한 첫 페이지를 받았다).
-#   - 품목허가 15057456: prduct(제품명) / entrps / prductPrmisnNo / prmisnDt
-#   - 추적관리 15059056: item_name(품목명) / entp_name / permit_date
-#   - 제조·수입업 15057971: Entrps(업체명) / Induty_type / Prmisn_dt / Meddev_entp_no — 품목명 필터가
+#   - 품목허가 https://www.data.go.kr/data/15057456/openapi.do : prduct(제품명) / entrps / prductPrmisnNo / prmisnDt
+#   - 추적관리 https://www.data.go.kr/data/15059056/openapi.do : item_name(품목명) / entp_name / permit_date
+#   - 제조·수입업 https://www.data.go.kr/data/15057971/openapi.do : Entrps(업체명) / Induty_type / Prmisn_dt / Meddev_entp_no — 품목명 필터가
 #     없다. 질문에서 업체명을 신뢰성 있게 뽑을 수 없으므로 query_field=None → 조회하지 않는다
 #     (비특정 목록을 검색 결과로 포장하지 않기 위함).
 _DATA_GO_KR_SERVICES = [
@@ -325,12 +325,28 @@ def _extract_law_keywords(query: str) -> str:
     return query.split()[0][:30] if query.split() else ""
 
 
+# 질문에서 제품명이 아닌 RA 용어·요청 어미. data.go.kr 제품 필터(prduct/item_name)에 실으면 안 되는 토큰.
+# (#37 codex 재현: '체온계 품목허가'→'품목허가', '혈압계 … 확인해주세요'→'확인해주세요'가 필터로 전달됐다)
+_KO_NON_PRODUCT_WORDS = frozenset({
+    "품목허가", "허가", "인증", "신고", "등급", "분류", "확인", "의료기기", "규제", "절차", "요건", "기준",
+    "제조", "수입", "업체", "정보", "조회", "문의", "관련", "대상", "여부", "서류", "제출", "심사", "방법",
+    "필요", "경로", "전략", "검토", "질문", "답변", "안내", "요청", "적용",
+})
+_KO_REQUEST_SUFFIXES = ("해주세요", "주세요", "해줘", "줘", "알려", "부탁", "하는지", "인지", "인가요", "입니까",
+                        "까요", "세요", "습니다", "합니다", "하나요", "되나요", "되는지", "해야", "할까")
+
+
 def _extract_ko_keywords(query: str, max_len: int = 30) -> str:
-    """Extract the longest Korean word from query for data.go.kr search."""
-    ko_words = re.findall(r"[가-힯]+", query)
-    if ko_words:
-        return max(ko_words, key=len)[:max_len]
-    return query.split()[0][:max_len] if query.split() else ""
+    """Pick the product-name token from a Korean query for data.go.kr product filters.
+
+    Returns "" when no token survives (RA terms / request endings only) — the caller then
+    makes NO request rather than sending a non-product word as the product filter.
+    """
+    for word in re.findall(r"[가-힯]+", query):
+        if word in _KO_NON_PRODUCT_WORDS or word.endswith(_KO_REQUEST_SUFFIXES):
+            continue
+        return word[:max_len]
+    return ""
 
 
 def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
