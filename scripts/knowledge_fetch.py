@@ -51,22 +51,32 @@ TIMEOUT = int(os.environ.get("LAYER4_TIMEOUT", "8"))
 # Dataset 15059056: 추적관리대상 의료기기 정보 — TraceManageMdlpInfoService01
 # Dataset 15057456: 의료기기 품목허가 정보 — MdlpPrdlstPrmisnInfoService05 (nested item struct)
 _DATA_GO_KR_BASE = "https://apis.data.go.kr/1471000"
+# `query_field`: 질문에서 뽑은 품목 키워드를 실을 서비스별 **공식 검색 파라미터**(data.go.kr 요청 명세,
+# #37 codex 지적: 이전에는 키워드를 요청에 싣지 않아 모든 질문이 동일한 첫 페이지를 받았다).
+#   - 품목허가 15057456: prduct(제품명) / entrps / prductPrmisnNo / prmisnDt
+#   - 추적관리 15059056: item_name(품목명) / entp_name / permit_date
+#   - 제조·수입업 15057971: Entrps(업체명) / Induty_type / Prmisn_dt / Meddev_entp_no — 품목명 필터가
+#     없다. 질문에서 업체명을 신뢰성 있게 뽑을 수 없으므로 query_field=None → 조회하지 않는다
+#     (비특정 목록을 검색 결과로 포장하지 않기 위함).
 _DATA_GO_KR_SERVICES = [
     {
         "path": "MdlpMnfcturPrmisnInfoService01/getMdlpMnfcturPrmisnList01",
         "name": "의료기기 제조·수입업 허가",
         "item_fields": ["ENTRPS", "INDUTY_TYPE", "BIZ_STTUS", "PRMISN_DT", "ADRES1"],
+        "query_field": None,
     },
     {
         "path": "TraceManageMdlpInfoService01/getTraceManageMdlpInfoList01",
         "name": "추적관리대상 의료기기",
         "item_fields": ["ITEM_NAME", "ITEM_SEQ", "ENTP_NAME", "PRDLST_MST_CD"],
+        "query_field": "item_name",
     },
     {
         "path": "MdlpPrdlstPrmisnInfoService05/getMdlpPrdlstPrmisnList04",
         "name": "의료기기 품목허가",
         "item_fields": ["ENTRPS", "PRDUCT", "PRDUCT_PRMISN_NO", "PRMISN_DT"],
         "nested": True,  # response items wrapped as {"item": {...}}
+        "query_field": "prduct",
     },
 ]
 
@@ -337,12 +347,16 @@ def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
 
     results = []
     for svc in _DATA_GO_KR_SERVICES:
+        field = svc.get("query_field")
+        if not field:
+            continue                          # 질문으로 만들 수 있는 공식 검색 조건이 없는 서비스
         url = (
             f"{_DATA_GO_KR_BASE}/{svc['path']}"
             f"?serviceKey={urllib.parse.quote(DATA_GO_KR_API_KEY)}"
             f"&type=json"
             f"&numOfRows={top}"
             f"&pageNo=1"
+            f"&{field}={urllib.parse.quote(keyword)}"
         )
         body = _http_get(url)
         if not body:
@@ -368,6 +382,7 @@ def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
             results.append({
                 "source": "data_go_kr",
                 "service": svc["name"],
+                "query": {field: keyword},    # 어떤 검색 조건으로 얻은 결과인지 추적 (#37)
                 "total_count": total,
                 "summary": " | ".join(summary_parts),
                 "item": {k: item.get(k) for k in svc["item_fields"]},
