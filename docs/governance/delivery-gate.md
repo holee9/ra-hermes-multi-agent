@@ -36,6 +36,22 @@ Hermes peer는 PTY가 아니라 게이트웨이 경유 세션이므로 "사람�
 
 MD의 4.5s는 TUI 특성값. 우리 초기값은 **턴 단위** — 직전 메시지의 처리 결과(outbox 답신 또는 `.done` 이동)가 확인된 뒤 다음 메시지. 시간 간격보다 강한 조건.
 
+### 3.1 상태 소스 계약 — `idle`은 authoritative 소스에서만 온다 (P3-1, codex 사전 리뷰 반영)
+
+| 항목 | 규칙 |
+|---|---|
+| 상태 소스 | 라우터 밖 설정(`RA_HIVE_GATE_SOURCE`, P3에서 확정)으로 주입되는 **Hermes 자체 상태 API/신호**만 authoritative. 라우터 코드에 소스 종류·주소를 하드코딩하지 않는다 |
+| 상태 값 | `idle` · `busy` · `unknown`(소스가 답을 주지 않음/파싱 불가) · `stale`(마지막 확인이 `GATE_MAX_AGE`보다 오래됨) · `unavailable`(소스 미설정·미노출) |
+| 전달 허용 | **`idle`일 때만.** `busy`·`unknown`·`stale`·`unavailable`은 모두 **보류** — 실패로 취급하지 않고 다음 배치에서 다시 조회한다. §4 수동 해제도 idle 조건은 우회하지 못한다(일시정지만 우회) |
+| 대용 증거 금지 | outbox·도구·세션 로그의 잠잠함, inbox 파일 미소비, 시간 경과는 `idle`의 증거가 아니다(§7·§8). 긴 턴(모델 응답 대기·네트워크 대기·긴 도구 실행)은 기록 없이도 실행 중이다 |
+| 조회↔전달 원자성 | 라우터 측 "조회 → inbox 기록 → 재조회"는 원자 수락이 **아니다**: 조회와 기록 사이에 턴이 시작되면 이미 진행 중인 턴에 입력이 주입되고, 사후 `busy` 확인으로는 막지 못한다. 수락은 **Hermes 수신측**에서 결정돼야 한다 — 수신측 큐가 입력을 받아 `accept`/`queued`/`reject-busy`를 반환하는 compare-and-accept 계약(P3-0 실측 대상: base.py의 active guard·`_pending_messages`·`on_processing_start`). 그 계약이 없으면 라우터는 `idle` 조회 후 **한 배치에 한 건만** 기록하고 `written`에 둔 채 `accepted`(§5.1) 확인을 기다린다. `written`은 파일 기록 단계일 뿐 수락이 아니다 |
+| `accepted` 확인 | §5.1 — 세션 로그의 `id` 처리 개시 기록만. 라우터가 inbox 파일이 사라졌다는 것으로 `accepted`를 추정하지 않는다 |
+| 회귀(P3-2) | 긴 턴 무로그에서 전달 안 함 · `unknown`/`stale` 보류 · 조회 직후 `busy` 전환 경쟁 · `accepted`/`handled` 단계 전이 · 소스 미설정 시 `unavailable` 보류 |
+
+이 계약이 채워지기 전(P3-0 실측 전)에는 상태 소스가 없으므로 값은 항상 `unavailable`이고 자동 전달은 일어나지 않는다.
+
+**P3-0 조사 지점(codex, 설치 Hermes `f8adefde` `gateway/platforms/base.py`, 수정 없음):** active-session guard·stale-owner 검사(3848~), busy 경로의 `_pending_messages` 큐잉과 `merge_pending_message_event(merge_text=True)`(3985~), `on_processing_start`(4085)·`on_processing_complete`(4388, `ProcessingOutcome`=응답 전달 결과이지 업무 완료가 아님). 설계 원칙(#2 G3): Hermes 큐·수명주기를 **재사용**하고 private dict를 외부에서 고치거나 큐를 재구현하지 않는다. 인수 항목: (a) RA peer의 실제 진입 adapter/버전 대조, (b) `accepted/started/completed` ↔ HIVE `id` 연결, (c) merge 경로에서 여러 HIVE 메시지가 개별 ack를 잃지 않음(잃으면 라우터가 한 배치에 한 건만 전달), (d) 외부 HTTP 상태 API·hook 확장 지원 여부 — 미확인이면 `unavailable`.
+
 ---
 
 ## 4. 수동 해제
