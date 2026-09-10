@@ -40,7 +40,7 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 | **P0 정본·경계 확정** | 추적 SPEC(본 문서), actor→profile→host 매핑(A4 §4.1), raw/정규화 경계(A5 §2, A6 §2), action enum 확장(A1), 미확인 corr 거부(A5 §3), 상수 "테스트 전용" 표기 | 사람 승인 (ADR 상태 전환 + 파일럿 범위) | 문서 작업 완료, 승인 대기 |
 | **P1 검증기·회귀 고정** | 최상위 타입, ts 포맷, 필드 타입 안전성, corr 인과·선행·스키마오류 참조, id 중복, 종료코드 | §5 검증 행렬 통과 | 완료 (tests 46건) |
 | **P2 격리 라우터** | normalize → validate → route → deliver → audit → archive 상태 머신, dry-run 기본, 중복 키·수신자별 전달 상태·재시작 복구·단일 lock — **Python 참조 구현** `tools/hive_router.py` (n8n 이식은 P4) | 외부 쓰기 없이 장애 주입 통과 (`tests/test_hive_router.py`) | 참조 구현 완료, 리뷰 대기 |
-| **P3 최소 런타임 연결** | `ra_us`·`ra_eu` 2개 peer, 수락/처리 신호, drain gate, hop guard, 수동 pause/resume | 사람 승인한 메시지 예산·실행 시간·복구 절차 | 미착수 |
+| **P3 최소 런타임 연결** | `ra_us`·`ra_eu` 2개 peer, 수락/처리 신호, drain gate, hop guard, 수동 pause/resume. 하위: P3-0 Hermes idle/accept 실측(delivery-gate §3.1 조사 지점) → P3-1 상태 소스 계약(§3.1, 완료) → P3-2 라우터 gate 훅+회귀 → P3-3 파일럿 예산 | 사람 승인한 메시지 예산·실행 시간·복구 절차 | P3-1 문서 완료, P3-0 실측 대기 |
 | **P4 제한 운영·VO 연결** | n8n 변경 사전 보고 후 파일럿, 기존 VO 피드 유지 + 읽기 전용 projection 비교 | 운영 증거 리뷰 후 별도 승인 | 미착수 |
 
 각 단계는 검증 가능한 작은 커밋/PR로 나누고, 변경 파일·실행 명령·결과·미검증·롤백 방법을 #150에 기록한다. 앞 단계의 미해결 계약을 구현자가 임의 기본값으로 메우지 않는다.
