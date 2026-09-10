@@ -120,9 +120,21 @@ def main() -> None:
         and int(latest.get("messages_scanned") or 0) > 0
     )
 
+    # #103: reports/*.json 은 .gitignore(277행) 대상이라 **수집 호스트(T3610) 로컬 산출물**이다.
+    # 다른 호스트(raspi5p 등)에서 이 스크립트를 돌리면 리포트가 0건이라 "blocked" 로 보이지만
+    # 그것은 성장 정체가 아니라 **호스트를 잘못 고른 것**이다. 0건일 때 그 사실을 결과에 명시한다.
+    no_reports_hint = None
+    if not reports:
+        no_reports_hint = (
+            f"reports/growth-*.json 0건 — {REPORTS_DIR} 에 스냅샷이 없다. 이 파일들은 .gitignore 대상이라 "
+            "git 으로 동기화되지 않으며 growth-metrics 를 실행하는 호스트(T3610)에만 존재한다. "
+            "다른 호스트에서 실행했다면 이 결과는 성장 증거 부족이 아니라 호스트 불일치다 (#103)."
+        )
+
     result = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "reports_loaded": len(reports),
+        "no_reports_hint": no_reports_hint,
         "valid_reports": len(valid_reports),
         "valid_metrics_days": valid_days,
         "latest_report": latest.get("_path"),
