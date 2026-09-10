@@ -495,6 +495,54 @@ def test_dedup_same_hint_repeat_is_still_suppressed():
     assert m.is_duplicate_rejection(q, "kr", 7) is True
 
 
-def test_request_ref_is_unique_within_one_second():
-    refs = {m.secrets.token_hex(2) for _ in range(50)}
-    assert len(refs) > 1  # suffix entropy present; format asserted in the endpoint test below
+_UUID_REF = __import__("re").compile(r"^adv-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+
+
+def _post_advisory(monkeypatch, query, **body):
+    """Call the real endpoint through Flask's test client with side effects stubbed:
+    no Honcho write, no KB-gap write, no LLM — the request log call is captured instead."""
+    captured = []
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "_honcho_record", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_kb_gap", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_adv_request", lambda ref, q, hint, adv, *a, **k: captured.append((ref, q, hint, adv)))
+    # Force the routing-rejection (Yellow) path so no Hermes/LLM subprocess is ever spawned.
+    monkeypatch.setattr(m, "route_advisory_region", lambda q, h: (None, "unclear_region"))
+    m._dedup_seen.clear()
+    client = m.app.test_client()
+    resp = client.post("/v1/ra/advisory", json={"query": query, **body},
+                       headers={"Authorization": "Bearer test-key"})
+    return resp, captured
+
+
+def test_request_ref_is_uuid_and_matches_response_and_log(monkeypatch):
+    """#141 (codex review): the ref must come from a large ID space AND the value the caller
+    receives must be the same one written to the request log (join-key integrity)."""
+    q = "오늘 날씨가 좋습니다 일반적인 안부 인사 메일입니다"      # no region keyword → yellow, no LLM
+    resp, captured = _post_advisory(monkeypatch, q)
+    assert resp.status_code == 200
+    ref = resp.get_json()["request_ref"]
+    assert _UUID_REF.match(ref), ref
+    assert len(captured) == 1 and captured[0][0] == ref and captured[0][3]["request_ref"] == ref
+
+
+def test_request_refs_differ_across_requests_in_same_second(monkeypatch):
+    q = "사내 품질문서 통합관리 절차 검토 요청입니다"
+    refs = set()
+    for i in range(5):
+        m._dedup_seen.clear()
+        resp, _ = _post_advisory(monkeypatch, q + f" ({i})")
+        refs.add(resp.get_json()["request_ref"])
+    assert len(refs) == 5
+
+
+def test_duplicate_rejected_path_returns_400_with_code(monkeypatch):
+    q = "오늘 날씨가 좋습니다 일반적인 안부 인사 메일입니다"
+    resp1, _ = _post_advisory(monkeypatch, q)
+    assert resp1.status_code == 200 and resp1.get_json()["yellow_reason"] == "unclear_region"
+    client = m.app.test_client()
+    resp2 = client.post("/v1/ra/advisory", json={"query": q}, headers={"Authorization": "Bearer test-key"})
+    assert resp2.status_code == 400 and resp2.get_json()["code"] == "duplicate_rejected"
+    resp3 = client.post("/v1/ra/advisory", json={"query": q, "region_hint": "KR"},
+                        headers={"Authorization": "Bearer test-key"})
+    assert resp3.status_code != 400 or resp3.get_json().get("code") != "duplicate_rejected"
