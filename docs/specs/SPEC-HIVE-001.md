@@ -82,8 +82,14 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 | R6 | HOP_CAP 미설정 → 대화 이벤트 보류(전달 없음); 초과 → `escalation(hop-cap)` 1회, 원본 `.rejected/` | `test_hop_cap_unset_holds_*`, `test_hop_cap_exceeded_*` |
 | R7 | 장애 주입(inbox 기록 직후 / log append 직전·직후 / archive 직전) 후 재시작 → 중복 inbox·중복 log 없이 완주 | `test_crash_then_restart_*`, `test_partial_broadcast_*` |
 | R8 | actor는 outbox 디렉토리가 정본(payload 위장 무시); registry 밖 outbox 무시·보고; `.tmp-*` 무시 | `test_actor_is_taken_from_outbox_directory_*`, `test_outbox_outside_registry_*`, `test_tmp_files_are_ignored` |
-| R9 | 단일 실행 lock: 살아있는 pid → 거부(exit 2), 죽은 pid만 인계, 손상 lock은 삭제하지 않음 | `test_lock_held_by_live_pid_*` |
+| R9 | 단일 실행 lock을 OS `flock`으로 **원자적** 획득: 다른 프로세스 보유 시 거부(exit 2), 보유 프로세스 종료 시 커널이 해제, 파일 내용(pid)은 진단용. 두 프로세스 barrier 동시 시도 → 정확히 하나만 획득 | `test_lock_held_by_another_process_refuses`, `test_concurrent_acquire_yields_exactly_one_owner`, `test_stale_or_garbage_lock_content_*` |
 | R10 | id 충돌 시 재발급, 재시도 시 처음 발급 id 보존 | `test_id_collision_is_reissued_*` |
+| R11 | human escalation·peer 거부 알림의 **실제 전달 결과**만 기록: human inbox 기록 실패 → 원본 보류(archive 안 함) + 오류 보고, 복구 후 재시도 성공; 알림 실패 → `delivered_to=[]` + 오류 보고 | `test_escalation_delivery_failure_*`, `test_refuse_notice_failure_*` |
+| R12 | 파생 이벤트(policy/comment/escalation)의 id·내용을 저널에 고정 → archive 직전 장애 후 재실행에도 log·inbox 각 1건 | `test_reject_restart_after_archive_fault_*`, `test_escalate_restart_after_archive_fault_*` |
+| R13 | raw 필드 타입 오류(kind={}, act=[], corr=7, case="x" …)는 normalize에서 예외 없이 스키마 거부로 흐르고 같은 배치의 다른 메시지는 처리됨 | `test_raw_field_type_garbage_*` |
+| R14 | 경로 이탈 차단: inbox/outbox가 hive root 밖을 가리키는 symlink이면 쓰기·이동·스캔을 거부하고 오류 보고, root 밖에 아무것도 쓰지 않음 | `test_symlinked_inbox_outside_root_*`, `test_symlinked_outbox_outside_root_*` |
+
+R9·R11~R14는 codex 독립 리뷰(PR #151, 2026-09-10)가 재현한 P1 5건에 대한 회귀다.
 
 P2에서 **다루지 않은** 행렬 항목(P3/P4로 이월): n8n 배치 중첩·breaker 플로우와의 동시 요청, 사람 registry PR과 라우터 커밋 충돌(git 커밋은 참조 구현 범위 밖 — `run()`이 stage 경로 목록만 반환), busy/startup/paused 게이트(delivery-gate — Hermes idle 신호 실측 필요), 읽음≠완료 확인 신호, breaker 레벨 통지, 비밀값 최소화·원장 중복·OP close/reopen·VO 직접 쓰기 회귀(운영 안전).
 
