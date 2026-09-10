@@ -35,6 +35,7 @@ class GateState:
     value: str
     observed_at: datetime | None = None
     accept_token: str | None = None       # 수신측 compare-and-accept 계약이 있으면 채워진다
+    error: str | None = None              # 소스 조회 실패 사유 (unknown 판정의 근거)
 
 
 @dataclass
@@ -65,21 +66,35 @@ class Config:
 def _normalize(state: GateState | None, now: datetime, cfg: Config) -> str:
     if state is None:
         return "unavailable"
-    v = state.value if state.value in STATES else "unknown"
+    v = state.value if isinstance(state.value, str) and state.value in STATES else "unknown"
     if v == "idle":
-        if state.observed_at is None:
-            return "unknown"                         # 시각 없는 idle은 신뢰하지 않는다
-        if now - state.observed_at > cfg.max_age:
+        t = state.observed_at
+        if not isinstance(t, datetime) or t.tzinfo is None:
+            return "unknown"                         # 시각 없음·naive 시각의 idle은 신뢰하지 않는다
+        if t > now:
+            return "unknown"                         # 미래 시각 — 소스 시계 불일치
+        if now - t > cfg.max_age:
             return "stale"
     return v
 
 
-def next_message(inbox: Path) -> tuple[Path, str] | None:
-    """§6: 파일명 사전순 = 도착순, `manual:true`는 선두. .done/.tmp-/비정형 이름 제외."""
+def _query(source, actor: str) -> GateState | None:
+    """소스 실패는 판정 실패가 아니라 `unknown` 보류다 — run() 전체를 종료하지 않는다."""
+    if source is None:
+        return None
+    try:
+        st = source(actor)
+    except Exception as e:                            # noqa: BLE001 — 소스 종류를 모른다(주입 콜러블)
+        return GateState("unknown", None, None, error=f"{type(e).__name__}: {e}")
+    return st if isinstance(st, GateState) else GateState("unknown")
+
+
+def next_message(inbox: Path, exclude: set[str] | frozenset[str] = frozenset()) -> tuple[Path, str] | None:
+    """§6: 파일명 사전순 = 도착순, `manual:true`는 선두. .done/.tmp-/비정형 이름·이미 written 된 id 제외."""
     candidates = []
     for f in sorted(inbox.glob("*.json")):
         m = INBOX_NAME.match(f.name)
-        if not m or f.name.startswith(".tmp-"):
+        if not m or f.name.startswith(".tmp-") or m.group("id") in exclude:
             continue
         manual = False
         try:
@@ -125,12 +140,47 @@ def decide(peer: Peer, state: GateState | None, msg: tuple[Path, str] | None, no
 
 @dataclass
 class Drain:
+    """peer별 저널 `.drain/<actor>.json`이 정본이다: written 된 id는 다시 선택되지 않고, handled 확인 후
+    `inbox/.done/`으로 옮긴다(§5.1 — 이동은 확인 이후의 정리이지 완료의 증거가 아니다). 재시작해도 메모리에
+    의존하지 않는다."""
     root: Path
     cfg: Config = field(default_factory=Config)
     source: Callable[[str], GateState | None] | None = None      # actor → 상태 (없으면 unavailable)
-    sink: Callable[[str, Path], bool] | None = None              # (actor, file) → 넘겼는가. 없으면 dry-run
+    sink: Callable[[str, Path, str | None], bool] | None = None  # (actor, file, accept_token) → 수신측이 받았는가
     handled: Callable[[str], bool] = lambda _id: False           # §5.1 handled 확인 — 기본은 '미확인'
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
+
+    def _journal_path(self, actor: str) -> Path:
+        return self.root / ".drain" / f"{actor}.json"
+
+    def _load(self, actor: str) -> dict:
+        p = self._journal_path(actor)
+        try:
+            j = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            j = {}
+        j.setdefault("written", {})                  # id → {"ts", "accept_token", "status": written|handled}
+        j.setdefault("last_written", None)
+        return j
+
+    def _save(self, actor: str, j: dict):
+        p = self._journal_path(actor)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_name(f".tmp-{p.name}")
+        tmp.write_text(json.dumps(j, ensure_ascii=False, indent=1), encoding="utf-8")
+        tmp.replace(p)
+
+    def _settle(self, actor: str, inbox: Path, j: dict) -> None:
+        """written 중 handled 확인된 것을 .done/으로 정리하고 last_written 을 비운다."""
+        for mid, rec in list(j["written"].items()):
+            if rec.get("status") != "written" or not self.handled(mid):
+                continue
+            for f in inbox.glob(f"*-{mid}.json"):
+                (inbox / ".done").mkdir(exist_ok=True)
+                f.replace(inbox / ".done" / f.name)
+            rec["status"] = "handled"
+            if j["last_written"] == mid:
+                j["last_written"] = None
 
     def run(self, peers: list[Peer]) -> list[Decision]:
         out = []
@@ -139,13 +189,24 @@ class Drain:
             if not inbox.is_dir():
                 out.append(Decision(peer.actor, None, None, "none", "no-inbox"))
                 continue
-            state = self.source(peer.actor) if self.source else None
-            d = decide(peer, state, next_message(inbox), self.now(), self.cfg, self.handled)
+            j = self._load(peer.actor)
+            self._settle(peer.actor, inbox, j)
+            peer.last_written = j["last_written"] or peer.last_written   # 저널이 정본, 없으면 호출자 상태
+            pending = {mid for mid, rec in j["written"].items() if rec.get("status") == "written"}
+            state = _query(self.source, peer.actor)
+            d = decide(peer, state, next_message(inbox, pending), self.now(), self.cfg, self.handled)
+            if state is not None and state.error and d.action == "hold":
+                d.reason = f"{d.reason}:{state.error}"
             if d.action == "deliver" and self.sink is not None:
-                if self.sink(peer.actor, d.src):
+                token = state.accept_token if state else None
+                if self.sink(peer.actor, d.src, token):
+                    j["written"][d.msg_id] = {"ts": self.now().isoformat(timespec="seconds"),
+                                              "accept_token": token, "status": "written"}
+                    j["last_written"] = d.msg_id
                     peer.last_written = d.msg_id
                 else:
                     d = Decision(peer.actor, d.src, d.msg_id, "hold", "sink-refused")
+            self._save(peer.actor, j)
             out.append(d)
         return out
 
