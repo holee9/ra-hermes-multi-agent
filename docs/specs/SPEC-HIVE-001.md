@@ -89,7 +89,10 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 | R13 | raw 필드 타입 오류(kind={}, act=[], corr=7, case="x" …)는 normalize에서 예외 없이 스키마 거부로 흐르고 같은 배치의 다른 메시지는 처리됨 | `test_raw_field_type_garbage_*` |
 | R14 | 경로 이탈 차단: inbox/outbox가 hive root 밖을 가리키는 symlink이면 쓰기·이동·스캔을 거부하고 오류 보고, root 밖에 아무것도 쓰지 않음 | `test_symlinked_inbox_outside_root_*`, `test_symlinked_outbox_outside_root_*` |
 
-R9·R11~R14는 codex 독립 리뷰(PR #151, 2026-09-10)가 재현한 P1 5건에 대한 회귀다.
+| R15 | `log.jsonl`·`.router/`·`lock`·journal도 경계 보장: 디렉터리 FD + `O_NOFOLLOW` + `lstat` symlink 판정으로 실제 open 시점에 root 내부를 보장(TOCTOU 없음). root 밖 symlink이면 append·PID 덮어쓰기·저널 생성 없이 거부 | `test_symlinked_log_file_outside_root_is_refused`, `test_symlinked_lock_or_state_dir_outside_root_is_refused` |
+| R16 | 원본 log 항목은 모든 대상이 전달 또는 escalation으로 **확정된 뒤 한 번** 기록: 부분 성공 + escalation 실패 후 복구 재실행 → `delivered_to`가 실제 전달과 일치, 복구된 대상은 escalation 없이 완결; 복구 불가 대상은 `payload.undeliverable` + escalation 1건 | `test_partial_broadcast_recovery_finalizes_log_with_actual_delivery`, `test_unrecoverable_target_is_finalized_with_undeliverable_and_escalation` |
+
+R9·R11~R16은 codex 독립 리뷰(PR #151, 2026-09-10, 2차 포함)가 재현한 P1 7건에 대한 회귀다.
 
 P2에서 **다루지 않은** 행렬 항목(P3/P4로 이월): n8n 배치 중첩·breaker 플로우와의 동시 요청, 사람 registry PR과 라우터 커밋 충돌(git 커밋은 참조 구현 범위 밖 — `run()`이 stage 경로 목록만 반환), busy/startup/paused 게이트(delivery-gate — Hermes idle 신호 실측 필요), 읽음≠완료 확인 신호, breaker 레벨 통지, 비밀값 최소화·원장 중복·OP close/reopen·VO 직접 쓰기 회귀(운영 안전).
 

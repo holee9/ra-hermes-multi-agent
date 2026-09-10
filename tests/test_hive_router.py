@@ -531,3 +531,77 @@ def test_symlinked_outbox_outside_root_is_ignored(hr, hive, tmp_path):
     res = _router(hr, hive).run()
     assert res.plans == [] and any("경로 이탈" in e for e in res.errors)
     assert (outside / "20260909T120000-0001.json").exists()   # 이동·삭제 없음
+
+
+# ---------------------------------------------------------------- P1 review round 2 (PR #151, 2026-09-10)
+
+def test_symlinked_log_file_outside_root_is_refused(hr, hive, tmp_path):
+    """P1-6: log.jsonl이 root 밖 파일로 연결되면 append하지 않는다."""
+    target = tmp_path / "outside.log"
+    target.write_text("preserve\n")
+    (hive / "log.jsonl").symlink_to(target)
+    src = _outbox(hive, "ra_us", REQ)
+    res = _router(hr, hive).run()
+    assert target.read_text() == "preserve\n"                  # 외부 파일 무변경
+    assert any("경로 이탈" in e for e in res.errors)
+    assert src.exists()                                        # 원본 보류
+
+
+def test_symlinked_lock_or_state_dir_outside_root_is_refused(hr, hive, tmp_path):
+    """P1-6: .router/lock 또는 .router 자체가 symlink이면 잠금·저널을 만들지 않는다."""
+    target = tmp_path / "outside-lock"
+    target.write_text("preserve")
+    (hive / ".router").mkdir()
+    (hive / ".router/lock").symlink_to(target)
+    with pytest.raises(hr.RouterError, match="경로 이탈"):
+        _router(hr, hive).run()
+    assert target.read_text() == "preserve"                    # PID로 덮어쓰지 않음
+    (hive / ".router/lock").unlink()
+    (hive / ".router").rmdir()
+    outside_dir = tmp_path / "outside-state"
+    outside_dir.mkdir()
+    (hive / ".router").symlink_to(outside_dir, target_is_directory=True)
+    with pytest.raises(hr.RouterError, match="경로 이탈"):
+        _router(hr, hive).run()
+    assert list(outside_dir.iterdir()) == []
+
+
+def test_partial_broadcast_recovery_finalizes_log_with_actual_delivery(hr, ve, hive):
+    """P1-7: 부분 전달 + escalation 실패 후 복구 재실행 시 감사 로그가 실제 전달과 일치해야 한다."""
+    src = _outbox(hive, "ra_us", {**REQ, "to": "broadcast", "act": "inform", "payload": {"note": "x"}})
+    for a in ("ra_eu", "human"):
+        p = hive / "agents" / a / "inbox"
+        p.rmdir()
+        p.write_text("not a directory")
+    clock = Clock()
+    res = _router(hr, hive, clock).run()
+    assert len(_inbox(hive, "infra_t3610")) == 1                 # 성공분은 기록됨
+    assert any("human inbox 기록 실패" in e for e in res.errors)
+    assert src.exists() and not (hive / "log.jsonl").exists()   # 확정 전: log 없음, 원본 보류
+    for a in ("ra_eu", "human"):
+        p = hive / "agents" / a / "inbox"
+        p.unlink()
+        p.mkdir()
+    res = _router(hr, hive, clock).run()                          # 복구 후 재실행
+    assert res.errors == []
+    assert len(_inbox(hive, "infra_t3610")) == 1 and len(_inbox(hive, "ra_eu")) == 1
+    assert _inbox(hive, "human") == []                            # 복구됐으므로 escalation 불필요
+    log = _log(hive)
+    assert len(log) == 1 and log[0]["payload"]["delivered_to"] == ["infra_t3610", "ra_eu"]
+    assert "undeliverable" not in log[0]["payload"]
+    assert (src.parent / ".sent" / src.name).exists()
+    _assert_log_valid(ve, hive)
+
+
+def test_unrecoverable_target_is_finalized_with_undeliverable_and_escalation(hr, ve, hive):
+    _outbox(hive, "ra_us", {**REQ, "to": "broadcast", "act": "inform", "payload": {"note": "x"}})
+    p = hive / "agents/ra_eu/inbox"
+    p.rmdir()
+    p.write_text("not a directory")
+    res = _router(hr, hive).run()
+    assert res.errors == []
+    log = _log(hive)
+    main = [e for e in log if e["kind"] == "handoff"][0]
+    assert main["payload"]["delivered_to"] == ["infra_t3610"] and main["payload"]["undeliverable"] == ["ra_eu"]
+    assert [e["kind"] for e in log].count("escalation") == 1
+    _assert_log_valid(ve, hive)
