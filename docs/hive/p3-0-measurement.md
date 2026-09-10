@@ -72,13 +72,15 @@ sqlite3 -readonly ~/.hermes/profiles/ra-us/state.db 'select name from sqlite_mas
 
 | 항목 | 강제 수단 (실행 전 검증 명령) |
 |---|---|
-| 도구 비활성 | 실험 profile에서 `hermes -p ra-us-p30test tools disable terminal,file,code_execution,browser,web,messaging,cronjob,delegation,computer_use,image_gen,tts,moa,todo,session_search,clarify,vision` → `hermes -p ra-us-p30test tools list --summary`로 **memory·skills만 enabled** 확인 후 진행 |
-| MCP | `hermes -p ra-us-p30test mcp list` → `filesystem` 등 서버가 있으면 `hermes -p ra-us-p30test mcp remove <name>` → 다시 `mcp list`가 비어 있음을 확인 |
-| 호출 단위 이중 제한 | `-t memory,skills`(활성 toolset 명시)와 `--max-turns 6`을 **매 호출**에 붙인다 |
-| 자격증명 | `hermes -p ra-us-p30test config show`(값 없이 키만 확인)·`hermes -p ra-us-p30test secrets`로 실험 profile이 어떤 auth/secret 저장소를 읽는지 확인. 운영 `ra-us`와 같은 `auth.json`을 공유하면 그 사실을 기록한다(격리 아님). skill `ra-expert`가 외부 API 키를 요구하면 실험에서는 그 스킬 도구를 쓰지 않는 입력으로 한정 |
+| toolset 별 쓰기 면 (설치 `toolsets.py`, 읽기만) | `skills` = `skills_list, skill_view, skill_manage`(**create/edit 포함** → 읽기 전용 아님). `memory` = `memory`(영속 메모리 **쓰기**; provider honcho면 Honcho peer에 기록). `safe` = tools 없음 + includes `web, vision, image_gen`(**외부 웹 요청** 포함 → 무영향 아님). 쓰기 없는 built-in toolset은 **없다**. `-t memory,skills`는 읽기 전용 집합이 아니다 |
+| 도구 비활성 | 실험 profile에서 `hermes -p ra-us-p30test tools disable terminal,file,code_execution,browser,web,messaging,cronjob,delegation,computer_use,image_gen,tts,moa,todo,session_search,clarify,vision,skills` → `hermes -p ra-us-p30test tools list --summary`로 **memory만 enabled**(또는 아래 결정에 따라 0개) 확인 후 진행. `--skills ra-expert` 프리로드는 SKILL 본문 주입이라 `skills` toolset 없이도 동작하는지 첫 호출에서 확인(안 되면 `skill_view`만 필요 — per-tool 비활성 지원 여부 `hermes tools disable --help`로 확인, 미지원이면 `skills` 켜고 `skill_manage` 호출 흔적을 중지 조건에 추가) |
+| memory 쓰기 허용 범위 (결정 필요) | `memory` toolset은 Honcho에 쓴다. 실험 profile의 peer가 운영 `ra_us`와 **같으면 오염**이다. 확인: `P=$(hermes -p ra-us-p30test config path); grep -nE '^\S+:' "$P"; grep -nE '^  (provider|workspace|workspace_id|peer|peer_name|pin_peer_name):' "$P"`(키·값 중 이 5개만; 플러그인 기본은 `workspace_id="hermes"`, `peer_name=None`→호스트명 기반, `plugins/memory/honcho/client.py:296-312`). 결정 (a) peer가 실험 전용(`ra_us_p30test` 등)으로 확인되면 `-t memory` 허용, (b) 확인 불가·공유면 `tools disable memory`까지 해서 **toolset 0개**로 실행하고 "메모리 없는 조건의 측정"임을 결과에 명시(운영 조건과 차이). `-t ""`/toolset 0개 실행이 CLI에서 허용되는지 첫 호출 exit code로 확인 |
+| MCP | `hermes -p ra-us-p30test mcp list` → 서버가 있으면 `hermes -p ra-us-p30test mcp remove <name>` → 다시 `mcp list`가 비어 있음을 확인 |
+| 호출 단위 이중 제한 | 매 호출 `-t <위 결정의 toolset>` + `--max-turns 6` |
+| 자격증명·저장소 실제 경로 | `hermes -p ra-us-p30test config path`·`env-path`로 **경로만** 출력. `ls -la $(dirname <path>)`로 `auth.json`·`.env`·`sessions`·`state.db`가 symlink인지, 운영 `~/.hermes/profiles/ra-us` 또는 `~/.hermes` 공용 파일을 가리키는지 확인(`readlink -f`). 공유면 "격리 아님"으로 기록하고 실험 입력에 자격증명이 필요한 스킬 도구를 쓰지 않는다. `config show` 전체 출력은 하지 않는다(값 제한 불가) |
 | 스킬 | `hermes skills list`에서 `ra-expert`가 local/enabled로 확인됨(이 세션). 스킬 목록은 **활성 권한 목록이 아니다** — 스킬이 호출하는 도구는 위 toolset 제한을 받는다 |
 | 예산·시간 | 호출 3회 이내(3턴 1·5턴 1·재시도 1), `timeout 900` 래퍼(`time`은 제한이 아니다), GX10 토큰 상한은 profile 모델 설정값을 기록 |
-| 중지 조건 | 응답 로그에 terminal/file/messaging 도구 호출 흔적이 보이면 즉시 중단·기록(도구가 비활성이면 있어선 안 된다). timeout 1회 초과 시 중단 |
+| 중지 조건 | 응답 로그에 terminal/file/messaging/write_file/patch/skill_manage/send_message 호출 흔적이 보이면 즉시 중단·기록(비활성이면 있어선 안 된다). timeout 1회 초과 시 중단 |
 | 성장 지표 제외 근거 | `scripts/growth-metrics.py` 69–74행: 지표는 metadata `record_type ∈ EXPECTED_GROWTH_RECORD_TYPES`(score_given·mail_triaged·ra_analysis·study_session_complete·study_insight)만 집계. CLI 직접 호출의 Honcho memory 쓰기에는 `record_type`이 없어 `unclassified`(360행)로 분류돼 **성장 지표에는 들어가지 않는다**. 단 `sessions_scanned/messages_scanned` 수집 진단 카운트에는 포함될 수 있으므로 실험 세션 id를 #150에 남긴다. `purpose` 태그만으로 제외되는 것이 아니다 |
 | 기록 | 응답 본문 미기록, 품질 판정·토큰·시간만. 실험 profile은 실측 후 `hermes profile delete ra-us-p30test`(사람) |
 
@@ -93,8 +95,8 @@ python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T
 python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T091100_0012 --json     > /tmp/ctx-5turn.json
 python3 tools/hive_thread.py virtual-office/mock/events-v2.1.jsonl evt_20260909T091100_0012            > /tmp/ctx-5turn.txt
 # (b) 실제 호출 — §3.0 승인 후, 실험용 profile 로만
-# 실행 전: tools list --summary 가 memory·skills 만, mcp list 가 비어 있음을 확인했는가?
-timeout 900 $HOME/.local/bin/hermes -p ra-us-p30test -t memory,skills --max-turns 6 -z "$(cat /tmp/ctx-3turn.txt)" --skills ra-expert > /tmp/out-3turn.txt; echo "exit=$?"
+# 실행 전: tools list --summary 가 결정된 toolset 만(memory 또는 0개), mcp list 가 비어 있음, memory peer 격리 여부를 확인·기록했는가?
+timeout 900 $HOME/.local/bin/hermes -p ra-us-p30test -t <결정된 toolset 또는 빈 값> --max-turns 6 -z "$(cat /tmp/ctx-3turn.txt)" --skills ra-expert > /tmp/out-3turn.txt; echo "exit=$?"
 ```
 
 ### 3.2 토큰 정의
