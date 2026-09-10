@@ -148,6 +148,12 @@ skills:
 
 검증: 로더 재실행 → 세 profile 모두 `ra-expert=LOADED`, 기존 `memory`·`model` 키 보존. 롤백: `cp config.yaml.bak-skills-20260911-071021 config.yaml`.
 
+### 3.4 검증 호출 결과 (운영 profile, 승인 1회, 2026-09-11)
+
+`hermes -p ra-us -z <3턴> --skills ra-expert` (제한 플래그 없음 = 운영과 동일): `Unknown skill(s)` **0건**(수정 유효), **exit 134 SIGABRT**, 163.4s, stdout 1641B 완결 답변, 금지 도구 흔적 0. Contract A 파싱은 NONE(입력이 메일이 아닌 hive 스레드 — 예상됨). SIGABRT 누적 **3/3**(실험 3턴·5턴, 운영 3턴). 비LLM 서브커맨드(`tools`/`mcp`/`skills`/`config`)는 exit 0 → abort 는 **agent 실행 경로 종료 단계** 한정. Hermes Agent v0.16.0 (2026.6.5, upstream 6e88f7b6).
+
+**[HARD] 배포 순서**: `7912636`(returncode≠0 → hermes_failed)을 **단독 배포 금지**. 현행 배포본은 종료코드를 보지 않으므로 SIGABRT 에도 완결 답변이 통과한다 — `7912636` 만 올리면 SIGABRT(3/3) 때문에 모든 mail-triage 호출이 실패로 전환된다. 반드시 `27aae3d`(Contract A 파서 기반 완결성 판정 + `hermes_nonzero_exit_<N>` flag)와 **함께** 배포한다.
+
 ## 4. 배포 (별도, #150 5615905208·5615930525)
 
 12파일 manifest 백업 → `bash scripts/deploy-local.sh --dry-run` → 실행 → 12파일 sha256 강제 대조 → 서비스 재시작 → `GET /health`. `HIVE_SUBMIT_ENABLED`는 **설정하지 않는다**(기본 비활성 유지). `HIVE_LEDGER_PATH`도 P3 파일럿 승인 전에는 설정하지 않는다.
