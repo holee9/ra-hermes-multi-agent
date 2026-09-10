@@ -601,7 +601,10 @@ def test_nonzero_exit_diagnostic_goes_to_server_log_only(monkeypatch, caplog):
 # ── #150 P3-0 (세션 모델 A): HIVE 수락 계약 endpoint ──────────────────────────────────
 
 
-def _hive_client(monkeypatch, run=None, ledger_path="", enabled=True):
+def _hive_client(monkeypatch, run=None, ledger_path=None, enabled=True, tmp_path=None):
+    if ledger_path is None:
+        import tempfile
+        ledger_path = str(Path(tempfile.mkdtemp(prefix="hive-ledger-")) / "ledger.jsonl")
     monkeypatch.setattr(m, "API_KEY", "test-key")
     monkeypatch.setattr(m, "HIVE_LEDGER_PATH", ledger_path)
     monkeypatch.setattr(m, "HIVE_SUBMIT_ENABLED", enabled)
@@ -725,7 +728,8 @@ def test_hive_submit_rejects_when_profile_busy(monkeypatch):
         assert r.status_code == 409 and r.get_json()["result"] == "reject-busy" and r.get_json()["holder"] == "legacy"
     finally:
         lock.release()
-    assert client.get("/v1/hive/lookup/evt_3", headers=H).get_json()["known"] is None    # 메모리 원장: unknown, 기록 없음
+    r = client.get("/v1/hive/lookup/evt_3", headers=H)
+    assert r.get_json()["known"] in (None, False)                                  # 거절은 원장에 남지 않음
 
 
 def test_hive_submit_failed_subprocess_is_recorded_not_completed(monkeypatch):
@@ -752,6 +756,7 @@ def test_hive_ledger_persists_and_survives_restart(monkeypatch, tmp_path):
     _submit(client, "ra_us", "evt_8")
     lines = [json.loads(x) for x in open(path, encoding="utf-8")]
     assert [x["status"] for x in lines] == ["submitted", "completed"]              # 실행 전 영속, 'started' 없음(관측 불가)
+    assert (tmp_path / "ledger.jsonl.created").exists()                           # 초기화 표식
     m._hive_ledger.clear()                                                        # 재시작 흉내
     lk = client.get("/v1/hive/lookup/evt_8", headers=H).get_json()
     assert lk["known"] is True and lk["status"] == "completed" and lk["certainty"] == "recorded"
@@ -776,7 +781,8 @@ def test_hive_ledger_write_failure_cancels_accept_and_frees_lock(monkeypatch, tm
 def test_hive_lookup_unknown_when_ledger_file_missing_or_degraded(monkeypatch, tmp_path):
     path = str(tmp_path / "ledger.jsonl")
     client = _hive_client(monkeypatch, ledger_path=path)
-    r = client.get("/v1/hive/lookup/evt_x", headers=H)                            # 파일 없음 → unknown (삭제/미생성 구분 불가)
+    (tmp_path / "ledger.jsonl.created").write_text("gen")                         # 예전에 존재했던 원장이 사라짐 = 유실
+    r = client.get("/v1/hive/lookup/evt_x", headers=H)
     assert r.status_code == 200 and r.get_json()["known"] is None and r.get_json()["reason"] == "ledger-missing"
     (tmp_path / "ledger.jsonl").write_text('{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')
     m._hive_ledger.clear()
@@ -807,3 +813,38 @@ def test_hive_final_ledger_write_failure_is_visible_in_lookup(monkeypatch, tmp_p
     assert lk["status"] == "completed" and lk["certainty"] == "recorded-memory-only"
     assert [json.loads(x)["status"] for x in path.read_text().splitlines()] == ["submitted"]   # 파일에는 submitted 만
     assert not m._profile_lock("ra-us").locked()
+
+
+def test_hive_submit_fail_closed_on_memory_missing_or_degraded_ledger(monkeypatch, tmp_path):
+    """codex: lookup 이 unknown 이어도 submit 이 같은 id 를 실행할 수 있었다 → 원장 비정상이면 실행 거절."""
+    calls = []
+    run = lambda cmd, **k: calls.append(cmd) or _Proc(0, "a")  # noqa: E731
+    client = _hive_client(monkeypatch, run, ledger_path="")                        # 메모리 원장
+    r = _submit(client, "ra_us", "evt_20")
+    assert r.status_code == 503 and r.get_json()["result"] == "ledger-unhealthy" and r.get_json()["ledger"] == "memory"
+    path = tmp_path / "ledger.jsonl"
+    (tmp_path / "ledger.jsonl.created").write_text("gen")                         # 유실
+    client = _hive_client(monkeypatch, run, ledger_path=str(path))
+    assert _submit(client, "ra_us", "evt_21").get_json()["ledger"] == "missing"
+    path.write_text('{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')   # 손상
+    m._hive_ledger.clear()
+    m._ledger_health["status"] = "memory"
+    assert _submit(client, "ra_us", "evt_22").get_json()["ledger"] == "degraded"
+    assert calls == []
+    path.unlink()
+    (tmp_path / "ledger.jsonl.created").unlink()                                   # 진짜 신규 초기화
+    m._hive_ledger.clear()
+    m._ledger_health["status"] = "memory"
+    assert _submit(client, "ra_us", "evt_23").get_json()["result"] == "accepted" and len(calls) == 1
+
+
+def test_hive_submit_same_id_different_binding_is_conflict(monkeypatch):
+    calls = []
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"))
+    assert _submit(client, "ra_us", "evt_30", {"x": 1}).get_json()["result"] == "accepted"
+    r = _submit(client, "ra_us", "evt_30", {"x": 2})                              # 같은 id, 다른 payload
+    assert r.status_code == 409 and r.get_json()["result"] == "id-binding-conflict"
+    r = client.post("/v1/hive/submit", json={"actor": "ra_eu", "msg_id": "evt_30", "payload": {"id": "evt_30", "x": 1},
+                                             "accept_token": m.HIVE_GENERATION}, headers=H)   # 같은 id, 다른 actor
+    assert r.status_code == 409 and r.get_json()["recorded_actor"] == "ra_us"
+    assert _submit(client, "ra_us", "evt_30", {"x": 1}).get_json()["result"] == "duplicate" and len(calls) == 1
