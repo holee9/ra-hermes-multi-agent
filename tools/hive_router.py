@@ -75,6 +75,7 @@ class Plan:
     reason: str = ""
     targets: list[str] = field(default_factory=list)
     event: dict | None = None
+    deadlock: list[str] = field(default_factory=list)   # §7: 이 이벤트로 교착이 확정된 경우 refuse actor 목록
 
 
 @dataclass
@@ -386,7 +387,9 @@ class HiveRouter:
 
     def _archive(self, src: Path, sub: str):
         self._fault("before_archive")
-        dest = src.parent / sub / src.name
+        self._move(src, src.parent / sub / src.name)
+
+    def _move(self, src: Path, dest: Path):
         rel_src, rel_dest = self._rel(src), self._rel(dest)
         sdfd = self._dir_fd(rel_src.parent, create=False)
         try:
@@ -467,6 +470,48 @@ class HiveRouter:
                 self.errors.append(f"{ev['actor']} inbox 기록 실패 — 거부 알림 {note['id']} 미전달 (거부 자체는 log에 기록됨)")
         self._append_log(note)
 
+    # ------------------------------------------------------------ §7 거절 교착
+    def _conv_state(self, conv: str) -> tuple[bool, set[str]]:
+        """(사람 응답 전 보류 중인가, 지금까지 refuse한 서로 다른 actor).
+
+        log.jsonl 순서대로: act:refuse의 actor를 모으고, refuse-deadlock escalation이 기록되면
+        보류 상태로 들어간다. 그 뒤 같은 conversation에 human 이벤트가 기록되면 보류를 풀고
+        refuse 집계를 초기화한다(사람 판단이 스레드를 재개시킨 것으로 본다)."""
+        held, refusers = False, set()
+        for _, ev in sorted(self._log_events().values(), key=lambda t: t[0]):
+            if ev.get("conversation") != conv and (ev.get("payload") or {}).get("conversation") != conv:
+                continue
+            if ev.get("actor") == "human":
+                held, refusers = False, set()
+            elif ev.get("kind") == "escalation" and (ev.get("payload") or {}).get("reason") == "refuse-deadlock":
+                held = True
+            elif ev.get("act") == "refuse" and isinstance(ev.get("actor"), str):
+                refusers.add(ev["actor"])
+        return held, refusers
+
+    def _release_held(self):
+        """사람 응답으로 보류가 풀린 conversation의 `.held/` 메시지를 outbox로 되돌린다 (이번 배치에서 처리)."""
+        agents = self.root / "agents"
+        if not agents.exists():
+            return
+        for adir in sorted(agents.iterdir()):
+            held_dir = adir / "outbox" / ".held"
+            if not held_dir.is_dir() or not self._inside_root(held_dir):
+                continue
+            for f in sorted(held_dir.glob("*.json")):
+                try:
+                    raw = json.loads(f.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    continue
+                conv = raw.get("conversation") if isinstance(raw, dict) else None
+                if not isinstance(conv, str) and isinstance(raw, dict):
+                    corr = raw.get("corr")                            # 보류 원본이 corr만 가진 경우
+                    if isinstance(corr, str) and corr in self._log_events():
+                        conv = self._log_events()[corr][1].get("conversation")
+                if isinstance(conv, str) and not self._conv_state(conv)[0]:
+                    self._move(f, adir / "outbox" / f.name)
+                    self.touched.append(adir / "outbox" / f.name)
+
     # ------------------------------------------------------------ per-message state machine
     def plan_message(self, actor: str, src: Path) -> Plan:
         try:
@@ -486,6 +531,14 @@ class HiveRouter:
             return Plan(actor, src, ev["id"], "reject", ",".join(problems), event=ev)
         if "to" not in ev:
             return Plan(actor, src, ev["id"], "observe", event=ev)
+        deadlock: list[str] = []
+        conv = ev.get("conversation")
+        if isinstance(conv, str):
+            held, refusers = self._conv_state(conv)
+            if held and actor != "human":                            # 사람 메시지가 보류를 푸는 응답이다
+                return Plan(actor, src, ev["id"], "held", "refuse-deadlock", event=ev)
+            if ev.get("act") == "refuse" and refusers - {actor}:
+                deadlock = sorted(refusers | {actor})                  # 서로 다른 두 actor의 refuse
         if self.hop_cap is None:
             return Plan(actor, src, ev["id"], "held", "hop-cap-unset", event=ev)
         if ev["hops"] > self.hop_cap:
@@ -493,7 +546,7 @@ class HiveRouter:
         targets, undeliverable = self.route(ev)
         if not targets:
             return Plan(actor, src, ev["id"], "escalate", "undeliverable", targets=undeliverable, event=ev)
-        p = Plan(actor, src, ev["id"], "deliver", targets=targets, event=ev)
+        p = Plan(actor, src, ev["id"], "deliver", targets=targets, event=ev, deadlock=deadlock)
         if undeliverable:
             p.reason = "partial-undeliverable:" + ",".join(undeliverable)
         return p
@@ -527,7 +580,9 @@ class HiveRouter:
             self._complete_from_journal(j, p.src)
             return
         if p.outcome == "held":
-            return                                                    # outbox에 그대로 둔다
+            if p.reason == "refuse-deadlock":
+                self._archive(p.src, ".held")                         # §7: 사람 응답까지 보류
+            return                                                    # hop-cap 미설정: outbox에 그대로 둔다
         j = j or {"id": ev["id"], "src": str(p.src), "actor": p.actor,
                   "event": ev, "step": "normalized", "delivered": []}
         self._journal_write(j)
@@ -577,6 +632,8 @@ class HiveRouter:
             # 리뷰 4차(#151): append 뒤 저널 확정까지의 창에서 죽으면 재시작이 route를 다시
             # 평가했다. 최종 결정과 기록할 이벤트를 저널에 먼저 영속(finalizing)하고, 그 다음
             # 멱등 append → audited → archive → cursor 순서로만 진행한다.
+            if p.deadlock:                                            # §7: 두 번째 서로 다른 actor의 refuse
+                self._escalate("refuse-deadlock", ev, {"refusers": p.deadlock}, j, key="deadlock")
             self._finalize(j, ".sent", logged, delivered=delivered, undeliverable=undeliverable)
             self._archive(p.src, ".sent")
         self._fault("before_cursor")
@@ -667,6 +724,8 @@ class HiveRouter:
                     raise
                 except (OSError, RouterError) as e:
                     errors.append(f"orphan journal 완결 실패: {e}")
+            if self.execute:
+                self._release_held()
             for actor, src in self.pending():
                 if actor not in self.registry and actor != "human":
                     errors.append(f"{src}: registry에 없는 outbox 소유자 {actor} — 무시 (경로 이탈 의심)")

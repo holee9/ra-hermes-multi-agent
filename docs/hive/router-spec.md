@@ -128,6 +128,8 @@ if hops > HOP_CAP:
 
 같은 `conversation`에서 `act:refuse`가 **서로 다른 두 actor**로부터 각 1회 이상 → `escalation(reason:"refuse-deadlock")`. 이후 그 conversation의 신규 메시지는 사람 응답 전까지 `.held/`에 보류.
 
+참조 구현 동작(P2): 교착을 확정한 두 번째 refuse는 **전달하고** 같은 배치에서 escalation(`payload.refusers`)을 사람 inbox에 기록한다(escalation 실패 시 원본 보류·재시도, 중복 전달 없음). 같은 actor의 반복 refuse는 교착이 아니다. 보류 판단은 `log.jsonl`을 conversation 순서로 읽어 결정한다: refuse-deadlock escalation 이후 그 conversation의 non-human 메시지는 `outbox/.held/`로 이동, `actor:human` 이벤트가 기록되면 보류 해제 + refuse 집계 초기화. 해제된 conversation의 `.held/` 파일은 다음 배치 시작 시 outbox로 되돌려 정상 처리한다.
+
 ---
 
 ## 8. 커밋

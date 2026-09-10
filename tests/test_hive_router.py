@@ -776,3 +776,95 @@ def test_frozen_journal_completes_even_when_hop_cap_unset(hr, ve, hive):
     assert json.loads((hive / "agents/ra_us/cursor.json").read_text())["last_processed"] == json.loads(j.read_text())["id"]
     assert len(_log(hive)) == 1
     _assert_log_valid(ve, hive)
+
+
+# ---------------------------------------------------------------- §7 refuse deadlock (PR #151 round 6)
+
+def _deadlock_thread(hr, hive, clock):
+    """ra_us→ra_eu request → ra_eu refuse → ra_us refuse(같은 conversation). 마지막 run 결과를 돌려준다."""
+    _outbox(hive, "ra_us", REQ)
+    _router(hr, hive, clock).run()
+    req = _log(hive)[-1]
+    conv = req["conversation"]
+    _outbox(hive, "ra_eu", {**REQ, "to": "ra_us", "act": "refuse", "corr": req["id"], "conversation": conv,
+                            "payload": {"reason": "no"}}, name="20260909T120001-0002.json")
+    _router(hr, hive, clock).run()
+    _outbox(hive, "ra_us", {**REQ, "act": "refuse", "corr": req["id"], "conversation": conv,
+                            "payload": {"reason": "no"}}, name="20260909T120002-0003.json")
+    return conv, _router(hr, hive, clock).run()
+
+
+def test_second_distinct_refuser_escalates_refuse_deadlock(hr, ve, hive):
+    clock = Clock()
+    conv, res = _deadlock_thread(hr, hive, clock)
+    assert res.errors == []
+    plan = res.plans[0]
+    assert plan.outcome == "deliver" and plan.deadlock == ["ra_eu", "ra_us"]
+    esc = [e for e in _log(hive) if e["kind"] == "escalation"]
+    assert len(esc) == 1 and esc[0]["payload"]["reason"] == "refuse-deadlock"
+    assert esc[0]["payload"]["conversation"] == conv and esc[0]["payload"]["refusers"] == ["ra_eu", "ra_us"]
+    assert len(_inbox(hive, "human")) == 1 and len(_inbox(hive, "ra_eu")) == 2   # 두 번째 refuse는 전달됨
+    _assert_log_valid(ve, hive)
+
+
+def test_same_actor_refusing_twice_is_not_a_deadlock(hr, hive):
+    clock = Clock()
+    _outbox(hive, "ra_us", REQ)
+    _router(hr, hive, clock).run()
+    req = _log(hive)[-1]
+    for i in (1, 2):
+        _outbox(hive, "ra_eu", {**REQ, "to": "ra_us", "act": "refuse", "corr": req["id"],
+                                "conversation": req["conversation"], "payload": {"reason": "no"}},
+                name=f"20260909T12000{i}-000{i}.json")
+        _router(hr, hive, clock).run()
+    assert [e for e in _log(hive) if e["kind"] == "escalation"] == []
+
+
+def test_messages_after_deadlock_are_held_until_human_responds(hr, ve, hive):
+    clock = Clock()
+    conv, _ = _deadlock_thread(hr, hive, clock)
+    src = _outbox(hive, "ra_us", {**REQ, "act": "inform", "conversation": conv, "payload": {"x": 1}},
+                  name="20260909T120003-0004.json")
+    res = _router(hr, hive, clock).run()
+    assert res.errors == [] and res.plans[0].outcome == "held" and res.plans[0].reason == "refuse-deadlock"
+    assert not src.exists() and (src.parent / ".held" / src.name).exists()
+    assert len(_inbox(hive, "ra_eu")) == 2                                    # 전달 안 됨
+    other = _outbox(hive, "ra_us", {**REQ, "payload": {"y": 1}}, name="20260909T120004-0005.json")
+    _router(hr, hive, clock).run()
+    assert (other.parent / ".sent" / other.name).exists()                    # 다른 conversation은 정상
+    # 사람 응답 → 보류 해제 → 다음 배치에서 outbox로 복귀 후 전달
+    _outbox(hive, "human", {**REQ, "actor": "human", "to": "ra_us", "act": "inform", "conversation": conv,
+                            "payload": {"decision": "proceed"}}, name="20260909T120005-0006.json")
+    _router(hr, hive, clock).run()
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []
+    assert not (src.parent / ".held" / src.name).exists() and (src.parent / ".sent" / src.name).exists()
+    held_plans = [p for p in res.plans if p.reason == "refuse-deadlock"]
+    assert held_plans == []
+    assert len(_inbox(hive, "ra_eu")) == 4                                    # req, refuse, other, 보류 해제분
+    _assert_log_valid(ve, hive)
+
+
+def test_deadlock_escalation_failure_keeps_original_and_retries(hr, ve, hive):
+    clock = Clock()
+    _outbox(hive, "ra_us", REQ)
+    _router(hr, hive, clock).run()
+    req = _log(hive)[-1]
+    conv = req["conversation"]
+    _outbox(hive, "ra_eu", {**REQ, "to": "ra_us", "act": "refuse", "corr": req["id"], "conversation": conv,
+                            "payload": {"reason": "no"}}, name="20260909T120001-0002.json")
+    _router(hr, hive, clock).run()
+    src = _outbox(hive, "ra_us", {**REQ, "act": "refuse", "corr": req["id"], "conversation": conv,
+                                  "payload": {"reason": "no"}}, name="20260909T120002-0003.json")
+    hin = hive / "agents/human/inbox"
+    hin.rmdir()
+    hin.write_text("not a directory")
+    res = _router(hr, hive, clock).run()
+    assert len(res.errors) == 1 and "refuse-deadlock" in res.errors[0] and src.exists()
+    hin.unlink()
+    hin.mkdir()
+    res = _router(hr, hive, clock).run()
+    assert res.errors == [] and (src.parent / ".sent" / src.name).exists()
+    assert len([e for e in _log(hive) if e["kind"] == "escalation"]) == 1
+    assert len(_inbox(hive, "ra_eu")) == 2                                    # 재실행에서 중복 전달 없음
+    _assert_log_valid(ve, hive)

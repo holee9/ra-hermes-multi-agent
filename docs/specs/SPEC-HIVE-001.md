@@ -91,6 +91,7 @@ peer 간 논의 매체가 없는 현 이벤트 계약(v2)에 **화행·홉 상�
 
 | R15 | `log.jsonl`·`.router/`·`lock`·journal도 경계 보장: 디렉터리 FD + `O_NOFOLLOW` + `lstat` symlink 판정으로 실제 open 시점에 root 내부를 보장(TOCTOU 없음). root 밖 symlink이면 append·PID 덮어쓰기·저널 생성 없이 거부 | `test_symlinked_log_file_outside_root_is_refused`, `test_symlinked_lock_or_state_dir_outside_root_is_refused` |
 | R16 | 원본 log 항목은 모든 대상이 전달 또는 escalation으로 **확정된 뒤 한 번** 기록: 부분 성공 + escalation 실패 후 복구 재실행 → `delivered_to`가 실제 전달과 일치, 복구된 대상은 escalation 없이 완결; 복구 불가 대상은 `payload.undeliverable` + escalation 1건 | `test_partial_broadcast_recovery_finalizes_log_with_actual_delivery`, `test_unrecoverable_target_is_finalized_with_undeliverable_and_escalation` |
+| R17 | §7 거절 교착: 같은 conversation에서 서로 다른 두 actor의 refuse → refuse-deadlock escalation(1회), 이후 non-human 메시지는 `.held/` 보류, human 이벤트 후 해제·복귀 | `test_second_distinct_refuser_escalates_refuse_deadlock`, `test_same_actor_refusing_twice_is_not_a_deadlock`, `test_messages_after_deadlock_are_held_until_human_responds`, `test_deadlock_escalation_failure_keeps_original_and_retries` |
 
 R9·R11~R16은 codex 독립 리뷰(PR #151, 2026-09-10, 2차 포함)가 재현한 P1 7건에 대한 회귀다.
 
