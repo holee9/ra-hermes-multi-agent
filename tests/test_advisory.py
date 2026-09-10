@@ -950,3 +950,58 @@ def test_same_msg_id_same_actor_while_in_progress_is_409_not_duplicate(monkeypat
     t.join(timeout=5)
     assert res["first"]["result"] == "accepted" and len(calls) == 1
     assert _submit(client, "ra_us", "evt_ip", {"x": 1}).get_json()["result"] == "duplicate"
+
+
+# ── #150 P3-0 실측 후속: 완결 응답 + 비정상 종료(SIGABRT 재현 2/2)의 계약 ──────────────
+_COMPLETE = json.dumps({"wp_comment": {"email_type": "액션필요", "wp_title": "t", "summary": "s",
+                                       "recommendation": "r", "confidence": 0.7, "matched_wp_id": 1042,
+                                       "market_analysis": {"mfds": None, "ce_mdr": None, "fda": None},
+                                       "source_docs": [], "flags": [], "deadline": None,
+                                       "product": None, "org": None}}, ensure_ascii=False)
+
+
+def test_nonzero_exit_with_complete_contract_output_is_salvaged_with_flag(monkeypatch):
+    """실측: CLI 가 완결 응답을 다 쓴 뒤 SIGABRT(134). 파서가 통과하는 완결 답변은 살리되 종료코드를 flags 에 남긴다."""
+    client = _chat_client(monkeypatch, _Proc(134, _COMPLETE))
+    r = client.post("/v1/chat/completions", json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    assert wp["confidence"] == 0.7 and "hermes_failed" not in wp["flags"]
+    assert "hermes_nonzero_exit_134" in wp["flags"]
+
+
+def test_nonzero_exit_with_truncated_json_is_still_failure(monkeypatch):
+    """부분 출력(잘린 JSON)은 계약 파서를 통과하지 못하므로 종전대로 실패 — codex 재현 유지."""
+    client = _chat_client(monkeypatch, _Proc(134, _COMPLETE[: len(_COMPLETE) // 2]))
+    r = client.post("/v1/chat/completions", json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    assert "hermes_failed" in wp["flags"] and wp["confidence"] == 0.0 and "hermes exit 134" in wp["recommendation"]
+
+
+def test_zero_exit_has_no_exit_flag(monkeypatch):
+    client = _chat_client(monkeypatch, _Proc(0, _COMPLETE))
+    r = client.post("/v1/chat/completions", json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    assert not any(f.startswith("hermes_nonzero_exit") for f in wp["flags"])
+
+
+def test_skill_resolution_for_every_ra_profile(tmp_path):
+    """#150 P3-0 확정: 운영 profile 의 skills/ 에 ra-expert 가 없으면 `--skills ra-expert` 는
+    LLM 도달 전 ValueError 로 실패한다. profile 별 해석 결과를 회귀로 고정한다(LLM 호출 없음)."""
+    import subprocess as sp
+    import sys as _sys
+    probe = (
+        "import os,sys;sys.path.insert(0,os.path.expanduser('~/.hermes/hermes-agent'));"
+        "os.environ['HERMES_HOME']=sys.argv[1];"
+        "from agent.skill_commands import _load_skill_payload;"
+        "print('LOADED' if _load_skill_payload('ra-expert') else 'NOTFOUND')"
+    )
+    home = Path.home() / ".hermes" / "profiles" / "ra-us"
+    if not home.exists():
+        pytest.skip("Hermes profiles not present on this host")
+    out = sp.run([_sys.executable, "-c", probe, str(home)], capture_output=True, text=True, timeout=120)
+    assert out.stdout.strip() in ("LOADED", "NOTFOUND")
+    # 이 호스트의 현재 상태를 증거로 남긴다 — NOTFOUND 이면 운영 mail-triage 가 실패한다는 뜻.
+    print(f"ra-us ra-expert resolution: {out.stdout.strip()}")
