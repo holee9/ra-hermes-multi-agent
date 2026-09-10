@@ -21,11 +21,13 @@ import os
 import re
 import secrets
 import subprocess
+import threading
 import time
 import urllib.request
 import uuid
 import urllib.error
-from datetime import date, timedelta
+from contextlib import contextmanager
+from datetime import date, datetime, timedelta, timezone
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -771,13 +773,14 @@ def build_advisory_context(
 def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
     """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
     try:
-        result = subprocess.run(
-            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env={**os.environ, "PYTHONUNBUFFERED": "1"},
-        )
+        with _profile_slot(profile):                                 # #150 P3-0: 이 프로세스 관측 범위의 busy
+            result = subprocess.run(
+                [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"},
+            )
         out = result.stdout.strip()
         if result.returncode != 0:                                   # #150: 비정상 종료의 부분 stdout 은 답변이 아니다
             _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
@@ -1115,13 +1118,14 @@ def chat_completions():
     response_text = ""
     error_detail = ""
     try:
-        result = subprocess.run(
-            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
-            capture_output=True,
-            text=True,
-            timeout=TIMEOUT,
-            env={**os.environ, "PYTHONUNBUFFERED": "1"},
-        )
+        with _profile_slot(profile):                                 # #150 P3-0: 이 프로세스 관측 범위의 busy
+            result = subprocess.run(
+                [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
+                capture_output=True,
+                text=True,
+                timeout=TIMEOUT,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"},
+            )
         # #150 codex 재현: returncode!=0 인데 stdout 이 있으면 정상 completion(finish_reason=stop)으로
         # 반환됐다. 비정상 종료의 부분 stdout 은 답변이 아니라 실패 흔적이다 — 실패 계약(hermes_failed)으로 보낸다.
         if result.returncode != 0:
@@ -1441,6 +1445,128 @@ def peer_notify():
     _peer_seen_add(comment_url)
     _log_peer_event(data)
     return jsonify({"status": "accepted", "comment_url": comment_url})
+
+
+# ── HIVE 수락 계약 (#150 P3-0, 세션 모델 A: 일회성 호출) ─────────────────────────
+#
+# delivery-gate §3.1 의 authoritative 상태 소스·compare-and-accept·msg_id 원장을 이 프로세스가 제공한다.
+# 범위 한정(codex 리뷰): "busy/idle"은 **이 API 프로세스가 관측한** hermes subprocess 점유일 뿐이다.
+# host 의 다른 hermes 호출자는 보지 못한다 — 그 조사(P3-0 (1))가 끝나기 전에는 drain sink 를 붙이지 않는다.
+# 문맥은 payload 만 쓴다: 스레드 재구성(P3-0 (5))은 토큰·품질 실측 후에 넣는다.
+HIVE_GENERATION = f"{os.getpid()}-{int(time.time())}"       # 재시작 판별: 이전 세대의 busy/accept 는 stale
+HIVE_LEDGER_PATH = os.environ.get("HIVE_LEDGER_PATH", "")    # 비어 있으면 메모리 원장(재시작 시 소실 → lookup 은 unknown)
+HIVE_ACTORS = {"ra_us": "ra-us", "ra_eu": "ra-eu"}          # hive-layout §4.1, P3 파일럿 2 peer 한정
+_hive_state_lock = threading.Lock()
+_profile_busy: dict[str, int] = {}                           # profile → 실행 중인 subprocess 수 (이 프로세스)
+_hive_ledger: dict[str, dict] = {}                           # msg_id → {actor, profile, status, ts, generation}
+
+
+@contextmanager
+def _profile_slot(profile: str):
+    with _hive_state_lock:
+        _profile_busy[profile] = _profile_busy.get(profile, 0) + 1
+    try:
+        yield
+    finally:
+        with _hive_state_lock:
+            _profile_busy[profile] = max(0, _profile_busy.get(profile, 1) - 1)
+
+
+def _hive_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _ledger_load() -> None:
+    if not HIVE_LEDGER_PATH or _hive_ledger:
+        return
+    try:
+        with open(HIVE_LEDGER_PATH, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(rec, dict) and isinstance(rec.get("msg_id"), str):
+                    _hive_ledger[rec["msg_id"]] = rec
+    except FileNotFoundError:
+        pass
+
+
+def _ledger_write(rec: dict) -> None:
+    _hive_ledger[rec["msg_id"]] = rec
+    if HIVE_LEDGER_PATH:
+        with open(HIVE_LEDGER_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+
+
+def _hive_state_for(actor: str) -> dict:
+    profile = HIVE_ACTORS[actor]
+    with _hive_state_lock:
+        busy = _profile_busy.get(profile, 0) > 0
+    return {"actor": actor, "profile": profile, "value": "busy" if busy else "idle",
+            "observed_at": _hive_now(), "generation": HIVE_GENERATION,
+            "scope": "this-api-process-only", "accept_token": None}
+
+
+@app.route("/v1/hive/state/<actor>", methods=["GET"])
+def hive_state(actor: str):
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    if actor not in HIVE_ACTORS:
+        return jsonify({"error": "unknown hive actor", "actor": actor}), 404
+    return jsonify(_hive_state_for(actor))
+
+
+@app.route("/v1/hive/lookup/<msg_id>", methods=["GET"])
+def hive_lookup(msg_id: str):
+    """drain 재시작 복구용 안정 id 조회: accepted 이후 상태를 돌려준다. 원장에 없으면 404 (= 받지 않음)."""
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    _ledger_load()
+    rec = _hive_ledger.get(msg_id)
+    if rec is None:
+        return jsonify({"msg_id": msg_id, "known": False}), 404
+    return jsonify({"msg_id": msg_id, "known": True, **rec})
+
+
+@app.route("/v1/hive/submit", methods=["POST"])
+def hive_submit():
+    """compare-and-accept: 이 프로세스가 profile 을 점유하지 않은 순간에만 수락하고, 수락과 동시에 점유한다.
+    같은 msg_id 재제출은 원장 상태를 돌려주며 다시 실행하지 않는다(멱등)."""
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    actor, msg_id, payload = data.get("actor"), data.get("msg_id"), data.get("payload")
+    if actor not in HIVE_ACTORS or not isinstance(msg_id, str) or not msg_id.startswith("evt_"):
+        return jsonify({"error": "actor/msg_id invalid"}), 400
+    if not isinstance(payload, dict) or payload.get("id") != msg_id:
+        return jsonify({"error": "payload.id must equal msg_id"}), 400
+    profile = HIVE_ACTORS[actor]
+    _ledger_load()
+    with _hive_state_lock:
+        prior = _hive_ledger.get(msg_id)
+        if prior is not None:
+            return jsonify({"result": "duplicate", **prior}), 200
+        if _profile_busy.get(profile, 0) > 0:
+            return jsonify({"result": "reject-busy", "actor": actor, "profile": profile,
+                            "generation": HIVE_GENERATION}), 409
+        _profile_busy[profile] = _profile_busy.get(profile, 0) + 1   # 수락 = 점유 (같은 lock 안)
+        accepted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "accepted",
+                    "ts": _hive_now(), "generation": HIVE_GENERATION}
+        _ledger_write(accepted)
+    try:
+        context = json.dumps(payload, ensure_ascii=False)             # 스레드 재구성 없음 (P3-0 (5) 실측 전)
+        out, err = _invoke_hermes(profile, context)
+    finally:
+        with _hive_state_lock:
+            _profile_busy[profile] = max(0, _profile_busy.get(profile, 1) - 1)
+    # 'completed' 는 subprocess 정상 종료일 뿐이다. handled(§5.1)는 outbox 답신·의무 검증으로 drain 이 판정한다.
+    done = {**accepted, "status": "completed" if not err else "failed", "ts": _hive_now(),
+            "error": err or None, "output_chars": len(out)}
+    _ledger_write(done)
+    return jsonify({"result": "accepted", **done, "output": out}), 200
 
 
 @app.route("/health", methods=["GET"])
