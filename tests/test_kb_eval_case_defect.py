@@ -7,6 +7,7 @@ system-level quality signal — both are reported.
 """
 import importlib.util
 import json
+import pytest
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -197,3 +198,53 @@ def test_assemble_cases_floor_ignored_in_vector_mode(monkeypatch):
     monkeypatch.setattr(runner, "GROWTH_FOCUS_MIN_RELEVANCE", 5)
     cases = runner.assemble_cases(None, agent, "PMS", ["a.md", "b.md"], date(2026, 7, 17), 2, 1)
     assert len(cases) == 2
+
+
+# ── #147 DoD 4: focus 의미와 어긋나는 source 가 선택되는 경로 점검 ─────────────────
+# 이슈에 기록된 실제 오배정 3건과 같은 focus 의 정답형 문서를 focus_relevance 로 점수화해
+# **분리 가능성**을 회귀로 고정한다. 라우팅 표(FOCUS_ROUTING)가 바뀌어 오배정이 다시
+# 정답형 수준으로 올라오면 이 테스트가 깨진다.
+_MISMATCH = [
+    # (focus, source_path, excerpt, 이슈의 오배정 사례)
+    ("PMS and PMCF planning", "eu/EUDAMED_GUDID_UDI_등록DB_비교.md",
+     "EUDAMED 와 GUDID 의 UDI 등록 DB 구조 비교. UDI-DI, Basic UDI-DI 발급 절차와 등록 화면.",
+     "20260717-it01-ra_eu-004"),
+    ("clinical evaluation gap analysis", "eu/PMS_특화표_PSUR_매트릭스.md",
+     "PMS 특화표와 PSUR 매트릭스. surveillance 주기표.",
+     "20260720-it01-ra_eu-005"),
+    ("510(k) predicate strategy", "us/959_FDA_510k_RTA_기초보강_3주차_재이월.md",
+     "3주차 인력 배치와 일정 이월 기록. 담당자별 진행률.",
+     "ra_us-p2 #14"),
+]
+_ON_TOPIC = [
+    ("PMS and PMCF planning", "eu/PMS_PMCF_계획서_템플릿.md",
+     "PMS plan, PMCF plan, PSUR 주기, post-market surveillance 데이터 수집 계획."),
+    ("clinical evaluation gap analysis", "eu/CER_임상평가_gap_analysis.md",
+     "clinical evaluation report, CER, equivalence, MDCG 2020-5, PMCF gap."),
+    ("510(k) predicate strategy", "us/510k_predicate_선정_전략.md",
+     "510(k) predicate device 선정, substantial equivalence 논거, eSTAR 제출."),
+]
+
+
+@pytest.mark.parametrize("focus,path,text,case_id", _MISMATCH)
+def test_known_mismatched_sources_score_below_floor_candidate(focus, path, text, case_id):
+    """#147 오배정 사례는 relevance 3 미만이어야 한다(측정값 2/0/2)."""
+    assert runner.focus_relevance(focus, path, text) < 3, case_id
+
+
+@pytest.mark.parametrize("focus,path,text", _ON_TOPIC)
+def test_on_topic_sources_stay_well_above_floor_candidate(focus, path, text):
+    """같은 focus 의 정답형 문서는 3 이상이어야 한다(측정값 8/10/8)."""
+    assert runner.focus_relevance(focus, path, text) >= 3
+
+
+def test_mismatch_and_on_topic_are_separable_by_a_single_floor():
+    """오배정 최댓값 < 정답형 최솟값 — 하나의 floor 값으로 분리 가능해야 한다."""
+    worst_ok = min(runner.focus_relevance(f, p, t) for f, p, t in _ON_TOPIC)
+    best_bad = max(runner.focus_relevance(f, p, t, ) for f, p, t, _ in _MISMATCH)
+    assert best_bad < worst_ok, f"오배정 {best_bad} >= 정답형 {worst_ok} — 라우팅 표로 분리 불가"
+
+
+def test_floor_is_unset_by_default_so_this_is_an_ops_decision():
+    """기본값은 여전히 미설정(G7 운영값). 코드가 임의로 상한을 정하지 않는다."""
+    assert runner.GROWTH_FOCUS_MIN_RELEVANCE is None
