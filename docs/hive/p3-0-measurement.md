@@ -43,7 +43,17 @@ $HOME/.local/bin/hermes --help 2>&1 | grep -iE 'hook|log|session|resume|json'
 sqlite3 ~/.hermes/profiles/ra-us/state.db '.schema' 2>/dev/null | head -40
 ```
 
-기록: "CLI가 입력 읽기/처리 개시를 외부에 알리는 방법 있음/없음". 없으면 §3.1대로 `submitted`→`completed` 사이는 unknown으로 유지하고 P3에서 개시 신호 없이 운영 가능한지(턴 단위 간격 + reply 기반 handled만으로) 판단한다.
+후보(codex, 설치 Hermes `f8adefde` 코드 읽기 — 실행·설치 없음): `agent/turn_context.py:238` inbound user turn의 조기 `_persist_session`, `:316` `pre_llm_call` hook(session_id/task_id/turn_id/user_message). CLI one-shot 경로는 `cli.py:13443` → `run_conversation` → `build_turn_context`. **둘 다 fail-soft** — 신호 부재를 미수신으로 읽으면 안 된다. 재사용 원칙: 기존 훅/저장 관측을 쓰고, 보존은 `msg_id ↔ session_id/turn_id/generation` 메타데이터만(본문 아님). 의미 구분 고정: 턴 준비 진입 ≠ 모델 수락 ≠ handled(§5.1).
+
+확인 명령(읽기 전용):
+```bash
+sed -n 225,260p ~/.hermes/hermes-agent/agent/turn_context.py; sed -n 300,330p ~/.hermes/hermes-agent/agent/turn_context.py
+grep -n "pre_llm_call\|_persist_session" -r ~/.hermes/hermes-agent/agent ~/.hermes/hermes-agent/hermes_cli 2>/dev/null | head
+# 최근 one-shot 호출 뒤 profile sessions/state.db 에 turn 메타가 남는지 (승인된 호출 1회 후)
+sqlite3 ~/.hermes/profiles/ra-us/state.db 'select * from sqlite_master where type="table"' 2>/dev/null
+```
+
+기록: "CLI가 입력 읽기/처리 개시를 외부에 알리는 방법 있음/없음" + 있으면 어느 훅/저장에서 `session_id/turn_id`를 읽을 수 있는지. 없으면 §3.1대로 `submitted`→`completed` 사이는 unknown으로 유지하고 P3에서 개시 신호 없이 운영 가능한지(턴 단위 간격 + reply 기반 handled만으로) 판단한다.
 
 ## 3. 3턴 스레드 재구성 실측 — (5)
 
