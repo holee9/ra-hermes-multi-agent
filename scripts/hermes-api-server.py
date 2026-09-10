@@ -28,6 +28,7 @@ import uuid
 import urllib.error
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -1440,6 +1441,64 @@ def _log_peer_event(nudge: dict) -> None:
         _peer_notify_logger.info(json.dumps(event, ensure_ascii=False))
     except Exception:
         pass
+
+
+# ── 성장 리포트 배포 (#103) ───────────────────────────────────────────────────
+#
+# `reports/growth-YYYY-MM-DD.json` 은 .gitignore 대상이라 수집 호스트(T3610) 로컬 산출물이다.
+# raspi5p 가 게이트 점검(`growth-transition-readiness.py`)을 자기 체크아웃에서 돌리면 항상 0건이
+# 나온다(#103 최초 관측). 새 자격증명·SSH 경로를 만들지 않고 **이미 쓰는 API 인증·네트워크 경로**로
+# 읽기 전용 배포한다. 쓰기 엔드포인트는 만들지 않는다 — 리포트는 T3610 이 단독 생성한다.
+GROWTH_REPORTS_DIR = Path(os.environ.get(
+    "GROWTH_REPORTS_DIR", str(Path(__file__).resolve().parent.parent / "reports")))
+_GROWTH_REPORT_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _growth_report_path(date: str) -> Path | None:
+    """`YYYY-MM-DD` 형식일 때만 경로를 만든다(형식 위반은 None). 경로 이탈 판정은 호출자."""
+    if not _GROWTH_REPORT_DATE.match(date or ""):
+        return None
+    return GROWTH_REPORTS_DIR / f"growth-{date}.json"
+
+
+def _growth_report_is_servable(p: Path) -> bool:
+    """symlink 이거나 resolve 후 reports 디렉터리 밖이면 서빙하지 않는다(존재 여부도 흘리지 않음)."""
+    try:
+        if p.is_symlink() or not p.is_file():
+            return False
+        return p.resolve().parent == GROWTH_REPORTS_DIR.resolve()
+    except OSError:
+        return False
+
+
+@app.route("/v1/growth/reports", methods=["GET"])
+def growth_reports_list():
+    """수집 호스트가 가진 리포트 날짜 목록(내용 아님)."""
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    items = []
+    if GROWTH_REPORTS_DIR.is_dir():
+        for f in sorted(GROWTH_REPORTS_DIR.glob("growth-*.json")):
+            m = re.match(r"^growth-(\d{4}-\d{2}-\d{2})\.json$", f.name)
+            if m and f.is_file() and not f.is_symlink():
+                items.append({"date": m.group(1), "bytes": f.stat().st_size})
+    return jsonify({"count": len(items), "reports": items})
+
+
+@app.route("/v1/growth/reports/<date>", methods=["GET"])
+def growth_report_get(date: str):
+    """한 날짜의 리포트 원문(JSON). 읽기 전용."""
+    if not check_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    p = _growth_report_path(date)
+    if p is None:
+        return jsonify({"error": "invalid date", "expected": "YYYY-MM-DD"}), 400
+    if not _growth_report_is_servable(p):
+        return jsonify({"error": "not found", "date": date}), 404
+    try:
+        return jsonify(json.loads(p.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError) as e:
+        return jsonify({"error": "unreadable report", "detail": type(e).__name__}), 500
 
 
 @app.route("/v1/peer/notify", methods=["POST"])
