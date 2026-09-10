@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -267,7 +268,43 @@ def test_hop_cap_exceeded_escalates_once_and_rejects_original(hr, ve, hive):
 def _run_with_fault(hr, hive, clock, fault_at, target=None):
     with pytest.raises(hr.InjectedFault):
         _router(hr, hive, clock, fault_at=fault_at, fault_target=target).run()
-    assert not (hive / ".router/lock").exists()          # finally 절에서 lock 해제
+    _assert_lock_free(hive)                               # finally 절에서 flock 해제
+
+
+def _assert_lock_free(hive):
+    """flock 방식: 파일은 남지만 잠금은 풀려 있어야 한다."""
+    import fcntl
+    fd = os.open(hive / ".router/lock", os.O_CREAT | os.O_RDWR)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
+_LOCK_HOLDER = r"""
+import fcntl, os, sys, time
+fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR)
+fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+os.write(fd, str(os.getpid()).encode())
+print("held", flush=True)
+time.sleep(float(sys.argv[2]))
+"""
+
+_RACER = r"""
+import importlib.util, os, sys, time
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("hr", sys.argv[1]); hr = importlib.util.module_from_spec(spec)
+sys.modules["hr"] = hr; spec.loader.exec_module(hr)
+r = hr.HiveRouter(Path(sys.argv[2]), hop_cap=12, execute=True)
+start = Path(sys.argv[3])
+while not start.exists():
+    time.sleep(0.005)                       # barrier: 두 프로세스가 같은 순간에 acquire를 시도
+try:
+    r.acquire_lock(); print("acquired", flush=True); time.sleep(0.5); r.release_lock()
+except hr.LockHeld:
+    print("refused", flush=True)
+"""
 
 
 @pytest.mark.parametrize("fault_at", ["before_log_append", "after_log_append", "before_archive"])
@@ -342,18 +379,40 @@ def test_tmp_files_are_ignored(hr, hive):
     assert res.plans == []
 
 
-def test_lock_held_by_live_pid_refuses_and_stale_lock_is_taken_over(hr, hive):
+def test_lock_held_by_another_process_refuses(hr, hive):
     (hive / ".router").mkdir()
-    (hive / ".router/lock").write_text(str(os.getpid()))
-    with pytest.raises(hr.LockHeld):
-        _router(hr, hive).run()
-    (hive / ".router/lock").write_text("999999")           # 죽은 pid
+    holder = subprocess.Popen([sys.executable, "-c", _LOCK_HOLDER, str(hive / ".router/lock"), "5"],
+                              stdout=subprocess.PIPE, text=True)
+    try:
+        assert holder.stdout.readline().strip() == "held"
+        with pytest.raises(hr.LockHeld, match="pid"):
+            _router(hr, hive).run()
+    finally:
+        holder.kill()
+        holder.wait()
     _outbox(hive, "ra_us", REQ)
-    res = _router(hr, hive).run()
-    assert res.errors == [] and not (hive / ".router/lock").exists()
-    (hive / ".router/lock").write_text("garbage")
-    with pytest.raises(hr.LockHeld):
-        _router(hr, hive).run()                              # 손상된 lock은 삭제하지 않는다
+    res = _router(hr, hive).run()                            # 보유 프로세스가 죽으면 커널이 잠금 해제
+    assert res.errors == []
+    _assert_lock_free(hive)
+
+
+def test_stale_or_garbage_lock_content_does_not_block(hr, hive):
+    (hive / ".router").mkdir()
+    (hive / ".router/lock").write_text("garbage")            # pid 내용은 진단용일 뿐
+    _outbox(hive, "ra_us", REQ)
+    assert _router(hr, hive).run().errors == []
+
+
+def test_concurrent_acquire_yields_exactly_one_owner(hr, hive):
+    """리뷰 P1 재현 조건: 두 프로세스를 barrier로 동기화해 같은 순간 acquire — 정확히 하나만 성공."""
+    (hive / ".router").mkdir()
+    start = hive / ".router/.go"
+    procs = [subprocess.Popen([sys.executable, "-c", _RACER, str(ROUTER), str(hive), str(start)],
+                              stdout=subprocess.PIPE, text=True) for _ in range(2)]
+    time.sleep(0.5)                                          # 두 프로세스가 barrier에 도달
+    start.write_text("go")
+    outs = sorted(p.communicate(timeout=20)[0].strip() for p in procs)
+    assert outs == ["acquired", "refused"]
 
 
 def test_id_collision_is_reissued_and_retry_keeps_id(hr, hive, monkeypatch):
@@ -377,3 +436,98 @@ def test_id_collision_is_reissued_and_retry_keeps_id(hr, hive, monkeypatch):
     assert assigned != existing and assigned.endswith("cafe")
     _router(hr, hive, clock2).run()
     assert _log(hive)[-1]["id"] == assigned                  # 재시도해도 id 보존
+
+
+# ---------------------------------------------------------------- P1 review findings (PR #151, 2026-09-10)
+
+def test_escalation_delivery_failure_is_reported_and_original_kept(hr, ve, hive):
+    """P1-1: human inbox 기록 실패를 delivered_to=["human"]/errors=[]로 기록하고 archive하던 결함."""
+    src = _outbox(hive, "ra_us", {**REQ, "to": "ra_kr"})   # paused → undeliverable → human escalation
+    inbox = hive / "agents/human/inbox"
+    inbox.rmdir()
+    inbox.write_text("not a directory")
+    res = _router(hr, hive).run()
+    assert res.plans[0].outcome == "escalate"
+    assert len(res.errors) == 1 and "human inbox 기록 실패" in res.errors[0]
+    assert src.exists() and not (src.parent / ".rejected" / src.name).exists()   # 원본 보류
+    assert not (hive / "log.jsonl").exists()                                       # 전달 성공으로 기록 안 함
+    inbox.unlink()
+    inbox.mkdir()
+    res = _router(hr, hive).run()                                                  # 복구 후 재시도
+    assert res.errors == [] and len(_inbox(hive, "human")) == 1 and (src.parent / ".rejected" / src.name).exists()
+    assert [e["kind"] for e in _log(hive)] == ["escalation"]
+    _assert_log_valid(ve, hive)
+
+
+def test_refuse_notice_failure_is_reported_with_empty_delivered_to(hr, hive):
+    """P1-1 (peer 알림 경로): 알림 미전달을 delivered_to=[actor]로 위장하지 않는다."""
+    _outbox(hive, "ra_us", {**REQ, "to": "ra_us"})         # self-send → reject → notice to ra_us
+    inbox = hive / "agents/ra_us/inbox"
+    inbox.rmdir()
+    inbox.write_text("not a directory")
+    res = _router(hr, hive).run()
+    assert res.plans[0].outcome == "reject"
+    assert len(res.errors) == 1 and "거부 알림" in res.errors[0]
+    notice = [e for e in _log(hive) if e["kind"] == "comment"][0]
+    assert notice["payload"]["delivered_to"] == []
+
+
+def test_reject_restart_after_archive_fault_does_not_duplicate_derived_events(hr, ve, hive):
+    """P1-2: before_archive 장애 후 재실행 시 policy/comment가 2세트, 알림 2개가 되던 결함."""
+    src = _outbox(hive, "ra_us", {**REQ, "to": "ra_us"})
+    clock = Clock()
+    _run_with_fault(hr, hive, clock, "before_archive")
+    res = _router(hr, hive, clock).run()
+    assert res.errors == [] and (src.parent / ".rejected" / src.name).exists()
+    kinds = sorted(e["kind"] for e in _log(hive))
+    assert kinds == ["comment", "policy"]                    # 각 1건
+    assert len(_inbox(hive, "ra_us")) == 1                    # 알림 1개
+    _assert_log_valid(ve, hive)
+
+
+def test_escalate_restart_after_archive_fault_is_idempotent(hr, ve, hive):
+    _outbox(hive, "ra_us", {**REQ, "to": "ra_kr"})
+    clock = Clock()
+    _run_with_fault(hr, hive, clock, "before_archive")
+    _router(hr, hive, clock).run()
+    assert len(_inbox(hive, "human")) == 1 and [e["kind"] for e in _log(hive)] == ["escalation"]
+    _assert_log_valid(ve, hive)
+
+
+@pytest.mark.parametrize("field,value", [("kind", {}), ("kind", []), ("act", []), ("corr", 7), ("corr", {}),
+                                         ("case", "x"), ("case", []), ("requires_reply", "yes")])
+def test_raw_field_type_garbage_is_rejected_not_crash(hr, hive, field, value):
+    """P1-3: raw kind={} 등이 normalize에서 TypeError로 run 전체를 죽이던 결함."""
+    _outbox(hive, "ra_us", {**REQ, field: value})
+    _outbox(hive, "ra_eu", {**REQ, "to": "ra_us"}, name="20260909T120001-0001.json")   # 뒤 메시지는 살아야 함
+    res = _router(hr, hive).run()
+    outcomes = {p.actor: p.outcome for p in res.plans}
+    assert outcomes == {"ra_us": "reject", "ra_eu": "deliver"}
+    assert "schema" in [p for p in res.plans if p.actor == "ra_us"][0].reason
+
+
+def test_symlinked_inbox_outside_root_is_refused(hr, hive, tmp_path):
+    """P1-5: registry 이름 확인만으로는 root 밖 symlink 쓰기를 막지 못하던 결함."""
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    inbox = hive / "agents/ra_eu/inbox"
+    inbox.rmdir()
+    inbox.symlink_to(outside, target_is_directory=True)
+    src = _outbox(hive, "ra_us", REQ)
+    res = _router(hr, hive).run()
+    assert list(outside.iterdir()) == []                       # root 밖에 아무것도 쓰지 않음
+    assert any("경로 이탈" in e for e in res.errors)
+    assert src.exists()                                        # 원본 보류
+    assert all(str(t.resolve()).startswith(str(hive.resolve())) for t in res.touched)
+
+
+def test_symlinked_outbox_outside_root_is_ignored(hr, hive, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "20260909T120000-0001.json").write_text(json.dumps(REQ))
+    outbox = hive / "agents/ra_us/outbox"
+    outbox.rmdir()
+    outbox.symlink_to(outside, target_is_directory=True)
+    res = _router(hr, hive).run()
+    assert res.plans == [] and any("경로 이탈" in e for e in res.errors)
+    assert (outside / "20260909T120000-0001.json").exists()   # 이동·삭제 없음

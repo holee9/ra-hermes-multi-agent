@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import fcntl
 import os
 import secrets
 import sys
@@ -98,6 +99,8 @@ class HiveRouter:
         self.state_dir = self.root / ".router"
         self.journal_dir = self.state_dir / "journal"
         self.touched: list[Path] = []
+        self.errors: list[str] = []          # 처리는 계속되지만 보고해야 하는 실패 (예: 거부 알림 미전달)
+        self._root_resolved = self.root.resolve()
         self._log_index: dict[str, tuple[int, dict]] | None = None
 
     # ------------------------------------------------------------ helpers
@@ -150,8 +153,22 @@ class HiveRouter:
                 return cand
         raise RouterError("id 재발급 64회 실패")
 
+    def _inside_root(self, path: Path) -> bool:
+        """리뷰 P1(#151): registry 이름 확인만으로는 경로 이탈을 막지 못한다 — inbox/outbox가
+        hive root 밖을 가리키는 symlink이면 root 밖에 파일이 기록됐다. 모든 쓰기·이동 대상과
+        outbox 스캔 대상을 **resolve한 실제 경로**가 root 안인지로 판정한다."""
+        try:
+            resolved = path.resolve()
+        except OSError:
+            return False
+        return resolved == self._root_resolved or self._root_resolved in resolved.parents
+
     def _atomic_write(self, path: Path, data: str):
+        if not self._inside_root(path.parent):
+            raise RouterError(f"경로 이탈 차단: {path} 는 hive root 밖을 가리킴 (symlink?)")
         path.parent.mkdir(parents=True, exist_ok=True)
+        if not self._inside_root(path.parent) or path.parent.is_symlink() and not self._inside_root(path.parent):
+            raise RouterError(f"경로 이탈 차단: {path}")
         tmp = path.parent / f".tmp-{os.getpid()}-{secrets.token_hex(2)}"
         tmp.write_text(data, encoding="utf-8")
         os.replace(tmp, path)
@@ -165,25 +182,40 @@ class HiveRouter:
 
     # ------------------------------------------------------------ lock
     def acquire_lock(self):
+        """단일 실행 lock — OS 파일 잠금(flock)으로 원자적으로 획득한다.
+
+        리뷰 P1(#151): exists()→write_text() 두 단계는 동시에 시작한 두 프로세스가 모두
+        통과할 수 있었다. flock은 커널이 단일 소유자를 보장하고, 소유 프로세스가 죽으면
+        자동 해제되므로 pid 생사 판정이나 lock 파일 삭제가 필요 없다. 파일 내용(pid)은
+        진단용일 뿐 잠금의 근거가 아니다.
+        """
         if not self.execute:
             return
         self.state_dir.mkdir(parents=True, exist_ok=True)
         lock = self.state_dir / "lock"
-        if lock.exists():
+        fd = os.open(lock, os.O_CREAT | os.O_RDWR, 0o644)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            holder = ""
             try:
-                pid = int(lock.read_text().strip())
-            except ValueError:
-                raise LockHeld(f"lock 파일 손상: {lock} — 사람이 확인 후 제거")
-            if _pid_alive(pid):
-                raise LockHeld(f"다른 라우터 실행 중 (pid {pid})")
-            # 소유 프로세스가 죽은 것을 확인한 경우에만 인계
-        lock.write_text(str(os.getpid()), encoding="utf-8")
+                holder = os.read(fd, 64).decode(errors="replace").strip()
+            except OSError:
+                pass
+            os.close(fd)
+            raise LockHeld(f"다른 라우터 실행 중 (lock 보유자 pid {holder or '?'})")
+        os.ftruncate(fd, 0)
+        os.write(fd, str(os.getpid()).encode())
+        self._lock_fd = fd
 
     def release_lock(self):
-        if self.execute:
-            lock = self.state_dir / "lock"
-            if lock.exists() and lock.read_text().strip() == str(os.getpid()):
-                lock.unlink()
+        fd = getattr(self, "_lock_fd", None)
+        if fd is not None:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
+                self._lock_fd = None
 
     # ------------------------------------------------------------ normalize
     def normalize(self, actor: str, raw: dict) -> dict:
@@ -193,20 +225,31 @@ class HiveRouter:
         ev["workspace"] = (self.registry.get(actor) or {}).get("workspace", ev.get("workspace", "work"))
         ev["ts"] = self.now().isoformat(timespec="seconds")
         if "to" in ev:
-            ev.setdefault("act", DEFAULT_ACT.get(ev.get("kind"), "inform"))
+            # 리뷰 P1(#151): raw 필드 타입은 아직 검증 전이다 — kind={} / act=[] / corr=7 /
+            # case="x" 같은 입력이 여기서 TypeError로 run 전체를 죽이지 않도록 타입을 보호하고,
+            # 잘못된 값은 그대로 두어 validate()의 스키마 검사가 거부하게 한다.
+            kind = ev.get("kind")
+            if "act" not in ev:
+                ev["act"] = DEFAULT_ACT.get(kind, "inform") if isinstance(kind, str) else "inform"
+            act = ev.get("act")
             if "requires_reply" not in ev:                           # 명시하면 보존, 생략 시 파생
-                ev["requires_reply"] = ev["act"] in OBLIGATING
+                ev["requires_reply"] = isinstance(act, str) and act in OBLIGATING
             corr = ev.get("corr")
-            src = self._log_events().get(corr)[1] if corr in self._log_events() else None
+            src = self._log_events()[corr][1] if isinstance(corr, str) and corr in self._log_events() else None
             if src is not None:
-                ev["hops"] = int(src.get("hops", 0)) + 1
+                try:
+                    ev["hops"] = int(src.get("hops", 0)) + 1
+                except (TypeError, ValueError):
+                    ev["hops"] = 0
                 if src.get("conversation"):
                     ev["conversation"] = src["conversation"]
             else:
                 ev["hops"] = 0                                       # corr 없음 (있는데 못 찾으면 validate가 거부)
             if "conversation" not in ev:
-                wp = (ev.get("case") or {}).get("wp", "na")
-                ev["conversation"] = f"conv_{wp}_{ev.get('kind', 'msg')}_{secrets.token_hex(2)}"
+                case = ev.get("case")
+                wp = case.get("wp", "na") if isinstance(case, dict) else "na"
+                kind_slug = kind if isinstance(kind, str) else "msg"
+                ev["conversation"] = f"conv_{wp}_{kind_slug}_{secrets.token_hex(2)}"
         return ev
 
     # ------------------------------------------------------------ validate
@@ -281,8 +324,12 @@ class HiveRouter:
     def _archive(self, src: Path, sub: str):
         self._fault("before_archive")
         dest = src.parent / sub / src.name
+        if not self._inside_root(src.parent):
+            raise RouterError(f"경로 이탈 차단: {src} 의 outbox가 hive root 밖 (symlink?)")
         if src.exists():
             dest.parent.mkdir(parents=True, exist_ok=True)
+            if not self._inside_root(dest.parent):
+                raise RouterError(f"경로 이탈 차단: {dest}")
             os.replace(src, dest)
         self.touched.append(dest)
 
@@ -294,25 +341,51 @@ class HiveRouter:
             ev["conversation"] = payload.get("conversation") or f"conv_{kind}_{ev['id'][-4:]}"
         return ev
 
-    def _escalate(self, reason: str, ref: dict, extra: dict | None = None):
-        payload = {"reason": reason, "ref_evt": ref["id"], "conversation": ref.get("conversation")}
-        payload.update(extra or {})
-        esc = self._router_event("escalation", payload, to="human", workspace=ref.get("workspace", "work"))
-        self._deliver_one("human", esc)
+    def _derived(self, j: dict, key: str, make) -> dict:
+        """저널에 파생 이벤트(policy/comment/escalation)를 한 번만 만들어 보관한다.
+
+        리뷰 P1(#151): 재시작마다 새 id를 발급하면 log에 policy/comment가 2세트씩 쌓였다.
+        파생 이벤트의 id·내용을 저널에 고정해 두면 _append_log(id 멱등)·_deliver_one(inbox
+        파일명 멱등)이 재실행에서도 한 번만 효력을 낸다.
+        """
+        derived = j.setdefault("derived", {})
+        if key not in derived:
+            derived[key] = make()
+            self._journal_write(j)
+        return derived[key]
+
+    def _escalate(self, reason: str, ref: dict, extra: dict | None, j: dict, key: str = "escalation") -> None:
+        """사람 inbox에 escalation을 기록한다. 기록에 실패하면 RouterError —
+        호출자는 원본을 archive하지 않고 outbox에 남겨 다음 실행에서 재시도한다.
+        리뷰 P1(#151): 이전에는 반환값을 무시하고 delivered_to=["human"]로 기록했다."""
+        def make():
+            payload = {"reason": reason, "ref_evt": ref["id"], "conversation": ref.get("conversation")}
+            payload.update(extra or {})
+            return self._router_event("escalation", payload, to="human", workspace=ref.get("workspace", "work"))
+        esc = self._derived(j, key, make)
+        if not self._deliver_one("human", esc):
+            raise RouterError(f"human inbox 기록 실패 — escalation({reason}) for {ref['id']} 미전달, 원본 보류")
         esc["payload"]["delivered_to"] = ["human"]
         self._append_log(esc)
 
-    def _refuse(self, ev: dict, reasons: list[str]):
-        pol = self._router_event("policy", {"action": "refuse-invalid", "reason": ",".join(reasons),
-                                            "ref_evt": ev["id"], "target_actor": ev["actor"]},
-                                 workspace=ev.get("workspace", "work"))
+    def _refuse(self, ev: dict, reasons: list[str], j: dict) -> None:
+        pol = self._derived(j, "refuse_policy", lambda: self._router_event(
+            "policy", {"action": "refuse-invalid", "reason": ",".join(reasons),
+                       "ref_evt": ev["id"], "target_actor": ev["actor"]},
+            workspace=ev.get("workspace", "work")))
         self._append_log(pol)
-        note = self._router_event("comment", {"text": f"거부: {','.join(reasons)}", "ref_evt": ev["id"]},
-                                  to=ev["actor"], workspace=ev.get("workspace", "work"))
-        note["requires_reply"] = False
-        self._deliver_one(ev["actor"], note)
-        note["payload"]["delivered_to"] = [ev["actor"]]
+
+        def make_note():
+            note = self._router_event("comment", {"text": f"거부: {','.join(reasons)}", "ref_evt": ev["id"]},
+                                      to=ev["actor"], workspace=ev.get("workspace", "work"))
+            note["requires_reply"] = False
+            return note
+        note = self._derived(j, "refuse_notice", make_note)
+        delivered = self._deliver_one(ev["actor"], note)
+        note["payload"]["delivered_to"] = [ev["actor"]] if delivered else []     # 실제 결과만 기록
         self._append_log(note)
+        if not delivered:
+            self.errors.append(f"{ev['actor']} inbox 기록 실패 — 거부 알림 {note['id']} 미전달 (거부 자체는 log에 기록됨)")
 
     # ------------------------------------------------------------ per-message state machine
     def plan_message(self, actor: str, src: Path) -> Plan:
@@ -371,14 +444,14 @@ class HiveRouter:
         self._journal_write(j)
 
         if p.outcome == "reject":
-            self._refuse(ev, p.reason.split(","))
+            self._refuse(ev, p.reason.split(","), j)
             self._archive(p.src, ".rejected")
         elif p.outcome == "observe":
             self._append_log(ev)
             self._archive(p.src, ".sent")
         elif p.outcome == "escalate":
             extra = {"hops_reached": ev["hops"]} if p.reason == "hop-cap" else {"targets": p.targets}
-            self._escalate(p.reason, ev, extra)
+            self._escalate(p.reason, ev, extra, j)                    # 실패 시 RouterError → archive 안 함
             self._archive(p.src, ".rejected")
         elif p.outcome == "deliver":
             delivered = list(j.get("delivered", []))
@@ -401,7 +474,9 @@ class HiveRouter:
             if p.reason.startswith("partial-undeliverable:"):
                 undeliverable += p.reason.split(":", 1)[1].split(",")
             if undeliverable:
-                self._escalate("undeliverable", ev, {"targets": undeliverable})
+                # 실패 시 RouterError: 원본은 outbox에 남고, 다음 실행은 inbox 파일명·log id
+                # 멱등성 덕에 성공분을 중복 기록하지 않은 채 escalation만 재시도한다.
+                self._escalate("undeliverable", ev, {"targets": undeliverable}, j, key="escalation_undeliverable")
             self._archive(p.src, ".sent")
         j["step"] = "archived"
         self._journal_write(j)
@@ -421,13 +496,19 @@ class HiveRouter:
             outbox = adir / "outbox"
             if not outbox.is_dir():
                 continue
+            if not self._inside_root(adir) or not self._inside_root(outbox):
+                self.errors.append(f"{outbox}: hive root 밖을 가리키는 outbox — 무시 (경로 이탈)")
+                continue
             for f in sorted(outbox.iterdir()):
                 if f.is_file() and f.suffix == ".json" and not f.name.startswith(".tmp-"):
+                    if not self._inside_root(f):
+                        self.errors.append(f"{f}: hive root 밖을 가리키는 outbox 파일 — 무시")
+                        continue
                     out.append((adir.name, f))
         return out
 
     def run(self) -> Result:
-        plans, errors = [], []
+        plans, errors = [], self.errors
         self.acquire_lock()
         try:
             for actor, src in self.pending():
