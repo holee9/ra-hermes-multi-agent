@@ -152,6 +152,8 @@ skills:
 
 `hermes -p ra-us -z <3턴> --skills ra-expert` (제한 플래그 없음 = 운영과 동일): `Unknown skill(s)` **0건**(수정 유효), **exit 134 SIGABRT**, 163.4s, stdout 1641B 완결 답변, 금지 도구 흔적 0. Contract A 파싱은 NONE(입력이 메일이 아닌 hive 스레드 — 예상됨). SIGABRT 누적 **3/3**(실험 3턴·5턴, 운영 3턴). 비LLM 서브커맨드(`tools`/`mcp`/`skills`/`config`)는 exit 0 → abort 는 **agent 실행 경로 종료 단계** 한정. Hermes Agent v0.16.0 (2026.6.5, upstream 6e88f7b6).
 
+**SIGABRT 원인 좁히기(코드 읽기, 가설)**: 종료 단계는 `cli.py:955 _run_cleanup`(atexit 등록, 12686행)이며 터미널 리셋 → 터미널/브라우저 정리 → MCP 종료 → auxiliary LLM 클라이언트 종료 → memory provider(`on_session_finalize`, Honcho) 종료 순으로 돈다. faulthandler 가 main thread 에 **Python 프레임을 하나도 못 잡았다**는 것은 인터프리터 파이널라이즈 이후 네이티브 코드에서 abort 됐다는 뜻이고, 로드된 확장 모듈에 `aiohttp._http_parser`·`websockets.speedups`·`_cffi_backend` 가 있다. 남은 백그라운드 스레드/이벤트 루프 정리 순서가 유력 후보다. **확정 아님** — 확정하려면 memory provider 를 끈 조건과 켠 조건의 대조 호출(각 1회, LLM 예산 필요)이 있어야 한다. 업스트림(v0.16.0, upstream 6e88f7b6) 보고 후보.
+
 **[HARD] 배포 순서**: `7912636`(returncode≠0 → hermes_failed)을 **단독 배포 금지**. 현행 배포본은 종료코드를 보지 않으므로 SIGABRT 에도 완결 답변이 통과한다 — `7912636` 만 올리면 SIGABRT(3/3) 때문에 모든 mail-triage 호출이 실패로 전환된다. 반드시 `27aae3d`(Contract A 파서 기반 완결성 판정 + `hermes_nonzero_exit_<N>` flag)와 **함께** 배포한다.
 
 ## 4. 배포 (별도, #150 5615905208·5615930525)
