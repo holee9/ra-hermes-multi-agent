@@ -256,3 +256,41 @@ def test_fetch_comments_fails_closed_when_window_exceeds_page_ceiling(monkeypatc
         "R", (), {"returncode": 0, "stdout": json.dumps(full), "stderr": ""})())
     with pytest.raises(RuntimeError, match="window too wide"):
         p.fetch_comments("holee9/ra-hermes-multi-agent", "2026-08-05T00:00:00Z")
+
+
+# ── #143: 댓글 수정은 재알림되지 않는다 (현행 계약의 특성화 테스트) ────────────────────
+# codex 재현을 회귀로 고정한다. 이 테스트가 깨지면 외부 인터페이스(4필드 계약)가 바뀐 것이므로
+# G2/G5 결정과 raspi5p 인계가 선행돼야 한다 — 테스트를 먼저 고치지 말 것.
+_ORIG = {
+    "issue_url": "https://api.github.com/repos/holee9/ra-hermes-multi-agent/issues/143",
+    "html_url": "https://github.com/holee9/ra-hermes-multi-agent/issues/143#issuecomment-200",
+    "user": {"login": "holee9"},
+    "created_at": "2026-09-10T00:00:00Z",
+    "updated_at": "2026-09-10T00:00:00Z",
+    "body": "원본 내용",
+}
+_EDITED = {**_ORIG, "updated_at": "2026-09-10T05:00:00Z", "body": "정정된 내용"}
+
+
+def test_edited_comment_yields_identical_nudge_so_receiver_dedups_it():
+    assert p.build_nudge(_ORIG) == p.build_nudge(_EDITED)          # 4필드 동일 → 수신기 comment_url dedup
+    assert p.build_nudge(_EDITED)["ts"] == _ORIG["created_at"]      # ts 는 수정 시각이 아니다
+
+
+def test_cursor_advances_past_the_edit_even_though_no_new_nudge():
+    prev = "2026-09-10T00:00:00Z"
+    assert p.compute_new_last_seen([_EDITED], prev) == "2026-09-10T05:00:00Z"
+
+
+def test_resend_same_version_and_restart_are_also_identical():
+    """원본 → 동일 버전 재전송 → 수정 버전 → 재시작 후 수정 재전송: 모두 같은 nudge."""
+    nudges = [p.build_nudge(c) for c in (_ORIG, _ORIG, _EDITED, _EDITED)]
+    assert len({json.dumps(n, sort_keys=True) for n in nudges}) == 1
+
+
+def test_new_comment_is_a_distinct_nudge():
+    """정정을 전달하려면 새 댓글 — 이 경로는 정상 동작한다."""
+    follow_up = {**_ORIG, "html_url": _ORIG["html_url"].replace("200", "201"),
+                 "created_at": "2026-09-10T05:00:00Z", "updated_at": "2026-09-10T05:00:00Z"}
+    assert p.build_nudge(follow_up) != p.build_nudge(_ORIG)
+    assert p.build_nudge(follow_up)["ts"] == "2026-09-10T05:00:00Z"
