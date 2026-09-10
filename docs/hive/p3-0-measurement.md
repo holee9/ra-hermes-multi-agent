@@ -123,10 +123,14 @@ timeout 900 $HOME/.local/bin/hermes -p ra-us-p30test -t memory,skills --max-turn
 
 기록 표:
 
-| 입력 | chars | est_tokens(chars/4, 참고) | **실측 토큰 합계(요청 N건)** | 응답 시간 | 품질(사람 판정: 스레드 맥락 반영/오류) |
-|---|---|---|---|---|---|
-| 3턴 (`conv_1042_class`, 실제 3턴) | (빌더 보고) | (빌더 보고) | | | |
-| 5턴 (`conv_1042_vote`) | 755 | 188 | | | |
+| 입력 | chars | est_tokens(chars/4, 참고) | **실측 토큰 합계(요청 N건)** | 응답 시간 | exit | 품질(사람 판정: 스레드 맥락 반영/오류) |
+|---|---|---|---|---|---|---|
+| 3턴 (`conv_1042_class`) | 436 | 109 | **미측정**(로그에 usage 없음, GX10 서버 로그 필요) | 199.1s | **134 SIGABRT** (stdout 2452B 완결) | 키워드 존재: 1042×2, Class×8, MDR×2, EU×7, 510×3, Yellow×4 — 사람 판정 대기 |
+| 5턴 (`conv_1042_vote`) | 755 | 188 | **미측정** | 51.5s | **134 SIGABRT** (stdout 2265B 완결) | vote×4, MDR×2, ra_us×1; 1042×0 — 사람 판정 대기 |
+
+**B부 결과(2026-09-10, 호출 3/3 사용)**: 호출 1은 `--max-turns`가 top-level에 없어 argparse exit 2(LLM 미도달) → 예산을 profile `agent.max_turns=6`으로 이동. 호출 2·3 모두 **완결 응답을 stdout에 쓴 뒤 SIGABRT(134)** 로 종료. 5턴은 `PYTHONFAULTHANDLER=1`: `Fatal Python error: Aborted`, main thread `<no Python frame>` → **네이티브 코드에서 abort**(Python 프레임 없음, 종료 단계 추정), 로드된 확장 모듈 17개(yaml, cffi, charset_normalizer, multidict, yarl, propcache, aiohttp, frozenlist, websockets.speedups). stderr(3턴)는 0B, `errors.log` 0줄, `agent.log`는 플러그인 discovery만. 금지 도구 흔적 0. Honcho: `work_p30test`에 peer `ra_us_p30test`·session 1건, 운영 `work` 오염 없음. profile `sessions/` 0개, `state.db` 4096B, 개시 신호 없음.
+
+**의미**: (1) API의 `returncode≠0 → hermes_failed`(7912636)는 이 CLI에서 **완결 응답을 실패로 분류**한다 — 운영 `-p ra-us`에서도 같은 abort가 나는지는 미확인(스킬 해석 가설과 함께 A부 §1·승인 호출 1회로 확정). 수정 방향 후보: exit code와 별개로 stdout의 완결성(파서 성공)을 판정에 쓰되 `exit_code`를 응답 메타로 노출 — 결정 전 원인 조사 필요. (2) 토큰은 CLI/로그가 노출하지 않으므로 GX10 서버 로그가 유일한 소스.
 
 목업 5턴 빌더 보고(이 세션 실행): `chars=755, lines=10, est_tokens_heuristic=188, truncated=0`. 이 수치는 크기이지 비용이 아니다.
 
