@@ -40,14 +40,20 @@ import requests
 # Configuration & Logging
 # ---------------------------------------------------------------------------
 
-# Configure logging
+# Configure logging.
+# 로그 디렉터리는 import 시점에 만든다: 갓 clone 한 트리(logs/ 미추적)에서 이 모듈을 import 하면
+# FileHandler 가 FileNotFoundError 로 죽어 CI·새 체크아웃에서 전 스위트가 collect 실패했다.
+# 쓸 수 없는 환경(읽기 전용 등)에서는 파일 핸들러 없이 stderr 로만 로깅한다.
+_log_handlers: list[logging.Handler] = [logging.StreamHandler(sys.stderr)]
+try:
+    os.makedirs('logs', exist_ok=True)
+    _log_handlers.insert(0, logging.FileHandler('logs/growth-metrics-errors.log'))
+except OSError:
+    pass
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/growth-metrics-errors.log'),
-        logging.StreamHandler(sys.stderr)
-    ]
+    handlers=_log_handlers
 )
 logger = logging.getLogger(__name__)
 
