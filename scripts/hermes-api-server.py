@@ -1123,6 +1123,7 @@ def chat_completions():
     # -p loads SOUL.md (Mike/Theo/Sam persona) and enables ra-project/MD-process knowledge layers
     response_text = ""
     error_detail = ""
+    nonzero_exit = 0
     try:
         with _profile_slot(profile):                                 # #150 P3-0: 이 프로세스 관측 범위의 busy
             result = subprocess.run(
@@ -1134,12 +1135,21 @@ def chat_completions():
             )
         # #150 codex 재현: returncode!=0 인데 stdout 이 있으면 정상 completion(finish_reason=stop)으로
         # 반환됐다. 비정상 종료의 부분 stdout 은 답변이 아니라 실패 흔적이다 — 실패 계약(hermes_failed)으로 보낸다.
+        #
+        # 완결성 판정은 종료코드가 아니라 **계약 파서**로 한다 (#150 P3-0 실측): CLI 는 완결 응답을 모두
+        # 쓴 뒤에도 종료 단계에서 SIGABRT(134) 로 죽는 것이 재현됐다(2/2). 부분 출력은 Contract A 로 파싱되지
+        # 않으므로 여전히 실패로 걸러지고, 파싱에 성공한 완결 답변만 비정상 종료에도 살린다 — 대신
+        # flags 에 종료코드를 남겨 관측 가능하게 한다.
         if result.returncode != 0:
-            response_text = ""
-            error_detail = f"hermes exit {result.returncode}"      # 외부 응답에는 종료코드만 (원문 미노출)
-            # 서버 로그도 메타데이터만: stderr/stdout 원문에는 자격증명·메일 본문이 섞일 수 있다 (codex 리뷰).
             _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
                                        result.returncode, len(result.stderr or ""), len(result.stdout or ""))
+            salvaged = parse_wp_comment(result.stdout.strip()) if result.stdout.strip() else None
+            if salvaged:
+                response_text = result.stdout.strip()
+                nonzero_exit = result.returncode          # 아래에서 flags 에 기록
+            else:
+                response_text = ""
+                error_detail = f"hermes exit {result.returncode}"  # 외부 응답에는 종료코드만 (원문 미노출)
         else:
             response_text = result.stdout.strip()
             if not response_text and result.stderr:
@@ -1172,6 +1182,11 @@ def chat_completions():
         parsed = parse_wp_comment(response_text)
         if parsed:
             parsed = ensure_real_source_paths(parsed, rag_results)
+            if nonzero_exit:                       # 완결 답변이지만 CLI 가 비정상 종료 — 관측 가능하게 표시
+                wp = parsed.setdefault("wp_comment", {})
+                flags = wp.setdefault("flags", [])
+                if isinstance(flags, list):
+                    flags.append(f"hermes_nonzero_exit_{nonzero_exit}")
             content = json.dumps(parsed, ensure_ascii=False)
             log_response(metadata, parsed)
         else:
