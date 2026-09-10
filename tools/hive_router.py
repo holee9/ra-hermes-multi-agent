@@ -535,7 +535,10 @@ class HiveRouter:
         conv = ev.get("conversation")
         if isinstance(conv, str):
             held, refusers = self._conv_state(conv)
-            if held and actor != "human":                            # 사람 메시지가 보류를 푸는 응답이다
+            # 사람 메시지는 보류를 푸는 응답이다. 이미 저널이 있는(처리 중이던) 메시지도 보류하지 않는다 —
+            # 교착을 확정한 refuse 자체가 escalation 기록 뒤 crash하면 재실행에서 log의 escalation 때문에
+            # held로 판정돼 .held로 이동되고 원본이 영영 완결되지 않았다(리뷰 7차).
+            if held and actor != "human" and self._find_journal(src) is None:
                 return Plan(actor, src, ev["id"], "held", "refuse-deadlock", event=ev)
             if ev.get("act") == "refuse" and refusers - {actor}:
                 deadlock = sorted(refusers | {actor})                  # 서로 다른 두 actor의 refuse

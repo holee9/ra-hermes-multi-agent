@@ -868,3 +868,33 @@ def test_deadlock_escalation_failure_keeps_original_and_retries(hr, ve, hive):
     assert len([e for e in _log(hive) if e["kind"] == "escalation"]) == 1
     assert len(_inbox(hive, "ra_eu")) == 2                                    # 재실행에서 중복 전달 없음
     _assert_log_valid(ve, hive)
+
+
+@pytest.mark.parametrize("fault_at", ["before_log_append", "after_log_append"])
+def test_deadlock_trigger_crash_around_escalation_append_completes_original(hr, ve, hive, fault_at):
+    """리뷰 7차: 교착 확정 refuse의 escalation append 전/후 crash → 재실행이 원본을 held로 보내지 않고 완결."""
+    clock = Clock()
+    _outbox(hive, "ra_us", REQ)
+    _router(hr, hive, clock).run()
+    req = _log(hive)[-1]
+    conv = req["conversation"]
+    _outbox(hive, "ra_eu", {**REQ, "to": "ra_us", "act": "refuse", "corr": req["id"], "conversation": conv,
+                            "payload": {"reason": "no"}}, name="20260909T120001-0002.json")
+    _router(hr, hive, clock).run()
+    src = _outbox(hive, "ra_us", {**REQ, "act": "refuse", "corr": req["id"], "conversation": conv,
+                                  "payload": {"reason": "no"}}, name="20260909T120002-0003.json")
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at=fault_at, fault_target="escalation").run()
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []
+    assert not (src.parent / ".held" / src.name).exists() and (src.parent / ".sent" / src.name).exists()
+    log = _log(hive)
+    assert [e["kind"] for e in log if e["kind"] == "escalation"] == ["escalation"]
+    assert [e for e in log if e.get("act") == "refuse" and e["actor"] == "ra_us"]     # 원본 refuse 기록됨
+    assert len(_inbox(hive, "ra_eu")) == 2 and len(_inbox(hive, "human")) == 1
+    # 이후 신규 메시지는 보류
+    nxt = _outbox(hive, "ra_us", {**REQ, "act": "inform", "conversation": conv, "payload": {"x": 1}},
+                  name="20260909T120003-0004.json")
+    res = _router(hr, hive, clock).run()
+    assert res.plans[0].reason == "refuse-deadlock" and (nxt.parent / ".held" / nxt.name).exists()
+    _assert_log_valid(ve, hive)
