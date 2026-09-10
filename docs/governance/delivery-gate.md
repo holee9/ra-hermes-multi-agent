@@ -46,7 +46,9 @@ MD의 4.5s는 TUI 특성값. 우리 초기값은 **턴 단위** — 직전 메�
 | 대용 증거 금지 | outbox·도구·세션 로그의 잠잠함, inbox 파일 미소비, 시간 경과는 `idle`의 증거가 아니다(§7·§8). 긴 턴(모델 응답 대기·네트워크 대기·긴 도구 실행)은 기록 없이도 실행 중이다 |
 | 조회↔전달 원자성 | 라우터 측 "조회 → inbox 기록 → 재조회"는 원자 수락이 **아니다**: 조회와 기록 사이에 턴이 시작되면 이미 진행 중인 턴에 입력이 주입되고, 사후 `busy` 확인으로는 막지 못한다. 수락은 **Hermes 수신측**에서 결정돼야 한다 — 수신측 큐가 입력을 받아 `accept`/`queued`/`reject-busy`를 반환하는 compare-and-accept 계약(P3-0 실측 대상: base.py의 active guard·`_pending_messages`·`on_processing_start`). 그 계약이 없으면 라우터는 `idle` 조회 후 **한 배치에 한 건만** 기록하고 `written`에 둔 채 `accepted`(§5.1) 확인을 기다린다. `written`은 파일 기록 단계일 뿐 수락이 아니다 |
 | `accepted` 확인 | §5.1 — 세션 로그의 `id` 처리 개시 기록만. 라우터가 inbox 파일이 사라졌다는 것으로 `accepted`를 추정하지 않는다 |
-| 회귀(P3-2) | 긴 턴 무로그에서 전달 안 함 · `unknown`/`stale` 보류 · 조회 직후 `busy` 전환 경쟁 · `accepted`/`handled` 단계 전이 · 소스 미설정 시 `unavailable` 보류 |
+| 실제 RA 진입점 (P3-0 경계, codex 확인) | 현재 RA peer는 게이트웨이 세션이 아니라 `scripts/hermes-api-server.py` `_invoke_hermes()`(770행)가 띄우는 **일회성 subprocess** `hermes -p <profile> -z <context> --skills ra-expert`(PID 3727243 서비스, `HERMES_BIN`, timeout 900)다. repo 안에서 hermes CLI를 호출하는 곳은 이 API 서버뿐이다(정적 grep). 따라서 `gateway/platforms/base.py`의 active guard·`_pending_messages`가 이 경로를 보호한다고 **가정할 수 없다**. P3-0에서 고정할 것: 실제 host/profile/entry/세션 유무, CLI `-p` 동시 실행 계약(같은 profile 동시 2건 시 세션 공유·격리 여부), 수락 주체. 이 경로가 유일한 호출자로 확인되면 API 서버 자신의 '해당 profile subprocess 실행 중' 상태가 그 경로의 authoritative 소스 후보다 |
+| 한 배치 한 건의 뜻 | **속도 제한이지 원자성 보장이 아니다** — 조회 직후 턴 시작 경쟁(TOCTOU)은 수신측 직렬 수락만 없앤다. P2 참조 라우터의 inbox 파일 적재는 Hermes 입력이 **아니며** drain을 하지 않는다. 실제 입력 주입은 수신측 직렬 수락 계약 확인 전까지 보류(영구 수동 운영으로 목표를 축소하지 않고 진입점 계약 조사를 잇는다) |
+| 회귀(P3-2) | `tools/hive_drain.py` + `tests/test_hive_drain.py`(16): 소스 미설정→`unavailable` 보류 · busy/unknown/garbage 보류 · 시각 없는 idle→unknown · GATE_MAX_AGE 초과→stale · 턴 간격(handled 전 보류) · 수동 해제=pause만 우회 · 유예·브레이커 · manual 선두/도착순 · 비정형 이름 무시 · accept 토큰 없으면 배치당 1건 · sink 거절은 written 아님 · CLI dry-run 무전달. 로그를 읽는 경로가 없으므로 '긴 턴 무로그'는 구조적으로 전달 불가 |
 
 이 계약이 채워지기 전(P3-0 실측 전)에는 상태 소스가 없으므로 값은 항상 `unavailable`이고 자동 전달은 일어나지 않는다.
 
