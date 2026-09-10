@@ -587,7 +587,22 @@ const server = http.createServer(async (req, res) => {
         return;
       }
     }
-    const requestId = decodeURIComponent(parsedUrl.pathname.slice('/api/chat/'.length));
+    // #104 review: a malformed percent-escape (`/api/chat/%ZZ`) threw URIError out of the
+    // async handler with no response. Decode defensively and require the UUID shape the
+    // adapter itself issues; anything else is a 400, never an exception.
+    let requestId;
+    try {
+      requestId = decodeURIComponent(parsedUrl.pathname.slice('/api/chat/'.length));
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'malformed request_id' }));
+      return;
+    }
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'request_id must be a UUID' }));
+      return;
+    }
     const entry = advisoryRequests.get(requestId);
     if (!entry) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
