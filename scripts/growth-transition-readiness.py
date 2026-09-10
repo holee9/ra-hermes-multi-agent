@@ -75,11 +75,16 @@ def main() -> None:
 
     reports = load_reports(limit=max(args.min_valid_days, 30))
     trigger_cfg = load_json(TRIGGER_CONFIG) if TRIGGER_CONFIG.exists() else {}
+    # A report counts as valid evidence only when ingestion was complete: #103's
+    # collection_incomplete flag (partial page walk / API total not reached) must not feed
+    # form_transfer / threshold readiness (#65 review: 30 incomplete days read as ready).
     valid_reports = [
         report for report in reports
         if int(report.get("messages_scanned") or 0) > 0
         and ((report.get("ingestion_diagnostics") or {}).get("empty_cause") in (None, "metrics_input_available"))
+        and not (report.get("ingestion_diagnostics") or {}).get("collection_incomplete")
     ]
+    latest_incomplete = bool(((reports[-1] if reports else {}).get("ingestion_diagnostics") or {}).get("collection_incomplete"))
     latest = reports[-1] if reports else {}
     thresholds_defined = [
         name for name, cfg in (trigger_cfg.get("triggers") or {}).items()
@@ -97,11 +102,13 @@ def main() -> None:
         "requires_valid_metrics_days": args.min_valid_days,
         "latest_messages_scanned": latest.get("messages_scanned", 0),
         "latest_empty_cause": (latest.get("ingestion_diagnostics") or {}).get("empty_cause"),
+        "latest_collection_incomplete": latest_incomplete,
         "thresholds_defined": thresholds_defined,
         "null_thresholds": null_thresholds,
     }
     form_ready = (
-        valid_days >= args.min_valid_days
+        not latest_incomplete
+        and valid_days >= args.min_valid_days
         and len(null_thresholds) == 0
         and metric_value(latest, "correction_rate") is not None
         and metric_value(latest, "first_pass_match_accuracy") is not None

@@ -83,3 +83,37 @@ def test_main_output_uses_dated_latest(reports_dir, monkeypatch, capsys):
     assert out["reports_loaded"] == 2 and out["valid_reports"] == 1 and out["valid_metrics_days"] == 1
     assert out["form_transfer"]["ready"] is False
     assert out["form_transfer"]["conditions"]["valid_metrics_days"] == 1
+
+
+# ---- #65 review (2026-09-10): incomplete collection must not count as valid evidence
+
+def _incomplete(**kw):
+    r = _report(**kw)
+    r["ingestion_diagnostics"]["collection_incomplete"] = True
+    return r
+
+
+def test_incomplete_collection_days_are_not_valid_evidence(reports_dir, monkeypatch, capsys):
+    for i in range(1, 31):
+        _write(reports_dir, f"growth-2026-08-{i:02d}.json", _incomplete())
+    (reports_dir.parent / "feedback" / "config").mkdir(parents=True, exist_ok=True)
+    cfg = reports_dir.parent / "feedback" / "config" / "growth-trigger-config.json"
+    cfg.write_text(json.dumps({"triggers": {"a": {"threshold": 0.1}}}), encoding="utf-8")
+    monkeypatch.setattr(r, "TRIGGER_CONFIG", cfg)
+    monkeypatch.setattr("sys.argv", ["readiness", "--min-valid-days", "30"])
+    r.main()
+    out = json.loads(capsys.readouterr().out)
+    assert out["reports_loaded"] == 30 and out["valid_reports"] == 0 and out["valid_metrics_days"] == 0
+    assert out["form_transfer"]["ready"] is False
+    assert out["form_transfer"]["conditions"]["latest_collection_incomplete"] is True
+    assert out["threshold_policy"]["status"] == "blocked_by_metrics_ingestion"
+
+
+def test_complete_collection_days_still_count(reports_dir, monkeypatch, capsys):
+    for i in range(1, 31):
+        _write(reports_dir, f"growth-2026-08-{i:02d}.json", _report())
+    monkeypatch.setattr(r, "TRIGGER_CONFIG", reports_dir / "missing.json")
+    monkeypatch.setattr("sys.argv", ["readiness", "--min-valid-days", "30"])
+    r.main()
+    out = json.loads(capsys.readouterr().out)
+    assert out["valid_metrics_days"] == 30 and out["form_transfer"]["conditions"]["latest_collection_incomplete"] is False
