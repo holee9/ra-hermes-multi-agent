@@ -31,8 +31,9 @@ def test_thread_from_mock_log_is_ordered_and_past_only():
     target = next(r for r in MOCK if r.get("conversation") == "conv_1042_matching" and r.get("corr"))
     t = ht.collect(MOCK, target["id"])
     assert t.conversation == "conv_1042_matching" and t.events[-1]["id"] == target["id"]
-    assert all(r["ts"] <= target["ts"] for r in t.events)
-    assert [r["id"] for r in t.events] == sorted((r["id"] for r in t.events), key=lambda i: next(x["ts"] for x in MOCK if x["id"] == i))
+    from datetime import datetime
+    ts = [datetime.fromisoformat(r["ts"]) for r in t.events]
+    assert all(x <= ts[-1] for x in ts) and ts == sorted(ts)
     assert t.chars == len(t.context) and t.est_tokens == t.chars // 4 and t.sources == [r["id"] for r in t.events]
 
 
@@ -73,3 +74,38 @@ def test_cli_json_report(tmp_path, capsys):
     assert ht.main([str(log), target["id"], "--json"]) == 0
     rep = json.loads(capsys.readouterr().out)
     assert rep["events"] >= 1 and rep["est_tokens_heuristic"] == rep["chars"] // 4 and "sources" in rep
+
+
+def test_mixed_timezone_future_event_is_excluded():
+    """codex 재현: 대상 09:00+09:00(=00:00Z), 같은 conv 의 01:00Z(=10:00+09:00) 미래 항목이 문자열 비교로 포함됐다."""
+    recs = [_ev(1, "ra_us", "c", ts="2026-09-10T08:00:00+09:00"),
+            _ev(2, "ra_eu", "c", ts="2026-09-10T09:00:00+09:00"),           # 대상 = 00:00Z
+            _ev(3, "ra_us", "c", ts="2026-09-10T01:00:00Z"),                # 미래 (=10:00+09:00)
+            _ev(4, "ra_us", "c", ts="2026-09-09T23:30:00Z")]                # 과거 (=08:30+09:00)
+    t = ht.collect(recs, "evt_0002")
+    assert [r["id"] for r in t.events] == ["evt_0001", "evt_0004", "evt_0002"]
+
+
+def test_same_instant_uses_ledger_order_as_tiebreak():
+    recs = [_ev(1, "ra_us", "c", ts="2026-09-10T09:00:00+09:00"),
+            _ev(2, "ra_eu", "c", ts="2026-09-10T00:00:00Z"),                # 같은 순간, 원장에서 뒤
+            _ev(3, "ra_kr", "c", ts="2026-09-10T00:00:00Z")]                # 같은 순간, 원장에서 더 뒤
+    t = ht.collect(recs, "evt_0002")
+    assert [r["id"] for r in t.events] == ["evt_0001", "evt_0002"]        # evt_0003 은 원장상 뒤 → 제외
+
+
+def test_unparseable_or_naive_ts_is_excluded_and_reported():
+    recs = [_ev(1, "ra_us", "c", ts="2026-09-10T08:00:00"),                 # naive
+            _ev(2, "ra_eu", "c", ts="not-a-time"),
+            _ev(3, "ra_us", "c", ts="2026-09-10T09:00:00+09:00")]
+    t = ht.collect(recs, "evt_0003")
+    assert [r["id"] for r in t.events] == ["evt_0003"] and t.skipped_unordered == 2
+    with pytest.raises(ValueError):
+        ht.collect([_ev(9, "ra_us", "c", ts="2026-09-10T09:00:00")], "evt_0009")   # 대상 자체가 naive
+
+
+def test_corr_predecessor_precedes_even_across_timezones():
+    recs = [_ev(1, "ra_us", ts="2026-09-09T23:59:00Z"),                      # = 08:59+09:00
+            _ev(2, "ra_eu", corr="evt_0001", ts="2026-09-10T09:00:00+09:00")]
+    t = ht.collect(recs, "evt_0002")
+    assert [r["id"] for r in t.events] == ["evt_0001", "evt_0002"]
