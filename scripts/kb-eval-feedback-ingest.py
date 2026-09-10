@@ -102,7 +102,12 @@ def parse_text(source: str, text: str) -> list[dict[str, Any]]:
         score = score_checks[0]
         dimensions = {key: bool(checks.get(label)) for label, key in DIMENSION_LABELS.items()}
         human_correction = bool(checks.get("Human correction needed")) or score == 1
-        case_defect = {key: bool(checks.get(label)) for label, key in CASE_DEFECT_LABELS.items()}
+        # #147 codex 리뷰: 구 시트에는 결함 항목 자체가 없다. 항목이 없는데 {False, False}를 만들면 지표가
+        # '평가 완료·결함 없음'으로 오인한다 — 항목이 하나도 없으면 None(미평가)으로 보존한다.
+        if any(label in checks for label in CASE_DEFECT_LABELS):
+            case_defect = {key: bool(checks.get(label)) for label, key in CASE_DEFECT_LABELS.items()}
+        else:
+            case_defect = None
         payload = {
             "decision_ref": current["decision_ref"],
             "target_actor": current["agent"],

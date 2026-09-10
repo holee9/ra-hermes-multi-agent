@@ -467,6 +467,7 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
     corrected = 0
     defect_total = 0
     defect_corrected = 0
+    legacy_unevaluated = 0
     defect_kinds = {"capture_failed": 0, "source_mismatch": 0}
     samples: list[dict] = []
 
@@ -490,6 +491,11 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
             # #147: input-side defects (capture timeout / focus↔source mismatch) are
             # counted in the system-level rate AND reported separately so the
             # agent-attributable rate can be read without them.
+            # #147 codex 리뷰: `case_defect` 키 자체가 없는 사례(구 체크시트)는 '결함 없음'이 아니라 '미평가'다.
+            # 기본 false 와 평가 완료를 구분해 따로 센다.
+            defect_evaluated = isinstance(payload.get("case_defect"), dict)
+            if not defect_evaluated:
+                legacy_unevaluated += 1
             defect = payload.get("case_defect") or {}
             has_defect = any(bool(defect.get(k)) for k in defect_kinds)
             if has_defect:
@@ -510,22 +516,28 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
                 })
 
     rate = corrected / total if total > 0 else None
-    attributable_total = total - defect_total
-    attributable_corrected = corrected - defect_corrected
+    # #147 codex 리뷰: 아래 조건부 산식은 '입력 결함 표시가 없는 사례의 교정률'이다. 귀책(에이전트 출력 결함)
+    # 판정을 읽지 않으므로 agent_attributable 이라 부르면 안 된다 — 입력·출력 동시 결함 사례가 제외돼
+    # '에이전트 무결함'으로 읽힐 수 있다. 귀책 지표는 별도 출력 결함 판정(error_origin)이 구조화된 뒤에 만든다.
+    cond_total = total - defect_total
+    cond_corrected = corrected - defect_corrected
     return {
         "value": rate,
         "numerator": corrected,
         "denominator": total,
-        "case_defects": {"count": defect_total, "corrected": defect_corrected, **defect_kinds},
-        "agent_attributable": {
-            "value": attributable_corrected / attributable_total if attributable_total > 0 else None,
-            "numerator": attributable_corrected,
-            "denominator": attributable_total,
+        "case_defects": {"count": defect_total, "corrected": defect_corrected, **defect_kinds,
+                         "unevaluated_legacy": legacy_unevaluated},
+        "excluding_case_defects": {
+            "value": cond_corrected / cond_total if cond_total > 0 else None,
+            "numerator": cond_corrected,
+            "denominator": cond_total,
+            "meaning": "conditional correction rate over cases with no input-defect flag; "
+                       "NOT agent attribution (output defects are not judged here, #147)",
         },
         "samples": samples[:5],
         "direction": "down",
         "note": "fraction of human-reviewed decisions where agent was overridden "
-                "(system-level; agent_attributable excludes case-generation defects, #147)",
+                "(system-level; excluding_case_defects is a conditional rate, not attribution, #147)",
     }
 
 
