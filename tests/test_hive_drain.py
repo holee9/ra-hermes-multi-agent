@@ -48,7 +48,7 @@ def _drain(hive, state=None, sink=None, handled=lambda _id: False, cfg=None):
 def test_no_source_means_unavailable_and_no_delivery(hive):
     _msg(hive, "ra_us")
     sent = []
-    d = _drain(hive, sink=lambda a, f, i, t: sent.append(f) or True).run([hd.Peer("ra_us")])[0]
+    d = _drain(hive, sink=lambda a, i, b, t: sent.append(i) or True).run([hd.Peer("ra_us")])[0]
     assert d.action == "hold" and d.reason == "state-unavailable" and sent == []
 
 
@@ -75,8 +75,8 @@ def test_idle_delivers_and_records_last_written(hive):
     p, mid = _msg(hive, "ra_us")
     sent = []
     peer = hd.Peer("ra_us")
-    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, i, t: sent.append((a, f)) or True).run([peer])[0]
-    assert d.action == "deliver" and sent == [("ra_us", p)] and peer.last_written == mid
+    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, i, b, t: sent.append((a, i)) or True).run([peer])[0]
+    assert d.action == "deliver" and sent == [("ra_us", mid)] and peer.last_written == mid
 
 
 def test_turn_spacing_waits_for_handled_even_when_idle(hive):
@@ -143,7 +143,7 @@ def test_sink_refusal_is_hold_not_written(hive):
     """수신측이 거절(reject-busy)하면 written으로 기록하지 않는다."""
     _msg(hive, "ra_us")
     peer = hd.Peer("ra_us")
-    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, f, i, t: False).run([peer])[0]
+    d = _drain(hive, state=hd.GateState("idle", NOW), sink=lambda a, i, b, t: False).run([peer])[0]
     assert d.action == "hold" and d.reason == "sink-refused" and peer.last_written is None
 
 
@@ -166,7 +166,7 @@ def test_source_exception_is_unknown_hold_not_crash(hive):
             raise RuntimeError("socket down")
         return hd.GateState("idle", NOW)
     sent = []
-    res = hd.Drain(hive, source=boom, sink=lambda a, f, i, t: sent.append(a) or True, now=lambda: NOW, execute=True).run(
+    res = hd.Drain(hive, source=boom, sink=lambda a, i, b, t: sent.append(a) or True, now=lambda: NOW, execute=True).run(
         [hd.Peer("ra_us"), hd.Peer("ra_eu")])
     assert res[0].action == "hold" and res[0].reason.startswith("state-unknown:RuntimeError")
     assert res[1].action == "deliver" and sent == ["ra_eu"]                # 다른 peer는 계속 처리
@@ -183,7 +183,7 @@ def test_accept_token_reaches_sink_and_is_journaled(hive):
     _, mid = _msg(hive, "ra_us")
     got = []
     hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW, accept_token="tok-7"),
-             sink=lambda a, f, i, t: got.append(t) or True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+             sink=lambda a, i, b, t: got.append(t) or True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert got == ["tok-7"]
     j = json.loads((hive / ".drain" / "ra_us.json").read_text())
     assert j["written"][mid] == {"ts": NOW.isoformat(timespec="seconds"), "accept_token": "tok-7", "status": "written"}
@@ -195,16 +195,16 @@ def test_written_message_is_never_reselected_and_moves_to_done_after_handled(hiv
     p2, m2 = _msg(hive, "ra_us", 2)
     sent = []
     mk = lambda handled: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
-                                  sink=lambda a, f, i, t: sent.append(f.name) or True, handled=handled, now=lambda: NOW, execute=True)
-    assert mk(lambda i: False).run([hd.Peer("ra_us")])[0].action == "deliver" and sent == [p1.name]
+                                  sink=lambda a, i, b, t: sent.append(i) or True, handled=handled, now=lambda: NOW, execute=True)
+    assert mk(lambda i: False).run([hd.Peer("ra_us")])[0].action == "deliver" and sent == [m1]
     d = mk(lambda i: False).run([hd.Peer("ra_us")])[0]                       # 새 프로세스(새 Peer): 저널이 정본
-    assert d.action == "hold" and d.reason == f"awaiting-handled:{m1}" and sent == [p1.name]
+    assert d.action == "hold" and d.reason == f"awaiting-handled:{m1}" and sent == [m1]
     d = mk(lambda i: i == m1).run([hd.Peer("ra_us")])[0]                      # m1 handled → .done, m2 전달
     assert (hive / "agents/ra_us/inbox/.done" / p1.name).exists() and not p1.exists()
-    assert d.action == "deliver" and d.msg_id == m2 and sent == [p1.name, p2.name]
+    assert d.action == "deliver" and d.msg_id == m2 and sent == [m1, m2]
     _msg(hive, "ra_us", 3)
     d = mk(lambda i: i == m1).run([hd.Peer("ra_us")])[0]
-    assert d.reason == f"awaiting-handled:{m2}" and sent == [p1.name, p2.name]  # m2 재전달 없음, m3 대기
+    assert d.reason == f"awaiting-handled:{m2}" and sent == [m1, m2]  # m2 재전달 없음, m3 대기
 
 
 def test_router_inbox_output_feeds_drain(tmp_path):
@@ -233,9 +233,9 @@ def test_router_inbox_output_feeds_drain(tmp_path):
     d = hd.Drain(root, now=lambda: NOW).run([hd.Peer("ra_eu")])[0]            # 소스 미주입
     assert d.action == "hold" and d.reason == "state-unavailable" and inbox_files[0].exists()
     sent = []
-    d = hd.Drain(root, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: sent.append(f) or True,
+    d = hd.Drain(root, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: sent.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_eu")])[0]
-    assert d.action == "deliver" and sent == inbox_files
+    assert d.action == "deliver" and sent == [res.plans[0].msg_id]
 
 
 # ---------------------------------------------------------------- codex 재현 2건 (b777b13)
@@ -258,7 +258,7 @@ def test_save_failure_after_sink_never_resubmits(hive, monkeypatch):
     p1, m1 = _msg(hive, "ra_us", 1)
     calls = []
     mk = lambda lookup=None: hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW),  # noqa: E731
-                                     sink=lambda a, f, i, t: calls.append(f.name) or True, lookup=lookup,
+                                     sink=lambda a, i, b, t: calls.append(i) or True, lookup=lookup,
                                      now=lambda: NOW, execute=True)
     dr = mk()
     real_save = dr._save
@@ -272,13 +272,13 @@ def test_save_failure_after_sink_never_resubmits(hive, monkeypatch):
     monkeypatch.setattr(dr, "_save", flaky)
     with pytest.raises(OSError):
         dr.run([hd.Peer("ra_us")])
-    assert calls == [p1.name]
+    assert calls == [m1]
     j = json.loads((hive / ".drain/ra_us.json").read_text())
     assert j["written"][m1]["status"] == "submitting"
     d = mk().run([hd.Peer("ra_us")])[0]                                       # 재시작, lookup 없음
-    assert d.action == "hold" and d.reason == f"ambiguous-submit:{m1}" and calls == [p1.name]
+    assert d.action == "hold" and d.reason == f"ambiguous-submit:{m1}" and calls == [m1]
     d = mk(lookup=lambda a, i: True).run([hd.Peer("ra_us")])[0]                # 수신측이 받았음 → written 확정
-    assert calls == [p1.name]
+    assert calls == [m1]
     j = json.loads((hive / ".drain/ra_us.json").read_text())
     assert j["written"][m1]["status"] == "written" and j["last_written"] == m1
     assert d.reason == f"awaiting-handled:{m1}" or d.action == "none"
@@ -290,9 +290,9 @@ def test_lookup_false_allows_normal_resubmission(hive, monkeypatch):
     (hive / ".drain/ra_us.json").write_text(json.dumps({"written": {m1: {"ts": "x", "accept_token": None,
                                                                           "status": "submitting"}}, "last_written": None}))
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f.name) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  lookup=lambda a, i: False, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
-    assert d.action == "deliver" and calls == [p1.name]                       # 수신측에 없음 → 정상 재판정 후 1회 전달
+    assert d.action == "deliver" and calls == [m1]                            # 수신측에 없음 → 정상 재판정 후 1회 전달
 
 
 # ---------------------------------------------------------------- codex 재현 (9aee12c): 동시 실행·내구성
@@ -305,12 +305,12 @@ def test_second_process_is_refused_while_lock_held(hive):
     calls = []
     try:
         with pytest.raises(hd.DrainError):
-            hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+            hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                      now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     finally:
         holder.release_lock()
     assert calls == []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]   # 해제 후 정상
     assert d.action == "deliver" and len(calls) == 1
     assert not (hive / ".drain/lock").exists() or True                      # lock 파일은 남아도 flock은 해제됨
@@ -332,7 +332,7 @@ def test_dry_run_takes_no_lock(hive):
 def test_sink_receives_explicit_msg_id(hive):
     _, mid = _msg(hive, "ra_us")
     got = []
-    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: got.append(i) or True,
+    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: got.append(i) or True,
              now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert got == [mid]
 
@@ -343,7 +343,7 @@ def test_corrupt_journal_holds_actor_without_overwrite(hive, content):
     (hive / ".drain").mkdir()
     (hive / ".drain/ra_us.json").write_text(content)
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
     assert d.action == "hold" and d.reason == "journal-corrupt" and calls == []
     assert (hive / ".drain/ra_us.json").read_text() == content                # 덮어쓰지 않음
@@ -354,7 +354,7 @@ def test_journal_save_uses_fsync(hive, monkeypatch):
     synced = []
     real = hd.os.fsync
     monkeypatch.setattr(hd.os, "fsync", lambda fd: synced.append(fd) or real(fd))
-    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: True,
+    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: True,
              now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert len(synced) >= 2                                                  # 파일 + 디렉터리
 
@@ -388,7 +388,7 @@ def test_symlinked_journal_is_held_not_read_or_written(hive, tmp_path):
     (hive / ".drain").mkdir()
     (hive / ".drain/ra_us.json").symlink_to(outside)
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(i) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
     assert d.action == "hold" and d.reason == "journal-corrupt" and calls == []
     assert json.loads(outside.read_text()) == {"written": {}, "last_written": None}
@@ -400,7 +400,7 @@ def test_symlinked_inbox_file_is_not_handed_to_sink(hive, tmp_path):
     link = hive / "agents/ra_us/inbox/20260910T120001p0900-evt_20260910T120000_0001.json"
     link.symlink_to(outside)
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
     assert d.action == "none" and calls == []                                # 후보에서 제외
 
@@ -413,7 +413,7 @@ def test_symlinked_inbox_dir_outside_root_is_held(hive, tmp_path):
     inbox.rmdir()
     inbox.symlink_to(ext)
     calls = []
-    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, f, i, t: calls.append(f) or True,
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
                  now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
     assert d.action == "hold" and d.reason.startswith("path-escape") and calls == []
 
@@ -429,3 +429,42 @@ def test_done_dir_symlink_outside_root_blocks_settle(hive, tmp_path):
     with pytest.raises(hd.DrainError):
         hd.Drain(hive, handled=lambda i: True, now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
     assert p1.exists() and list(ext.iterdir()) == []
+
+
+# ---------------------------------------------------------------- codex 리뷰 (b93c5a2): sink 인계 경계
+
+def test_sink_receives_verified_bytes_not_path(hive):
+    p, mid = _msg(hive, "ra_us")
+    got = []
+    hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: got.append(b) or True,
+             now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])
+    assert got == [p.read_bytes()] and isinstance(got[0], bytes)
+
+
+def test_payload_id_must_match_filename_id(hive):
+    inbox = hive / "agents/ra_us/inbox"
+    (inbox / "20260910T120001p0900-evt_20260910T120000_0001.json").write_text(json.dumps({"id": "evt_other"}))
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(i) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "hold" and d.reason == "payload-mismatch" and calls == []
+    assert not (hive / ".drain/ra_us.json").exists() or "evt_" not in (hive / ".drain/ra_us.json").read_text()
+
+
+def test_file_swapped_to_symlink_after_selection_is_not_delivered(hive, tmp_path, monkeypatch):
+    """검사 후 교체: 후보 선택 뒤 sink 전에 파일이 외부 symlink로 바뀌어도 외부 내용은 인계되지 않는다."""
+    p, mid = _msg(hive, "ra_us")
+    outside = tmp_path.parent / f"{tmp_path.name}-swap.json"
+    outside.write_text(json.dumps({"id": mid, "kind": "evil"}))
+    real = hd.next_message
+
+    def swap(inbox, exclude=frozenset()):
+        r = real(inbox, exclude)
+        p.unlink()
+        p.symlink_to(outside)
+        return r
+    monkeypatch.setattr(hd, "next_message", swap)
+    calls = []
+    d = hd.Drain(hive, source=lambda a: hd.GateState("idle", NOW), sink=lambda a, i, b, t: calls.append(b) or True,
+                 now=lambda: NOW, execute=True).run([hd.Peer("ra_us")])[0]
+    assert d.action == "hold" and d.reason == "payload-mismatch" and calls == []
