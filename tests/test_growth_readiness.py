@@ -117,3 +117,34 @@ def test_complete_collection_days_still_count(reports_dir, monkeypatch, capsys):
     r.main()
     out = json.loads(capsys.readouterr().out)
     assert out["valid_metrics_days"] == 30 and out["form_transfer"]["conditions"]["latest_collection_incomplete"] is False
+
+
+# ── #103: 리포트 0건은 "성장 증거 부족"이 아니라 호스트 불일치일 수 있다 ──────────────
+def test_no_reports_emits_host_hint(tmp_path, monkeypatch, capsys):
+    import sys
+    monkeypatch.setattr(r, "REPORTS_DIR", tmp_path / "empty-reports")
+    (tmp_path / "empty-reports").mkdir()
+    monkeypatch.setattr(sys, "argv", ["growth-transition-readiness.py"])
+    r.main()
+    out = json.loads(capsys.readouterr().out)
+    assert out["reports_loaded"] == 0
+    assert out["no_reports_hint"] and "T3610" in out["no_reports_hint"] and "#103" in out["no_reports_hint"]
+    assert ".gitignore" in out["no_reports_hint"]
+
+
+def test_hint_absent_when_reports_exist(tmp_path, monkeypatch, capsys):
+    import sys
+    d = tmp_path / "reports"
+    d.mkdir()
+    (d / "growth-2026-09-10.json").write_text(json.dumps({
+        "messages_scanned": 5,
+        "ingestion_diagnostics": {"empty_cause": "metrics_input_available", "collection_incomplete": False},
+        "metrics": {"correction_rate": {"value": 0.1}, "first_pass_match_accuracy": {"value": 0.9},
+                    "escalation_precision": {"value": 0.5}, "absence_pattern_signals": {"value": 0}},
+    }))
+    monkeypatch.setattr(r, "REPORTS_DIR", d)
+    monkeypatch.setattr(r, "ROOT", tmp_path)                 # _path 는 ROOT 기준 상대경로
+    monkeypatch.setattr(sys, "argv", ["growth-transition-readiness.py"])
+    r.main()
+    out = json.loads(capsys.readouterr().out)
+    assert out["reports_loaded"] == 1 and out["no_reports_hint"] is None
