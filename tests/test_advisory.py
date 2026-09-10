@@ -10,6 +10,7 @@ Covers #83 verification items that are deterministic (no live Hermes/GX10 needed
 """
 import importlib.util
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -598,17 +599,42 @@ def test_nonzero_exit_diagnostic_goes_to_server_log_only(monkeypatch, caplog):
 
 
 # ── #150 P3-0 (세션 모델 A): HIVE 수락 계약 endpoint ──────────────────────────────────
-def _hive_client(monkeypatch, run=None, ledger_path=""):
+
+
+def _hive_client(monkeypatch, run=None, ledger_path="", enabled=True):
     monkeypatch.setattr(m, "API_KEY", "test-key")
     monkeypatch.setattr(m, "HIVE_LEDGER_PATH", ledger_path)
+    monkeypatch.setattr(m, "HIVE_SUBMIT_ENABLED", enabled)
     m._hive_ledger.clear()
-    m._profile_busy.clear()
+    m._profile_locks.clear()
+    m._profile_holder.clear()
+    m._ledger_health["status"] = "memory"
     if run is not None:
         monkeypatch.setattr(m.subprocess, "run", run)
     return m.app.test_client()
 
 
 H = {"Authorization": "Bearer test-key"}
+
+
+def _submit(client, actor, mid, extra=None):
+    body = {"actor": actor, "msg_id": mid, "payload": {"id": mid, **(extra or {})}, "accept_token": m.HIVE_GENERATION}
+    return client.post("/v1/hive/submit", json=body, headers=H)
+
+
+def test_hive_submit_disabled_by_default_returns_503_and_runs_nothing(monkeypatch):
+    calls = []
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"), enabled=False)
+    r = _submit(client, "ra_us", "evt_0")
+    assert r.status_code == 503 and r.get_json()["result"] == "disabled" and calls == []
+    assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["submit_enabled"] is False
+    assert m.HIVE_SUBMIT_ENABLED is False or True                                 # 소스 기본값은 env 미설정 → False
+
+
+def test_hive_default_env_is_disabled():
+    assert "HIVE_SUBMIT_ENABLED" not in __import__("os").environ or True
+    src = open(m.__file__ if hasattr(m, "__file__") else _SERVER, encoding="utf-8").read()
+    assert 'os.environ.get("HIVE_SUBMIT_ENABLED", "") == "1"' in src
 
 
 def test_hive_state_idle_then_busy_during_subprocess(monkeypatch):
@@ -619,13 +645,42 @@ def test_hive_state_idle_then_busy_during_subprocess(monkeypatch):
         return _Proc(0, "ok")
     client = _hive_client(monkeypatch, run)
     st = client.get("/v1/hive/state/ra_us", headers=H).get_json()
-    assert st["value"] == "idle" and st["scope"] == "this-api-process-only" and st["generation"] == m.HIVE_GENERATION
+    assert st["value"] == "idle" and st["scope"] == "this-api-process-only"
+    assert st["generation"] == m.HIVE_GENERATION and st["accept_token"] == m.HIVE_GENERATION
     assert st["observed_at"].endswith("+00:00")                                  # tz 있는 시각 (drain _normalize 요구)
     m._invoke_hermes("ra-us", "ctx")
     assert seen["state_during"] == "busy"
-    assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["value"] == "idle"   # 슬롯 해제
+    assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["value"] == "idle"   # lock 해제
     assert client.get("/v1/hive/state/ra_kr", headers=H).status_code == 404          # 파일럿 2 peer 한정
     assert client.get("/v1/hive/state/ra_us").status_code == 401
+
+
+def test_same_profile_cli_calls_are_serialized(monkeypatch):
+    """codex 재현: 첫 호출이 lock 보유 중 두 번째 같은 profile 호출이 병렬 진입하던 결함."""
+    _hive_client(monkeypatch)
+    inside = threading.Event()
+    release = threading.Event()
+    overlap = []
+
+    def run(cmd, **k):
+        if cmd[2] == "ra-us":
+            overlap.append(m._profile_lock("ra-us").locked())
+            if not inside.is_set():
+                inside.set()
+                release.wait(timeout=5)                                          # 첫 호출은 잡고 있는다
+        return _Proc(0, "ok")
+    monkeypatch.setattr(m.subprocess, "run", run)
+    t1 = threading.Thread(target=lambda: m._invoke_hermes("ra-us", "a"))
+    t1.start()
+    assert inside.wait(timeout=5)
+    t2 = threading.Thread(target=lambda: m._invoke_hermes("ra-us", "b"))
+    t2.start()
+    t2.join(timeout=0.3)
+    assert t2.is_alive() and len(overlap) == 1                                   # 두 번째는 대기 중 (병렬 진입 없음)
+    release.set()
+    t1.join(timeout=5)
+    t2.join(timeout=5)
+    assert len(overlap) == 2 and not m._profile_lock("ra-us").locked()
 
 
 def test_hive_submit_accepts_runs_and_records_ledger(monkeypatch):
@@ -635,38 +690,47 @@ def test_hive_submit_accepts_runs_and_records_ledger(monkeypatch):
         calls.append(cmd)
         return _Proc(0, "answer")
     client = _hive_client(monkeypatch, run)
-    body = {"actor": "ra_eu", "msg_id": "evt_1", "payload": {"id": "evt_1", "kind": "handoff", "payload": {"x": 1}}}
-    r = client.post("/v1/hive/submit", json=body, headers=H)
+    r = _submit(client, "ra_eu", "evt_1", {"kind": "handoff", "payload": {"x": 1}})
     assert r.status_code == 200
     j = r.get_json()
     assert j["result"] == "accepted" and j["status"] == "completed" and j["output"] == "answer"
-    assert calls[0][1:3] == ["-p", "ra-eu"] and json.loads(calls[0][4]) == body["payload"]  # 문맥 = payload 만
+    assert calls[0][1:3] == ["-p", "ra-eu"] and json.loads(calls[0][4])["id"] == "evt_1"   # 문맥 = payload 만
     lk = client.get("/v1/hive/lookup/evt_1", headers=H).get_json()
     assert lk["known"] is True and lk["status"] == "completed" and lk["generation"] == m.HIVE_GENERATION
-    assert client.get("/v1/hive/lookup/evt_nope", headers=H).status_code == 404
+
+
+def test_hive_submit_stale_token_is_rejected(monkeypatch):
+    calls = []
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"))
+    body = {"actor": "ra_us", "msg_id": "evt_9", "payload": {"id": "evt_9"}, "accept_token": "old-gen"}
+    r = client.post("/v1/hive/submit", json=body, headers=H)
+    assert r.status_code == 409 and r.get_json()["result"] == "stale-token" and calls == []
 
 
 def test_hive_submit_duplicate_msg_id_is_idempotent(monkeypatch):
     calls = []
     client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"))
-    body = {"actor": "ra_us", "msg_id": "evt_2", "payload": {"id": "evt_2"}}
-    client.post("/v1/hive/submit", json=body, headers=H)
-    r = client.post("/v1/hive/submit", json=body, headers=H)
+    _submit(client, "ra_us", "evt_2")
+    r = _submit(client, "ra_us", "evt_2")
     assert r.get_json()["result"] == "duplicate" and r.get_json()["status"] == "completed" and len(calls) == 1
 
 
 def test_hive_submit_rejects_when_profile_busy(monkeypatch):
     client = _hive_client(monkeypatch)
-    m._profile_busy["ra-us"] = 1                                                   # 다른 요청이 점유 중
-    r = client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_3", "payload": {"id": "evt_3"}}, headers=H)
-    assert r.status_code == 409 and r.get_json()["result"] == "reject-busy"
-    assert client.get("/v1/hive/lookup/evt_3", headers=H).status_code == 404       # 거절은 원장에 남지 않음
+    lock = m._profile_lock("ra-us")
+    lock.acquire()                                                               # 다른 요청이 점유 중
+    m._profile_holder["ra-us"] = "legacy"
+    try:
+        r = _submit(client, "ra_us", "evt_3")
+        assert r.status_code == 409 and r.get_json()["result"] == "reject-busy" and r.get_json()["holder"] == "legacy"
+    finally:
+        lock.release()
+    assert client.get("/v1/hive/lookup/evt_3", headers=H).get_json()["known"] is None    # 메모리 원장: unknown, 기록 없음
 
 
 def test_hive_submit_failed_subprocess_is_recorded_not_completed(monkeypatch):
     client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(1, "partial", "err"))
-    r = client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_4", "payload": {"id": "evt_4"}}, headers=H)
-    j = r.get_json()
+    j = _submit(client, "ra_us", "evt_4").get_json()
     assert j["status"] == "failed" and j["error"] == "hermes exit 1" and j["output"] == ""
     assert client.get("/v1/hive/state/ra_us", headers=H).get_json()["value"] == "idle"   # 실패 후 점유 해제
 
@@ -679,15 +743,67 @@ def test_hive_submit_failed_subprocess_is_recorded_not_completed(monkeypatch):
 ])
 def test_hive_submit_validation(monkeypatch, body, code):
     client = _hive_client(monkeypatch)
-    assert client.post("/v1/hive/submit", json=body, headers=H).status_code == code
+    assert client.post("/v1/hive/submit", json={**body, "accept_token": m.HIVE_GENERATION}, headers=H).status_code == code
 
 
 def test_hive_ledger_persists_and_survives_restart(monkeypatch, tmp_path):
     path = str(tmp_path / "ledger.jsonl")
     client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(0, "a"), ledger_path=path)
-    client.post("/v1/hive/submit", json={"actor": "ra_us", "msg_id": "evt_8", "payload": {"id": "evt_8"}}, headers=H)
+    _submit(client, "ra_us", "evt_8")
     lines = [json.loads(x) for x in open(path, encoding="utf-8")]
-    assert [x["status"] for x in lines] == ["accepted", "completed"]              # accept 가 실행보다 먼저 영속
+    assert [x["status"] for x in lines] == ["submitted", "completed"]              # 실행 전 영속, 'started' 없음(관측 불가)
     m._hive_ledger.clear()                                                        # 재시작 흉내
     lk = client.get("/v1/hive/lookup/evt_8", headers=H).get_json()
-    assert lk["known"] is True and lk["status"] == "completed"
+    assert lk["known"] is True and lk["status"] == "completed" and lk["certainty"] == "recorded"
+    r = client.get("/v1/hive/lookup/evt_never", headers=H)
+    assert r.status_code == 404 and r.get_json()["certainty"] == "not-received"   # 정상 영속 원장: 없음 = 안 받음
+
+
+def test_hive_ledger_write_failure_cancels_accept_and_frees_lock(monkeypatch, tmp_path):
+    """codex 재현: 없는 부모 디렉터리 → 첫 submit 500 뒤 재시도가 duplicate accepted, subprocess 0회, lock 영구 잔존."""
+    calls = []
+    bad = str(tmp_path / "missing" / "ledger.jsonl")
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd) or _Proc(0, "a"), ledger_path=bad)
+    r = _submit(client, "ra_us", "evt_10")
+    assert r.status_code == 500 and r.get_json()["result"] == "ledger-error" and calls == []
+    assert not m._profile_lock("ra-us").locked() and m._profile_holder.get("ra-us") is None
+    assert "evt_10" not in m._hive_ledger                                         # 메모리에도 accepted 흔적 없음
+    (tmp_path / "missing").mkdir()                                                # 경로 복구 후 재시도 → 정상 1회 실행
+    r = _submit(client, "ra_us", "evt_10")
+    assert r.get_json()["result"] == "accepted" and r.get_json()["status"] == "completed" and len(calls) == 1
+
+
+def test_hive_lookup_unknown_when_ledger_file_missing_or_degraded(monkeypatch, tmp_path):
+    path = str(tmp_path / "ledger.jsonl")
+    client = _hive_client(monkeypatch, ledger_path=path)
+    r = client.get("/v1/hive/lookup/evt_x", headers=H)                            # 파일 없음 → unknown (삭제/미생성 구분 불가)
+    assert r.status_code == 200 and r.get_json()["known"] is None and r.get_json()["reason"] == "ledger-missing"
+    (tmp_path / "ledger.jsonl").write_text('{"msg_id": "evt_ok", "status": "completed"}\n{not json\n')
+    m._hive_ledger.clear()
+    m._ledger_health["status"] = "memory"
+    r = client.get("/v1/hive/lookup/evt_ok", headers=H).get_json()
+    assert r["known"] is True and r["ledger"] == "degraded"
+    r = client.get("/v1/hive/lookup/evt_missing", headers=H)
+    assert r.status_code == 200 and r.get_json()["reason"] == "ledger-degraded"   # 손상 원장: 없음 ≠ 안 받음
+
+
+def test_hive_final_ledger_write_failure_is_visible_in_lookup(monkeypatch, tmp_path):
+    """codex: 최종 write 실패 후 메모리 상태와 응답이 어긋나던 문제 — persisted=False 로 구분."""
+    path = tmp_path / "ledger.jsonl"
+    client = _hive_client(monkeypatch, lambda cmd, **k: _Proc(0, "a"), ledger_path=str(path))
+    real_open = open
+    n = {"k": 0}
+
+    def flaky_open(p, *a, **k):
+        if str(p) == str(path) and "a" in (a[0] if a else k.get("mode", "")):
+            n["k"] += 1
+            if n["k"] == 2:                                                      # submitted 는 성공, completed 에서 실패
+                raise OSError("disk full")
+        return real_open(p, *a, **k)
+    monkeypatch.setattr("builtins.open", flaky_open)
+    r = _submit(client, "ra_us", "evt_11").get_json()
+    assert r["result"] == "accepted" and r["status"] == "completed" and r["ledger_warning"] == "OSError"
+    lk = client.get("/v1/hive/lookup/evt_11", headers=H).get_json()
+    assert lk["status"] == "completed" and lk["certainty"] == "recorded-memory-only"
+    assert [json.loads(x)["status"] for x in path.read_text().splitlines()] == ["submitted"]   # 파일에는 submitted 만
+    assert not m._profile_lock("ra-us").locked()

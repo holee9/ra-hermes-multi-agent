@@ -771,16 +771,22 @@ def build_advisory_context(
 
 
 def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
-    """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error)."""
+    """Call hermes -p profile -z context --skills ra-expert. Returns (stdout, error).
+    profile 직렬화 lock 을 잡고(대기) 실행한다 — #150 P3-0."""
+    with _profile_slot(profile):
+        return _invoke_hermes_locked(profile, context, timeout)
+
+
+def _invoke_hermes_locked(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[str, str]:
+    """호출자가 이미 profile lock 을 보유한 경우(hive_submit)."""
     try:
-        with _profile_slot(profile):                                 # #150 P3-0: 이 프로세스 관측 범위의 busy
-            result = subprocess.run(
-                [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                env={**os.environ, "PYTHONUNBUFFERED": "1"},
-            )
+        result = subprocess.run(
+            [HERMES_BIN, "-p", profile, "-z", context, "--skills", "ra-expert"],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"},
+        )
         out = result.stdout.strip()
         if result.returncode != 0:                                   # #150: 비정상 종료의 부분 stdout 은 답변이 아니다
             _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
@@ -1455,59 +1461,97 @@ def peer_notify():
 # 문맥은 payload 만 쓴다: 스레드 재구성(P3-0 (5))은 토큰·품질 실측 후에 넣는다.
 HIVE_GENERATION = f"{os.getpid()}-{int(time.time())}"       # 재시작 판별: 이전 세대의 busy/accept 는 stale
 HIVE_LEDGER_PATH = os.environ.get("HIVE_LEDGER_PATH", "")    # 비어 있으면 메모리 원장(재시작 시 소실 → lookup 은 unknown)
+HIVE_SUBMIT_ENABLED = os.environ.get("HIVE_SUBMIT_ENABLED", "") == "1"   # 기본 비활성: 실측(P3-0 (1)(5)) 전 CLI 실행 금지
 HIVE_ACTORS = {"ra_us": "ra-us", "ra_eu": "ra-eu"}          # hive-layout §4.1, P3 파일럿 2 peer 한정
 _hive_state_lock = threading.Lock()
-_profile_busy: dict[str, int] = {}                           # profile → 실행 중인 subprocess 수 (이 프로세스)
+_profile_locks: dict[str, threading.Lock] = {}               # profile → **직렬화** lock (이 프로세스의 모든 CLI 경로)
+_profile_holder: dict[str, str | None] = {}                  # profile → 점유 중인 msg_id 또는 "legacy" (state 용)
 _hive_ledger: dict[str, dict] = {}                           # msg_id → {actor, profile, status, ts, generation}
 
 
-@contextmanager
-def _profile_slot(profile: str):
+def _profile_lock(profile: str) -> threading.Lock:
     with _hive_state_lock:
-        _profile_busy[profile] = _profile_busy.get(profile, 0) + 1
+        return _profile_locks.setdefault(profile, threading.Lock())
+
+
+@contextmanager
+def _profile_slot(profile: str, holder: str = "legacy"):
+    """profile 당 한 번에 하나의 hermes subprocess 만 (codex 리뷰: counter 는 직렬화가 아니었다).
+    기존 경로(chat-completions·헬퍼)는 **대기**한다 — 같은 profile 동시 호출은 병렬이 아니라 순차가 된다.
+    hive_submit 은 대기하지 않고 non-blocking 으로 시도해 점유 중이면 reject-busy 를 돌려준다."""
+    lock = _profile_lock(profile)
+    lock.acquire()
+    with _hive_state_lock:
+        _profile_holder[profile] = holder
     try:
         yield
     finally:
         with _hive_state_lock:
-            _profile_busy[profile] = max(0, _profile_busy.get(profile, 1) - 1)
+            _profile_holder[profile] = None
+        lock.release()
 
 
 def _hive_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _ledger_load() -> None:
-    if not HIVE_LEDGER_PATH or _hive_ledger:
-        return
+_ledger_health = {"status": "memory"}                        # memory | ok | missing | degraded (손상 줄 있음)
+
+
+def _ledger_load() -> str:
+    """원장 파일을 메모리로 읽는다. 반환: 'memory'(파일 미설정) | 'ok' | 'missing'(파일 없음 — 삭제됐는지
+    아직 안 만들어졌는지 구분 불가) | 'degraded'(손상 줄 존재). missing/degraded 에서 '없음'은 unknown 이다."""
+    if not HIVE_LEDGER_PATH:
+        _ledger_health["status"] = "memory"
+        return "memory"
+    if _hive_ledger and _ledger_health["status"] in ("ok", "degraded"):
+        return _ledger_health["status"]
+    status = "ok"
     try:
         with open(HIVE_LEDGER_PATH, encoding="utf-8") as f:
             for line in f:
+                if not line.strip():
+                    continue
                 try:
                     rec = json.loads(line)
                 except json.JSONDecodeError:
+                    status = "degraded"
                     continue
                 if isinstance(rec, dict) and isinstance(rec.get("msg_id"), str):
+                    cur = _hive_ledger.get(rec["msg_id"])
+                    if cur is not None and cur.get("persisted") is False:
+                        continue                                    # 파일보다 앞선 메모리 전용 최종 상태를 덮지 않는다
                     _hive_ledger[rec["msg_id"]] = rec
+                else:
+                    status = "degraded"
     except FileNotFoundError:
-        pass
+        status = "missing"
+    _ledger_health["status"] = status
+    return status
 
 
 def _ledger_write(rec: dict) -> None:
-    _hive_ledger[rec["msg_id"]] = rec
+    """영속 실패 시 메모리도 바꾸지 않는다 (codex 재현: 없는 부모 디렉터리 → 500 뒤 재시도가 duplicate
+    accepted 를 돌려주고 lock 이 영구 잔존). 파일 먼저, 성공 후 메모리."""
     if HIVE_LEDGER_PATH:
         with open(HIVE_LEDGER_PATH, "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             f.flush()
             os.fsync(f.fileno())
+        if _ledger_health["status"] == "missing":
+            _ledger_health["status"] = "ok"                          # 파일이 이제 존재한다
+    _hive_ledger[rec["msg_id"]] = rec
 
 
 def _hive_state_for(actor: str) -> dict:
     profile = HIVE_ACTORS[actor]
-    with _hive_state_lock:
-        busy = _profile_busy.get(profile, 0) > 0
+    busy = _profile_lock(profile).locked()
+    # accept_token: 이 상태를 관측한 세대. submit 은 같은 토큰을 요구한다(compare-and-accept — 재시작 뒤
+    # 이전 세대에서 본 idle 로 제출하면 stale-token 거절).
     return {"actor": actor, "profile": profile, "value": "busy" if busy else "idle",
             "observed_at": _hive_now(), "generation": HIVE_GENERATION,
-            "scope": "this-api-process-only", "accept_token": None}
+            "scope": "this-api-process-only", "accept_token": HIVE_GENERATION,
+            "submit_enabled": HIVE_SUBMIT_ENABLED}
 
 
 @app.route("/v1/hive/state/<actor>", methods=["GET"])
@@ -1524,11 +1568,16 @@ def hive_lookup(msg_id: str):
     """drain 재시작 복구용 안정 id 조회: accepted 이후 상태를 돌려준다. 원장에 없으면 404 (= 받지 않음)."""
     if not check_auth():
         return jsonify({"error": "Unauthorized"}), 401
-    _ledger_load()
+    health = _ledger_load()
     rec = _hive_ledger.get(msg_id)
     if rec is None:
-        return jsonify({"msg_id": msg_id, "known": False}), 404
-    return jsonify({"msg_id": msg_id, "known": True, **rec})
+        if health != "ok":
+            # 메모리 원장(재시작 뒤 빈 상태)·파일 없음·손상 줄: '없음'은 not-received 가 아니라 unknown 이다.
+            return jsonify({"msg_id": msg_id, "known": None, "certainty": "unknown",
+                            "reason": f"ledger-{health}", "generation": HIVE_GENERATION}), 200
+        return jsonify({"msg_id": msg_id, "known": False, "certainty": "not-received"}), 404
+    certainty = "recorded" if rec.get("persisted", True) else "recorded-memory-only"
+    return jsonify({"msg_id": msg_id, "known": True, "certainty": certainty, "ledger": health, **rec})
 
 
 @app.route("/v1/hive/submit", methods=["POST"])
@@ -1537,35 +1586,51 @@ def hive_submit():
     같은 msg_id 재제출은 원장 상태를 돌려주며 다시 실행하지 않는다(멱등)."""
     if not check_auth():
         return jsonify({"error": "Unauthorized"}), 401
+    if not HIVE_SUBMIT_ENABLED:                                       # 안전 기본값: 배포돼도 CLI 를 실행하지 않는다
+        return jsonify({"result": "disabled", "reason": "HIVE_SUBMIT_ENABLED!=1 (P3-0 실측 전)"}), 503
     data = request.get_json(silent=True) or {}
     actor, msg_id, payload = data.get("actor"), data.get("msg_id"), data.get("payload")
     if actor not in HIVE_ACTORS or not isinstance(msg_id, str) or not msg_id.startswith("evt_"):
         return jsonify({"error": "actor/msg_id invalid"}), 400
     if not isinstance(payload, dict) or payload.get("id") != msg_id:
         return jsonify({"error": "payload.id must equal msg_id"}), 400
+    if data.get("accept_token") != HIVE_GENERATION:                   # 관측한 세대와 다르면 그 idle 은 stale
+        return jsonify({"result": "stale-token", "generation": HIVE_GENERATION}), 409
     profile = HIVE_ACTORS[actor]
     _ledger_load()
+    lock = _profile_lock(profile)
     with _hive_state_lock:
         prior = _hive_ledger.get(msg_id)
         if prior is not None:
             return jsonify({"result": "duplicate", **prior}), 200
-        if _profile_busy.get(profile, 0) > 0:
+        if not lock.acquire(blocking=False):                          # 수락 = 직렬화 lock 획득 (같은 임계영역 안)
             return jsonify({"result": "reject-busy", "actor": actor, "profile": profile,
-                            "generation": HIVE_GENERATION}), 409
-        _profile_busy[profile] = _profile_busy.get(profile, 0) + 1   # 수락 = 점유 (같은 lock 안)
-        accepted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "accepted",
-                    "ts": _hive_now(), "generation": HIVE_GENERATION}
-        _ledger_write(accepted)
+                            "holder": _profile_holder.get(profile), "generation": HIVE_GENERATION}), 409
+        _profile_holder[profile] = msg_id
+    submitted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "submitted",
+                 "ts": _hive_now(), "generation": HIVE_GENERATION}
     try:
+        # 'submitted' = 이 프로세스가 수락·예약했다는 사실만이다. peer 가 입력을 읽어 처리를 개시했다는
+        # 신호(§5.1 accepted)는 CLI 가 노출하지 않으므로 기록하지 않는다 — 그 구간은 unknown 으로 남긴다.
+        _ledger_write(submitted)                                       # 실행 전에 영속 (재시작 lookup 근거)
         context = json.dumps(payload, ensure_ascii=False)             # 스레드 재구성 없음 (P3-0 (5) 실측 전)
-        out, err = _invoke_hermes(profile, context)
-    finally:
+        out, err = _invoke_hermes_locked(profile, context)
+    except OSError as e:                                               # 원장 영속 실패: 수락 취소, 실행 없음
+        _hive_ledger.pop(msg_id, None)
+        return jsonify({"result": "ledger-error", "error": type(e).__name__, "generation": HIVE_GENERATION}), 500
+    finally:                                                           # 어느 경로든 점유 해제 (영구 잔존 금지)
         with _hive_state_lock:
-            _profile_busy[profile] = max(0, _profile_busy.get(profile, 1) - 1)
+            _profile_holder[profile] = None
+        lock.release()
     # 'completed' 는 subprocess 정상 종료일 뿐이다. handled(§5.1)는 outbox 답신·의무 검증으로 drain 이 판정한다.
-    done = {**accepted, "status": "completed" if not err else "failed", "ts": _hive_now(),
+    done = {**submitted, "status": "completed" if not err else "failed", "ts": _hive_now(),
             "error": err or None, "output_chars": len(out)}
-    _ledger_write(done)
+    try:
+        _ledger_write(done)
+    except OSError as e:
+        # 최종 기록 영속 실패: 메모리는 응답과 같은 상태로 두되 persisted=False 로 표시 → lookup 이 'memory-only' 로 구분
+        _hive_ledger[msg_id] = {**done, "persisted": False}
+        return jsonify({"result": "accepted", **done, "output": out, "ledger_warning": type(e).__name__}), 200
     return jsonify({"result": "accepted", **done, "output": out}), 200
 
 
