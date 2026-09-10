@@ -648,3 +648,71 @@ def test_restart_after_audit_for_reject_and_observe_only_archives(hr, hive):
     assert _router(hr, hive, clock).run().errors == [] and _log(hive) == before
     assert (hive / "agents/ra_us/outbox/.rejected/20260909T120000-0001.json").exists()
     assert len(_inbox(hive, "ra_us")) == 1
+
+
+# ---------------------------------------------------------------- P1 review round 4 (PR #151, 2026-09-10)
+
+def _broadcast_with_eu_down(hive):
+    src = _outbox(hive, "ra_us", {**REQ, "to": "broadcast", "act": "inform", "payload": {"note": "x"}})
+    p = hive / "agents/ra_eu/inbox"
+    p.rmdir()
+    p.write_text("not a directory")
+    return src, p
+
+
+def _recover(p):
+    p.unlink()
+    p.mkdir()
+
+
+@pytest.mark.parametrize("fault_at", ["after_log_append", "before_log_append"])
+def test_crash_around_original_log_append_never_redelivers_after_recovery(hr, ve, hive, fault_at):
+    """P1-9: escalation은 기록됐고 원본 handoff append 직전/직후에 죽음 → ra_eu 복구 → 재실행.
+    저널의 final 결정이 append보다 먼저 영속되므로 재시작은 route를 다시 평가하지 않는다."""
+    src, p = _broadcast_with_eu_down(hive)
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at=fault_at, fault_target="handoff").run()
+    j = next((hive / ".router/journal").glob("*.json"))
+    jd = json.loads(j.read_text())
+    assert jd["step"] == "finalizing" and jd["final"]["undeliverable"] == ["ra_eu"]
+    _recover(p)
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []
+    log = _log(hive)
+    assert [e["kind"] for e in log] == ["escalation", "handoff"]
+    assert log[1]["payload"]["delivered_to"] == ["infra_t3610"] and log[1]["payload"]["undeliverable"] == ["ra_eu"]
+    assert _inbox(hive, "ra_eu") == []                                    # 확정 뒤 재전달 없음
+    assert (src.parent / ".sent" / src.name).exists()
+    assert json.loads(j.read_text())["step"] == "archived"
+    _assert_log_valid(ve, hive)
+
+
+def test_crash_around_escalation_log_append_is_idempotent(hr, ve, hive):
+    src, p = _broadcast_with_eu_down(hive)
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at="after_log_append", fault_target="escalation").run()
+    res = _router(hr, hive, clock).run()                                   # ra_eu 아직 불가
+    assert res.errors == []
+    log = _log(hive)
+    assert [e["kind"] for e in log] == ["escalation", "handoff"] and len(_inbox(hive, "human")) == 1
+    _assert_log_valid(ve, hive)
+
+
+def test_orphan_journal_after_archive_before_cursor_is_completed(hr, ve, hive):
+    """P1-10: outbox 이동 뒤 cursor 전에 죽으면 pending()에 안 잡히는 orphan 저널 → 스윕으로 완결."""
+    src = _outbox(hive, "ra_us", REQ)
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at="before_cursor").run()
+    assert not src.exists() and (src.parent / ".sent" / src.name).exists()
+    assert not (hive / "agents/ra_us/cursor.json").exists()
+    j = next((hive / ".router/journal").glob("*.json"))
+    assert json.loads(j.read_text())["step"] == "audited"
+    res = _router(hr, hive, clock).run()
+    assert res.errors == [] and res.plans == []
+    assert json.loads((hive / "agents/ra_us/cursor.json").read_text())["last_processed"] == json.loads(j.read_text())["id"]
+    assert json.loads(j.read_text())["step"] == "archived"
+    assert len(_log(hive)) == 1                                            # 중복 append 없음
+    _assert_log_valid(ve, hive)

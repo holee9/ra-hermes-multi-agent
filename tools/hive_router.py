@@ -373,7 +373,7 @@ class HiveRouter:
     def _append_log(self, ev: dict):
         if ev["id"] in self._log_events():                          # 재시도 멱등
             return
-        self._fault("before_log_append")
+        self._fault("before_log_append", ev.get("kind"))
         fd = self._open_file(self.log_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT)
         with os.fdopen(fd, "a", encoding="utf-8") as f:
             f.write(json.dumps(ev, ensure_ascii=False) + "\n")
@@ -382,7 +382,7 @@ class HiveRouter:
         self._log_events()[ev["id"]] = (len(self._log_events()) + 1, ev)
         if self.log_path not in self.touched:
             self.touched.append(self.log_path)
-        self._fault("after_log_append")
+        self._fault("after_log_append", ev.get("kind"))
 
     def _archive(self, src: Path, sub: str):
         self._fault("before_archive")
@@ -519,26 +519,21 @@ class HiveRouter:
         # 리뷰 3차(#151): 감사 로그가 이미 확정된(step=audited) 메시지는 재시작 시 route/deliver를
         # 다시 돌리지 않는다 — 확정 뒤 복구된 대상에 새로 전달하면 log와 실제 전달이 어긋난다.
         # 남은 단계는 archive/cursor뿐이다. 확정 결정은 저널의 final 필드에 영속돼 있다.
-        if j.get("step") == "audited":
-            sub = j.get("final", {}).get("archive", ".sent")
-            self._archive(p.src, sub)
-            j["step"] = "archived"
-            self._journal_write(j)
-            self._update_cursor(p.actor, ev["id"])
+        if j.get("step") in ("finalizing", "audited"):
+            self._complete_from_journal(j, p.src)
             return
 
         if p.outcome == "reject":
-            self._refuse(ev, p.reason.split(","), j)
-            self._mark_audited(j, ".rejected")
+            self._refuse(ev, p.reason.split(","), j)                 # policy/notice는 derived로 멱등
+            self._finalize(j, ".rejected", None)
             self._archive(p.src, ".rejected")
         elif p.outcome == "observe":
-            self._append_log(ev)
-            self._mark_audited(j, ".sent")
+            self._finalize(j, ".sent", ev)
             self._archive(p.src, ".sent")
         elif p.outcome == "escalate":
             extra = {"hops_reached": ev["hops"]} if p.reason == "hop-cap" else {"targets": p.targets}
             self._escalate(p.reason, ev, extra, j)                    # 실패 시 RouterError → archive 안 함
-            self._mark_audited(j, ".rejected")
+            self._finalize(j, ".rejected", None)
             self._archive(p.src, ".rejected")
         elif p.outcome == "deliver":
             delivered = list(j.get("delivered", []))
@@ -570,18 +565,62 @@ class HiveRouter:
             logged["payload"]["delivered_to"] = delivered               # 최종 확정된 성공분
             if undeliverable:
                 logged["payload"]["undeliverable"] = undeliverable      # 사람에게 넘어간 대상
-            self._append_log(logged)
-            self._mark_audited(j, ".sent", delivered=delivered, undeliverable=undeliverable)
+            # 리뷰 4차(#151): append 뒤 저널 확정까지의 창에서 죽으면 재시작이 route를 다시
+            # 평가했다. 최종 결정과 기록할 이벤트를 저널에 먼저 영속(finalizing)하고, 그 다음
+            # 멱등 append → audited → archive → cursor 순서로만 진행한다.
+            self._finalize(j, ".sent", logged, delivered=delivered, undeliverable=undeliverable)
             self._archive(p.src, ".sent")
+        self._fault("before_cursor")
+        self._update_cursor(p.actor, ev["id"])
         j["step"] = "archived"
         self._journal_write(j)
-        self._update_cursor(p.actor, ev["id"])
 
-    def _mark_audited(self, j: dict, archive_sub: str, **final):
-        """감사 로그 확정 직후 저널에 최종 결정을 영속한다 (리뷰 3차, #151)."""
-        j["step"] = "audited"
-        j["final"] = {"archive": archive_sub, **final}
+    def _finalize(self, j: dict, archive_sub: str, final_event: dict | None, **final):
+        """최종 결정을 저널에 먼저 영속(step=finalizing)한 뒤 멱등 append → step=audited.
+
+        리뷰 3·4차(#151): 어느 지점에서 죽어도 재시작은 저널의 final만 보고 완결한다 — route/
+        deliver/escalate를 다시 평가하지 않는다. final_event가 None이면 기록할 원본 이벤트가
+        없는 경로(reject/escalate: 파생 이벤트는 derived{}로 이미 멱등)다."""
+        if j.get("step") not in ("finalizing", "audited"):
+            j["step"] = "finalizing"
+            j["final"] = {"archive": archive_sub, "event": final_event, **final}
+            self._journal_write(j)
+        if j["final"].get("event"):
+            self._append_log(j["final"]["event"])                     # id 멱등
+        if j["step"] != "audited":
+            j["step"] = "audited"
+            self._journal_write(j)
+
+    def _complete_from_journal(self, j: dict, src: Path | None):
+        """finalizing/audited 저널을 route 평가 없이 완결한다 (재시작·orphan 스윕 공용)."""
+        final = j.get("final") or {}
+        if final.get("event"):
+            self._append_log(final["event"])
+        if j["step"] != "audited":
+            j["step"] = "audited"
+            self._journal_write(j)
+        if src is not None:
+            self._archive(src, final.get("archive", ".sent"))
+        self._fault("before_cursor")
+        self._update_cursor(j["actor"], j["id"])
+        j["step"] = "archived"
         self._journal_write(j)
+
+    def _sweep_orphans(self):
+        """outbox 파일은 이미 옮겨졌는데 cursor/archived 전에 죽은 저널(orphan)을 완결한다."""
+        if not self.journal_dir.exists():
+            return
+        for jp in sorted(self.journal_dir.glob("*.json")):
+            try:
+                j = json.loads(jp.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if j.get("step") not in ("finalizing", "audited"):
+                continue
+            src = Path(j.get("src", ""))
+            if src.exists():
+                continue                                              # pending()이 정상 경로로 처리
+            self._complete_from_journal(j, None)
 
     def _update_cursor(self, actor: str, msg_id: str):
         self._atomic_write(self.root / "agents" / actor / "cursor.json",
@@ -612,6 +651,13 @@ class HiveRouter:
         plans, errors = [], self.errors
         self.acquire_lock()
         try:
+            if self.execute:
+                try:
+                    self._sweep_orphans()
+                except InjectedFault:
+                    raise
+                except (OSError, RouterError) as e:
+                    errors.append(f"orphan journal 완결 실패: {e}")
             for actor, src in self.pending():
                 if actor not in self.registry and actor != "human":
                     errors.append(f"{src}: registry에 없는 outbox 소유자 {actor} — 무시 (경로 이탈 의심)")
