@@ -9,6 +9,8 @@ import sys
 import urllib.parse
 from pathlib import Path
 
+import pytest
+
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "knowledge_fetch.py"
 
 
@@ -59,10 +61,10 @@ def test_different_queries_produce_different_search_requests(monkeypatch):
 
 def test_official_field_per_service_and_no_unfiltered_service(monkeypatch):
     calls = _stub(monkeypatch, lambda u: _ok([]))
-    kf.fetch_data_go_kr("의료기기 품목허가")
+    kf.fetch_data_go_kr("혈압계 품목허가")
     by_path = {urllib.parse.urlsplit(u).path.rsplit("/", 2)[-2]: _params(u) for u in calls}
-    assert by_path["MdlpPrdlstPrmisnInfoService05"]["prduct"] == "의료기기"
-    assert by_path["TraceManageMdlpInfoService01"]["item_name"] == "의료기기"
+    assert by_path["MdlpPrdlstPrmisnInfoService05"]["prduct"] == "혈압계"
+    assert by_path["TraceManageMdlpInfoService01"]["item_name"] == "혈압계"
     assert "MdlpMnfcturPrmisnInfoService01" not in by_path     # 품목 검색 조건이 없는 서비스는 조회 안 함
     for p in by_path.values():
         assert "query" not in p                                # 임의 공통 파라미터 없음
@@ -89,3 +91,20 @@ def test_transport_failure_degrades_to_empty(monkeypatch):
         return None if "TraceManage" in url else b"{not json"
     calls = _stub(monkeypatch, responder)
     assert kf.fetch_data_go_kr("초음파진단기") == [] and len(calls) == 2
+
+
+@pytest.mark.parametrize("query,expected", [
+    ("체온계 품목허가", "체온계"),                       # 짧은 제품명 + RA 용어 (codex 재현)
+    ("혈압계 등급 확인해주세요", "혈압계"),               # 요청 어미는 필터가 아님 (codex 재현)
+    ("초음파진단기 품목허가 절차 알려주세요", "초음파진단기"),
+    ("의료기기 품목허가 절차", ""),                       # 제품명 없음 → 요청하지 않음
+    ("확인해주세요", ""),
+    ("Class II 510(k)", ""),                              # 한글 제품명 없음
+])
+def test_product_keyword_extraction(query, expected):
+    assert kf._extract_ko_keywords(query) == expected
+
+
+def test_query_without_product_makes_no_request(monkeypatch):
+    calls = _stub(monkeypatch, lambda u: _ok([]))
+    assert kf.fetch_data_go_kr("의료기기 품목허가 절차 확인해주세요") == [] and calls == []
