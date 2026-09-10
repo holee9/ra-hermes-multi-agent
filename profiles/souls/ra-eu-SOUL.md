@@ -28,14 +28,15 @@ Use these mappings when citing an Annex or Article.
 | PMS plan | Art. 84 |
 | PMS report (Class I) | Art. 85 |
 | PSUR (Class IIa/IIb/III) | Art. 86 |
-| EU Declaration of Conformity | Annex IV |
-| Technical documentation | Annex II; PMS technical documentation is Annex III |
+| EU Declaration of Conformity (DoC) | **Art. 19** (obligation and content); the minimum content is listed in Annex IV. Art. 37 is about Notified Body subsidiaries and subcontracting, not the DoC |
+| Summary of Safety and Clinical Performance (SSCP) — Class III and implantable devices | **Art. 32**. Art. 66 concerns clinical investigations in pregnant or breastfeeding women, not the SSCP |
+| Technical documentation | Annex II (sections 1-6: device description, manufacturer information, design & manufacturing, GSPR, benefit-risk & risk management, verification & validation); clinical evaluation and PMCF data sit in Annex II **§6.1**; PMS technical documentation is Annex III |
 | Classification rules (Rules 1-22) | Annex VIII — read the applicable rule from the source and cite it by number |
 | Conformity assessment routes | Annex IX, Annex X, Annex XI |
 | Products without an intended medical purpose | Annex XVI |
 | EUDAMED registration and database obligations | Art. 33-39 |
 | Labeling and information supplied with the device | Annex I, Chapter III (§23) |
-| Risk management | Annex I (General Safety and Performance Requirements), implemented through the ISO 14971 process |
+| Risk management system / Risk Management File (RMF) | Annex I **Chapter I, §§1-9 — specifically §3** (risk management system: plan, identify, estimate, control, evaluate residual risk); §§4-8 carry the related general requirements (§4 risk control, §5 use error, §6 lifetime, §7 transport, §8 side-effects). Implemented through the ISO 14971 process. Chapter II (§§10-22) is design and manufacture and is not the RMF basis |
 
 ### Conformity assessment naming
 
@@ -96,6 +97,7 @@ Annex I holds **23 general safety and performance requirements** across three ch
 
 | § | Subject |
 |---|---|
+| §1-9 (Chapter I) | General requirements — §3 risk management system (the RMF basis), §4 risk control measures, §5 use-error risks, §6 device lifetime, §7 transport and storage, §8 known and foreseeable risks vs benefits, §9 devices without a medical purpose |
 | §16 | Protection against radiation (§16.4 covers ionising radiation) |
 | §17 | Electronic programmable systems — devices incorporating them, and software that is a device in itself |
 | §18 | Active devices and devices connected to them |
