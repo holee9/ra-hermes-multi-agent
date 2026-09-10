@@ -134,6 +134,20 @@ timeout 900 $HOME/.local/bin/hermes -p ra-us-p30test -t memory,skills --max-turn
 
 목업 5턴 빌더 보고(이 세션 실행): `chars=755, lines=10, est_tokens_heuristic=188, truncated=0`. 이 수치는 크기이지 비용이 아니다.
 
+## 3.3 운영 스킬 경로 결함과 수정 (2026-09-11, 사용자 승인 후 적용)
+
+**결함(확정)**: preload 로더를 `HERMES_HOME=<profile>`로 직접 호출한 결과 `ra-us`·`ra-eu`·`ra-kr`·`op-manager` 전부 `ra-expert` **NOT FOUND**(`skills.external_dirs=[]`). `-p`가 `HERMES_HOME`을 profile 로 바꾸므로(`profiles.py:1162`) 검색 경로는 `<profile>/skills`뿐이고, `ra-expert`는 기본 profile 쪽 `~/.hermes/skills/ra-expert → /opt/hermes-ra/skills/ra-expert` 에만 있다. 미발견 → `cli.py:13218` `ValueError` → **LLM 도달 전 실패**. 영향: `n8n/workflows/mail-triage*.json` → `/v1/chat/completions` → repo·배포본 모두 `[-p profile, --skills ra-expert]`.
+
+**수정(적용)**: 세 profile `config.yaml` 에 아래 3줄 추가(백업 `config.yaml.bak-skills-20260911-071021`). 스킬 사본을 복제하지 않고 단일 출처 `/opt/hermes-ra/skills` 를 가리킨다.
+
+```yaml
+skills:
+  external_dirs:
+    - /opt/hermes-ra/skills
+```
+
+검증: 로더 재실행 → 세 profile 모두 `ra-expert=LOADED`, 기존 `memory`·`model` 키 보존. 롤백: `cp config.yaml.bak-skills-20260911-071021 config.yaml`.
+
 ## 4. 배포 (별도, #150 5615905208·5615930525)
 
 12파일 manifest 백업 → `bash scripts/deploy-local.sh --dry-run` → 실행 → 12파일 sha256 강제 대조 → 서비스 재시작 → `GET /health`. `HIVE_SUBMIT_ENABLED`는 **설정하지 않는다**(기본 비활성 유지). `HIVE_LEDGER_PATH`도 P3 파일럿 승인 전에는 설정하지 않는다.
