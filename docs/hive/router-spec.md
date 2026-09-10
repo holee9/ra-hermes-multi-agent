@@ -98,6 +98,8 @@ MD 코드 주석 그대로: *"의도가 아니라 실제 전달된 대상을 기
 
 `log.jsonl` 항목의 `payload.delivered_to: [...]`에 실제 inbox 기록에 성공한 actor만 넣는다. `broadcast`가 5명 중 3명에게만 성공하면 3명만 기록하고 나머지는 `undeliverable` 에스컬레이션.
 
+**확정 시점.** 원본 메시지의 log 항목은 **모든 대상이 전달 성공 또는 human escalation으로 확정된 뒤 한 번만** 쓴다. 그 전까지 진행 상태(성공 대상·실패 대상·발급된 파생 이벤트)는 `.router/journal/<id>.json`에만 있다. 이유: 부분 성공 시점에 log를 먼저 쓰면, escalation 실패로 원본이 보류됐다가 복구 후 재실행에서 추가 전달된 결과가 감사 로그에 반영되지 않는다(PR #151 리뷰). 확정된 항목은 `payload.delivered_to`(성공)와, 사람에게 넘긴 대상이 있으면 `payload.undeliverable`(escalation의 `ref_evt`로 연결)을 함께 가진다. log는 append-only이며 항목을 갱신하지 않는다.
+
 ---
 
 ## 6. 홉 가드

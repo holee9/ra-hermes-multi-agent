@@ -25,11 +25,13 @@ hive 라우터 — P2 격리 참조 구현 (SPEC-HIVE-001 §4 P2, docs/hive/rout
 from __future__ import annotations
 
 import argparse
+import errno
 import importlib.util
 import json
 import fcntl
 import os
 import secrets
+import stat
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
@@ -163,15 +165,77 @@ class HiveRouter:
             return False
         return resolved == self._root_resolved or self._root_resolved in resolved.parents
 
-    def _atomic_write(self, path: Path, data: str):
-        if not self._inside_root(path.parent):
-            raise RouterError(f"경로 이탈 차단: {path} 는 hive root 밖을 가리킴 (symlink?)")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if not self._inside_root(path.parent) or path.parent.is_symlink() and not self._inside_root(path.parent):
+    # ---- 경계 보장 열기 (리뷰 P1 2차, #151): 검사 후 경로 교체 경쟁(TOCTOU)을 피하기 위해
+    # root 디렉터리 FD에서 출발해 각 구성요소를 O_NOFOLLOW|O_DIRECTORY 로 내려가고, 최종
+    # 파일도 O_NOFOLLOW 로 연다. 어느 단계든 symlink 이면 ELOOP → RouterError. 문자열 검사가
+    # 아니라 실제 open 시점에 경계가 보장된다. log.jsonl · .router/ · lock · journal · inbox ·
+    # outbox 이동 모두 이 경로를 쓴다.
+    def _rel(self, path: Path) -> Path:
+        try:
+            rel = Path(path).relative_to(self.root)
+        except ValueError:
+            raise RouterError(f"경로 이탈 차단: {path} 는 hive root 아래가 아님")
+        if any(part in ("", ".", "..") for part in rel.parts):
             raise RouterError(f"경로 이탈 차단: {path}")
-        tmp = path.parent / f".tmp-{os.getpid()}-{secrets.token_hex(2)}"
-        tmp.write_text(data, encoding="utf-8")
-        os.replace(tmp, path)
+        return rel
+
+    def _dir_fd(self, rel_dir: Path, create: bool = True) -> int:
+        fd = os.open(self._root_resolved, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            for part in rel_dir.parts:
+                flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+                try:
+                    st = os.lstat(part, dir_fd=fd)
+                    if stat.S_ISLNK(st.st_mode):              # Linux는 O_NOFOLLOW|O_DIRECTORY에 ENOTDIR을 주므로 명시 판정
+                        raise RouterError(f"경로 이탈 차단: {self.root / rel_dir} — {part} 는 symlink")
+                except FileNotFoundError:
+                    pass
+                try:
+                    nfd = os.open(part, flags, dir_fd=fd)
+                except FileNotFoundError:
+                    if not create:
+                        raise
+                    os.mkdir(part, 0o755, dir_fd=fd)
+                    nfd = os.open(part, flags, dir_fd=fd)
+                except OSError as e:
+                    if e.errno == errno.ELOOP:                # symlink 구성요소 = 경로 이탈 시도
+                        raise RouterError(f"경로 이탈 차단: {self.root / rel_dir} — {part} 는 symlink")
+                    raise                                     # ENOTDIR/EACCES 등은 일반 I/O 실패 (수신 불가 처리)
+                os.close(fd)
+                fd = nfd
+            return fd
+        except BaseException:
+            os.close(fd)
+            raise
+
+    def _open_file(self, path: Path, flags: int, create_dirs: bool = True) -> int:
+        rel = self._rel(path)
+        dfd = self._dir_fd(rel.parent, create=create_dirs)
+        try:
+            try:
+                if stat.S_ISLNK(os.lstat(rel.name, dir_fd=dfd).st_mode):
+                    raise RouterError(f"경로 이탈 차단: {path} 는 symlink")
+            except FileNotFoundError:
+                pass
+            return os.open(rel.name, flags | os.O_NOFOLLOW, 0o644, dir_fd=dfd)
+        except OSError as e:
+            if e.errno == errno.ELOOP:
+                raise RouterError(f"경로 이탈 차단: {path} 는 symlink")
+            raise
+        finally:
+            os.close(dfd)
+
+    def _atomic_write(self, path: Path, data: str):
+        rel = self._rel(path)
+        dfd = self._dir_fd(rel.parent)
+        try:
+            tmp = f".tmp-{os.getpid()}-{secrets.token_hex(2)}"
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644, dir_fd=dfd)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(data)
+            os.rename(tmp, rel.name, src_dir_fd=dfd, dst_dir_fd=dfd)   # 대상이 symlink이면 링크 자체가 교체됨
+        finally:
+            os.close(dfd)
         self.touched.append(path)
 
     def _journal_path(self, msg_id: str) -> Path:
@@ -191,9 +255,8 @@ class HiveRouter:
         """
         if not self.execute:
             return
-        self.state_dir.mkdir(parents=True, exist_ok=True)
         lock = self.state_dir / "lock"
-        fd = os.open(lock, os.O_CREAT | os.O_RDWR, 0o644)
+        fd = self._open_file(lock, os.O_CREAT | os.O_RDWR)           # .router/ 및 lock 모두 NOFOLLOW
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
@@ -311,8 +374,8 @@ class HiveRouter:
         if ev["id"] in self._log_events():                          # 재시도 멱등
             return
         self._fault("before_log_append")
-        self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.log_path, "a", encoding="utf-8") as f:
+        fd = self._open_file(self.log_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT)
+        with os.fdopen(fd, "a", encoding="utf-8") as f:
             f.write(json.dumps(ev, ensure_ascii=False) + "\n")
             f.flush()
             os.fsync(f.fileno())
@@ -324,13 +387,23 @@ class HiveRouter:
     def _archive(self, src: Path, sub: str):
         self._fault("before_archive")
         dest = src.parent / sub / src.name
-        if not self._inside_root(src.parent):
-            raise RouterError(f"경로 이탈 차단: {src} 의 outbox가 hive root 밖 (symlink?)")
-        if src.exists():
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            if not self._inside_root(dest.parent):
-                raise RouterError(f"경로 이탈 차단: {dest}")
-            os.replace(src, dest)
+        rel_src, rel_dest = self._rel(src), self._rel(dest)
+        sdfd = self._dir_fd(rel_src.parent, create=False)
+        try:
+            try:
+                st = os.lstat(rel_src.name, dir_fd=sdfd)
+            except FileNotFoundError:
+                st = None                                             # 이미 옮겨짐 (재시작)
+            if st is not None:
+                if stat.S_ISLNK(st.st_mode):
+                    raise RouterError(f"경로 이탈 차단: {src} 는 symlink")
+                ddfd = self._dir_fd(rel_dest.parent)
+                try:
+                    os.rename(rel_src.name, rel_dest.name, src_dir_fd=sdfd, dst_dir_fd=ddfd)
+                finally:
+                    os.close(ddfd)
+        finally:
+            os.close(sdfd)
         self.touched.append(dest)
 
     def _router_event(self, kind: str, payload: dict, to: str | None = None, workspace: str = "work") -> dict:
@@ -466,17 +539,24 @@ class HiveRouter:
                     self._journal_write(j)                            # 대상별 진행을 먼저 기록
                 else:
                     failed.append(t)
-            logged = dict(ev)
-            logged["payload"] = dict(ev.get("payload") or {})
-            logged["payload"]["delivered_to"] = delivered               # 실제 성공분만
-            self._append_log(logged)
             undeliverable = list(failed)
             if p.reason.startswith("partial-undeliverable:"):
                 undeliverable += p.reason.split(":", 1)[1].split(",")
+            j["undeliverable"] = undeliverable
+            self._journal_write(j)
             if undeliverable:
-                # 실패 시 RouterError: 원본은 outbox에 남고, 다음 실행은 inbox 파일명·log id
-                # 멱등성 덕에 성공분을 중복 기록하지 않은 채 escalation만 재시도한다.
+                # 실패 시 RouterError: 원본은 outbox에 남고 log에는 아직 아무것도 없다. 다음 실행은
+                # inbox 파일명 멱등성으로 성공분을 중복 기록하지 않은 채 실패분 전달과 escalation을
+                # 재시도한다 (복구되면 escalation 없이 완결).
                 self._escalate("undeliverable", ev, {"targets": undeliverable}, j, key="escalation_undeliverable")
+            # 리뷰 P1 2차(#151): log 항목은 **모든 대상이 전달 또는 human escalation으로 확정된 뒤**
+            # 한 번만 쓴다. 먼저 쓰면 복구 후 재실행의 실제 전달 결과가 감사 로그에 반영되지 않았다.
+            logged = dict(ev)
+            logged["payload"] = dict(ev.get("payload") or {})
+            logged["payload"]["delivered_to"] = delivered               # 최종 확정된 성공분
+            if undeliverable:
+                logged["payload"]["undeliverable"] = undeliverable      # 사람에게 넘어간 대상
+            self._append_log(logged)
             self._archive(p.src, ".sent")
         j["step"] = "archived"
         self._journal_write(j)
