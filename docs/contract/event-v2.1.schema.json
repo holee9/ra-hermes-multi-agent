@@ -91,7 +91,7 @@
           "payload": {
             "required": ["action", "reason"],
             "properties": {
-              "action": { "enum": ["pause", "resume", "throttle", "steer", "constrain", "stop"] }
+              "action": { "enum": ["pause", "resume", "throttle", "steer", "constrain", "stop", "release", "refuse-invalid"] }
             }
           }
         }
