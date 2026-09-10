@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -31,29 +32,57 @@ class Thread:
     est_tokens: int                          # chars/4 — 휴리스틱, 실측 아님
     truncated: int = 0                       # 상한으로 생략된 선행 항목 수
     sources: list[str] = field(default_factory=list)   # 포함된 event id (감사용)
+    skipped_unordered: int = 0               # ts 파싱 불가/naive 로 순서를 알 수 없어 제외한 항목 수
 
 
-def _ts(ev: dict) -> str:
-    return ev.get("ts") if isinstance(ev.get("ts"), str) else ""
+def _ts(ev: dict) -> datetime | None:
+    """tz 를 포함해 파싱한 시각. 문자열 비교는 +09:00 과 Z 를 섞으면 순서가 틀린다(codex 재현: 09:00+09:00 대상에
+    01:00Z(=10:00+09:00) 미래 항목이 포함됨). 파싱 불가·naive 는 None → 순서를 알 수 없으므로 제외한다."""
+    raw = ev.get("ts")
+    if not isinstance(raw, str):
+        return None
+    try:
+        t = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo is not None else None
 
 
 def collect(records: list[dict], target_id: str, max_events: int = 12) -> Thread:
-    by_id = {r["id"]: r for r in records if isinstance(r, dict) and isinstance(r.get("id"), str)}
+    by_id: dict[str, dict] = {}
+    order: dict[str, int] = {}                                     # 원장(log) 등장 순서 — 동시각 tiebreak
+    for n, r in enumerate(records):
+        if isinstance(r, dict) and isinstance(r.get("id"), str) and r["id"] not in by_id:
+            by_id[r["id"]] = r
+            order[r["id"]] = n
     target = by_id.get(target_id)
     if target is None:
         raise KeyError(f"log 에 없는 id: {target_id}")
+    t_ts = _ts(target)
+    if t_ts is None:
+        raise ValueError(f"대상 {target_id} 의 ts 가 tz 포함 ISO8601 이 아님 — 과거 판정 불가")
     conv = target.get("conversation") if isinstance(target.get("conversation"), str) else None
     picked: dict[str, dict] = {}
+    skipped_unordered = 0
     if conv:
         for r in by_id.values():
-            if r.get("conversation") == conv and _ts(r) <= _ts(target) and r["id"] != target_id:
+            if r.get("conversation") != conv or r["id"] == target_id:
+                continue
+            ts = _ts(r)
+            if ts is None:
+                skipped_unordered += 1
+                continue
+            if ts < t_ts or (ts == t_ts and order[r["id"]] < order[target_id]):
                 picked[r["id"]] = r
-    # corr 체인 (conversation 이 없거나 다른 스레드에서 이어진 경우)
+    # corr 체인: 선행 항목은 시각과 무관하게 인과적으로 앞선다 — 단 순서를 알 수 없는(ts 불량) 항목은 제외
     cur = target
     while isinstance(cur.get("corr"), str) and cur["corr"] in by_id and cur["corr"] not in picked:
         cur = by_id[cur["corr"]]
+        if _ts(cur) is None:
+            skipped_unordered += 1
+            break
         picked[cur["id"]] = cur
-    prior = sorted(picked.values(), key=lambda r: (_ts(r), r["id"]))
+    prior = sorted(picked.values(), key=lambda r: (_ts(r), order[r["id"]]))
     truncated = 0
     if len(prior) > max_events - 1:
         truncated = len(prior) - (max_events - 1)
@@ -70,7 +99,7 @@ def collect(records: list[dict], target_id: str, max_events: int = 12) -> Thread
         lines.append("  " + json.dumps(r.get("payload", {}), ensure_ascii=False, sort_keys=True))
     context = "\n".join(lines)
     return Thread(conv, target_id, events, context, len(context), len(lines), len(context) // 4, truncated,
-                  [r["id"] for r in events])
+                  [r["id"] for r in events], skipped_unordered)
 
 
 def main(argv=None) -> int:
@@ -91,7 +120,7 @@ def main(argv=None) -> int:
     if a.json:
         print(json.dumps({"conversation": t.conversation, "events": len(t.events), "truncated": t.truncated,
                           "chars": t.chars, "lines": t.lines, "est_tokens_heuristic": t.est_tokens,
-                          "sources": t.sources}, ensure_ascii=False))
+                          "sources": t.sources, "skipped_unordered": t.skipped_unordered}, ensure_ascii=False))
     else:
         print(t.context)
     return 0
