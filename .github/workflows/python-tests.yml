@@ -48,5 +48,5 @@ jobs:
           python-version: "3.12"
       - name: Install test dependencies
         run: python -m pip install --disable-pip-version-check "pytest>=8" "jsonschema>=4.19"
-      - name: Run hive regression (validator / router / drain)
-        run: python -m pytest tests/test_validate_events.py tests/test_hive_router.py tests/test_hive_drain.py -q -p no:cacheprovider
+      - name: Run hive regression (validator / router / drain / thread)
+        run: python -m pytest tests/test_validate_events.py tests/test_hive_router.py tests/test_hive_drain.py tests/test_hive_thread.py -q -p no:cacheprovider
