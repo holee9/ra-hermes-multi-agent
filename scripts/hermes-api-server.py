@@ -1507,6 +1507,11 @@ def _ledger_load() -> str:
     if _hive_ledger and _ledger_health["status"] in ("ok", "degraded"):
         return _ledger_health["status"]
     status = "ok"
+    marker = HIVE_LEDGER_PATH + ".created"                       # 원장이 한 번이라도 만들어졌다는 표식
+    if not os.path.exists(HIVE_LEDGER_PATH):
+        # 표식 없음 = 아직 초기화 전(new, 실행 허용) / 표식 있음 = 원장 유실(missing, 실행 거절)
+        _ledger_health["status"] = "missing" if os.path.exists(marker) else "new"
+        return _ledger_health["status"]
     try:
         with open(HIVE_LEDGER_PATH, encoding="utf-8") as f:
             for line in f:
@@ -1538,8 +1543,10 @@ def _ledger_write(rec: dict) -> None:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             f.flush()
             os.fsync(f.fileno())
-        if _ledger_health["status"] == "missing":
-            _ledger_health["status"] = "ok"                          # 파일이 이제 존재한다
+        if _ledger_health["status"] == "new":
+            with open(HIVE_LEDGER_PATH + ".created", "w", encoding="utf-8") as mf:
+                mf.write(HIVE_GENERATION)
+            _ledger_health["status"] = "ok"                          # 초기화 완료
     _hive_ledger[rec["msg_id"]] = rec
 
 
@@ -1597,18 +1604,25 @@ def hive_submit():
     if data.get("accept_token") != HIVE_GENERATION:                   # 관측한 세대와 다르면 그 idle 은 stale
         return jsonify({"result": "stale-token", "generation": HIVE_GENERATION}), 409
     profile = HIVE_ACTORS[actor]
-    _ledger_load()
+    health = _ledger_load()
+    if health not in ("ok", "new"):
+        # fail-closed (codex): 원장이 없거나(memory) 유실·손상됐으면 같은 id 를 다시 실행할 수 있으므로 거절
+        return jsonify({"result": "ledger-unhealthy", "ledger": health, "generation": HIVE_GENERATION}), 503
+    payload_hash = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:16]
     lock = _profile_lock(profile)
     with _hive_state_lock:
         prior = _hive_ledger.get(msg_id)
         if prior is not None:
+            if prior.get("actor") != actor or prior.get("payload_hash") != payload_hash:
+                return jsonify({"result": "id-binding-conflict", "msg_id": msg_id,      # 같은 id 에 다른 내용
+                                "recorded_actor": prior.get("actor")}), 409
             return jsonify({"result": "duplicate", **prior}), 200
         if not lock.acquire(blocking=False):                          # 수락 = 직렬화 lock 획득 (같은 임계영역 안)
             return jsonify({"result": "reject-busy", "actor": actor, "profile": profile,
                             "holder": _profile_holder.get(profile), "generation": HIVE_GENERATION}), 409
         _profile_holder[profile] = msg_id
     submitted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "submitted",
-                 "ts": _hive_now(), "generation": HIVE_GENERATION}
+                 "payload_hash": payload_hash, "ts": _hive_now(), "generation": HIVE_GENERATION}
     try:
         # 'submitted' = 이 프로세스가 수락·예약했다는 사실만이다. peer 가 입력을 읽어 처리를 개시했다는
         # 신호(§5.1 accepted)는 CLI 가 노출하지 않으므로 기록하지 않는다 — 그 구간은 unknown 으로 남긴다.
