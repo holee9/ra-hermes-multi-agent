@@ -15,6 +15,11 @@
 | 별도 gateway | `hermes-gateway.service` PID 2874353, argv `hermes gateway`, `-p` 없음, HERMES_HOME/PROFILE 환경 없음 | codex 읽기 전용 실측 |
 | profile 저장소 | `~/.hermes/profiles/{ra-us,ra-eu,ra-kr,…}` 각각 `SOUL.md`·`config.yaml`·`state.db`·`sessions`를 **따로** 가짐. gateway는 `~/.hermes/state.db`·`~/.hermes/sessions` 사용 추정 | 디렉터리 목록(이 세션, 읽기만). `config.yaml`이 다른 경로를 가리킬 수 있어 **격리 확정 아님** |
 | CLI 세션 | resume 없으면 호출마다 새 session id; `active_sessions` lease는 총량 상한 | codex, `cli.py:3399`/`3494` |
+| **`ra-us` resolved toolsets (실측, 이 세션)** | enabled 17: web, browser, terminal, file, code_execution, vision, image_gen, tts, skills, todo, memory, session_search, clarify, delegation, cronjob, messaging, computer_use. MCP 서버 **없음**(기본 profile의 `filesystem`과 다름) | `hermes -p ra-us tools list`, `hermes -p ra-us mcp list`. `tools --summary`는 TTY 필요(비대화형 불가) |
+| **`ra-us` config** | top 키 `memory, model`뿐. memory: `provider: honcho`(peer 키 없음). model: `gpt-oss:120b`, provider custom, base_url `http://192.168.100.1:11434/v1`(GX10). `tools`·`agent` 키 없음 → toolset 제한은 아직 설정된 것이 없다 | yaml 구조 파서 |
+| **`ra-us` 저장소** | `skills/`, `sessions/`, `state.db`, `auth.json`, `config.yaml` 모두 profile-local 실경로(symlink 아님). profile `.env` **없음** → `~/.hermes/.env`(공용, 변수: BROWSERBASE_*·BROWSER_*·*_DEBUG·OPENROUTER_API_KEY·TERMINAL_*)에 의존 가능. `~/.hermes/`에도 auth.json·skills·sessions·state.db 존재(기본 profile) | `readlink -f`, 변수명만 출력 |
+| **Honcho peer 매핑** | `~/.hermes/honcho.json`(공용) `hosts.hermes_ra-us → aiPeer ra_us, workspace work`, 동일하게 ra-eu/ra-kr/op-manager/n8n-manager/infra-*. **profile 이름 → 호스트 키 `hermes_<profile>`**(client.py:36-41), 블록이 없으면 빈 블록(=peer 미지정 → 기본 host `hermes` 동작으로 추정, 미실측). 실험 profile `ra-us-p30test`는 블록이 **없으므로** 실험 전에 `hosts.hermes_ra-us-p30test = {aiPeer: ra_us_p30test, workspace: <실험 workspace>}`를 추가해야 운영 `ra_us` peer와 분리된다 | JSON 구조 파서(URL·키 마스킹) |
+| **profile create 의미** | `hermes profile create <name>`: fresh + 번들 스킬; `--clone`: config.yaml·.env·SOUL.md·skills 복사; `--clone-all`: 전체 상태 복사(런타임 파일은 제거). `--no-skills`: 스킬 없음 | `profile create --help`, `profiles.py:13-15,54-78` |
 
 ## 1. host 전체 hermes 호출자 목록 — (1)
 
