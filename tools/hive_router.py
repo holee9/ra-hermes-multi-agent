@@ -516,15 +516,29 @@ class HiveRouter:
                                           "event": ev, "step": "normalized", "delivered": []}
         self._journal_write(j)
 
+        # 리뷰 3차(#151): 감사 로그가 이미 확정된(step=audited) 메시지는 재시작 시 route/deliver를
+        # 다시 돌리지 않는다 — 확정 뒤 복구된 대상에 새로 전달하면 log와 실제 전달이 어긋난다.
+        # 남은 단계는 archive/cursor뿐이다. 확정 결정은 저널의 final 필드에 영속돼 있다.
+        if j.get("step") == "audited":
+            sub = j.get("final", {}).get("archive", ".sent")
+            self._archive(p.src, sub)
+            j["step"] = "archived"
+            self._journal_write(j)
+            self._update_cursor(p.actor, ev["id"])
+            return
+
         if p.outcome == "reject":
             self._refuse(ev, p.reason.split(","), j)
+            self._mark_audited(j, ".rejected")
             self._archive(p.src, ".rejected")
         elif p.outcome == "observe":
             self._append_log(ev)
+            self._mark_audited(j, ".sent")
             self._archive(p.src, ".sent")
         elif p.outcome == "escalate":
             extra = {"hops_reached": ev["hops"]} if p.reason == "hop-cap" else {"targets": p.targets}
             self._escalate(p.reason, ev, extra, j)                    # 실패 시 RouterError → archive 안 함
+            self._mark_audited(j, ".rejected")
             self._archive(p.src, ".rejected")
         elif p.outcome == "deliver":
             delivered = list(j.get("delivered", []))
@@ -557,10 +571,17 @@ class HiveRouter:
             if undeliverable:
                 logged["payload"]["undeliverable"] = undeliverable      # 사람에게 넘어간 대상
             self._append_log(logged)
+            self._mark_audited(j, ".sent", delivered=delivered, undeliverable=undeliverable)
             self._archive(p.src, ".sent")
         j["step"] = "archived"
         self._journal_write(j)
         self._update_cursor(p.actor, ev["id"])
+
+    def _mark_audited(self, j: dict, archive_sub: str, **final):
+        """감사 로그 확정 직후 저널에 최종 결정을 영속한다 (리뷰 3차, #151)."""
+        j["step"] = "audited"
+        j["final"] = {"archive": archive_sub, **final}
+        self._journal_write(j)
 
     def _update_cursor(self, actor: str, msg_id: str):
         self._atomic_write(self.root / "agents" / actor / "cursor.json",
