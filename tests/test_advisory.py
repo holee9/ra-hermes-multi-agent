@@ -893,3 +893,60 @@ def test_ledger_loss_between_submit_and_completion_write_is_not_recreated(monkey
     r = _submit(client, "ra_us", "evt_f").get_json()
     assert r["result"] == "accepted" and r["ledger_warning"] == "FileNotFoundError" and not path.exists()
     assert client.get("/v1/hive/lookup/evt_f", headers=H).get_json()["certainty"] == "recorded-memory-only"
+
+
+def test_same_msg_id_concurrent_submits_from_two_actors_execute_once(monkeypatch, tmp_path):
+    """codex 재현(33aebf1): prior 검사(lock 안)와 submitted 기록(lock 밖) 사이 경쟁 — ra_us/ra_eu 가 같은 id 를
+    동시에 내면 둘 다 accepted, CLI 2회. 이제 msg_id 를 임계영역 안에서 전역 예약한다."""
+    calls = []
+    entered = threading.Event()
+    release = threading.Event()
+    real_write = m._ledger_write
+
+    def slow_write(rec):
+        if rec.get("status") == "submitted" and not entered.is_set():
+            entered.set()
+            release.wait(timeout=5)                                                # 첫 요청을 영속 직전에 붙잡는다
+        return real_write(rec)
+    client = _hive_client(monkeypatch, lambda cmd, **k: calls.append(cmd[2]) or _Proc(0, "a"),
+                          ledger_path=str(tmp_path / "ledger.jsonl"))
+    _submit(client, "ra_us", "evt_seed")                                          # 원장 초기화(new→ok)
+    monkeypatch.setattr(m, "_ledger_write", slow_write)
+    results = {}
+
+    def go(actor):
+        results[actor] = _submit(client, actor, "evt_shared", {"x": 1}).get_json()
+    t1 = threading.Thread(target=go, args=("ra_us",))
+    t1.start()
+    assert entered.wait(timeout=5)
+    t2 = threading.Thread(target=go, args=("ra_eu",))
+    t2.start()
+    t2.join(timeout=5)
+    assert results["ra_eu"]["result"] == "id-binding-conflict" and results["ra_eu"]["recorded_actor"] == "ra_us"
+    release.set()
+    t1.join(timeout=5)
+    assert results["ra_us"]["result"] == "accepted" and calls == ["ra-us", "ra-us"]   # seed + shared: 정확히 1회
+    assert client.get("/v1/hive/lookup/evt_shared", headers=H).get_json()["status"] == "completed"
+
+
+def test_same_msg_id_same_actor_while_in_progress_is_409_not_duplicate(monkeypatch, tmp_path):
+    calls = []
+    entered = threading.Event()
+    release = threading.Event()
+
+    def run(cmd, **k):
+        calls.append(cmd)
+        entered.set()
+        release.wait(timeout=5)
+        return _Proc(0, "a")
+    client = _hive_client(monkeypatch, run, ledger_path=str(tmp_path / "ledger.jsonl"))
+    res = {}
+    t = threading.Thread(target=lambda: res.update(first=_submit(client, "ra_us", "evt_ip", {"x": 1}).get_json()))
+    t.start()
+    assert entered.wait(timeout=5)
+    r = _submit(client, "ra_us", "evt_ip", {"x": 1})                              # 같은 actor·payload, 실행 중
+    assert r.status_code == 409 and r.get_json()["result"] == "in-progress"
+    release.set()
+    t.join(timeout=5)
+    assert res["first"]["result"] == "accepted" and len(calls) == 1
+    assert _submit(client, "ra_us", "evt_ip", {"x": 1}).get_json()["result"] == "duplicate"

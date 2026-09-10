@@ -1644,21 +1644,27 @@ def hive_submit():
             if prior.get("actor") != actor or prior.get("payload_hash") != payload_hash:
                 return jsonify({"result": "id-binding-conflict", "msg_id": msg_id,      # 같은 id 에 다른 내용
                                 "recorded_actor": prior.get("actor")}), 409
+            if prior.get("status") in ("reserving", "submitted"):
+                return jsonify({"result": "in-progress", **prior}), 409             # 같은 id 가 아직 실행 중
             return jsonify({"result": "duplicate", **prior}), 200
         if not lock.acquire(blocking=False):                          # 수락 = 직렬화 lock 획득 (같은 임계영역 안)
             return jsonify({"result": "reject-busy", "actor": actor, "profile": profile,
                             "holder": _profile_holder.get(profile), "generation": HIVE_GENERATION}), 409
         _profile_holder[profile] = msg_id
-    submitted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "submitted",
-                 "payload_hash": payload_hash, "ts": _hive_now(), "generation": HIVE_GENERATION}
+        submitted = {"msg_id": msg_id, "actor": actor, "profile": profile, "status": "submitted",
+                     "payload_hash": payload_hash, "ts": _hive_now(), "generation": HIVE_GENERATION}
+        # msg_id **전역 예약** (codex 재현: 같은 id 를 다른 actor 가 동시에 내면 profile lock 이 달라 둘 다
+        # prior 없음으로 통과했다). 예약은 같은 임계영역 안에서 메모리에 먼저 잡고, 영속은 밖에서 한다.
+        _hive_ledger[msg_id] = {**submitted, "status": "reserving", "persisted": False}
     try:
         # 'submitted' = 이 프로세스가 수락·예약했다는 사실만이다. peer 가 입력을 읽어 처리를 개시했다는
         # 신호(§5.1 accepted)는 CLI 가 노출하지 않으므로 기록하지 않는다 — 그 구간은 unknown 으로 남긴다.
         _ledger_write(submitted)                                       # 실행 전에 영속 (재시작 lookup 근거)
         context = json.dumps(payload, ensure_ascii=False)             # 스레드 재구성 없음 (P3-0 (5) 실측 전)
         out, err = _invoke_hermes_locked(profile, context)
-    except OSError as e:                                               # 원장 영속 실패: 수락 취소, 실행 없음
-        _hive_ledger.pop(msg_id, None)
+    except OSError as e:                                               # 원장 영속 실패: 예약·수락 취소, 실행 없음
+        with _hive_state_lock:
+            _hive_ledger.pop(msg_id, None)
         return jsonify({"result": "ledger-error", "error": type(e).__name__, "generation": HIVE_GENERATION}), 500
     finally:                                                           # 어느 경로든 점유 해제 (영구 잔존 금지)
         with _hive_state_lock:
