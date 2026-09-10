@@ -127,9 +127,12 @@ def _get_wiki_files() -> list[str]:
                f"?recursive=true&per_page={WIKI_TREE_PAGE_SIZE}&page={page}")
         body = _http_get(url, _gitea_headers())
         if not body:
-            if page > 1:
-                truncated = True   # earlier pages loaded; this one did not → partial listing
-            break
+            # #108 review 2: a failed page must never be cached as a complete/empty listing.
+            # page 1 failure → return [] WITHOUT caching so the next call retries; later page
+            # failure → keep what we have, flagged truncated, and do not cache either.
+            WIKI_TREE_STATUS[GITEA_WIKI_REPO] = {"files": len(files), "truncated": True, "error": f"page {page} fetch failed"}
+            logging.warning("llm-wiki tree page %d fetch failed (%d files so far, not cached)", page, len(files))
+            return files
         try:
             data = json.loads(body)
         except ValueError:
@@ -144,7 +147,10 @@ def _get_wiki_files() -> list[str]:
                 files.append(path)
                 new += 1
         truncated = bool(data.get("truncated"))
-        if not truncated or not entries or (new == 0 and page > 1):
+        # #108 review 2: a page holding only non-.md entries (images, attachments) is NOT the end
+        # of the tree — stop only when the server says it is no longer truncated or returns
+        # nothing at all. MAX_PAGES bounds a runaway walk.
+        if not truncated or not entries:
             break
     else:
         truncated = True

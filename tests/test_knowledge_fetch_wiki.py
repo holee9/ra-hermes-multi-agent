@@ -85,9 +85,10 @@ def test_page_failure_mid_walk_is_reported_as_truncated(monkeypatch, caplog):
     kf._wiki_file_cache.clear()
     monkeypatch.setattr(kf, "_http_get", _serve({1: _tree(["a.md"], True), 2: None}, []))
     files = kf._get_wiki_files()
-    assert files == ["a.md"]
+    assert files == ["a.md"]                                       # 부분 목록은 이번 호출에 사용
     assert kf.WIKI_TREE_STATUS[kf.GITEA_WIKI_REPO]["truncated"] is True
-    assert "incomplete" in caplog.text
+    assert kf.GITEA_WIKI_REPO not in kf._wiki_file_cache          # 실패 목록은 캐시하지 않음 (리뷰 2차)
+    assert "fetch failed" in caplog.text
 
 
 def test_page_ceiling_reports_truncated(monkeypatch):
@@ -106,3 +107,32 @@ def test_listing_is_cached_per_process(monkeypatch):
     kf._get_wiki_files()
     kf._get_wiki_files()
     assert len(calls) == 1
+
+
+# ---- #108 review round 2 (2026-09-10)
+
+def test_page_with_only_non_md_entries_does_not_stop_the_walk(monkeypatch):
+    kf._wiki_file_cache.clear()
+    pages = {1: _tree(["a.md"], True), 2: _tree(["image.png"], True), 3: _tree(["required.md"], False)}
+    monkeypatch.setattr(kf, "_http_get", _serve(pages, []))
+    assert kf._get_wiki_files() == ["a.md", "required.md"]
+    assert kf.WIKI_TREE_STATUS[kf.GITEA_WIKI_REPO]["truncated"] is False
+
+
+def test_first_page_failure_is_not_cached_and_recovers(monkeypatch):
+    kf._wiki_file_cache.clear()
+    calls = []
+    state = {"fail": True}
+
+    def flaky(url, headers=None, timeout=10):
+        calls.append(url)
+        if state["fail"]:
+            return None
+        return _tree(["a.md"], False)
+    monkeypatch.setattr(kf, "_http_get", flaky)
+    assert kf._get_wiki_files() == []
+    assert kf.WIKI_TREE_STATUS[kf.GITEA_WIKI_REPO]["truncated"] is True
+    assert kf.GITEA_WIKI_REPO not in kf._wiki_file_cache          # 실패는 캐시하지 않는다
+    state["fail"] = False
+    assert kf._get_wiki_files() == ["a.md"]                        # 복구 후 HTTP 재시도로 정상 목록
+    assert len(calls) == 2
