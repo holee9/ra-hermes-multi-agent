@@ -144,7 +144,7 @@ if hops > HOP_CAP:
 
 ## 9. 인박스 → peer 전달 (drain gate)
 
-라우터가 inbox에 파일을 넣는 것과, peer가 그것을 **읽어 처리하기 시작하는 것**은 별개다. 후자는 `docs/governance/delivery-gate.md`.
+라우터가 inbox에 파일을 넣는 것과, peer가 그것을 **읽어 처리하기 시작하는 것**은 별개다. 후자는 `docs/governance/delivery-gate.md`. 판정 로직 참조 구현(P3-2): `tools/hive_drain.py` — 상태 소스·sink는 주입 콜러블, 미주입 시 `unavailable`로 전달 없음. 실제 Hermes 입력 주입은 P3-0(진입점·수락 계약 실측) 전에는 하지 않는다.
 
 ---
 
