@@ -436,9 +436,11 @@ class HiveRouter:
             payload.update(extra or {})
             return self._router_event("escalation", payload, to="human", workspace=ref.get("workspace", "work"))
         esc = self._derived(j, key, make)
-        if not self._deliver_one("human", esc):
-            raise RouterError(f"human inbox 기록 실패 — escalation({reason}) for {ref['id']} 미전달, 원본 보류")
-        esc["payload"]["delivered_to"] = ["human"]
+        if "delivered_to" not in esc["payload"]:
+            if not self._deliver_one("human", esc):
+                raise RouterError(f"human inbox 기록 실패 — escalation({reason}) for {ref['id']} 미전달, 원본 보류")
+            esc["payload"]["delivered_to"] = ["human"]
+            self._journal_write(j)                                    # 결과 고정 후 append
         self._append_log(esc)
 
     def _refuse(self, ev: dict, reasons: list[str], j: dict) -> None:
@@ -454,11 +456,16 @@ class HiveRouter:
             note["requires_reply"] = False
             return note
         note = self._derived(j, "refuse_notice", make_note)
-        delivered = self._deliver_one(ev["actor"], note)
-        note["payload"]["delivered_to"] = [ev["actor"]] if delivered else []     # 실제 결과만 기록
+        # 리뷰 5차(#151): 알림 전달 결과도 저널에 먼저 고정한다. append 뒤·원본 finalizing 전에 죽으면
+        # 재실행이 알림을 다시 전달하고(inbox 복구 시) id 멱등 append는 새 결과를 버려 감사가 어긋났다.
+        # delivered_to가 이미 고정돼 있으면 재전달하지 않는다 — 실패 알림도 그대로 실패로 남긴다.
+        if "delivered_to" not in note["payload"]:
+            delivered = self._deliver_one(ev["actor"], note)
+            note["payload"]["delivered_to"] = [ev["actor"]] if delivered else []     # 실제 결과만 기록
+            self._journal_write(j)
+            if not delivered:
+                self.errors.append(f"{ev['actor']} inbox 기록 실패 — 거부 알림 {note['id']} 미전달 (거부 자체는 log에 기록됨)")
         self._append_log(note)
-        if not delivered:
-            self.errors.append(f"{ev['actor']} inbox 기록 실패 — 거부 알림 {note['id']} 미전달 (거부 자체는 log에 기록됨)")
 
     # ------------------------------------------------------------ per-message state machine
     def plan_message(self, actor: str, src: Path) -> Plan:
@@ -506,22 +513,24 @@ class HiveRouter:
     def execute_plan(self, p: Plan):
         if not self.execute:
             return
-        if p.outcome == "held":
-            return                                                    # outbox에 그대로 둔다
         ev = p.event
         if p.outcome == "reject" and ev is None:                     # 파싱 불가: 이벤트 없음
             self._archive(p.src, ".rejected")
             return
-        j = self._find_journal(p.src) or {"id": ev["id"], "src": str(p.src), "actor": p.actor,
-                                          "event": ev, "step": "normalized", "delivered": []}
-        self._journal_write(j)
-
-        # 리뷰 3차(#151): 감사 로그가 이미 확정된(step=audited) 메시지는 재시작 시 route/deliver를
+        # 리뷰 3·5차(#151): 감사 로그가 이미 확정된(finalizing/audited) 메시지는 route/deliver를
         # 다시 돌리지 않는다 — 확정 뒤 복구된 대상에 새로 전달하면 log와 실제 전달이 어긋난다.
-        # 남은 단계는 archive/cursor뿐이다. 확정 결정은 저널의 final 필드에 영속돼 있다.
-        if j.get("step") in ("finalizing", "audited"):
+        # 확정 저널은 held(hop_cap 미설정) 재평가보다 먼저 본다: 신규 전달만 보류하고, 이미 확정된
+        # 것의 append/archive/cursor 마무리는 cap 설정과 무관하게 끝낸다.
+        j = self._find_journal(p.src)
+        if j and j.get("step") in ("finalizing", "audited"):
+            p.reason = f"resumed-from-journal:{j['step']}"
             self._complete_from_journal(j, p.src)
             return
+        if p.outcome == "held":
+            return                                                    # outbox에 그대로 둔다
+        j = j or {"id": ev["id"], "src": str(p.src), "actor": p.actor,
+                  "event": ev, "step": "normalized", "delivered": []}
+        self._journal_write(j)
 
         if p.outcome == "reject":
             self._refuse(ev, p.reason.split(","), j)                 # policy/notice는 derived로 멱등

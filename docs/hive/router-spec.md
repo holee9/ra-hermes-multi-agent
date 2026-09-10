@@ -100,7 +100,7 @@ MD 코드 주석 그대로: *"의도가 아니라 실제 전달된 대상을 기
 
 **확정 시점.** 원본 메시지의 log 항목은 **모든 대상이 전달 성공 또는 human escalation으로 확정된 뒤 한 번만** 쓴다. 그 전까지 진행 상태(성공 대상·실패 대상·발급된 파생 이벤트)는 `.router/journal/<id>.json`에만 있다. 이유: 부분 성공 시점에 log를 먼저 쓰면, escalation 실패로 원본이 보류됐다가 복구 후 재실행에서 추가 전달된 결과가 감사 로그에 반영되지 않는다(PR #151 리뷰). 확정된 항목은 `payload.delivered_to`(성공)와, 사람에게 넘긴 대상이 있으면 `payload.undeliverable`(escalation의 `ref_evt`로 연결)을 함께 가진다. log는 append-only이며 항목을 갱신하지 않는다.
 
-**영속 순서(리뷰 4차).** 확정된 결정과 기록할 log 항목 자체를 먼저 저널에 쓴다(`step=finalizing`, `final={archive, event, delivered, undeliverable}`). 그 다음 log에 멱등 append(`step=audited`) → outbox 이동 → cursor 갱신 → `step=archived`. 어느 지점에서 죽어도 재시작은 `finalizing`/`audited` 저널을 **route 평가보다 먼저** 읽어 그 final만으로 완결하며, route·deliver·escalate를 다시 평가하지 않는다(복구된 대상에게 재전달하지 않음). outbox 파일이 이미 옮겨졌는데 cursor 전에 죽은 저널(orphan)은 `run()` 시작 시 스윕으로 완결한다.
+**영속 순서(리뷰 4차).** 확정된 결정과 기록할 log 항목 자체를 먼저 저널에 쓴다(`step=finalizing`, `final={archive, event, delivered, undeliverable}`). 그 다음 log에 멱등 append(`step=audited`) → outbox 이동 → cursor 갱신 → `step=archived`. 어느 지점에서 죽어도 재시작은 `finalizing`/`audited` 저널을 **route 평가보다 먼저** 읽어 그 final만으로 완결하며, route·deliver·escalate를 다시 평가하지 않는다(복구된 대상에게 재전달하지 않음). outbox 파일이 이미 옮겨졌는데 cursor 전에 죽은 저널(orphan)은 `run()` 시작 시 스윕으로 완결한다. 파생 이벤트(policy/comment/escalation)의 전달 결과(`payload.delivered_to`)도 log append 전에 저널의 `derived`에 고정한다 — 재실행은 고정된 결과를 그대로 기록하며 복구된 inbox에 재전달하지 않는다. 확정 저널의 마무리는 `HOP_CAP` 미설정(held) 재평가보다 먼저 처리한다: 신규 전달만 보류된다.
 
 ---
 

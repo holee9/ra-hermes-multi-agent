@@ -716,3 +716,63 @@ def test_orphan_journal_after_archive_before_cursor_is_completed(hr, ve, hive):
     assert json.loads(j.read_text())["step"] == "archived"
     assert len(_log(hive)) == 1                                            # 중복 append 없음
     _assert_log_valid(ve, hive)
+
+
+# ---------------------------------------------------------------- P1 review round 5 (PR #151, 2026-09-10)
+
+@pytest.mark.parametrize("fault_at", ["before_log_append", "after_log_append"])
+def test_refuse_notice_failure_result_is_frozen_before_original_finalizing(hr, ve, hive, fault_at):
+    """P1-11: 알림 실패 → comment append 전/후 crash → inbox 복구 → 재실행.
+    저널에 고정된 delivered_to=[]가 그대로 감사에 남고, 복구된 inbox로 재전달하지 않는다."""
+    src = _outbox(hive, "ra_us", {**REQ, "to": "ra_us"})
+    inbox = hive / "agents/ra_us/inbox"
+    inbox.rmdir()
+    inbox.write_text("not a directory")
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at=fault_at, fault_target="comment").run()
+    inbox.unlink()
+    inbox.mkdir()
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []                                                # 재전달 시도 없음
+    assert _inbox(hive, "ra_us") == []
+    notice = [e for e in _log(hive) if e["kind"] == "comment"]
+    assert len(notice) == 1 and notice[0]["payload"]["delivered_to"] == []
+    assert (src.parent / ".rejected" / src.name).exists()
+    _assert_log_valid(ve, hive)
+
+
+@pytest.mark.parametrize("fault_at", ["before_log_append", "after_log_append"])
+def test_refuse_notice_success_result_is_frozen_no_duplicate(hr, ve, hive, fault_at):
+    src = _outbox(hive, "ra_us", {**REQ, "to": "ra_us"})
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at=fault_at, fault_target="comment").run()
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []
+    assert len(_inbox(hive, "ra_us")) == 1
+    notice = [e for e in _log(hive) if e["kind"] == "comment"]
+    assert len(notice) == 1 and notice[0]["payload"]["delivered_to"] == ["ra_us"]
+    assert (src.parent / ".rejected" / src.name).exists()
+    _assert_log_valid(ve, hive)
+
+
+def test_frozen_journal_completes_even_when_hop_cap_unset(hr, ve, hive):
+    """P2: 정상 전달을 원본 append 직후 crash → hop_cap=None 라우터 재실행.
+    held 조기 반환보다 확정 저널이 우선: append/archive/cursor 마무리, 신규 전달은 계속 보류."""
+    src = _outbox(hive, "ra_us", REQ)
+    clock = Clock()
+    with pytest.raises(hr.InjectedFault):
+        _router(hr, hive, clock, fault_at="after_log_append", fault_target="handoff").run()
+    _outbox(hive, "ra_eu", {**REQ, "to": "ra_us"}, name="20260909T120001-0002.json")   # 신규 → held
+    res = _router(hr, hive, clock, hop_cap=None).run()
+    assert res.errors == []
+    by_actor = {p.actor: p for p in res.plans}
+    assert by_actor["ra_us"].reason.startswith("resumed-from-journal")
+    assert by_actor["ra_eu"].outcome == "held" and by_actor["ra_eu"].src.exists()
+    assert not src.exists() and (src.parent / ".sent" / src.name).exists()
+    j = next((hive / ".router/journal").glob("*.json"))
+    assert json.loads(j.read_text())["step"] == "archived"
+    assert json.loads((hive / "agents/ra_us/cursor.json").read_text())["last_processed"] == json.loads(j.read_text())["id"]
+    assert len(_log(hive)) == 1
+    _assert_log_valid(ve, hive)
