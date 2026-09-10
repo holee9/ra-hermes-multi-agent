@@ -605,3 +605,46 @@ def test_unrecoverable_target_is_finalized_with_undeliverable_and_escalation(hr,
     assert main["payload"]["delivered_to"] == ["infra_t3610"] and main["payload"]["undeliverable"] == ["ra_eu"]
     assert [e["kind"] for e in log].count("escalation") == 1
     _assert_log_valid(ve, hive)
+
+
+# ---------------------------------------------------------------- P1 review round 3 (PR #151, 2026-09-10)
+
+def test_restart_after_audit_does_not_redeliver_recovered_target(hr, ve, hive):
+    """P1-8: ra_eu 실패·human 정상 → log 확정 → before_archive 장애 → ra_eu 복구 → 재실행.
+    확정된 감사 로그와 실제 전달이 어긋나면 안 된다: 재실행은 archive만 수행한다."""
+    src = _outbox(hive, "ra_us", {**REQ, "to": "broadcast", "act": "inform", "payload": {"note": "x"}})
+    p = hive / "agents/ra_eu/inbox"
+    p.rmdir()
+    p.write_text("not a directory")
+    clock = Clock()
+    _run_with_fault(hr, hive, clock, "before_archive")
+    log = _log(hive)
+    assert [e["kind"] for e in log] == ["escalation", "handoff"]            # 확정됨
+    assert log[1]["payload"]["delivered_to"] == ["infra_t3610"] and log[1]["payload"]["undeliverable"] == ["ra_eu"]
+    p.unlink()
+    p.mkdir()                                                               # ra_eu 복구
+    res = _router(hr, hive, clock).run()
+    assert res.errors == []
+    assert _inbox(hive, "ra_eu") == []                                      # 확정 뒤 재전달 없음
+    assert _log(hive) == log                                                # 로그 불변
+    assert (src.parent / ".sent" / src.name).exists() and not src.exists()
+    j = json.loads((hive / ".router/journal" / f"{log[1]['id']}.json").read_text())
+    assert j["step"] == "archived" and j["final"]["undeliverable"] == ["ra_eu"]
+    _assert_log_valid(ve, hive)
+
+
+def test_restart_after_audit_for_reject_and_observe_only_archives(hr, hive):
+    clock = Clock()
+    # observe: log 확정 → archive 직전 장애 → 재실행은 archive만
+    _outbox(hive, "ra_eu", {"kind": "comment", "payload": {}}, name="20260909T120001-0001.json")
+    _run_with_fault(hr, hive, clock, "before_archive")
+    before = _log(hive)
+    assert _router(hr, hive, clock).run().errors == [] and _log(hive) == before
+    assert (hive / "agents/ra_eu/outbox/.sent/20260909T120001-0001.json").exists()
+    # reject: policy+notice 확정 → archive 직전 장애 → 재실행은 archive만 (파생 이벤트 재발급 없음)
+    _outbox(hive, "ra_us", {**REQ, "to": "ra_us"})
+    _run_with_fault(hr, hive, clock, "before_archive")
+    before = _log(hive)
+    assert _router(hr, hive, clock).run().errors == [] and _log(hive) == before
+    assert (hive / "agents/ra_us/outbox/.rejected/20260909T120000-0001.json").exists()
+    assert len(_inbox(hive, "ra_us")) == 1
