@@ -546,3 +546,52 @@ def test_duplicate_rejected_path_returns_400_with_code(monkeypatch):
     resp3 = client.post("/v1/ra/advisory", json={"query": q, "region_hint": "KR"},
                         headers={"Authorization": "Bearer test-key"})
     assert resp3.status_code != 400 or resp3.get_json().get("code") != "duplicate_rejected"
+
+
+# ── #150 codex 재현: chat-completions 가 subprocess 비정상 종료를 정상 completion 으로 반환 ──────────
+class _Proc:
+    def __init__(self, rc, out, err=""):
+        self.returncode, self.stdout, self.stderr = rc, out, err
+
+
+def _chat_client(monkeypatch, proc):
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "_run_rag_search", lambda q, top=5: [])
+    monkeypatch.setattr(m, "_run_knowledge_fetch", lambda q, p, top=3: [])
+    monkeypatch.setattr(m.subprocess, "run", lambda *a, **k: proc)
+    return m.app.test_client()
+
+
+def test_chat_completion_nonzero_exit_with_partial_stdout_is_failure(monkeypatch):
+    client = _chat_client(monkeypatch, _Proc(1, "partial stdout before failure", "boom"))
+    r = client.post("/v1/chat/completions", json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 200
+    content = json.loads(r.get_json()["choices"][0]["message"]["content"])
+    wp = content["wp_comment"]
+    assert "hermes_failed" in wp["flags"] and wp["confidence"] == 0.0
+    assert "hermes exit 1" in wp["recommendation"]
+    body = json.dumps(content)
+    assert "partial stdout" not in body and "boom" not in body                 # 원문 stderr/stdout 외부 미노출
+
+
+def test_chat_completion_zero_exit_keeps_stdout(monkeypatch):
+    client = _chat_client(monkeypatch, _Proc(0, "plain answer"))
+    r = client.post("/v1/chat/completions", json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.get_json()["choices"][0]["message"]["content"] == "plain answer"
+
+
+def test_invoke_hermes_nonzero_exit_reports_error(monkeypatch):
+    monkeypatch.setattr(m.subprocess, "run", lambda *a, **k: _Proc(2, "partial", ""))
+    out, err = m._invoke_hermes("ra-us", "ctx")
+    assert out == "" and err == "hermes exit 2"                                # 원문 미포함
+
+
+def test_nonzero_exit_diagnostic_goes_to_server_log_only(monkeypatch, caplog):
+    import logging
+    monkeypatch.setattr(m.subprocess, "run", lambda *a, **k: _Proc(3, "partial", "secret-trace"))
+    with caplog.at_level(logging.WARNING, logger="hermes.subprocess"):
+        out, err = m._invoke_hermes("ra-us", "ctx")
+    assert "exit 3" in caplog.text and "ra-us" in caplog.text                  # 메타데이터만 (profile·코드·길이)
+    assert "secret-trace" not in caplog.text and "secret-trace" not in err      # 원문은 로그에도 남기지 않음

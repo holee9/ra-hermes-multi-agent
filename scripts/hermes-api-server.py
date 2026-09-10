@@ -66,6 +66,7 @@ DEFAULT_PROFILE = "ra-us"
 RESPONSE_LOG = os.environ.get("RESPONSE_LOG", "/var/log/hermes-responses.jsonl")
 
 _response_logger = logging.getLogger("hermes.responses")
+_subprocess_logger = logging.getLogger("hermes.subprocess")   # #150: CLI 비정상 종료 진단 (서버 측 전용)
 _response_logger.setLevel(logging.INFO)
 try:
     _fh = logging.FileHandler(RESPONSE_LOG)
@@ -778,6 +779,10 @@ def _invoke_hermes(profile: str, context: str, timeout: int = TIMEOUT) -> tuple[
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
         out = result.stdout.strip()
+        if result.returncode != 0:                                   # #150: 비정상 종료의 부분 stdout 은 답변이 아니다
+            _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
+                                       result.returncode, len(result.stderr or ""), len(out))
+            return "", f"hermes exit {result.returncode}"           # 호출자에게는 종료코드만
         if out:
             return out, ""
         return "", (result.stderr.strip()[:500] or "no output")
@@ -1117,9 +1122,18 @@ def chat_completions():
             timeout=TIMEOUT,
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
-        response_text = result.stdout.strip()
-        if not response_text and result.stderr:
-            error_detail = result.stderr.strip()[:500]
+        # #150 codex 재현: returncode!=0 인데 stdout 이 있으면 정상 completion(finish_reason=stop)으로
+        # 반환됐다. 비정상 종료의 부분 stdout 은 답변이 아니라 실패 흔적이다 — 실패 계약(hermes_failed)으로 보낸다.
+        if result.returncode != 0:
+            response_text = ""
+            error_detail = f"hermes exit {result.returncode}"      # 외부 응답에는 종료코드만 (원문 미노출)
+            # 서버 로그도 메타데이터만: stderr/stdout 원문에는 자격증명·메일 본문이 섞일 수 있다 (codex 리뷰).
+            _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
+                                       result.returncode, len(result.stderr or ""), len(result.stdout or ""))
+        else:
+            response_text = result.stdout.strip()
+            if not response_text and result.stderr:
+                error_detail = result.stderr.strip()[:500]
     except subprocess.TimeoutExpired:
         error_detail = f"hermes -z timeout after {TIMEOUT}s"
     except FileNotFoundError:
