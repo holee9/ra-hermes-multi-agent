@@ -32,6 +32,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -222,7 +223,21 @@ def build_assignment(case: dict, source_path: str, source_hash: str, excerpts: l
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="#147 결함 11건 재질의 (기본 dry-run)")
     ap.add_argument("--execute", action="store_true", help="실제 LLM 호출 (없으면 계획만)")
+    # 승인 배치마다 원장을 분리한다. 고정 경로만 있으면 이전 배치의 unknown 을 지우지 않고는
+    # 새 승인분을 돌릴 수 없고, 그 지우기가 바로 해서는 안 되는 일이다(소비 기록 소실).
+    ap.add_argument("--batch", default=None,
+                    help="승인 배치 이름. 지정하면 reports/kb-eval-requery-147/<batch>/ 에 "
+                         "원장·락을 따로 둔다. 이전 배치 기록은 그대로 보존된다")
     a = ap.parse_args(argv)
+
+    global OUT_DIR, LEDGER, LOCK
+    if a.batch:
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", a.batch):
+            print(json.dumps({"error": "batch 이름은 영숫자·점·밑줄·하이픈 1~64자"}, ensure_ascii=False))
+            return 2
+        OUT_DIR = OUT_DIR / a.batch
+        LEDGER = OUT_DIR / "ledger.jsonl"
+        LOCK = OUT_DIR / ".lock"
 
     dsn = os.environ.get("POSTGRES_URL")
     if not dsn:
