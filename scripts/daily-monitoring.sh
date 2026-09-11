@@ -139,13 +139,27 @@ echo "- **FAIL**: $FAIL" >> "$CHECKLIST_FILE"
 echo "" >> "$CHECKLIST_FILE"
 echo "## 5. Status" >> "$CHECKLIST_FILE"
 
+# #141: 이 스크립트가 보는 것은 **인프라 점검 항목**뿐이다 — Honcho/PostgreSQL/Redis/
+# deriver/성장 리포트/스케줄러. 메일 유입과 mail-triage 처리 경로는 **한 건도 검사하지
+# 않는다**. 그런데 FAIL=0 이면 "All critical systems operational" 이라고 적어, 메일이
+# 실제로 처리되고 있다는 뜻으로 읽혔다(#141 의 팬텀 트래픽이 실제 처리량을 가린 맥락과
+# 같은 오독을 부른다). 판정 문구를 **점검한 범위로 한정**하고, 검사하지 않은 것을 명시한다.
+# WARN 도 판정에 싣는다 — 경고가 있는데 아무 표시가 없으면 없는 것처럼 읽힌다.
 if [ $FAIL -eq 0 ]; then
-    echo "🟢 **NORMAL** - All critical systems operational" >> "$CHECKLIST_FILE"
+    if [ $WARN -eq 0 ]; then
+        echo "🟢 **NORMAL (인프라 점검 범위)** - 점검한 인프라 항목 모두 정상" >> "$CHECKLIST_FILE"
+    else
+        echo "🟢 **NORMAL (인프라 점검 범위, 경고 ${WARN}건)** - 실패 없음. 경고 항목은 위 목록 확인" >> "$CHECKLIST_FILE"
+    fi
 elif [ $FAIL -le 2 ]; then
     echo "🟡 **ATTENTION** - Some issues detected, review required" >> "$CHECKLIST_FILE"
 else
     echo "🔴 **CRITICAL** - Multiple failures detected, immediate action required" >> "$CHECKLIST_FILE"
 fi
+echo "" >> "$CHECKLIST_FILE"
+echo "> **이 점검이 확인하지 않은 것**: 메일 유입과 mail-triage 처리 경로는 검사 대상이 아니다." >> "$CHECKLIST_FILE"
+echo "> 위 판정은 인프라 구성요소의 응답 여부이며, **메일이 실제로 처리되고 있다는 증거가 아니다**." >> "$CHECKLIST_FILE"
+echo "> 처리 여부는 n8n 실행 이력과 OpenProject 반영으로 따로 확인해야 한다 (#141)." >> "$CHECKLIST_FILE"
 
 # Copy checklist to dashboard location for easy viewing
 cp "$CHECKLIST_FILE" "docs/monitoring/today-status.md"
