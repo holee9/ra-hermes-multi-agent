@@ -1174,3 +1174,49 @@ def test_valid_evidence_list_still_passes():
 def test_mixed_evidence_list_passes_on_usable_entry():
     _, yellow = m.validate_advisory(_adv(evidence=["", None, "source/a.md#1"]), "ra_us", "")
     assert yellow is None
+
+
+# ── 엔드포인트 회귀: 비정상 evidence 가 500 이 아니라 Yellow 로 나가야 한다 ─────────────
+# validate_advisory 앞에서 _cited_identifier_status → _advisory_output_text 가 먼저 돈다
+# (원본 citation 메타를 yellow 치환 전에 보존해야 하므로 순서를 바꿀 수 없다). 거기서
+# 정수·불리언 같은 비순회 값을 순회하면 타입 검사에 닿기 전에 TypeError → HTTP 500.
+def _advisory_client(monkeypatch, llm_out: str):
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "_run_rag_search", lambda q, top=5: [])
+    monkeypatch.setattr(m, "_run_knowledge_fetch", lambda q, p, top=3: [])
+    monkeypatch.setattr(m, "_invoke_llm_direct", lambda p, c, timeout=None: (llm_out, ""))
+    monkeypatch.setattr(m, "_honcho_record", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_adv_request", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_kb_gap", lambda *a, **k: None)
+    return m.app.test_client()
+
+
+@pytest.mark.parametrize("evidence", [123, True, 1.5, "없음", {"a": 1}, None])
+def test_advisory_endpoint_bad_evidence_is_yellow_not_500(monkeypatch, evidence):
+    out = json.dumps({"decision": "comment_existing_wp", "confidence": 0.95,
+                      "recommended_comment": "c", "summary": "s", "evidence": evidence},
+                     ensure_ascii=False)
+    r = _advisory_client(monkeypatch, out).post(
+        "/v1/ra/advisory", json={"query": "FDA 510(k) 확인", "region_hint": "US"},
+        headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 200, f"evidence={evidence!r} 에서 {r.status_code}"
+    body = r.get_json()
+    assert body["decision"] == "yellow_review", body
+    assert body["yellow_reason"] in ("invalid_evidence", "no_evidence"), body
+
+
+def test_advisory_endpoint_valid_evidence_is_not_downgraded(monkeypatch):
+    """반대편 보존: 정상 근거 배열은 Yellow 로 내려가지 않는다."""
+    out = json.dumps({"decision": "comment_existing_wp", "confidence": 0.95,
+                      "recommended_comment": "c", "summary": "s",
+                      "evidence": ["source/a.md#1"]}, ensure_ascii=False)
+    body = _advisory_client(monkeypatch, out).post(
+        "/v1/ra/advisory", json={"query": "FDA 510(k) 확인", "region_hint": "US"},
+        headers={"Authorization": "Bearer test-key"}).get_json()
+    assert body["decision"] == "comment_existing_wp" and body["yellow_reason"] is None
+
+
+@pytest.mark.parametrize("evidence", [123, True, "없음", {"a": 1}, None, ["ok"]])
+def test_advisory_output_text_survives_any_evidence_type(evidence):
+    """조립은 어떤 타입이 와도 살아남는다 — 계약 위반 판정은 validate_advisory 가 한다."""
+    m._advisory_output_text({"summary": "s", "recommended_comment": "c", "evidence": evidence})

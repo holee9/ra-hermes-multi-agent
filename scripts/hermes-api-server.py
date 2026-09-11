@@ -728,10 +728,22 @@ def _advisory_output_text(adv: dict) -> str:
     """The text the model actually produced (summary + recommended_comment +
     evidence), used by both the #118 identifier check and the #134 citation
     linter."""
+    # evidence 는 계약상 배열이지만 이 함수는 **검증 전**에 호출된다(원본 citation 메타를
+    # yellow 치환 전에 보존해야 하므로 순서를 바꿀 수 없다). 따라서 여기서 타입을 신뢰할 수
+    # 없다 — 정수·불리언 같은 비순회 값을 그대로 순회하면 타입 검사에 닿기 전에 TypeError 로
+    # 죽어 엔드포인트가 500 을 낸다. 조립은 어떤 타입이 와도 살아남아야 하고, 계약 위반의
+    # 판정은 validate_advisory 가 한다.
+    ev = adv.get("evidence")
+    if isinstance(ev, (list, tuple)):
+        ev_text = " ".join(str(e) for e in ev)
+    elif ev is None:
+        ev_text = ""
+    else:
+        ev_text = str(ev)          # 문자열·정수·객체 등 — 인용 검사 대상 텍스트로만 쓴다
     return " ".join([
         str(adv.get("summary", "") or ""),
         str(adv.get("recommended_comment", "") or ""),
-        " ".join(str(e) for e in (adv.get("evidence") or [])),
+        ev_text,
     ])
 
 
