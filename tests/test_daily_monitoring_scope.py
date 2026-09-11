@@ -43,3 +43,46 @@ def test_warnings_appear_in_verdict():
 def test_failure_verdicts_unchanged():
     """반대편 보존: 실패 판정 문구는 건드리지 않았다."""
     assert "🟡 **ATTENTION**" in EMITTED and "🔴 **CRITICAL**" in EMITTED
+
+
+# ── 판정부를 실제로 실행해 확인 (정적 검사보다 정확) ───────────────────────────────
+# 소스 문자열 검사는 주석에 같은 문구가 있으면 오탐·누락이 난다(실제로 두 번 겪음).
+# 판정 블록만 추출해 FAIL/WARN 조합으로 돌려 **출력 자체**를 본다. 운영 스크립트 전체를
+# 실행하지 않으며 외부 접속도 없다.
+import subprocess
+import tempfile
+
+
+def _verdict(fail: int, warn: int) -> str:
+    lines = SRC.splitlines()
+    start = next(i for i, l in enumerate(lines) if l.startswith("if [ $FAIL -eq 0 ]"))
+    end = next(i for i, l in enumerate(lines[start:], start)
+               if "처리 여부는 n8n" in l)
+    block = "\n".join(lines[start:end + 1])
+    with tempfile.NamedTemporaryFile("w", suffix=".sh", delete=False, encoding="utf-8") as f:
+        f.write(f'FAIL={fail}\nWARN={warn}\nCHECKLIST_FILE=/dev/stdout\n{block}\n')
+        script = f.name
+    return subprocess.run(["bash", script], capture_output=True, text=True, timeout=30).stdout
+
+
+def test_verdict_zero_fail_zero_warn_is_scoped():
+    out = _verdict(0, 0)
+    assert "인프라 점검 범위" in out and "All critical systems operational" not in out
+    assert "증거가 아니다" in out
+
+
+def test_verdict_zero_fail_with_warnings_shows_count():
+    out = _verdict(0, 2)
+    assert "경고 2건" in out, out
+    assert "증거가 아니다" in out
+
+
+def test_verdict_failures_keep_existing_wording():
+    assert "🟡 **ATTENTION**" in _verdict(1, 0)
+    assert "🔴 **CRITICAL**" in _verdict(3, 0)
+
+
+def test_unverified_note_appears_in_every_verdict():
+    """어떤 판정이든 '메일은 검사하지 않았다' 가 함께 나와야 한다."""
+    for f, w in [(0, 0), (0, 2), (1, 0), (3, 0)]:
+        assert "확인하지 않은 것" in _verdict(f, w), f"FAIL={f} WARN={w} 에서 누락"
