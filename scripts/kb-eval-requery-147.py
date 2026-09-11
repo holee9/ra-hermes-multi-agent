@@ -228,9 +228,13 @@ def main(argv=None) -> int:
     ap.add_argument("--batch", default=None,
                     help="승인 배치 이름. 지정하면 reports/kb-eval-requery-147/<batch>/ 에 "
                          "원장·락을 따로 둔다. 이전 배치 기록은 그대로 보존된다")
+    # 승인이 11건 전체가 아니라 일부(예: timeout 5건 재호출)일 때. 예산 = 고른 건수.
+    # 새 승인은 새 원장이어야 하므로 --batch 없이 쓸 수 없다.
+    ap.add_argument("--cases", default=None,
+                    help="실행할 케이스 번호 n 목록(쉼표 구분, 예: 1,2,3). 예산은 고른 건수로 제한")
     a = ap.parse_args(argv)
 
-    global OUT_DIR, LEDGER, LOCK
+    global OUT_DIR, LEDGER, LOCK, CALL_BUDGET
     if a.batch:
         if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", a.batch):
             print(json.dumps({"error": "batch 이름은 영숫자·점·밑줄·하이픈 1~64자"}, ensure_ascii=False))
@@ -246,12 +250,30 @@ def main(argv=None) -> int:
 
     assert len(CASES) == CALL_BUDGET, f"케이스 수({len(CASES)}) != 승인 호출 수({CALL_BUDGET})"
 
+    selected = CASES
+    if a.cases is not None:
+        if not a.batch:
+            print(json.dumps({"error": "--cases 는 --batch 와 함께만 쓴다 (승인 배치별 원장 분리)"},
+                             ensure_ascii=False))
+            return 2
+        try:
+            ns = sorted({int(x) for x in a.cases.split(",") if x.strip()})
+        except ValueError:
+            ns = []
+        valid = {c["n"] for c in CASES}
+        if not ns or any(n not in valid for n in ns):
+            print(json.dumps({"error": "--cases 는 1~11 범위의 번호 목록이어야 한다", "given": a.cases},
+                             ensure_ascii=False))
+            return 2
+        selected = [c for c in CASES if c["n"] in ns]
+        CALL_BUDGET = len(selected)
+
     import psycopg2
     sheet = _load("kb_eval_checksheet_147", "kb-eval-checksheet.py")
 
     plan, unresolved = [], []
     with psycopg2.connect(dsn) as conn:
-        for c in CASES:
+        for c in selected:
             found = resolve_source(conn, c["new_source"])
             if not found:
                 unresolved.append(c["case_id"])
@@ -354,7 +376,7 @@ def main(argv=None) -> int:
         # 둘을 구분하지 않으면 11건 전부 실패해도 성공으로 보고된다.
         ok_n = len(st2["done_case_ids"])
         failed_n = st2["resolved"] - ok_n
-        missing_n = len(CASES) - ok_n
+        missing_n = len(selected) - ok_n
         print(json.dumps({
             "mode": "execute", "run_id": run_id, "calls_this_run": used,
             "budget": CALL_BUDGET, "consumed_total": st2["consumed"],
