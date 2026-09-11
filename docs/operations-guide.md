@@ -23,6 +23,27 @@
 정기 실행이 필요하면 소비 호스트의 타이머에서 게이트 점검 **직전에** 한 번 돌린다. 이 엔드포인트는 배포 후에만
 동작한다(현재 `/opt` 배포본에는 없음).
 
+### 배포 시 `GROWTH_REPORTS_DIR` 를 반드시 명시할 것 [HARD]
+
+생산자와 서빙 경로가 배포 위치에서 **갈라진다.** 명시하지 않으면 #103 의 "조용한 0건" 이 API 에서 그대로 재현된다.
+
+| 쪽 | 경로 | 근거 |
+|---|---|---|
+| 생산자 | `<체크아웃>/reports/growth-<date>.json` | `scripts/growth-metrics-cron.sh` 가 `REPO_ROOT` 기준으로 기록 |
+| 서빙 기본값 (배포본) | `/opt/reports` | systemd `ExecStart` 가 `/opt/hermes-ra/hermes-api-server.py` 이고 기본값이 `__file__.parent.parent/reports` |
+
+따라서 서비스 유닛의 환경에 **생산자와 같은 경로**를 넣는다.
+
+```ini
+# systemd 서비스 유닛
+Environment=GROWTH_REPORTS_DIR=/home/<user>/.../ra-hermes-multi-agent/reports
+```
+
+설정이 빠졌는지는 조용히 넘어가지 않는다. 디렉터리가 없으면 목록 응답이 `dir_exists: false` 와 `reports_dir` 를
+싣고, 클라이언트(`fetch-growth-reports.py`)는 이를 **종료코드 2** 로 올린다 — 0건으로 삼키지 않는다.
+
+받은 리포트 파일 권한은 `0600` 이다. 공유가 필요하다는 근거 없이 넓히지 않는다.
+
 ## 0. 현재 운영 판정 (2026-09-09)
 
 이 판정은 저장소 코드·모니터링 문서·원격 이슈를 대조한 결과이며, 서비스·timer·DB를 직접 재검증한 결과는 아니다. **핵심 골격 구현과 전문가 판단의 성숙을 분리**한다. 메일 유입이나 화면 동작만으로 학습 성장을 판정하지 않는다.

@@ -407,7 +407,9 @@ def contract_a_violations(parsed: dict | None) -> list[str]:
     conf = wpc.get("confidence")
     if conf is None or isinstance(conf, bool) or not isinstance(conf, (int, float)):
         bad.append("invalid:confidence" if "confidence" in wpc else "missing:confidence")
-    elif not 0.0 <= float(conf) <= 1.0:
+    elif not 0.0 <= conf <= 1.0:
+        # float() 로 변환하지 않는다 — 10**400 같은 큰 정수에서 OverflowError 로 죽는다(Codex 반례).
+        # 원값 비교는 큰 정수도 안전하고, NaN/inf 는 비교가 False 라 여기서 걸린다.
         bad.append("invalid:confidence")
 
     if "matched_wp_id" in wpc:
@@ -1574,12 +1576,23 @@ def growth_reports_list():
     if not check_auth():
         return jsonify({"error": "Unauthorized"}), 401
     items = []
-    if GROWTH_REPORTS_DIR.is_dir():
+    exists = GROWTH_REPORTS_DIR.is_dir()
+    if exists:
         for f in sorted(GROWTH_REPORTS_DIR.glob("growth-*.json")):
             m = re.match(r"^growth-(\d{4}-\d{2}-\d{2})\.json$", f.name)
             if m and f.is_file() and not f.is_symlink():
                 items.append({"date": m.group(1), "bytes": f.stat().st_size})
-    return jsonify({"count": len(items), "reports": items})
+    # #103 의 원래 실패는 "0건" 이 조용했던 것이다. 배포 위치에서 이 서버는
+    # /opt/hermes-ra/hermes-api-server.py 로 실행되므로 __file__ 기반 기본값은 /opt/reports 를
+    # 가리키는데, 생산자(scripts/growth-metrics-cron.sh)는 체크아웃의 reports/ 에 쓴다. 즉
+    # GROWTH_REPORTS_DIR 를 명시하지 않으면 같은 "0건" 을 API 에서 반복한다(Codex P1).
+    # 경로와 존재 여부를 응답에 실어 **설정 오류와 진짜 0건을 구분 가능하게** 한다.
+    body = {"count": len(items), "reports": items,
+            "reports_dir": str(GROWTH_REPORTS_DIR), "dir_exists": exists}
+    if not exists:
+        body["hint"] = ("리포트 디렉터리가 없다. 배포 위치에서는 GROWTH_REPORTS_DIR 를 "
+                        "생산자와 같은 경로로 명시해야 한다 (#103).")
+    return jsonify(body)
 
 
 @app.route("/v1/growth/reports/<date>", methods=["GET"])
