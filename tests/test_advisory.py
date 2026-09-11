@@ -1302,11 +1302,13 @@ def test_every_post_route_rejects_non_object_body(monkeypatch, body):
     client = m.app.test_client()
     routes = _post_routes()
     assert routes, "POST 라우트를 찾지 못했다 — 테스트 자체 결함"
+    # `!= 500` 은 200·401·503 도 통과해 이름의 "거절" 계약을 검증하지 못한다(Codex 지적).
+    # 현재 6개 라우트는 전부 **정확히 400** 이어야 한다. 다른 계약을 갖는 라우트가 생기면
+    # 여기서 실패하므로, 그때 기대값을 명시적으로 분류해 추가한다 — 조용히 통과시키지 않는다.
     for rule in routes:
         r = client.post(rule, json=body, headers={"Authorization": "Bearer test-key"})
-        assert r.status_code != 500, f"{rule} 가 body={body!r} 에서 500"
-        if r.status_code == 400:
-            assert "JSON object" in r.get_json().get("error", "")
+        assert r.status_code == 400, f"{rule} 가 body={body!r} 에서 {r.status_code} (400 이어야 함)"
+        assert "JSON object" in r.get_json().get("error", "")
 
 
 def test_bad_body_helper_names_the_type():
