@@ -1140,3 +1140,37 @@ def test_contract_a_violations_names_the_field():
     assert m.contract_a_violations(json.loads(_wpc(flags="bad"))) == ["invalid:flags"]
     assert "missing:confidence" in m.contract_a_violations(json.loads(_wpc(confidence=_DROP)))
     assert m.contract_a_violations(json.loads(_wpc())) == []
+
+
+# ── Contract C: evidence 는 배열이다 (자문 경로의 같은 결함 유형) ────────────────────────
+# `evidence` 타입을 보지 않으면 비어 있지 않은 문자열이 무엇이든 참이라 "근거 있음" 으로 읽힌다.
+# 모델이 `"evidence": "없음"` 이라고 써도 고신뢰 실행형 자문이 출처 없이 통과했다 —
+# validate_advisory docstring 의 "every executable advisory must cite a source" 위반.
+def _adv(**over):
+    base = {"decision": "comment_existing_wp", "confidence": 0.95,
+            "recommended_comment": "c", "evidence": ["source/a.md#1"]}
+    base.update(over)
+    return base
+
+
+@pytest.mark.parametrize("evidence", ["없음", "해당사항 없음", "N/A", "source/a.md", {"a": 1}, 0, 1.5])
+def test_non_list_evidence_is_yellow(evidence):
+    _, yellow = m.validate_advisory(_adv(evidence=evidence), "ra_us", "")
+    assert yellow == "invalid_evidence", f"배열 아닌 evidence 가 근거로 통과: {evidence!r}"
+
+
+@pytest.mark.parametrize("evidence", [[], [""], ["   "], [None], [123], [{}]])
+def test_list_without_usable_evidence_is_yellow(evidence):
+    _, yellow = m.validate_advisory(_adv(evidence=evidence), "ra_us", "")
+    assert yellow == "no_evidence", f"쓸 수 있는 근거가 없는데 통과: {evidence!r}"
+
+
+def test_valid_evidence_list_still_passes():
+    """반대편 보존: 정상 근거 배열은 계속 통과한다."""
+    _, yellow = m.validate_advisory(_adv(evidence=["source/a.md#1", "wiki/b.md"]), "ra_us", "")
+    assert yellow is None
+
+
+def test_mixed_evidence_list_passes_on_usable_entry():
+    _, yellow = m.validate_advisory(_adv(evidence=["", None, "source/a.md#1"]), "ra_us", "")
+    assert yellow is None

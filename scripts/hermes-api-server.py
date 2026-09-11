@@ -789,7 +789,15 @@ def validate_advisory(
         return adv, "invalid_confidence"
     if conf < ADVISORY_LOW_CONF:
         return adv, "low_confidence"
-    if not (adv.get("evidence") or []):
+    # Contract C 의 evidence 는 **배열**이다. 타입을 보지 않으면 문자열이 통과한다 — 그런데
+    # 비어 있지 않은 문자열은 무엇이든 참이라, 모델이 `"evidence": "없음"` 이라고 써도
+    # "근거 있음" 으로 읽혀 고신뢰 실행형 자문이 출처 없이 나간다(dict 도 마찬가지).
+    # 위 docstring 의 "every executable advisory must cite a source" 와 정면으로 어긋나므로
+    # 배열이 아니면 Yellow 로 내린다. 원소도 비어 있지 않은 문자열이어야 근거로 센다.
+    evidence = adv.get("evidence")
+    if not isinstance(evidence, list):
+        return adv, "invalid_evidence"
+    if not [e for e in evidence if isinstance(e, str) and e.strip()]:
         return adv, "no_evidence"
     if shown_source_text and _unverified_identifiers(adv, shown_source_text):
         return adv, "unverified_identifier"
