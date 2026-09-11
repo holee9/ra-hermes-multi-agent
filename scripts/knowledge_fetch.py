@@ -282,13 +282,20 @@ def fetch_openfda(query: str, top: int = 3) -> list[dict]:
     except json.JSONDecodeError:
         logging.warning("openFDA returned non-JSON for %s", url)
         return []
+    if not isinstance(data, dict):
+        logging.warning("openFDA returned non-object JSON for %s", url)
+        return []
     if "error" in data:
         logging.warning("openFDA error response for %s: %s", url, data.get("error"))
         return []
-    items = data.get("results", [])
+    items = data.get("results")
+    if not isinstance(items, list):
+        return []
 
     results = []
     for item in items:
+        if not isinstance(item, dict):
+            continue
         results.append({
             "source": "openfda_510k",
             "k_number": item.get("k_number", ""),
@@ -377,10 +384,14 @@ def fetch_data_go_kr(query: str, top: int = 2) -> list[dict]:
         except Exception:
             continue
 
-        if not items:
+        if not items or not isinstance(items, list):
             continue
         for raw in items[:top]:
+            if not isinstance(raw, dict):
+                continue
             item = raw.get("item", raw) if svc.get("nested") else raw
+            if not isinstance(item, dict):
+                continue
             summary_parts = [
                 f"{k}: {item.get(k, '')}"
                 for k in svc["item_fields"]
@@ -426,7 +437,11 @@ def fetch_law_kr(query: str, top: int = 2) -> list[dict]:
         return []
 
     results = []
+    if not isinstance(laws_raw, list):
+        return []
     for law in laws_raw[:top]:
+        if not isinstance(law, dict):
+            continue
         law_name = law.get("법령명한글", law.get("법령명", ""))
         law_id = law.get("법령ID", "")
         results.append({
