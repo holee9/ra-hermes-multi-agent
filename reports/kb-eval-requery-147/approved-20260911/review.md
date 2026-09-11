@@ -106,7 +106,7 @@ The determination must follow the FDA 510(k) SE decision‑flow (DP1–DP5) outl
 
 --- 
 
-**Bottom line:** Proceed with a traditional 510(k) only after confirming a legally marketed
+**Bottom line:** Proceed with a traditional 510(k) only after confirming a legally marketed predicate, identical intended use, and either identical technology or differences that do not raise new safety/effectiveness questions. Gather the evidence listed for each decision point; any failure triggers escalation to higher‑risk pathways (De Novo/PMA) or additional data generation.
 ```
 
 </details>
@@ -284,6 +284,29 @@ focus: 510(k) predicate strategy
 ---
 
 ### 7. Human‑Escalation Triggers  
+
+| Trigger Condition | Required Action |
+|-------------------|-----------------|
+| **DP1 – No legally marketed predicate** (no PMA, Class III pre‑amendment, or cleared 510(k)). | Escalate to senior regulatory lead → evaluate De Novo or PMA pathway. |
+| **DP2 – Intended use mismatch** between proposed device and all candidate predicates. | Escalate for reassessment of intended use or selection of alternate predicate; if none exists, consider novel‑device route. |
+| **DP4 – Technological differences generate *new* safety/effectiveness questions** (e.g., new energy source, AI algorithm not covered by predicate). | Immediate senior review → prepare De Novo dossier or PMA supplement. |
+| **DP5 – Performance data insufficient** to demonstrate “at least as safe and effective” (missing bench‑test results, inadequate statistical power). | Halt submission preparation; request additional testing before proceeding. |
+| **Incomplete documentation of any required element** (intended use, risk analysis, labeling). | Pause work; notify project manager; assign task to complete missing package. |
+
+---
+
+### 8. Next Steps  
+
+1. **Gather the missing items** listed in Section 4 from the product team.  
+2. **Select up‑to‑three candidate predicates** and retrieve their 510(k) summaries (use FDA’s “Find and Effectively Use Predicate Devices” guidance).  
+3. **Develop a comparison matrix** that addresses Intended Use, Technological Characteristics, and Risk Controls.  
+4. **Run performance testing** per the protocols drafted in Step 1; compile results for DP5.  
+5. **Prepare the 510(k) submission** (cover letter, SE discussion, device description, labeling, risk analysis).  
+6. **Conduct an internal review** using the escalation triggers table; any “No” at DP1‑DP4 must be escalated before final filing.
+
+---
+
+*Prepared by Mike – US FDA Regulatory Affairs Specialist*
 ```
 
 </details>
@@ -372,7 +395,56 @@ For the present system, **the highest class is IIb**, therefore the whole device
 |--------|--------------------------------------------|----------------------|
 | Ionising radiation exposure (generator) | Annex I §16.4 (radiation protection) | Shielding design, dose‑monitoring, interlocks, compliance with IEC 60601‑2‑54/28. |
 | Mechanical/thermal injury from detector housing | Annex I §20 (mechanical & thermal risks) | Protective casing, ergonomic handling instructions. |
-| Software errors leading to misdiagnosis | Annex I §1
+| Software errors leading to misdiagnosis | Annex I §17 (electronic programmable systems) & §11 (software rule) | IEC 62304 lifecycle, rigorous verification/validation, post‑market monitoring of algorithm updates. |
+| Failure of detector to record accurate image data | Annex I §§16‑18 (active devices) | Calibration procedures, DQE testing per IEC 62220‑1‑1, periodic performance checks. |
+
+*Because the source does not list these GSPR sections, they are indicated as “missing citation” and must be verified against the MDR text.*
+
+---
+
+### 7. Human‑Escalation Triggers  
+
+| Trigger | Reason | Recommended action |
+|--------|--------|--------------------|
+| **Incorrect classification (Rule 5/9)** flagged as *high risk* in audit label (`risk:high`). | Misclassification would lead to an insufficient conformity‑assessment route, exposing the manufacturer and patients to non‑conformity. | Immediate review by a senior MDR specialist; re‑classify all components according to Rules 10, 17, 11 before any NB submission. |
+| **Absence of PMS plan** (required for Class IIb). | Without a PMS system, Art. 83/84 compliance cannot be demonstrated → CE mark not grantable. | Escalate to Quality‑Assurance manager; develop and approve PMS documentation within 2 weeks. |
+| **Missing clinical evidence for detector performance**. | Rule 17 (Class IIa) still requires a substantive CER demonstrating safety & performance. | Request clinical/bench data from R&D; involve Clinical Evaluation Lead. |
+| **Software impact not clearly defined** (Rule 11 may upgrade class). | If decision‑support impact is underestimated, the device could be under‑classed → regulatory breach. | Conduct software risk analysis; if high‑impact, re‑classify to Class IIb or III and adjust NB route accordingly. |
+
+---
+
+### 8. Immediate Next Steps (Action Items)
+
+1. **Correct the classification matrix** in `CHK-DR-001_설계검토_체크리스트.md` to reflect:
+   - X‑ray generator → Rule 10 (Class IIb)  
+   - Flat‑panel detector → Rule 17 (Class IIa)  
+   - Image‑processing software → Rule 11 (class aligned with host device, re‑assess impact).  
+
+2. **Draft an updated Intended Purpose statement** for each component; circulate to the design team for sign‑off.
+
+3. **Populate the Technical Documentation** (Annex II) with:
+   - Risk Management File (ISO 14971) covering radiation and software hazards.  
+   - Verification & Validation reports (IEC 60601‑2‑54/28, IEC 62304, IEC 62366‑1).  
+
+4. **Prepare a Clinical Evaluation Report** for the detector (state‑of‑the‑art literature, performance metrics such as DQE).  
+
+5. **Develop a PMS Plan** (Art. 84) that includes:
+   - Routine radiation dose monitoring,  
+   - Software update surveillance,  
+   - Post‑market clinical follow‑up (PMCF) activities for the whole system.  
+
+6. **Schedule a senior MDR review meeting** – trigger: any outstanding high‑risk items (misclassification, missing clinical data).  
+
+---
+
+### 9. Summary  
+
+- The audit uncovered a *factual error* in the classification of an X‑ray diagnostic system.  
+- Correct rules are **Rule 10 (Class IIb) for the generator**, **Rule 17 (Class IIa) for the detector**, and **Rule 11** for the software.  
+- The highest class (IIb) dictates a full **Annex IX technical‑documentation assessment** (Art 52(4)), requiring NB involvement.  
+- Several critical pieces of evidence and documentation are currently missing; they must be produced before any conformity‑assessment can proceed.  
+
+*All citations used above are taken directly from the provided source excerpt.  Wherever MDR articles, annexes, or standards were required but not present in the source, this has been explicitly noted as a missing citation.*
 ```
 
 </details>
@@ -439,7 +511,55 @@ focus: MFDS classification and licensing route
 | **Precise Intended Use Statement** (including clinical indication, target patient population). | Determines classification under 고시 번호 제2025‑23호. |
 | **Software Functional Specification** (detail of algorithms, AI/ML training data sources). | Required for risk analysis and software validation; also influences eligibility for foreign clinical evidence acceptance. |
 | **Evidence of Korean Clinical Validation** (or justification for reliance on foreign data). | CER requirement per 고시 번호 제2025‑25호. |
-| **Korean‑language Labeling Draft** (label,
+| **Korean‑language Labeling Draft** (label, packaging, IFU). | Mandatory labeling language under MFDS; failure leads to non‑acceptance. |
+| **Manufacturing Site Information** (location, GMP status, digital GMP audit report). | Determines need for domestic KGMP compliance or foreign quality system equivalence. |
+| **Cybersecurity Strategy Documentation** (threat model, mitigation plan). | Required by Digital GMP for AI/ML products. |
+
+> **Human‑Escalation Trigger #3** – If any of the items above cannot be supplied within the predefined timeline (e.g., 60 days from receipt of deficiency notice), escalation to project manager and senior regulatory lead is required.
+
+---
+
+### 5. Core Risk Controls (to be demonstrated)
+
+1. **Risk Management Process** (per Digital GMP) – hazard identification, risk evaluation, implementation of mitigations, residual risk acceptance criteria.
+2. **Software Lifecycle Controls** – IEC 62304‑aligned development process (documented in the technical file; citation not present in source but required by MFDS as part of 고시 번호 제2025‑25호).
+3. **Cybersecurity Safeguards** – encryption, authentication, secure update mechanisms; documented in the security validation report.
+4. **Data Privacy & Personal Information Protection** – compliance with Korea’s Personal Information Protection Act (PIPA); reflected in privacy impact assessment.
+5. **Post‑Market Surveillance** – real‑time monitoring of adverse events, field safety corrective actions, periodic reporting.
+
+> All risk controls must be referenced to the *Digital GMP* requirements (별도 고시) and substantiated with verifiable evidence within the submission package.
+
+---
+
+### 6. Summary Flow for a Hypothetical Class II SaMD
+
+1. **Determine Intended Use → Apply 고시 번호 제2025‑23호 matrix → Assign Class II**  
+2. **Select Submission Route: 허가 (full approval) under 고시 번호 제2025‑25호**  
+3. **Compile Evidence Package:** Technical file, full Risk Management File, Clinical Evaluation Report, Software Validation & Cybersecurity reports, Digital GMP certification (or foreign equivalence), Korean labeling/IFU, PMS plan.  
+4. **Submit to MFDS** → MFDS conducts document review → If gaps are identified, issue *보완 요구* (deficiency notice).  
+5. **Address Deficiencies** → Provide missing information (see Section 4) → Resubmit.  
+
+---  
+
+### 7. Next Steps for Sponsor
+
+| Action | Deadline (suggested) | Owner |
+|--------|----------------------|-------|
+| Provide precise intended use & functional description | +10 days | Product Owner |
+| Submit Korean draft label/IFU | +15 days | Regulatory Affairs |
+| Deliver software architecture & AI training data summary | +20 days | R&D Lead |
+| Confirm manufacturing site GMP status (KGMP or Digital GMP) | +25 days | Quality Assurance |
+| Provide clinical data plan (Korean cohort or foreign CER justification) | +30 days | Clinical Team |
+
+If any deadline cannot be met, **escalate to the senior regulatory manager** (Human‑Escalation Trigger #3).  
+
+---  
+
+### 8. Closing Remark
+
+The above draft aligns the product’s pathway with the **Digital Medical Products Act** framework and the MFDS notices that are explicitly cited in the source material. All remaining uncertainties—particularly around classification, foreign clinical evidence acceptance, and manufacturing quality system – must be resolved before a formal submission can be compiled.  
+
+---  
 ```
 
 </details>
@@ -522,7 +642,27 @@ focus: supplementary-response strategy
 3. **의료기기 임상시험계획 승인에 관한 규정 (2023‑02‑14 개정)** – permits a 30 day extension for the second IND supplement.  
 4. Processing‑time table (Table 1‑B) showing “허가(일반) 65일”, “허가(임상 포함) 80일”, “인증 30일”, “신고 즉시”.  
 
-*All other identifiers 
+*All other identifiers (e.g., specific MFDS notice numbers, detailed classification tables, or foreign‑data acceptance notices) are **not present** in the supplied excerpts.  Those must be retrieved from the full regulation database before finalizing the response.*
+
+---
+
+### 7️⃣ Next Steps for the Submission Team  
+
+1. **Confirm device risk class** using the full “의료기기 허가·신고·심사 등에 관한 규정”.  
+2. **Collect the exact list of documents flagged as missing** by MFDS (refer to the original supplement request).  
+3. **Prepare Korean‑language labeling/IFU** and ensure all safety symbols comply with MFDS guidelines.  
+4. **Update risk‑management files** and attach evidence of any additional testing requested.  
+5. **Track the supplement clock** in a shared spreadsheet; set alerts at 7‑day, 30‑day, and 10‑day before final deadline.  
+6. **If any required evidence cannot be supplied within the allowed period**, draft an extension request referencing the 30‑day IND provision (or seek senior approval for a formal “deadline extension” under MFDS authority).  
+
+---  
+
+*Prepared by:* **Regulatory Affairs – Supplement Response Team**  
+*Date:* 2026‑09‑11  
+
+--- 
+
+*All citations are directly taken from the provided source excerpts.  Any additional regulatory numbers or detailed criteria not included in those excerpts must be verified from the official MFDS legal database before submission.*
 ```
 
 </details>
