@@ -5,6 +5,7 @@ the feedback parser, correction_rate had no split, and assemble_cases back-fille
 pool with focus-unrelated sources. Also: input defects must NOT be dropped from the
 system-level quality signal — both are reported.
 """
+import os
 import importlib.util
 import json
 import pytest
@@ -246,5 +247,35 @@ def test_mismatch_and_on_topic_are_separable_by_a_single_floor():
 
 
 def test_floor_is_unset_by_default_so_this_is_an_ops_decision():
-    """기본값은 여전히 미설정(G7 운영값). 코드가 임의로 상한을 정하지 않는다."""
-    assert runner.GROWTH_FOCUS_MIN_RELEVANCE is None
+    """기본값은 여전히 미설정(G7 운영값). 코드가 임의로 상한을 정하지 않는다.
+
+    부모 환경을 그대로 읽으면 운영 값이 설정된 호스트에서 이 테스트가 실패한다
+    (`GROWTH_FOCUS_MIN_RELEVANCE=3 pytest -k floor_is_unset` 로 재현됨, Codex 지적).
+    **환경 변수를 제거한 별도 프로세스**에서 기본값을 확인한다.
+    """
+    import subprocess, sys
+    env = {k: v for k, v in os.environ.items() if k != "GROWTH_FOCUS_MIN_RELEVANCE"}
+    code = (
+        "import importlib.util,sys;"
+        f"spec=importlib.util.spec_from_file_location('r', {str(SCRIPTS / 'daily-growth-runner.py')!r});"
+        "m=importlib.util.module_from_spec(spec);sys.modules['r']=m;spec.loader.exec_module(m);"
+        "print(repr(m.GROWTH_FOCUS_MIN_RELEVANCE))"
+    )
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=60)
+    assert out.returncode == 0, out.stderr[-500:]
+    assert out.stdout.strip() == "None", f"기본값이 미설정이 아니다: {out.stdout.strip()}"
+
+
+def test_floor_is_honoured_when_operator_sets_it():
+    """설정값 허용은 기본값 테스트와 분리한다 — 운영이 값을 주면 그 값이 읽혀야 한다."""
+    import subprocess, sys
+    env = {**os.environ, "GROWTH_FOCUS_MIN_RELEVANCE": "3"}
+    code = (
+        "import importlib.util,sys;"
+        f"spec=importlib.util.spec_from_file_location('r', {str(SCRIPTS / 'daily-growth-runner.py')!r});"
+        "m=importlib.util.module_from_spec(spec);sys.modules['r']=m;spec.loader.exec_module(m);"
+        "print(repr(m.GROWTH_FOCUS_MIN_RELEVANCE))"
+    )
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=60)
+    assert out.returncode == 0, out.stderr[-500:]
+    assert out.stdout.strip() in ("3", "3.0"), out.stdout.strip()
