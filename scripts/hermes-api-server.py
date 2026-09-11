@@ -1208,6 +1208,11 @@ def chat_completions():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
+    # 최상위 JSON 이 객체가 아니면 `.get` 이 없어 AttributeError -> HTTP 500 이 난다
+    # (`[1]` / `true` / `123` / `"x"` 4종 재현). `or {}` 는 null·빈값만 막고 타입은 못 막는다.
+    if not isinstance(data, dict):
+        return jsonify({"error": "request body must be a JSON object",
+                        "got": type(data).__name__}), 400
     messages = data.get("messages", [])
 
     if not messages:
