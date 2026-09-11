@@ -155,15 +155,28 @@ test('#104 DoD: request_id 발급 → 배경 자문 호출 → 폴링으로 결�
     const call = stub.seen[0];
     assert.equal(call.method, 'POST');
     assert.equal(call.url, '/v1/ra/advisory');
-    const wire = JSON.stringify({ h: call.headers, b: call.body }).toLowerCase();
-    for (const leak of ['virtual-office', 'virtual_office', 'vo-adapter', 'honcho-adapter', 'request_id']) {
-      assert.equal(wire.includes(leak), false, `Hermes 요청에 VO 흔적 노출: ${leak}`);
+    // 금지 토큰 부재는 그 토큰만 증명한다 — 일반 증명이 아니다(codex 지적).
+    // 대신 **허용 필드 집합을 양성으로 고정**한다: 요청은 정확히 3필드다.
+    const sent = JSON.parse(call.body);
+    assert.deepEqual(Object.keys(sent).sort(), ['query', 'region_hint', 'wp_context']);
+    assert.equal(sent.query, 'FDA 510(k) 제출 준비 확인');   // 사용자 질의 원문 그대로
+    assert.equal(sent.region_hint, null);
+    assert.deepEqual(sent.wp_context, {});
+
+    // 헤더도 양성 고정 — 표준 인증/콘텐츠 헤더 외에는 싣지 않는다.
+    const hdr = Object.keys(call.headers).map((k) => k.toLowerCase());
+    for (const h of hdr) {
+      assert.equal(['authorization', 'content-type', 'content-length', 'host', 'connection',
+        'accept', 'accept-encoding', 'user-agent'].includes(h), true, `예상 밖 헤더: ${h}`);
     }
-    assert.equal(JSON.parse(call.body).wp_context && Object.keys(JSON.parse(call.body).wp_context).length, 0);
+    // 관측된 **모든** 요청에 같은 계약을 적용한다(첫 건만이 아니라).
+    for (const c of stub.seen) {
+      assert.deepEqual(Object.keys(JSON.parse(c.body)).sort(), ['query', 'region_hint', 'wp_context']);
+    }
   } finally { child.kill(); stub.server.close(); }
 });
 
-test('#104 DoD: GATE 준수 — 어댑터에 WP close/reopen·KB repo 쓰기 경로 없음', () => {
+test('#104 GATE 직접 참조 정적 회귀 — 어댑터 소스에 WP close/reopen·KB repo 쓰기 직접 경로 없음', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(ADAPTER, 'utf8');
   const code = src.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
