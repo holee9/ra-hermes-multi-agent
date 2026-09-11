@@ -182,3 +182,19 @@ def test_assignment_text_is_recorded(tmp_path, monkeypatch):
               if json.loads(l).get("event") == "attempt_start"]
     assert starts and all(s.get("assignment") for s in starts)
     assert all("Source:" in s["assignment"] for s in starts)
+
+
+def test_lock_error_reports_owner_and_liveness_steps(tmp_path, monkeypatch, capsys):
+    """락 안내는 소유 PID 와 **생존 확인 먼저** 를 알려야 한다.
+    살아 있는 소유자를 확인하지 않고 지우면 중복 실행이 같은 예산을 또 쓴다."""
+    m = _load(tmp_path, monkeypatch)
+    _drive(m, monkeypatch, [])                      # DB·LLM 스텁 (이 테스트는 호출까지 가지 않는다)
+    assert m.acquire_lock() is True                 # 선점된 상태를 만든다
+    rc = m.main(["--execute"])
+    out = json.loads(capsys.readouterr().out)
+    assert rc == 2
+    import os as _os
+    assert str(_os.getpid()) in out["lock_owner"], "소유 PID 를 안내하지 않는다"
+    steps = " ".join(out["steps"])
+    assert "kill -0" in steps or "ps -p" in steps, "생존 확인 방법이 없다"
+    assert "살아 있으면 지우지 말 것" in steps, "생존 시 삭제 금지 경고가 없다"
