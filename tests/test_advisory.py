@@ -1315,3 +1315,59 @@ def test_bad_body_helper_names_the_type():
     with m.app.app_context():
         resp, code = m._bad_body([1])
         assert code == 400 and resp.get_json()["got"] == "list"
+
+
+# ── #137: 전송 메타데이터가 실질 내용으로 계산되던 결함 ───────────────────────────
+# 헤더 라벨만 떼고 값을 남기면 From 주소가 내용으로 세어져, 제목·본문·첨부가 전부 빈
+# 골격이 200 으로 통과하고 Honcho·요청로그·KB갭 기록까지 남겼다(codex 재현).
+# 제목이 곧 용건인 정상 메일과 첨부 전용 처리 계약은 보존해야 한다.
+@pytest.mark.parametrize("query,expected", [
+    ("Subject: \nFrom: \nAttachments:", False),                                   # 완전 빈
+    ("Subject: \nFrom: sender@example.invalid\nAttachments:", False),             # 발신자만 — 반례
+    ("To: rcv@example.com\nCc: x@y.z", False),                                    # 수신자만
+    ("Date: 2026-09-11\nSent: 10:00", False),                                     # 날짜만
+    ("Subject: FDA 510(k) 적합성 문의\nFrom: a@b.c\nAttachments:", True),           # 제목이 용건
+    ("Subject: FW: AZTEC & H&abyz : Registration in Thailand\nFrom: x@y.z", True),
+    ("Subject: \nFrom: a@b.c\nAttachments: report.pdf", True),                    # 첨부 전용 계약
+    ("Subject: \nFrom: a@b.c\n\n보완자료 대응 방향을 검토해 주세요", True),           # 본문
+    ("MDR 분류 규칙 5 적용 여부를 알려주세요", True),                                # 자유 질의
+])
+def test_transport_metadata_is_not_substantive_content(query, expected):
+    assert m.has_substantive_content(query) is expected, query
+
+
+def test_sender_only_skeleton_is_rejected_with_no_side_effects(monkeypatch):
+    """엔드포인트 레벨: 400 이어야 하고 Honcho·요청로그·KB갭 어느 것도 호출되면 안 된다."""
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "_run_rag_search", lambda q, top=5: [])
+    monkeypatch.setattr(m, "_run_knowledge_fetch", lambda q, p, top=3: [])
+    hits = []
+    monkeypatch.setattr(m, "_honcho_record", lambda *a, **k: hits.append("honcho"))
+    monkeypatch.setattr(m, "_log_adv_request", lambda *a, **k: hits.append("log"))
+    monkeypatch.setattr(m, "_log_kb_gap", lambda *a, **k: hits.append("gap"))
+    monkeypatch.setattr(m, "_invoke_llm_direct", lambda p, c, timeout=None: ("", "stub"))
+
+    r = m.app.test_client().post(
+        "/v1/ra/advisory",
+        json={"query": "Subject: \nFrom: sender@example.invalid\nAttachments:"},
+        headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 400, r.get_json()
+    assert hits == [], f"거절했는데 기록 부작용이 발생: {hits}"
+
+
+def test_subject_only_real_mail_still_routes(monkeypatch):
+    """반대편 보존: 제목이 용건인 정상 메일은 계속 통과해야 한다(과차단 금지)."""
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "_run_rag_search", lambda q, top=5: [])
+    monkeypatch.setattr(m, "_run_knowledge_fetch", lambda q, p, top=3: [])
+    monkeypatch.setattr(m, "_honcho_record", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_adv_request", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_kb_gap", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_invoke_llm_direct", lambda p, c, timeout=None: ("", "stub"))
+
+    r = m.app.test_client().post(
+        "/v1/ra/advisory",
+        json={"query": "Subject: FDA 510(k) 적합성 문의\nFrom: a@b.c\nAttachments:",
+              "region_hint": "US"},
+        headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 200, r.get_json()

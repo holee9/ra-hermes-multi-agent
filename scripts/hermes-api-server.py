@@ -588,9 +588,22 @@ _HEADER_LABEL = re.compile(
 MIN_ADVISORY_CONTENT = int(os.environ.get("MIN_ADVISORY_CONTENT", "10"))
 
 
+# #137: 전송 메타데이터(보낸사람·받는사람·날짜)는 **사안이 아니다.** 라벨만 떼고 값을
+# 남기면 From 주소가 실질 내용으로 계산돼, 제목·본문·첨부가 전부 빈 골격이 200 으로 통과하고
+# Honcho·요청로그·KB갭 기록까지 남긴다(재현: `Subject: \nFrom: sender@example.invalid\nAttachments:`).
+# 반면 **제목과 첨부는 사안일 수 있다** — 제목이 곧 용건인 실제 자문이 있고(로그 replay 12건),
+# 첨부 전용 처리 계약도 있다. 그래서 두 부류를 다르게 다룬다.
+#   - 전송 메타: 줄 전체(라벨+값) 제거
+#   - 사안 헤더(제목·첨부): 라벨만 제거하고 값은 유지
+_TRANSPORT_HEADER_LINE = re.compile(
+    r'(?im)^\s*(from|to|cc|bcc|date|sent|보낸사람|받는사람)\s*:.*$'
+)
+
+
 def has_substantive_content(query: str) -> bool:
-    """True when content remains after stripping mail header LABELS (values kept)."""
-    return len(_HEADER_LABEL.sub("", query or "").strip()) >= MIN_ADVISORY_CONTENT
+    """사안 내용이 남는가. 전송 메타데이터는 내용으로 세지 않는다(#137)."""
+    body = _TRANSPORT_HEADER_LINE.sub("", query or "")
+    return len(_HEADER_LABEL.sub("", body).strip()) >= MIN_ADVISORY_CONTENT
 
 
 # @MX:ANCHOR: routing-rejection dedup — suppress repeat advisories for an identical body
