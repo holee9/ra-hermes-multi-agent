@@ -89,6 +89,60 @@ CASES: list[dict] = [
 ]
 
 
+LEDGER = OUT_DIR / "ledger.jsonl"
+LOCK = OUT_DIR / ".lock"
+
+
+def ledger_append(rec: dict) -> None:
+    """append + fsync. 호출 **전에** 기록되어야 의미가 있으므로 즉시 내구화한다."""
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    with open(LEDGER, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def ledger_state() -> dict:
+    """누적 예산 상태. `attempt_start` 는 있는데 `attempt_result` 가 없으면 `unknown` 이다.
+
+    unknown 을 0 으로 초기화하지 않는다 — 호출이 실제로 나갔는지 알 수 없으므로
+    **소비한 것으로 계산**한다. 이것이 승인 총량을 지키는 유일한 안전한 가정이다.
+    """
+    starts, results, corrupt = {}, {}, 0
+    if LEDGER.exists():
+        for line in LEDGER.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                r = json.loads(line)
+            except ValueError:
+                corrupt += 1               # 건너뛰면 소비를 **적게** 세게 된다 — 아래서 fail-closed
+                continue
+            if r.get("event") == "attempt_start":
+                starts[r["attempt_id"]] = r
+            elif r.get("event") == "attempt_result":
+                results[r["attempt_id"]] = r
+    unknown = [a for a in starts if a not in results]
+    # 손상 줄이 있으면 그것이 잃어버린 attempt_start 일 수 있어 **소비 수를 확정할 수 없다.**
+    # 추측 복구나 0 초기화 대신 실행을 막는다(fail-closed). 사람이 원장을 보고 판단해야 한다.
+    return {"consumed": len(starts), "resolved": len(results), "corrupt_lines": corrupt,
+            "determinable": corrupt == 0,
+            "unknown": unknown, "remaining": CALL_BUDGET - len(starts),
+            "done_case_ids": {results[a]["case_id"] for a in results if results[a].get("ok")}}
+
+
+def acquire_lock() -> bool:
+    """배타 실행 — 중복 실행이 같은 예산을 따로 소비하지 못하게 한다."""
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        return False
+    os.write(fd, f"{os.getpid()} {datetime.now(timezone.utc).isoformat()}\n".encode())
+    os.close(fd)
+    return True
+
+
 def _load(name: str, filename: str):
     spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / filename)
     mod = importlib.util.module_from_spec(spec)
@@ -98,19 +152,37 @@ def _load(name: str, filename: str):
 
 
 def resolve_source(conn, filename: str) -> tuple[str, str, list[str]] | None:
-    """재선정된 파일명으로 실제 source_path·hash·발췌를 찾는다. 없으면 None."""
-    # ra_knowledge 에는 source_hash 컬럼이 없다(실제 스키마: id, source_path, chunk_index,
-    # content, embedding, metadata, indexed_at). 해시는 metadata 에 있으면 쓰고 없으면 비운다.
+    """재선정된 파일명 → **단일 정규 source_path** 확정 후 그 경로의 발췌만 가져온다.
+
+    이전 구현의 결함(리뷰 지적): `LIKE %filename` 은 두 가지로 틀렸다.
+    1. `_` 가 SQL 와일드카드라 의도치 않은 경로가 매칭된다(파일명에 `_` 가 많다).
+    2. 여러 `source_path` 가 한 결과집합에 섞이는데 `LIMIT 3` 로 잘라 **첫 경로만 기록**하므로
+       발췌 출처가 섞일 수 있다 — 기록된 출처와 실제 전달 내용이 달라진다.
+
+    그래서 경로 확정과 발췌 조회를 **두 단계로 분리**하고, `_`·`%` 를 이스케이프한다.
+    후보 경로가 여러 개면 모호하므로 None 을 반환해 호출을 막는다.
+    """
+    esc = filename.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT source_path, COALESCE(metadata->>'source_hash', ''), content "
-            "FROM ra_knowledge WHERE source_path LIKE %s ORDER BY chunk_index LIMIT 3",
-            (f"%{filename}",),
+            "SELECT DISTINCT source_path FROM ra_knowledge "
+            "WHERE source_path LIKE %s ESCAPE '\\' ORDER BY source_path",
+            (f"%/{esc}",),
+        )
+        paths = [r[0] for r in cur.fetchall()]
+    if len(paths) != 1:
+        return None                       # 0건이거나 모호 — 추측하지 않는다
+    path = paths[0]
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT COALESCE(metadata->>'source_hash', ''), content FROM ra_knowledge "
+            "WHERE source_path = %s ORDER BY chunk_index LIMIT 3",
+            (path,),
         )
         rows = cur.fetchall()
     if not rows:
         return None
-    return rows[0][0], rows[0][1], [r[2][:600] for r in rows]
+    return path, rows[0][0], [r[1][:600] for r in rows]
 
 
 def build_assignment(case: dict, source_path: str, source_hash: str, excerpts: list[str]) -> str:
@@ -179,37 +251,64 @@ def main(argv=None) -> int:
         }, ensure_ascii=False, indent=2))
         return 0
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    results, used = [], 0
-    for p in plan:
-        if used >= CALL_BUDGET:                       # 상한 초과 방지 — 실패도 예산 소모
-            break
-        used += 1
-        text, error = sheet.capture_agent_response(p["profile"], p["assignment"])
-        results.append({
-            "n": p["n"], "case_id": p["case_id"], "profile": p["profile"], "peer": p["peer"],
-            "focus": p["focus"], "defect": p["defect"],
-            "old_source": p["old_source"], "new_source": p["resolved_source"],
-            "source_hash": p["source_hash"],
-            "ok": not error and bool(text and text.strip()),
-            "error": error or None, "chars": len(text or ""), "response": text or "",
-            "captured_at": datetime.now(timezone.utc).isoformat(),
-        })
+    if not acquire_lock():
+        print(json.dumps({"error": "다른 실행이 진행 중이거나 비정상 종료로 락이 남아 있다",
+                          "lock": str(LOCK.relative_to(ROOT)),
+                          "hint": "예산 상태를 ledger.jsonl 로 확인한 뒤 수동으로 락을 지울 것"},
+                         ensure_ascii=False, indent=2))
+        return 2
 
-    out = OUT_DIR / f"requery-{stamp}.json"
-    out.write_text(json.dumps({
-        "issue": 147, "call_budget": CALL_BUDGET, "calls_used": used,
-        "ok": sum(1 for r in results if r["ok"]), "failed": sum(1 for r in results if not r["ok"]),
-        "lineage_note": "원본 레코드는 수정하지 않았다. 이 산출물은 새 기록이며 old_source↔new_source 로 추적한다.",
-        "results": results,
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        st = ledger_state()
+        if not st["determinable"]:
+            print(json.dumps({"error": "원장에 손상된 줄이 있어 소비 호출 수를 확정할 수 없다",
+                              "corrupt_lines": st["corrupt_lines"], "ledger": str(LEDGER.relative_to(ROOT)),
+                              "note": "추측 복구·0 초기화 금지. 사람이 원장을 확인하고 판단해야 한다"},
+                             ensure_ascii=False, indent=2))
+            return 2
+        if st["remaining"] <= 0:
+            print(json.dumps({"error": "승인 예산 소진", **st,
+                              "note": "unknown 은 소비로 계산한다 — 실제 호출 여부를 알 수 없기 때문"},
+                             ensure_ascii=False, indent=2, default=list))
+            return 2
 
-    print(json.dumps({"mode": "execute", "calls_used": used,
-                      "ok": sum(1 for r in results if r["ok"]),
-                      "failed": sum(1 for r in results if not r["ok"]),
-                      "output": str(out.relative_to(ROOT))}, ensure_ascii=False, indent=2))
-    return 0 if all(r["ok"] for r in results) else 1
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        todo = [p for p in plan if p["case_id"] not in st["done_case_ids"]]
+        used = 0
+        for p in todo:
+            if used >= st["remaining"]:               # 누적 상한 — 실패·unknown 도 예산 소모
+                break
+            attempt_id = f"{run_id}-{p['n']:02d}"
+            # (1) 네트워크 호출 **전에** 예산 소비를 영속 기록한다. 여기서 죽어도 소비가 남는다.
+            ledger_append({"event": "attempt_start", "attempt_id": attempt_id,
+                           "case_id": p["case_id"], "profile": p["profile"],
+                           "source_path": p["resolved_source"], "source_hash": p["source_hash"],
+                           "excerpt_chars": len(p["assignment"]),
+                           "ts": datetime.now(timezone.utc).isoformat()})
+            used += 1
+            text, error = sheet.capture_agent_response(p["profile"], p["assignment"])
+            ok = not error and bool(text and text.strip())
+            # (2) 응답·오류를 **즉시** 저장한다. 다음 호출을 기다리지 않는다.
+            ledger_append({"event": "attempt_result", "attempt_id": attempt_id,
+                           "case_id": p["case_id"], "ok": ok, "error": error or None,
+                           "chars": len(text or ""),
+                           "old_source": p["old_source"], "new_source": p["resolved_source"],
+                           "focus": p["focus"], "defect": p["defect"],
+                           "response": text or "",
+                           "ts": datetime.now(timezone.utc).isoformat()})
+
+        st2 = ledger_state()
+        print(json.dumps({
+            "mode": "execute", "run_id": run_id, "calls_this_run": used,
+            "budget": CALL_BUDGET, "consumed_total": st2["consumed"],
+            "resolved": st2["resolved"], "unknown": st2["unknown"],
+            "remaining": st2["remaining"], "ledger": str(LEDGER.relative_to(ROOT)),
+            "lineage_note": "원본 레코드는 수정하지 않았다. ledger 가 old_source↔new_source 추적을 담는다.",
+        }, ensure_ascii=False, indent=2))
+        # (3) 시작만 있고 결과가 없는 건은 unknown 으로 남기고 **자동 재전송하지 않는다**.
+        return 1 if st2["unknown"] else 0
+    finally:
+        LOCK.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
