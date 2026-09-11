@@ -86,14 +86,35 @@ def main() -> None:
     ]
     latest_incomplete = bool(((reports[-1] if reports else {}).get("ingestion_diagnostics") or {}).get("collection_incomplete"))
     latest = reports[-1] if reports else {}
+    # #65: `null_thresholds` 가 비었다는 것만 보면 두 경우가 통과한다.
+    #   (1) 트리거가 **하나도 없을 때** — 빈 목록에는 null 이 없으므로 공허하게 참이 된다
+    #   (2) threshold 가 `"invalid"` 같은 **비수치 값**일 때 — None 이 아니므로 정의된 것으로 센다
+    # 둘 다 "임계값 정책이 정해졌다" 는 근거가 되지 못하는데 form_ready 를 열어 준다.
+    # 그래서 존재·타입을 함께 본다.
+    _triggers = trigger_cfg.get("triggers")
+    triggers = _triggers if isinstance(_triggers, dict) else {}
+    triggers_malformed = _triggers is not None and not isinstance(_triggers, dict)
+
+    def _numeric(v: Any) -> bool:
+        return isinstance(v, (int, float)) and not isinstance(v, bool)
+
     thresholds_defined = [
-        name for name, cfg in (trigger_cfg.get("triggers") or {}).items()
-        if cfg.get("threshold") is not None
+        name for name, cfg in triggers.items()
+        if isinstance(cfg, dict) and _numeric(cfg.get("threshold"))
     ]
     null_thresholds = [
-        name for name, cfg in (trigger_cfg.get("triggers") or {}).items()
-        if cfg.get("threshold") is None
+        name for name, cfg in triggers.items()
+        if not isinstance(cfg, dict) or cfg.get("threshold") is None
     ]
+    invalid_thresholds = [
+        name for name, cfg in triggers.items()
+        if isinstance(cfg, dict) and cfg.get("threshold") is not None and not _numeric(cfg.get("threshold"))
+    ]
+    # 트리거가 없거나 설정 자체가 잘못된 형태면 "정책 정의됨" 이라 부르지 않는다.
+    thresholds_usable = (
+        bool(triggers) and not triggers_malformed
+        and not null_thresholds and not invalid_thresholds
+    )
 
     latest_absence = ((latest.get("metrics") or {}).get("absence_pattern_signals") or {})
     valid_days = unique_days(valid_reports)   # distinct dates, not file count
@@ -105,11 +126,14 @@ def main() -> None:
         "latest_collection_incomplete": latest_incomplete,
         "thresholds_defined": thresholds_defined,
         "null_thresholds": null_thresholds,
+        "invalid_thresholds": invalid_thresholds,
+        "triggers_defined": len(triggers),
+        "thresholds_usable": thresholds_usable,
     }
     form_ready = (
         not latest_incomplete
         and valid_days >= args.min_valid_days
-        and len(null_thresholds) == 0
+        and thresholds_usable
         and metric_value(latest, "correction_rate") is not None
         and metric_value(latest, "first_pass_match_accuracy") is not None
         and metric_value(latest, "escalation_precision") is not None
@@ -144,6 +168,9 @@ def main() -> None:
             "status": "ready_for_human_policy" if len(valid_reports) > 0 else "blocked_by_metrics_ingestion",
             "thresholds_defined": thresholds_defined,
             "null_thresholds": null_thresholds,
+            "invalid_thresholds": invalid_thresholds,
+            "triggers_defined": len(triggers),
+            "thresholds_usable": thresholds_usable,
         },
         "form_transfer": {
             "ready": form_ready,
