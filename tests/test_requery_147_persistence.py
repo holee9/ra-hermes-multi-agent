@@ -229,3 +229,23 @@ def test_batch_name_is_validated(tmp_path, monkeypatch):
     _drive(m, monkeypatch, calls)
     assert m.main(["--execute", "--batch", "../탈출"]) == 2
     assert calls == [], "잘못된 배치 이름으로 호출이 나갔다"
+
+
+# ── 검토 자료 생성기 (사람 판정 보조) ──────────────────────────────────────────
+def test_review_flags_fabricated_identifier(tmp_path, monkeypatch):
+    """응답이 인용한 식별자가 전달 발췌에 없으면 '검토 필요' 로 올라와야 한다 —
+    이 프로젝트에서 실측된 실패 유형(#118)이다."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "rq_review", ROOT / "scripts" / "kb-eval-requery-review.py")
+    rv = importlib.util.module_from_spec(spec)
+    sys.modules["rq_review"] = rv
+    spec.loader.exec_module(rv)
+
+    shown = "Source excerpts:\n- 이 문서는 K123456 을 다룬다"
+    assert rv.unverified_ids("predicate 는 K123456 입니다", shown) == []
+    assert rv.unverified_ids("predicate 는 K999999 입니다", shown) == ["K999999"]
+    # 한글 조사가 붙어도 잡는다 (\b 는 한글을 단어문자로 보므로 쓸 수 없다)
+    assert rv.unverified_ids("K999999도 확인하세요", shown) == ["K999999"]
+    # 공백·하이픈 차이는 같은 것으로 본다
+    assert rv.unverified_ids("K 123456", "K123456") == []
