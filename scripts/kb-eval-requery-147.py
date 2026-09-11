@@ -89,6 +89,14 @@ CASES: list[dict] = [
 ]
 
 
+def rel(p: Path) -> str:
+    """저장소 기준 상대경로. 테스트가 OUT_DIR 를 임시 디렉터리로 바꿔도 죽지 않는다."""
+    try:
+        return str(p.relative_to(ROOT))
+    except ValueError:
+        return str(p)
+
+
 LEDGER = OUT_DIR / "ledger.jsonl"
 LOCK = OUT_DIR / ".lock"
 
@@ -128,6 +136,9 @@ def ledger_state() -> dict:
     return {"consumed": len(starts), "resolved": len(results), "corrupt_lines": corrupt,
             "determinable": corrupt == 0,
             "unknown": unknown, "remaining": CALL_BUDGET - len(starts),
+            # **시도된 모든 case 를 제외한다** — 성공한 것만 제외하면 unknown 케이스가 재전송된다.
+            # unknown 은 호출이 실제로 나갔는지 알 수 없는 상태이므로 다시 보내면 예산을 두 번 쓴다.
+            "attempted_case_ids": {r["case_id"] for r in starts.values()},
             "done_case_ids": {results[a]["case_id"] for a in results if results[a].get("ok")}}
 
 
@@ -242,7 +253,7 @@ def main(argv=None) -> int:
     if not a.execute:
         print(json.dumps({
             "mode": "dry-run", "planned_calls": len(plan), "call_budget": CALL_BUDGET,
-            "output_dir": str(OUT_DIR.relative_to(ROOT)),
+            "output_dir": rel(OUT_DIR),
             "touches_original_checksheets": False,
             "cases": [{"n": p["n"], "case_id": p["case_id"], "profile": p["profile"],
                        "old_source": p["old_source"].split("/")[-1],
@@ -253,7 +264,7 @@ def main(argv=None) -> int:
 
     if not acquire_lock():
         print(json.dumps({"error": "다른 실행이 진행 중이거나 비정상 종료로 락이 남아 있다",
-                          "lock": str(LOCK.relative_to(ROOT)),
+                          "lock": rel(LOCK),
                           "hint": "예산 상태를 ledger.jsonl 로 확인한 뒤 수동으로 락을 지울 것"},
                          ensure_ascii=False, indent=2))
         return 2
@@ -262,7 +273,7 @@ def main(argv=None) -> int:
         st = ledger_state()
         if not st["determinable"]:
             print(json.dumps({"error": "원장에 손상된 줄이 있어 소비 호출 수를 확정할 수 없다",
-                              "corrupt_lines": st["corrupt_lines"], "ledger": str(LEDGER.relative_to(ROOT)),
+                              "corrupt_lines": st["corrupt_lines"], "ledger": rel(LEDGER),
                               "note": "추측 복구·0 초기화 금지. 사람이 원장을 확인하고 판단해야 한다"},
                              ensure_ascii=False, indent=2))
             return 2
@@ -272,8 +283,19 @@ def main(argv=None) -> int:
                              ensure_ascii=False, indent=2, default=list))
             return 2
 
+        if st["unknown"]:
+            # 결과가 없는 시도가 남아 있으면 재개 자체를 막는다. 그 호출이 실제로 나갔는지
+            # 알 수 없으므로, 이어서 도는 것은 예산을 얼마나 쓰는지 모른 채 쓰는 것이다.
+            print(json.dumps({"error": "결과 없는 시도(unknown)가 있어 재개하지 않는다",
+                              "unknown": st["unknown"], "consumed": st["consumed"],
+                              "ledger": rel(LEDGER),
+                              "note": "자동 재전송 금지. 사람이 원장을 보고 잔여 예산을 확정해야 한다"},
+                             ensure_ascii=False, indent=2))
+            return 2
+
         run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        todo = [p for p in plan if p["case_id"] not in st["done_case_ids"]]
+        # 시도된 case 는 성공·실패를 가리지 않고 전부 제외한다(재전송 금지).
+        todo = [p for p in plan if p["case_id"] not in st["attempted_case_ids"]]
         used = 0
         for p in todo:
             if used >= st["remaining"]:               # 누적 상한 — 실패·unknown 도 예산 소모
@@ -283,7 +305,9 @@ def main(argv=None) -> int:
             ledger_append({"event": "attempt_start", "attempt_id": attempt_id,
                            "case_id": p["case_id"], "profile": p["profile"],
                            "source_path": p["resolved_source"], "source_hash": p["source_hash"],
-                           "excerpt_chars": len(p["assignment"]),
+                           # 길이만 남기면 "무엇을 보냈는지" 가 재구성되지 않는다 — 실제 과제문을
+                           # 통째로 기록해 이후 판정이 같은 입력을 볼 수 있게 한다.
+                           "assignment": p["assignment"], "excerpt_chars": len(p["assignment"]),
                            "ts": datetime.now(timezone.utc).isoformat()})
             used += 1
             text, error = sheet.capture_agent_response(p["profile"], p["assignment"])
@@ -298,15 +322,23 @@ def main(argv=None) -> int:
                            "ts": datetime.now(timezone.utc).isoformat()})
 
         st2 = ledger_state()
+        # `resolved` 는 "응답이든 오류든 **기록이 확정된** 수" 이지 성공 수가 아니다.
+        # 둘을 구분하지 않으면 11건 전부 실패해도 성공으로 보고된다.
+        ok_n = len(st2["done_case_ids"])
+        failed_n = st2["resolved"] - ok_n
+        missing_n = len(CASES) - ok_n
         print(json.dumps({
             "mode": "execute", "run_id": run_id, "calls_this_run": used,
             "budget": CALL_BUDGET, "consumed_total": st2["consumed"],
-            "resolved": st2["resolved"], "unknown": st2["unknown"],
-            "remaining": st2["remaining"], "ledger": str(LEDGER.relative_to(ROOT)),
+            "recorded": st2["resolved"], "ok": ok_n, "failed": failed_n,
+            "unknown": st2["unknown"],
+            "remaining_cases": missing_n, "remaining_budget": st2["remaining"],
+            "ledger": rel(LEDGER),
             "lineage_note": "원본 레코드는 수정하지 않았다. ledger 가 old_source↔new_source 추적을 담는다.",
         }, ensure_ascii=False, indent=2))
-        # (3) 시작만 있고 결과가 없는 건은 unknown 으로 남기고 **자동 재전송하지 않는다**.
-        return 1 if st2["unknown"] else 0
+        # (3) unknown 은 자동 재전송하지 않는다. 실패·미완이 하나라도 있으면 nonzero 로 끝낸다 —
+        # 전건 실패가 성공 종료코드로 나가면 호출자가 성공으로 오독한다.
+        return 0 if (missing_n == 0 and failed_n == 0 and not st2["unknown"]) else 1
     finally:
         LOCK.unlink(missing_ok=True)
 
