@@ -1005,3 +1005,61 @@ def test_skill_resolution_for_every_ra_profile(tmp_path):
     assert out.stdout.strip() in ("LOADED", "NOTFOUND")
     # 이 호스트의 현재 상태를 증거로 남긴다 — NOTFOUND 이면 운영 mail-triage 가 실패한다는 뜻.
     print(f"ra-us ra-expert resolution: {out.stdout.strip()}")
+
+
+# ── #150 codex 지적: rc!=0 살리기 경로가 빈 껍데기를 완결 답변으로 채택 ──────────────────────────
+# 결함: parse_wp_comment 는 형태만 본다. `{"wp_comment":{}}` 도 파싱에 성공하므로 SIGABRT(134) 와
+# 함께 나온 빈 껍데기가 성공 completion 으로 통과했다. 완결의 최소 조건(email_type·summary)을
+# 검사해 중단 흔적을 실패 계약으로 돌린다. 정상 종료 경로는 이 검사를 거치지 않는다.
+_COMPLETE_MIN = ('{"wp_comment":{"email_type":"액션필요","wp_title":"t","summary":"실제 요약",'
+             '"recommendation":"r","confidence":0.8}}')
+
+
+@pytest.mark.parametrize("stdout", [
+    '{"wp_comment":{}}',                                   # codex 재현 케이스
+    '{"wp_comment":{"summary":"요약만 있고 email_type 없음"}}',
+    '{"wp_comment":{"email_type":"액션필요"}}',              # summary 없음
+    '{"wp_comment":{"email_type":"  ","summary":"  "}}',    # 공백뿐
+    '{"wp_comment":null}',
+    '{"wp_comment":"문자열"}',
+    '{"wp_comment":[]}',
+])
+def test_rc134_with_degenerate_wp_comment_is_failure(monkeypatch, stdout):
+    client = _chat_client(monkeypatch, _Proc(134, stdout, ""))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    assert "hermes_failed" in wp["flags"], f"빈 껍데기가 완결로 채택됨: {stdout}"
+    assert wp["confidence"] == 0.0
+    assert "hermes exit 134" in wp["recommendation"]
+
+
+def test_rc134_with_complete_answer_is_still_salvaged(monkeypatch):
+    """회귀 방지 반대편: SIGABRT 뒤에도 **완결** 답변은 계속 살아야 한다 (27aae3d 의 목적)."""
+    client = _chat_client(monkeypatch, _Proc(134, _COMPLETE_MIN, ""))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    assert wp["summary"] == "실제 요약" and wp["confidence"] == 0.8
+    assert "hermes_nonzero_exit_134" in wp["flags"]         # 관측 가능하게 표시
+    assert "hermes_failed" not in wp["flags"]
+
+
+def test_zero_exit_path_unaffected_by_completeness_check(monkeypatch):
+    """정상 종료는 완결성 검사 대상이 아니다 — 기존 동작 보존(범위 한정)."""
+    client = _chat_client(monkeypatch, _Proc(0, '{"wp_comment":{}}'))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    content = json.loads(r.get_json()["choices"][0]["message"]["content"])
+    assert content["wp_comment"] == {} or "flags" not in content["wp_comment"]
+
+
+@pytest.mark.parametrize("parsed,expected", [
+    (None, False), ({}, False), ({"wp_comment": {}}, False),
+    ({"wp_comment": {"email_type": "정보수신", "summary": "s"}}, True),
+])
+def test_is_complete_wp_comment_unit(parsed, expected):
+    assert m.is_complete_wp_comment(parsed) is expected
