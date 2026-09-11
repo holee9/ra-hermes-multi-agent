@@ -359,24 +359,99 @@ def parse_wp_comment(text: str) -> dict | None:
     return None
 
 
-def is_complete_wp_comment(parsed: dict | None) -> bool:
-    """비정상 종료에서 살릴 수 있는 **완결** 답변인가.
+EMAIL_TYPES = ("완료통보", "액션필요", "정보수신")
 
-    `parse_wp_comment` 는 형태만 본다 — `{"wp_comment":{}}` 도 파싱에 성공한다.
-    그런데 종료코드 != 0 경로에서는 "파싱됨" 을 "완결 답변" 으로 채택하므로, 빈 껍데기가
-    SIGABRT 와 함께 성공으로 통과한다(#150 Codex 지적, rc134 + `{"wp_comment":{}}`).
 
-    완결의 최소 조건은 **무엇에 관한 메일인지(`email_type`)** 와 **무엇이라 판단했는지(`summary`)**
-    가 실제로 채워져 있는 것이다. 둘 중 하나라도 비어 있으면 답변이 아니라 중단 흔적이므로
-    실패 계약(`hermes_failed`)으로 보낸다. 정상 종료 경로는 이 검사를 거치지 않는다 —
-    기존 동작을 그대로 둔다.
+def contract_a_violations(parsed: dict | None) -> list[str]:
+    """동결된 Contract A(CLAUDE.md §Data Contracts) 위반 목록. 빈 리스트면 계약 충족.
+
+    `parse_wp_comment` 는 형태만 본다 — `{"wp_comment":{}}` 도 파싱에 성공한다. 종료코드 != 0
+    경로에서 "파싱됨" 을 "완결 답변" 으로 채택했기 때문에 SIGABRT 와 함께 나온 빈 껍데기가
+    성공으로 통과했다(#150 Codex 지적).
+
+    임의의 최소 필드 기준을 쓰지 않는다. 계약이 이미 필드와 타입을 고정했고, 계약 규칙은
+    **"invalid/missing fields → Yellow/human review"** 다. 여기서는 그 판정을 그대로 적용해,
+    위반이 하나라도 있으면 답변이 아니라 중단 흔적으로 보고 실패 계약으로 돌린다.
+
+    `flags` 가 리스트가 아닌 경우를 특히 잡는다 — 그 상태로 살리면 종료코드 flag 를 남기려는
+    `flags.append` 가 조용히 건너뛰어져 관측 보장이 깨진다(Codex 반례 `flags:'bad'`).
     """
     if not isinstance(parsed, dict):
-        return False
+        return ["not_an_object"]
     wpc = parsed.get("wp_comment")
     if not isinstance(wpc, dict):
-        return False
-    return all(isinstance(wpc.get(f), str) and wpc.get(f).strip() for f in ("email_type", "summary"))
+        return ["wp_comment_not_an_object"]
+
+    bad: list[str] = []
+
+    def _str(name: str, *, required: bool, nullable: bool = False) -> None:
+        if name not in wpc:
+            if required:
+                bad.append(f"missing:{name}")
+            return
+        v = wpc[name]
+        if v is None and nullable:
+            return
+        if not isinstance(v, str) or (required and not v.strip()):
+            bad.append(f"invalid:{name}")
+
+    _str("email_type", required=True)
+    if isinstance(wpc.get("email_type"), str) and wpc["email_type"] not in EMAIL_TYPES:
+        bad.append("invalid:email_type")           # 계약이 고정한 3값 외
+    _str("wp_title", required=True)
+    _str("summary", required=True)
+    _str("recommendation", required=True)
+    for opt in ("deadline", "product", "org"):
+        _str(opt, required=False, nullable=True)
+
+    conf = wpc.get("confidence")
+    if conf is None or isinstance(conf, bool) or not isinstance(conf, (int, float)):
+        bad.append("invalid:confidence" if "confidence" in wpc else "missing:confidence")
+    elif not 0.0 <= float(conf) <= 1.0:
+        bad.append("invalid:confidence")
+
+    if "matched_wp_id" in wpc:
+        mid = wpc["matched_wp_id"]
+        if mid is not None and (isinstance(mid, bool) or not isinstance(mid, int)):
+            bad.append("invalid:matched_wp_id")
+
+    if "market_analysis" in wpc:
+        ma = wpc["market_analysis"]
+        if not isinstance(ma, dict) or any(
+            not (v is None or isinstance(v, str)) for v in ma.values()
+        ):
+            bad.append("invalid:market_analysis")
+
+    # flags: 계약은 리스트다. **명시적 null 도 거절한다** — 키가 존재하면 setdefault 가 None 을
+    # 그대로 돌려주어 종료코드 flag 를 남기는 append 가 조용히 건너뛰어진다(Codex 반례).
+    # 키 자체가 없는 경우만 허용한다. 그때는 서버가 빈 리스트를 만든다.
+    if "flags" in wpc and not isinstance(wpc["flags"], list):
+        bad.append("invalid:flags")
+
+    # source_docs: 배열이어야 하고, 원소는 문자열이거나 `file` 이 문자열인 객체여야 한다.
+    # `file` 이 문자열이 아니면 ensure_real_source_paths 의 `"/" in file` 이 TypeError 로 죽는다.
+    if "source_docs" in wpc:
+        docs = wpc["source_docs"]
+        if not isinstance(docs, list):
+            bad.append("invalid:source_docs")
+        else:
+            for d in docs:
+                if isinstance(d, str):
+                    continue
+                if isinstance(d, dict) and isinstance(d.get("file", ""), str):
+                    continue
+                bad.append("invalid:source_docs")
+                break
+
+    return bad
+
+
+def is_complete_wp_comment(parsed: dict | None) -> bool:
+    """비정상 종료에서 살릴 수 있는 **완결** 답변인가 — Contract A 위반이 하나도 없을 때만.
+
+    정상 종료 경로는 이 검사를 거치지 않는다. 기존 동작을 그대로 둔다.
+    """
+    return not contract_a_violations(parsed)
 
 
 def ensure_real_source_paths(parsed: dict, rag_results: list[dict]) -> dict:
