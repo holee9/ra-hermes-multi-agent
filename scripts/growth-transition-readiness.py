@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +22,17 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 REPORTS_DIR = ROOT / "reports"
 TRIGGER_CONFIG = ROOT / "feedback" / "config" / "growth-trigger-config.json"
+
+# 설정 계약(`feedback/config/growth-trigger-config.json`)이 고정한 트리거 → 지표 매핑.
+# 임계값 **값**은 사람이 정하지만, 어떤 트리거가 어떤 지표에 걸리는지는 계약이 정한다.
+# 이름만 확인하고 지표를 안 보면 "0.5" 가 무엇에 대한 0.5 인지 모르는 채 통과한다.
+TRIGGER_METRIC_CONTRACT: dict[str, str] = {
+    "duplicate_wp_reduction": "duplicate_wp_rate_7d_ma",
+    "human_correction_rate": "correction_rate",
+    "transition_accuracy": "first_pass_match_accuracy",
+    "mail_triage_stability": "correction_rate",
+}
+REQUIRED_TRIGGERS = frozenset(TRIGGER_METRIC_CONTRACT)
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -96,7 +108,9 @@ def main() -> None:
     triggers_malformed = _triggers is not None and not isinstance(_triggers, dict)
 
     def _numeric(v: Any) -> bool:
-        return isinstance(v, (int, float)) and not isinstance(v, bool)
+        # NaN·Infinity 는 타입만 보면 통과하지만 임계값으로 쓸 수 없다 — 어떤 비교도
+        # 의미가 없거나 항상 참/거짓이 된다. 유한성까지 본다.
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
     thresholds_defined = [
         name for name, cfg in triggers.items()
@@ -110,10 +124,22 @@ def main() -> None:
         name for name, cfg in triggers.items()
         if isinstance(cfg, dict) and cfg.get("threshold") is not None and not _numeric(cfg.get("threshold"))
     ]
+    # 설정 계약이 고정한 네 트리거가 전부 있어야 한다. 임의의 키 하나로 통과하면
+    # "정책이 정해졌다" 가 성립하지 않는다 — 나머지 셋은 여전히 미정이기 때문이다.
+    missing_triggers = sorted(REQUIRED_TRIGGERS - set(triggers))
+    # 각 트리거의 metric 이 **계약이 정한 지표와 정확히 일치**해야 한다.
+    # `str(...)` 로 강제 변환하면 `metric: 123` 이나 엉뚱한 이름도 정상화돼 통과한다 —
+    # 존재만 보지 말고 문자열 타입과 값을 함께 본다.
+    triggers_without_metric = sorted(
+        name for name, cfg in triggers.items()
+        if isinstance(cfg, dict) and name in TRIGGER_METRIC_CONTRACT
+        and cfg.get("metric") != TRIGGER_METRIC_CONTRACT[name]
+    )
     # 트리거가 없거나 설정 자체가 잘못된 형태면 "정책 정의됨" 이라 부르지 않는다.
     thresholds_usable = (
         bool(triggers) and not triggers_malformed
         and not null_thresholds and not invalid_thresholds
+        and not missing_triggers and not triggers_without_metric
     )
 
     latest_absence = ((latest.get("metrics") or {}).get("absence_pattern_signals") or {})
@@ -127,6 +153,8 @@ def main() -> None:
         "thresholds_defined": thresholds_defined,
         "null_thresholds": null_thresholds,
         "invalid_thresholds": invalid_thresholds,
+        "missing_triggers": missing_triggers,
+        "triggers_without_metric": triggers_without_metric,
         "triggers_defined": len(triggers),
         "thresholds_usable": thresholds_usable,
     }
@@ -169,6 +197,8 @@ def main() -> None:
             "thresholds_defined": thresholds_defined,
             "null_thresholds": null_thresholds,
             "invalid_thresholds": invalid_thresholds,
+            "missing_triggers": missing_triggers,
+            "triggers_without_metric": triggers_without_metric,
             "triggers_defined": len(triggers),
             "thresholds_usable": thresholds_usable,
         },
