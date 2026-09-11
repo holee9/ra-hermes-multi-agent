@@ -249,3 +249,30 @@ def test_review_flags_fabricated_identifier(tmp_path, monkeypatch):
     assert rv.unverified_ids("K999999도 확인하세요", shown) == ["K999999"]
     # 공백·하이픈 차이는 같은 것으로 본다
     assert rv.unverified_ids("K 123456", "K123456") == []
+
+
+def test_review_keeps_full_response_text(tmp_path, monkeypatch):
+    """'응답 전문' 이라고 보여주면서 6000자에서 잘라내던 결함 — 끝까지 보존되어야 한다."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "rq_review_full", ROOT / "scripts" / "kb-eval-requery-review.py")
+    rv = importlib.util.module_from_spec(spec)
+    sys.modules["rq_review_full"] = rv
+    spec.loader.exec_module(rv)
+    monkeypatch.setattr(rv, "ROOT", tmp_path)
+
+    end_mark = "END-MARK-7f3a9c"
+    resp = "가" * 9000 + "\n```inner fence```\n" + end_mark
+    base = tmp_path / "reports" / "kb-eval-requery-147" / "b1"
+    base.mkdir(parents=True)
+    (base / "ledger.jsonl").write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in [
+        {"event": "attempt_start", "attempt_id": "a1", "case_id": "c1", "assignment": "x"},
+        {"event": "attempt_result", "attempt_id": "a1", "case_id": "c1", "ok": True,
+         "chars": len(resp), "response": resp},
+    ]), encoding="utf-8")
+
+    assert rv.main(["--batch", "b1"]) == 0
+    md = (base / "review.md").read_text(encoding="utf-8")
+    assert end_mark in md, "6000자 이후 응답이 잘렸다"
+    assert resp in md
+    assert "````\n" + resp + "\n````" in md, "응답 속 백틱이 코드 블록을 깨뜨린다"
