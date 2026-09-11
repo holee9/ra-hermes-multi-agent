@@ -348,6 +348,17 @@ def extract_metadata(data: dict) -> dict:
     }
 
 
+def _bad_body(data) -> tuple:
+    """최상위 JSON 이 객체가 아닐 때의 400 응답.
+
+    `request.get_json(...) or {}` 는 null·빈값만 막고 **타입은 막지 못한다.** 최상위가
+    `[1]` / `true` / `123` / `"x"` 이면 뒤따르는 `.get` 에서 AttributeError 가 나 HTTP 500
+    이 된다. POST 엔드포인트 전수 점검에서 4개 경로가 같은 방식으로 죽는 것을 확인했다.
+    """
+    return jsonify({"error": "request body must be a JSON object",
+                    "got": type(data).__name__}), 400
+
+
 def parse_wp_comment(text: str) -> dict | None:
     """Extract wp_comment JSON from Hermes output."""
     json_pattern = re.search(r'\{.*"wp_comment".*\}', text, re.DOTALL)
@@ -1175,6 +1186,8 @@ def knowledge_fetch():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data, dict):
+        return _bad_body(data)
     query = str(data.get("query") or data.get("search_query") or "").strip()
     model = str(data.get("model") or data.get("profile") or DEFAULT_PROFILE)
     profile = PROFILE_MAP.get(model, model if model in PROFILE_MAP.values() else DEFAULT_PROFILE)
@@ -1208,11 +1221,8 @@ def chat_completions():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
-    # 최상위 JSON 이 객체가 아니면 `.get` 이 없어 AttributeError -> HTTP 500 이 난다
-    # (`[1]` / `true` / `123` / `"x"` 4종 재현). `or {}` 는 null·빈값만 막고 타입은 못 막는다.
     if not isinstance(data, dict):
-        return jsonify({"error": "request body must be a JSON object",
-                        "got": type(data).__name__}), 400
+        return _bad_body(data)
     messages = data.get("messages", [])
 
     if not messages:
@@ -1368,6 +1378,8 @@ def ra_advisory():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data, dict):
+        return _bad_body(data)
     query = str(data.get("query") or data.get("content") or "").strip()
     if not query or len(query) > 8000:
         return jsonify({"error": "query required (<=8000 chars)"}), 400
@@ -1443,6 +1455,8 @@ def ra_advisory_feedback():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data, dict):
+        return _bad_body(data)
     request_ref = str(data.get("request_ref") or "").strip()
     if not request_ref:
         return jsonify({"error": "request_ref required"}), 400
@@ -1666,6 +1680,8 @@ def peer_notify():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data, dict):
+        return _bad_body(data)
     err = _validate_peer_nudge(data)
     if err:
         return jsonify({"error": err}), 400
@@ -1851,6 +1867,8 @@ def hive_submit():
     if not HIVE_SUBMIT_ENABLED:                                       # 안전 기본값: 배포돼도 CLI 를 실행하지 않는다
         return jsonify({"result": "disabled", "reason": "HIVE_SUBMIT_ENABLED!=1 (P3-0 실측 전)"}), 503
     data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return _bad_body(data)
     actor, msg_id, payload = data.get("actor"), data.get("msg_id"), data.get("payload")
     if actor not in HIVE_ACTORS or not isinstance(msg_id, str) or not msg_id.startswith("evt_"):
         return jsonify({"error": "actor/msg_id invalid"}), 400

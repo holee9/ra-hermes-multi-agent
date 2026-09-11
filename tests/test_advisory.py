@@ -1280,3 +1280,36 @@ def test_non_object_request_body_is_400_not_500(monkeypatch, body):
     r = client.post("/v1/chat/completions", json=body,
                     headers={"Authorization": "Bearer test-key"})
     assert r.status_code == 400, f"body={body!r} 에서 {r.status_code}"
+
+
+# ── 최상위 본문 타입 검증을 **모든 POST 라우트**에 적용 ─────────────────────────────
+# chat 만 고쳤더니 나머지 4개가 같은 방식으로 죽어 있었다(Codex 지적 후 전수 점검).
+# 라우트 목록을 url_map 에서 뽑아 도는 이유: 새 POST 엔드포인트가 생겨도 자동으로 걸린다.
+def _post_routes():
+    out = []
+    for r in m.app.url_map.iter_rules():
+        if "POST" in (r.methods or set()) and not r.arguments:
+            out.append(r.rule)
+    return sorted(out)
+
+
+@pytest.mark.parametrize("body", [[1], True, 123, "x"])
+def test_every_post_route_rejects_non_object_body(monkeypatch, body):
+    monkeypatch.setattr(m, "API_KEY", "test-key")
+    monkeypatch.setattr(m, "HIVE_SUBMIT_ENABLED", True)     # 503 단락 없이 파싱까지 가도록
+    monkeypatch.setattr(m, "_run_rag_search", lambda q, top=5: [])
+    monkeypatch.setattr(m, "_run_knowledge_fetch", lambda q, p, top=3: [])
+    client = m.app.test_client()
+    routes = _post_routes()
+    assert routes, "POST 라우트를 찾지 못했다 — 테스트 자체 결함"
+    for rule in routes:
+        r = client.post(rule, json=body, headers={"Authorization": "Bearer test-key"})
+        assert r.status_code != 500, f"{rule} 가 body={body!r} 에서 500"
+        if r.status_code == 400:
+            assert "JSON object" in r.get_json().get("error", "")
+
+
+def test_bad_body_helper_names_the_type():
+    with m.app.app_context():
+        resp, code = m._bad_body([1])
+        assert code == 400 and resp.get_json()["got"] == "list"
