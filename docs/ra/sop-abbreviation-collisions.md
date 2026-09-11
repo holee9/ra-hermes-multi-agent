@@ -44,4 +44,45 @@
 >
 > 510(k) submissions have no "supplement" pathway. Supplements exist for PMA (21 CFR 814.39) and for HDE (21 CFR 814.108, which applies §814.39 requirements to HDE supplements). State the pathway you mean rather than calling supplements PMA-only. FDA's formal Additional Information request gives 180 calendar days for a complete response. Class IIb and Field Safety Notice are EU (MDR) terms and do not belong in a US pathway table.
 
-반영 순서(#146 DoD 3·4): SOUL 개정 → 배포(`profiles/setup.sh` 경로) → 캐시 반영 확인 → 해당 12건 **재질의**로 해소 확인. 사전 추가만으로 완료 선언하지 않는다(리뷰 지적).
+## 4. 대상 케이스 — 원본 번호 ↔ decision_ref
+
+원본 `ra_us-p2` 배치의 번호는 이 저장소 파일에 남아 있지 않다. 아래 표는 원본 채점 세션의
+manifest 출력 순서에서 복구한 것이며(검색 후보가 아니라 순서 기반), 13건 전부 현재 체크시트에
+존재하는 것을 확인했다.
+
+| 원래 번호 | decision_ref | 결함 유형 |
+|---|---|---|
+| 01 | `kb-eval-20260722-it01-ra_us-001` | 510(k) supplement 미존재 |
+| 04 | `kb-eval-20260721-it01-ra_us-003` | PMA 약어 오독 |
+| 07 | `kb-eval-20260720-it01-ra_us-005` | PCCP 약어 오독 |
+| 11 | `kb-eval-20260720-it01-ra_us-001` | EU 용어 혼입 (Class IIb) |
+| 16 | `kb-eval-20260719-it01-ra_us-001` | Special 510(k) 오용 · AI 기한 창작 |
+| 17 | `kb-eval-20260718-it01-ra_us-005` | 510(k) supplement 미존재 |
+| 19 | `kb-eval-20260718-it01-ra_us-003` | PCCP 오독 · supplement · EU 용어 |
+| 20 | `kb-eval-20260718-it01-ra_us-002` | 510(k) supplement 미존재 |
+| 22 | `kb-eval-20260717-it01-ra_us-005` | Special 510(k) 오용 |
+| 24 | `kb-eval-20260717-it01-ra_us-003` | PMA 약어 오독 |
+| 27 | `kb-eval-20260716-it01-ra_us-005` | supplement · EU 용어(FSN) |
+| 31 | `kb-eval-20260716-it01-ra_us-001` | AI 기한 창작 |
+| 32 | `kb-eval-20260715-it13-ra_us-001` | RTA 오독 (미존재 기기 창작) |
+
+### 건수 정정 — 12건이 아니라 **13건**
+
+이슈 본문과 이 문서가 "12건" 으로 적었으나 **고유 케이스는 13건**이다. 결함 유형별 합은 17건인데,
+**16·19·27 세 번호가 두 유형에 걸쳐** 있어 중복 집계됐다. 재질의 대상은 유형이 아니라 케이스이므로
+13건으로 센다.
+
+### 이 표가 증명하지 않는 것
+
+- 번호 대응의 **복구**일 뿐, 과거 채점의 규제 판단을 재승인하지 않는다.
+- 재질의 성공이나 결함 해소를 증명하지 않는다.
+- `source`·`source_hash` 는 각 체크시트의 `kb_eval_case` JSON 에 있으나, **SOUL 버전·commit 필드는
+  존재하지 않는다.** 또한 `source_hash` 는 `scripts/daily-growth-runner.py` 가 만든 **청크 기반 해시**
+  (정렬된 chunk id + 내용의 SHA256)이며 **upstream 원본 파일의 SHA 가 아니다.** 표에 적을 때 그대로
+  "recorded source_hash" 로 적고 SOUL 버전은 **미기록**으로 남긴다.
+
+## 5. 반영 순서
+
+#146 DoD 3·4: SOUL 개정 → 배포(`profiles/setup.sh` 경로) → 캐시 반영 확인 → 위 **13건 재질의**로
+해소 확인. 사전 추가만으로 완료 선언하지 않는다(리뷰 지적). SOUL 배포와 실제 재질의는 사용자 승인
+사안이며 이 문서 작성으로 승인된 것이 아니다.
