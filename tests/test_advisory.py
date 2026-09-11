@@ -1220,3 +1220,53 @@ def test_advisory_endpoint_valid_evidence_is_not_downgraded(monkeypatch):
 def test_advisory_output_text_survives_any_evidence_type(evidence):
     """조립은 어떤 타입이 와도 살아남는다 — 계약 위반 판정은 validate_advisory 가 한다."""
     m._advisory_output_text({"summary": "s", "recommended_comment": "c", "evidence": evidence})
+
+
+# ── 신뢰 경계 입력 검증: 잘못된 요청 본문이 500 이 아니라 400 이어야 한다 ─────────────
+# `content` 를 곧바로 문자열로 다루는 경로가 여럿이다(슬라이싱·join·splitlines).
+# 타입 확인이 없으면 정수/불리언/None 은 subscript 에서, 리스트/객체는 join 에서 죽어
+# 실패 계약 대신 HTTP 500 이 나갔다. 5종 전부 재현 후 고정한다.
+@pytest.mark.parametrize("content", [123, True, None, ["x"], {"a": 1}, 1.5])
+def test_non_string_content_is_400_not_500(monkeypatch, content):
+    client = _chat_client(monkeypatch, _Proc(0, "unused"))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": content}]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 400, f"content={content!r} 에서 {r.status_code}"
+    assert "content" in r.get_json()["error"]
+
+
+@pytest.mark.parametrize("messages", ["문자열", 123, {"role": "user"}])
+def test_messages_must_be_a_list(monkeypatch, messages):
+    client = _chat_client(monkeypatch, _Proc(0, "unused"))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": messages},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 400, f"messages={messages!r} 에서 {r.status_code}"
+
+
+def test_non_object_message_is_400(monkeypatch):
+    client = _chat_client(monkeypatch, _Proc(0, "unused"))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": ["그냥 문자열"]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 400 and r.get_json()["index"] == 0
+
+
+def test_valid_string_content_still_works(monkeypatch):
+    """반대편 보존: 정상 요청은 그대로 처리된다."""
+    client = _chat_client(monkeypatch, _Proc(0, "plain answer"))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": "정상 질의"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 200
+    assert r.get_json()["choices"][0]["message"]["content"] == "plain answer"
+
+
+def test_message_without_content_key_is_accepted(monkeypatch):
+    """content 부재(None)는 거절 대상이 아니다 — 기존 동작 보존."""
+    client = _chat_client(monkeypatch, _Proc(0, "plain answer"))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 200

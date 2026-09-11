@@ -1217,6 +1217,24 @@ def chat_completions():
         else:
             return jsonify({"error": "No messages provided"}), 400
 
+    # 신뢰 경계 입력 검증. `content` 는 문자열이어야 한다 — 아래 경로들이 곧바로 문자열로
+    # 다룬다(`msg.get("content","")[:150]` 슬라이싱, build_context 의 join,
+    # `.splitlines()`). 타입을 확인하지 않으면 정수·불리언·None 은 subscript 에서,
+    # 리스트·객체는 join 에서 죽어 **실패 계약 대신 HTTP 500** 이 나간다. 5종 전부 재현됨.
+    # 조용히 문자열로 바꾸지 않는다 — 잘못된 입력을 그럴듯한 질의로 만들어 규제 판단에
+    # 흘려보내는 것보다, 무엇이 잘못됐는지 알려주고 거절하는 편이 안전하다.
+    if not isinstance(messages, list):
+        return jsonify({"error": "messages must be a list"}), 400
+    for i, msg in enumerate(messages):
+        if not isinstance(msg, dict):
+            return jsonify({"error": "message must be an object", "index": i}), 400
+        # 키 부재와 명시적 null 을 구분한다. `.get("content", "")` 의 기본값은 키가 없을 때만
+        # 쓰이므로, `"content": null` 은 None 을 그대로 돌려주어 슬라이싱에서 죽는다.
+        # 키가 없는 경우는 종전대로 허용한다(빈 문자열로 읽힌다).
+        if "content" in msg and not isinstance(msg["content"], str):
+            return jsonify({"error": "message content must be a string",
+                            "index": i, "got": type(msg["content"]).__name__}), 400
+
     metadata = extract_metadata(data)
     wp_list = data.get("wp_list", "")
 
