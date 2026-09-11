@@ -99,7 +99,6 @@ _wiki_file_cache: dict = {}
 # #108: tree listing completeness per repo — {"files": n, "truncated": bool}
 WIKI_TREE_STATUS: dict = {}
 WIKI_TREE_PAGE_SIZE = int(os.environ.get("GITEA_TREE_PAGE_SIZE", "1000"))
-WIKI_TREE_MAX_PAGES = int(os.environ.get("GITEA_TREE_MAX_PAGES", "50"))
 
 
 def _http_get(url: str, headers: dict | None = None, timeout: int = TIMEOUT) -> bytes | None:
@@ -126,47 +125,39 @@ def _get_wiki_files() -> list[str]:
     if GITEA_WIKI_REPO in _wiki_file_cache:
         return _wiki_file_cache[GITEA_WIKI_REPO]
 
-    # #108 review: one recursive call returned `truncated: true` at the 1000-entry cap and
-    # the flag was ignored, so most of the wiki was invisible to matching. Walk the
-    # tree API pages (per_page/page) until the server says it is no longer truncated.
+    # #108 [HARD] 역할 경계: 이 repo 는 llm-wiki 의 **소비자**이고,
+    # `docs/specs/llm-wiki-operating-model.md` §역할 경계 는 "tree 순회·전체 임베딩 **우회** ✕"
+    # 라고 못박는다. tree API 가 1,000 entry 에서 truncate 되는 것은 **막힌 것이 아니라 설계**이며,
+    # 페이지를 돌아 그 상한을 뚫는 것이 바로 금지된 우회다(b6d47bb·e519986 이 그렇게 했고,
+    # 2026-09-11 사용자 결정으로 철회한다).
+    #
+    # 그래서 **단 한 번만** 호출하고, truncated 면 그 사실을 그대로 기록한다. 부분 목록으로
+    # 매칭하되 "완전한 목록" 인 척하지 않는다. 완전 열거가 필요하면 그 해법은 순회가 아니라
+    # llm-wiki 측이 제공하는 기계 판독 manifest 다(같은 문서 §요청).
     files: list[str] = []
-    seen: set[str] = set()
-    truncated = False
-    for page in range(1, WIKI_TREE_MAX_PAGES + 1):
-        url = (f"{GITEA_URL}/api/v1/repos/{GITEA_WIKI_REPO}/git/trees/HEAD"
-               f"?recursive=true&per_page={WIKI_TREE_PAGE_SIZE}&page={page}")
-        body = _http_get(url, _gitea_headers())
-        if not body:
-            # #108 review 2: a failed page must never be cached as a complete/empty listing.
-            # page 1 failure → return [] WITHOUT caching so the next call retries; later page
-            # failure → keep what we have, flagged truncated, and do not cache either.
-            WIKI_TREE_STATUS[GITEA_WIKI_REPO] = {"files": len(files), "truncated": True, "error": f"page {page} fetch failed"}
-            logging.warning("llm-wiki tree page %d fetch failed (%d files so far, not cached)", page, len(files))
-            return files
-        try:
-            data = json.loads(body)
-        except ValueError:
-            return []
-        entries = data.get("tree") or []
-        new = 0
-        for f in entries:
-            path = f.get("path", "")
-            if f.get("type") == "blob" and path.endswith(".md") and not path.startswith(".obsidian") \
-                    and path not in seen:
-                seen.add(path)
-                files.append(path)
-                new += 1
-        truncated = bool(data.get("truncated"))
-        # #108 review 2: a page holding only non-.md entries (images, attachments) is NOT the end
-        # of the tree — stop only when the server says it is no longer truncated or returns
-        # nothing at all. MAX_PAGES bounds a runaway walk.
-        if not truncated or not entries:
-            break
-    else:
-        truncated = True
+    url = (f"{GITEA_URL}/api/v1/repos/{GITEA_WIKI_REPO}/git/trees/HEAD"
+           f"?recursive=true&per_page={WIKI_TREE_PAGE_SIZE}")
+    body = _http_get(url, _gitea_headers())
+    if not body:
+        # 실패를 완전한 빈 목록으로 캐시하지 않는다 — 다음 호출이 다시 시도해야 한다.
+        WIKI_TREE_STATUS[GITEA_WIKI_REPO] = {"files": 0, "truncated": True, "error": "tree fetch failed"}
+        logging.warning("llm-wiki tree fetch failed (not cached)")
+        return files
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return []
+    for f in data.get("tree") or []:
+        path = f.get("path", "")
+        if f.get("type") == "blob" and path.endswith(".md") and not path.startswith(".obsidian"):
+            files.append(path)
+    truncated = bool(data.get("truncated"))
     WIKI_TREE_STATUS[GITEA_WIKI_REPO] = {"files": len(files), "truncated": truncated}
     if truncated:
-        logging.warning("llm-wiki tree listing incomplete (%d files loaded, truncated=true)", len(files))
+        # 관측 가능하게 남긴다. 이 경고는 "고쳐야 할 결함" 이 아니라 **설계상 한계**의 기록이며,
+        # 해소 경로는 manifest 도입이지 순회가 아니다.
+        logging.warning("llm-wiki tree listing truncated at %d entries — partial match set "
+                        "(by design; manifest needed for full coverage, #108)", len(files))
     _wiki_file_cache[GITEA_WIKI_REPO] = files
     return files
 
