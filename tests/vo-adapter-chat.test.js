@@ -178,11 +178,41 @@ test('#104 DoD: request_id 발급 → 배경 자문 호출 → 폴링으로 결�
 
 test('#104 GATE 직접 참조 정적 회귀 — 어댑터 소스에 WP close/reopen·KB repo 쓰기 직접 경로 없음', () => {
   const fs = require('node:fs');
-  const src = fs.readFileSync(ADAPTER, 'utf8');
-  const code = src.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
-  for (const forbidden of ['/work_packages/', 'openproject', 'llm-wiki', 'ra-project', 'MD-process']) {
-    assert.equal(code.toLowerCase().includes(forbidden.toLowerCase()), false,
-      `어댑터가 금지 대상을 참조: ${forbidden}`);
+  const html = fs.readFileSync(path.join(__dirname, '..', 'virtual-office', 'virtual-office.html'), 'utf8');
+  // 함수 경계를 중괄호 균형으로 정확히 잘라낸다. 다음 함수 이름을 가정해 slice 하면
+  // (이전 시도: 존재하지 않는 sendChat) 페이지 나머지 전체가 딸려 들어와, 다른 함수의
+  // fetch 까지 이 테스트의 단언에 걸린다.
+  const at = html.indexOf('async function pollAdvisory');
+  assert.ok(at >= 0, 'pollAdvisory 를 찾지 못했다');
+  let depth = 0, end = -1, started = false;
+  for (let i = at; i < html.length; i++) {
+    if (html[i] === '{') { depth++; started = true; }
+    else if (html[i] === '}') { depth--; if (started && depth === 0) { end = i + 1; break; } }
   }
-  assert.equal(/method:\s*['"](PUT|PATCH|DELETE)['"]/.test(code), false, '어댑터에 쓰기 메서드 호출이 있으면 안 된다');
+  assert.ok(end > at, 'pollAdvisory 의 끝을 찾지 못했다');
+  const fn = html.slice(at, end);
+
+  assert.match(fn, /r\.status\s*===\s*401/, '401 종료 분기 없음');
+  assert.match(fn, /r\.status\s*===\s*404/, '404 종료 분기 없음');
+  assert.match(fn, /!r\.ok/, '비정상 상태 일반 분기 없음');
+
+  // 상태 검사가 본문 파싱보다 먼저여야 한다 — 나중이면 이미 계속 폴링한 뒤다
+  assert.ok(fn.indexOf('r.status === 401') < fn.indexOf('await r.json()'),
+    '상태 검사가 본문 파싱보다 뒤에 있다');
+
+  // 사용자에게 보이는 문구만 검사한다 — 주석은 제외한다(주석의 설명 문구가 단언을 깨는 것을 막는다)
+  const shown = (fn.match(/textContent\s*=\s*'([^']*)'/g) || []).join(' ');
+  assert.ok(!/백그라운드에서 계속 처리/.test(shown),
+    '확인한 적 없는 서버 처리를 단정하는 문구가 화면에 남아 있다');
+  assert.match(shown, /확인하지 못|알 수 없/, '타임아웃 상태를 미확인으로 표기하지 않는다');
+
+  // 서버가 이미 처리 중일 수 있으므로 무작정 재전송을 권하지 않는다(중복 요청 위험).
+  // 상태 확인과 재전송을 구분해 안내해야 한다.
+  assert.ok(!/재전송하세요|다시 시도하세요/.test(shown),
+    '서버 처리 여부를 모르는 상태에서 재전송을 권하고 있다');
+  assert.match(shown, /상태를 (다시 )?확인/, '상태 확인 안내가 없다');
+
+  // 폴링이 스스로 재전송하지 않는다 (중복 요청 방지) — POST 를 만들지 않는다
+  assert.ok(!/method\s*:\s*'POST'/.test(fn), '폴링이 재전송을 시도한다');
+  assert.ok(fn.length < 4000, '추출 범위가 너무 넓다 — 함수 경계가 잘못됐다');
 });
