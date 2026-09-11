@@ -6,7 +6,9 @@
 ## 1. 판정 규칙 (positive framing — 금지 문구 아님)
 
 1. **파일명의 `SOP-<CODE>-NNN`에서 `<CODE>`는 사내 절차 식별자다.** 그 뜻은 아래 표의 "사내 의미" 열과 파일명 뒤 한글 제목이 결정한다. FDA/EU 제도 약어로 읽는 것은 본문에 그 제도가 실제로 등장할 때만이다.
-2. FDA 제도 약어(PMA, RTA, PCCP, AI, De Novo, HDE 등)는 **21 CFR 파트·FDA 가이던스 제목이 함께 있을 때** 그 의미다. 파일명만으로 제도를 추정하지 않는다.
+2. FDA 제도 약어(PMA, RTA, PCCP, AI, De Novo, HDE 등)는 **본문이 그 제도를 다룰 때** 그 의미다. 파일명만으로 제도를 추정하지 않는다.
+   - 21 CFR 파트나 FDA 가이던스 제목이 함께 있으면 가장 확실한 단서다. 다만 **그것이 유일하게 인정되는 근거는 아니다** — 조문 인용 없이 제도를 서술하는 정상 문서가 있고, 인용을 필수로 걸면 그런 문서를 오차단한다.
+   - 이 항은 §3 SOUL 문단의 "applies when the source text discusses that program" 과 **같은 규칙**이다. 두 절이 어긋나면 §3 을 기준으로 읽는다(초안 검토 지적 반영).
 3. 같은 약어가 양쪽에 있으면 답변에서 **풀네임을 한 번 명시**한다: "SOP-PMA-001(프로세스 모니터링·분석 절차)". 풀네임을 정할 수 없으면 "약어 의미 확인 필요"로 남긴다.
 
 ## 2. 충돌 목록 (사내 SOP 코드 기준)
@@ -23,7 +25,7 @@
 | **CC** | 변경통제 (Change Control) | Clinical Chemistry(Part 862) / Common Criteria | 낮음 | 제목 "변경통제" |
 | **CVD** | 조정된 취약점 공개 정책 (Coordinated Vulnerability Disclosure) | Cardiovascular Disease | 중 — 순환기 기기 문맥에서 오독 가능 | 제목·본문이 사이버보안 |
 | **NC** | 부적합제품 관리 (Nonconformance) | Non-Clinical / National Competent (Authority) | 낮음 | 제목 "부적합제품" |
-| **SUP** | 공급자 감사·재평가 (Supplier) | PMA **Supplement** | 낮음 | 510(k)에는 supplement 제도가 없음(#146 인접 결함) |
+| **SUP** | 공급자 감사·재평가 (Supplier) | **PMA/HDE Supplement** | 낮음 | supplement 는 PMA(21 CFR 814.39)와 **HDE(814.108)** 에 있고 510(k) 에는 없다. "PMA 전용" 이라고 쓰지 않는다 — 아래 §3 참조 |
 | **AIDATA / AIGOV** | AI 데이터셋 관리 / AI 공정성·설명성·드리프트 거버넌스 (Artificial Intelligence) | FDA **AI = Additional Information** request (510(k) 심사 중 추가자료 요청) | **높음** — 케이스 16·31에서 AI 응답 기한을 30일로 창작 | "Additional Information"은 심사 절차, "AI"가 기기 기술이면 AI/ML |
 | **PMS / PSUR / FSCA / UDI / CAPA / RM / DHF / SBOM** | 시판후감시 / 정기안전성보고 / 현장안전시정조치 / UDI / 시정예방조치 / 위험관리 / 설계이력파일 / SBOM | 동일 의미 (충돌 없음) | 없음 | 그대로 사용 |
 
@@ -40,6 +42,6 @@
 > ### Document-name abbreviations vs FDA programs
 > An in-house procedure file is named `SOP-<CODE>-NNN_<Korean title>`; `<CODE>` identifies the procedure, and its meaning is given by the Korean title (e.g. `SOP-PMA-001` is the *process monitoring & KPI matrix* procedure under ISO 13485 8.1/8.2.5/8.5.1; `SOP-RA-002` is *responsibility, authority & internal communication*; `SOP-CA-001` is *customer property*). An FDA program abbreviation — PMA (Part 814), RTA (510(k) Refuse-to-Accept checklist), PCCP, AI (Additional Information request during 510(k) review) — applies when the source text discusses that program. When both readings are possible, state the full name once in the answer and, if the source does not settle it, say the abbreviation needs confirmation.
 >
-> 510(k) submissions have no "supplement"; supplements belong to PMA (Part 814). FDA's formal Additional Information request gives 180 calendar days for a complete response. Class IIb and Field Safety Notice are EU (MDR) terms and do not belong in a US pathway table.
+> 510(k) submissions have no "supplement" pathway. Supplements exist for PMA (21 CFR 814.39) and for HDE (21 CFR 814.108, which applies §814.39 requirements to HDE supplements). State the pathway you mean rather than calling supplements PMA-only. FDA's formal Additional Information request gives 180 calendar days for a complete response. Class IIb and Field Safety Notice are EU (MDR) terms and do not belong in a US pathway table.
 
 반영 순서(#146 DoD 3·4): SOUL 개정 → 배포(`profiles/setup.sh` 경로) → 캐시 반영 확인 → 해당 12건 **재질의**로 해소 확인. 사전 추가만으로 완료 선언하지 않는다(리뷰 지적).
