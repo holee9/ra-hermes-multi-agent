@@ -1015,6 +1015,21 @@ _COMPLETE_MIN = ('{"wp_comment":{"email_type":"액션필요","wp_title":"t","sum
              '"recommendation":"r","confidence":0.8}}')
 
 
+def _wpc(**over):
+    base = {"email_type": "액션필요", "wp_title": "t", "summary": "s", "recommendation": "r",
+            "confidence": 0.7, "matched_wp_id": 1042,
+            "market_analysis": {"mfds": None, "ce_mdr": None, "fda": None},
+            "source_docs": [], "flags": [], "deadline": None, "product": None, "org": None}
+    base.update(over)
+    for k, v in list(base.items()):
+        if v is _DROP:
+            del base[k]
+    return json.dumps({"wp_comment": base}, ensure_ascii=False)
+
+
+_DROP = object()
+
+
 @pytest.mark.parametrize("stdout", [
     '{"wp_comment":{}}',                                   # codex 재현 케이스
     '{"wp_comment":{"summary":"요약만 있고 email_type 없음"}}',
@@ -1059,7 +1074,66 @@ def test_zero_exit_path_unaffected_by_completeness_check(monkeypatch):
 
 @pytest.mark.parametrize("parsed,expected", [
     (None, False), ({}, False), ({"wp_comment": {}}, False),
-    ({"wp_comment": {"email_type": "정보수신", "summary": "s"}}, True),
+    # 필수 필드 일부만 채운 것은 완결이 아니다 — 계약은 email_type/wp_title/summary/
+    # recommendation/confidence 를 모두 요구한다(CLAUDE.md §Data Contracts).
+    ({"wp_comment": {"email_type": "정보수신", "summary": "s"}}, False),
 ])
 def test_is_complete_wp_comment_unit(parsed, expected):
     assert m.is_complete_wp_comment(parsed) is expected
+
+
+def test_is_complete_wp_comment_accepts_full_contract_a():
+    assert m.is_complete_wp_comment(json.loads(_COMPLETE)) is True
+
+
+# Contract A 타입 위반 — 동결 계약(CLAUDE.md §Data Contracts)의 "invalid/missing fields" 판정.
+# codex 반례: flags 가 리스트가 아니면 살아남더라도 종료코드 flag 를 남기는 append 가 조용히
+# 건너뛰어져 관측 보장이 깨진다. 임의 2필드 기준으로는 잡히지 않던 구멍이다.
+@pytest.mark.parametrize("over,why", [
+    ({"flags": "bad"}, "flags 가 리스트가 아님 — 종료코드 flag 기록 불가"),
+    ({"flags": None}, "명시적 null — setdefault 가 None 을 돌려줘 append 가 건너뛰어짐"),
+    ({"flags": _DROP}, None),                       # 키 부재만 허용(서버가 빈 리스트를 만든다)
+    ({"source_docs": [{"file": 123}]}, "file 이 문자열 아님 — ensure_real_source_paths TypeError"),
+    ({"source_docs": [1, 2]}, "원소가 문자열/객체 아님"),
+    ({"source_docs": ["a/b.md", {"file": "c/d.md"}]}, None),   # 허용 형태
+    ({"email_type": "알수없음"}, "계약이 고정한 3값 외"),
+    ({"confidence": "0.7"}, "문자열"),
+    ({"confidence": 1.5}, "범위 밖"),
+    ({"confidence": True}, "bool 은 수치 아님"),
+    ({"confidence": _DROP}, "필수 누락"),
+    ({"wp_title": _DROP}, "필수 누락"),
+    ({"recommendation": _DROP}, "필수 누락"),
+    ({"matched_wp_id": "1042"}, "정수 아님"),
+    ({"market_analysis": []}, "객체 아님"),
+    ({"market_analysis": {"fda": 5}}, "값이 문자열/null 아님"),
+    ({"source_docs": {}}, "배열 아님"),
+    ({"deadline": 20260101}, "문자열/null 아님"),
+])
+def test_rc134_contract_a_type_violations_are_failure(monkeypatch, over, why):
+    salvageable = why is None
+    client = _chat_client(monkeypatch, _Proc(134, _wpc(**over), ""))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                    headers={"Authorization": "Bearer test-key"})
+    wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+    if salvageable:
+        assert "hermes_nonzero_exit_134" in wp["flags"]
+    else:
+        assert "hermes_failed" in wp["flags"], f"계약 위반이 완결로 채택됨({why}): {over}"
+
+
+def test_salvaged_answer_always_records_exit_flag(monkeypatch):
+    """살아남은 답변은 예외 없이 종료코드 flag 를 싣는다 — flags 는 계약상 리스트이므로 append 가 성립한다."""
+    for over in ({}, {"flags": _DROP}, {"flags": ["기존"]}):   # null 은 위 위반 테스트에서 거절됨
+        client = _chat_client(monkeypatch, _Proc(134, _wpc(**over), ""))
+        r = client.post("/v1/chat/completions",
+                        json={"model": "hermes-ra", "messages": [{"role": "user", "content": "hi"}]},
+                        headers={"Authorization": "Bearer test-key"})
+        wp = json.loads(r.get_json()["choices"][0]["message"]["content"])["wp_comment"]
+        assert "hermes_nonzero_exit_134" in wp["flags"], over
+
+
+def test_contract_a_violations_names_the_field():
+    assert m.contract_a_violations(json.loads(_wpc(flags="bad"))) == ["invalid:flags"]
+    assert "missing:confidence" in m.contract_a_violations(json.loads(_wpc(confidence=_DROP)))
+    assert m.contract_a_violations(json.loads(_wpc())) == []
