@@ -1270,3 +1270,13 @@ def test_message_without_content_key_is_accepted(monkeypatch):
                     json={"model": "hermes-ra", "messages": [{"role": "user"}]},
                     headers={"Authorization": "Bearer test-key"})
     assert r.status_code == 200
+
+
+@pytest.mark.parametrize("body", [[1], True, 123, "x", 1.5, []])
+def test_non_object_request_body_is_400_not_500(monkeypatch, body):
+    """최상위 JSON 이 객체가 아니면 `.get` 이 없어 AttributeError -> 500 이었다(Codex 지적).
+    `or {}` 는 null·빈값만 막고 타입은 막지 못한다."""
+    client = _chat_client(monkeypatch, _Proc(0, "unused"))
+    r = client.post("/v1/chat/completions", json=body,
+                    headers={"Authorization": "Bearer test-key"})
+    assert r.status_code == 400, f"body={body!r} 에서 {r.status_code}"
