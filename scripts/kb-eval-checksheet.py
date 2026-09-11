@@ -48,7 +48,12 @@ DEFAULT_GITEA_URL = os.environ.get("GITEA_URL", "http://diskstation:7001").rstri
 ADVISORY_LLM_URL = os.environ.get("ADVISORY_LLM_URL") or os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 ADVISORY_LLM_MODEL = os.environ.get("ADVISORY_LLM_MODEL", "gpt-oss:120b")
 HERMES_PROFILES_DIR = os.environ.get("HERMES_PROFILES_DIR", "/home/abyz-lab/.hermes/profiles")
-RESPONSE_CAPTURE_TIMEOUT = int(os.environ.get("KB_EVAL_RESPONSE_TIMEOUT", "90"))
+# 실측(2026-09-11, #147 재질의 11회): **성공한 응답이 47.6~87.5초**에 분포했고, 상한 90초에
+# 걸린 5건은 전부 정확히 90.1초에서 잘렸다. 즉 90초는 실제 응답 시간 분포의 **상단에 붙어
+# 있어** 정상 응답을 캡처 실패로 기록한다 — 최대 성공값(87.5초)과 상한의 여유가 2.5초뿐이었다.
+# 이것이 #147 의 "캡처 실패" 를 만든 원인일 가능성이 높다(그 결함도 같은 timeout 메시지였다).
+# 관측 최대의 약 3배로 올린다. 상한을 없애지는 않는다 — 무한정 대기는 다른 문제다.
+RESPONSE_CAPTURE_TIMEOUT = int(os.environ.get("KB_EVAL_RESPONSE_TIMEOUT", "240"))
 _SOUL_CACHE: dict[str, str] = {}
 
 
