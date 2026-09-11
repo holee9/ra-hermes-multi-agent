@@ -36,7 +36,7 @@ _ID_PATTERNS = (
 
 
 def _load_lint():
-    path = ROOT / "scripts" / "ra_citation_lint.py"
+    path = Path(__file__).resolve().parent / "ra_citation_lint.py"
     spec = importlib.util.spec_from_file_location("ra_citation_lint_review", path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules["ra_citation_lint_review"] = mod
@@ -116,8 +116,10 @@ def main(argv=None) -> int:
            "**맥락에 맞는지**, 새 소스가 그 focus 에 정말 적절한지. 전부 사람 판정 영역이다.", ""]
 
     for cid, focus, resp in detail:
+        # 사람 검토 자료다 — 전문을 자르지 않는다. 응답 속 백틱보다 긴 울타리로 감싼다.
+        fence = "`" * max(3, max((len(m) for m in re.findall(r"`+", resp)), default=0) + 1)
         md += [f"### {cid}", "", f"focus: {focus}", "", "<details><summary>응답 전문</summary>", "",
-               "```", resp[:6000], "```", "", "</details>", ""]
+               fence, resp, fence, "", "</details>", ""]
 
     out = Path(a.out) if a.out else base / "review.md"
     out.write_text("\n".join(md), encoding="utf-8")
