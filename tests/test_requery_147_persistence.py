@@ -231,6 +231,31 @@ def test_batch_name_is_validated(tmp_path, monkeypatch):
     assert calls == [], "잘못된 배치 이름으로 호출이 나갔다"
 
 
+# ── 부분 승인 (--cases) ─────────────────────────────────────────────────────
+# timeout 5건만 재호출 승인된 경우. 예산이 11 로 남아 있으면 승인보다 많이 쓸 수 있다.
+def test_cases_subset_runs_only_selected_with_matching_budget(tmp_path, monkeypatch):
+    m = _load(tmp_path, monkeypatch)
+    calls = []
+    _drive(m, monkeypatch, calls)
+    rc = m.main(["--execute", "--batch", "retry-5", "--cases", "1,2,3,4,5"])
+    assert len(calls) == 5, f"승인 5건인데 {len(calls)}회 호출"
+    assert m.CALL_BUDGET == 5
+    led = [json.loads(l) for l in (m.OUT_DIR / "ledger.jsonl").read_text(encoding="utf-8").splitlines()]
+    ids = {r["case_id"] for r in led if r["event"] == "attempt_start"}
+    assert ids == {c["case_id"] for c in m.CASES if c["n"] <= 5}
+    assert rc == 0, "선택 5건 전부 성공인데 미완(nonzero)으로 끝났다"
+
+
+def test_cases_requires_batch_and_valid_numbers(tmp_path, monkeypatch):
+    m = _load(tmp_path, monkeypatch)
+    calls = []
+    _drive(m, monkeypatch, calls)
+    assert m.main(["--execute", "--cases", "1,2"]) == 2, "--batch 없이 부분 실행을 허용했다"
+    assert m.main(["--execute", "--batch", "b", "--cases", "0,12"]) == 2
+    assert m.main(["--execute", "--batch", "b", "--cases", "x"]) == 2
+    assert calls == [], "잘못된 --cases 로 호출이 나갔다"
+
+
 # ── 검토 자료 생성기 (사람 판정 보조) ──────────────────────────────────────────
 def test_review_flags_fabricated_identifier(tmp_path, monkeypatch):
     """응답이 인용한 식별자가 전달 발췌에 없으면 '검토 필요' 로 올라와야 한다 —
