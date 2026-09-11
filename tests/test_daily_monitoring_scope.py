@@ -50,19 +50,18 @@ def test_failure_verdicts_unchanged():
 # 판정 블록만 추출해 FAIL/WARN 조합으로 돌려 **출력 자체**를 본다. 운영 스크립트 전체를
 # 실행하지 않으며 외부 접속도 없다.
 import subprocess
-import tempfile
 
 
 def _verdict(fail: int, warn: int) -> str:
+    """판정 블록만 떼어 stdin 으로 실행한다. 임시 파일을 만들지 않아 잔여물이 없고,
+    check=True 로 실행 오류 자체도 실패로 고정한다."""
     lines = SRC.splitlines()
     start = next(i for i, l in enumerate(lines) if l.startswith("if [ $FAIL -eq 0 ]"))
-    end = next(i for i, l in enumerate(lines[start:], start)
-               if "처리 여부는 n8n" in l)
+    end = next(i for i, l in enumerate(lines[start:], start) if "처리 여부는 n8n" in l)
     block = "\n".join(lines[start:end + 1])
-    with tempfile.NamedTemporaryFile("w", suffix=".sh", delete=False, encoding="utf-8") as f:
-        f.write(f'FAIL={fail}\nWARN={warn}\nCHECKLIST_FILE=/dev/stdout\n{block}\n')
-        script = f.name
-    return subprocess.run(["bash", script], capture_output=True, text=True, timeout=30).stdout
+    script = f"FAIL={fail}\nWARN={warn}\nCHECKLIST_FILE=/dev/stdout\n{block}\n"
+    return subprocess.run(["bash"], input=script, capture_output=True,
+                          text=True, check=True, timeout=30).stdout
 
 
 def test_verdict_zero_fail_zero_warn_is_scoped():
