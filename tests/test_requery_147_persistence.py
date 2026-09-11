@@ -198,3 +198,34 @@ def test_lock_error_reports_owner_and_liveness_steps(tmp_path, monkeypatch, caps
     steps = " ".join(out["steps"])
     assert "kill -0" in steps or "ps -p" in steps, "생존 확인 방법이 없다"
     assert "살아 있으면 지우지 말 것" in steps, "생존 시 삭제 금지 경고가 없다"
+
+
+# ── 승인 배치별 원장 분리 ────────────────────────────────────────────────────
+# 경로가 고정이면 이전 배치의 unknown 을 지우지 않고는 새 승인분을 돌릴 수 없다.
+# 그 지우기가 바로 해서는 안 되는 일이므로(소비 기록 소실) 배치 경로를 분리한다.
+def test_batch_isolates_ledger_and_preserves_previous(tmp_path, monkeypatch):
+    m = _load(tmp_path, monkeypatch)
+    base = m.OUT_DIR
+    # 이전 배치: 결과 없는 시도 1건 (지우면 안 되는 기록)
+    m.ledger_append({"event": "attempt_start", "attempt_id": "old-01", "case_id": "c1"})
+    assert m.ledger_state()["unknown"] == ["old-01"]
+
+    calls = []
+    _drive(m, monkeypatch, calls)
+    monkeypatch.setattr(m, "OUT_DIR", base)        # main 이 --batch 로 다시 계산한다
+    m.main(["--execute", "--batch", "approved-2"])
+
+    # 새 배치 원장은 별도 파일이고, 이전 기록은 그대로 남아 있다
+    assert (base / "approved-2" / "ledger.jsonl").exists()
+    assert (base / "ledger.jsonl").exists()
+    old = [l for l in (base / "ledger.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert len(old) == 1 and "old-01" in old[0], "이전 배치 기록이 변경됐다"
+    assert len(calls) == len(m.CASES), "새 배치가 전체 케이스를 돌지 않았다"
+
+
+def test_batch_name_is_validated(tmp_path, monkeypatch):
+    m = _load(tmp_path, monkeypatch)
+    calls = []
+    _drive(m, monkeypatch, calls)
+    assert m.main(["--execute", "--batch", "../탈출"]) == 2
+    assert calls == [], "잘못된 배치 이름으로 호출이 나갔다"
