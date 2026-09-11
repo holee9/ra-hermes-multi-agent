@@ -178,6 +178,18 @@ test('#104 DoD: request_id 발급 → 배경 자문 호출 → 폴링으로 결�
 
 test('#104 GATE 직접 참조 정적 회귀 — 어댑터 소스에 WP close/reopen·KB repo 쓰기 직접 경로 없음', () => {
   const fs = require('node:fs');
+  const src = fs.readFileSync(ADAPTER, 'utf8');
+  const code = src.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  for (const forbidden of ['/work_packages/', 'openproject', 'llm-wiki', 'ra-project', 'MD-process']) {
+    assert.equal(code.toLowerCase().includes(forbidden.toLowerCase()), false,
+      `어댑터가 금지 대상을 참조: ${forbidden}`);
+  }
+  assert.equal(/method:\s*['"](PUT|PATCH|DELETE)['"]/.test(code), false, '어댑터에 쓰기 메서드 호출이 있으면 안 된다');
+});
+
+// ── #104 폴링이 HTTP 상태를 무시하던 결함 (codex 재현) — GATE 회귀와 별개 테스트 ──────
+test('#104: 폴링이 401/404/비정상 상태를 종료로 다루고, 타임아웃 상태를 단정하지 않는다', () => {
+  const fs = require('node:fs');
   const html = fs.readFileSync(path.join(__dirname, '..', 'virtual-office', 'virtual-office.html'), 'utf8');
   // 함수 경계를 중괄호 균형으로 정확히 잘라낸다. 다음 함수 이름을 가정해 slice 하면
   // (이전 시도: 존재하지 않는 sendChat) 페이지 나머지 전체가 딸려 들어와, 다른 함수의
