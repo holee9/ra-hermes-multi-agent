@@ -359,6 +359,26 @@ def parse_wp_comment(text: str) -> dict | None:
     return None
 
 
+def is_complete_wp_comment(parsed: dict | None) -> bool:
+    """비정상 종료에서 살릴 수 있는 **완결** 답변인가.
+
+    `parse_wp_comment` 는 형태만 본다 — `{"wp_comment":{}}` 도 파싱에 성공한다.
+    그런데 종료코드 != 0 경로에서는 "파싱됨" 을 "완결 답변" 으로 채택하므로, 빈 껍데기가
+    SIGABRT 와 함께 성공으로 통과한다(#150 Codex 지적, rc134 + `{"wp_comment":{}}`).
+
+    완결의 최소 조건은 **무엇에 관한 메일인지(`email_type`)** 와 **무엇이라 판단했는지(`summary`)**
+    가 실제로 채워져 있는 것이다. 둘 중 하나라도 비어 있으면 답변이 아니라 중단 흔적이므로
+    실패 계약(`hermes_failed`)으로 보낸다. 정상 종료 경로는 이 검사를 거치지 않는다 —
+    기존 동작을 그대로 둔다.
+    """
+    if not isinstance(parsed, dict):
+        return False
+    wpc = parsed.get("wp_comment")
+    if not isinstance(wpc, dict):
+        return False
+    return all(isinstance(wpc.get(f), str) and wpc.get(f).strip() for f in ("email_type", "summary"))
+
+
 def ensure_real_source_paths(parsed: dict, rag_results: list[dict]) -> dict:
     """Replace LLM-generated index numbers with real NAS file paths."""
     if not rag_results:
@@ -1145,6 +1165,8 @@ def chat_completions():
             _subprocess_logger.warning("hermes -p %s exit %s stderr_bytes=%d stdout_bytes=%d", profile,
                                        result.returncode, len(result.stderr or ""), len(result.stdout or ""))
             salvaged = parse_wp_comment(result.stdout.strip()) if result.stdout.strip() else None
+            if not is_complete_wp_comment(salvaged):
+                salvaged = None          # 파싱은 됐으나 빈 껍데기 — 답변이 아니라 중단 흔적
             if salvaged:
                 response_text = result.stdout.strip()
                 nonzero_exit = result.returncode          # 아래에서 flags 에 기록
