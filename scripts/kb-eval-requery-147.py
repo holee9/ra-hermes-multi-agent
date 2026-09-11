@@ -263,10 +263,23 @@ def main(argv=None) -> int:
         return 0
 
     if not acquire_lock():
-        print(json.dumps({"error": "다른 실행이 진행 중이거나 비정상 종료로 락이 남아 있다",
-                          "lock": rel(LOCK),
-                          "hint": "예산 상태를 ledger.jsonl 로 확인한 뒤 수동으로 락을 지울 것"},
-                         ensure_ascii=False, indent=2))
+        # 락에는 소유 PID 와 시각이 적혀 있다. **살아 있는 소유자를 확인하지 않고 지우면**
+        # 중복 실행이 같은 예산을 또 쓴다 — 이 실행기가 막으려는 바로 그 상황이다.
+        owner = ""
+        try:
+            owner = LOCK.read_text(encoding="utf-8").strip()
+        except OSError:
+            pass
+        print(json.dumps({
+            "error": "락이 잡혀 있다 — 다른 실행이 진행 중이거나 비정상 종료로 남은 것이다",
+            "lock": rel(LOCK), "lock_owner": owner or "(읽을 수 없음)",
+            "steps": [
+                "1. 위 PID 가 살아 있는지 확인: `ps -p <PID> -o pid,etime,args` 또는 `kill -0 <PID>`",
+                "2. **살아 있으면 지우지 말 것.** 그 실행이 끝나기를 기다린다",
+                "3. 죽어 있으면(stale) 원장 ledger.jsonl 로 소비 호출 수를 확인한다",
+                "4. 확인 후에만 락을 지우고 재개한다. 단 unknown 이 있으면 재개는 별도로 차단된다",
+            ],
+        }, ensure_ascii=False, indent=2))
         return 2
 
     try:
