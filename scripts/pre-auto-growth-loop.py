@@ -193,7 +193,22 @@ def check_deriver_flush(env: dict[str, str]) -> dict[str, Any]:
         "-c",
         "from src.config import settings; print(settings.DERIVER.FLUSH_ENABLED)",
     ]
-    result = run_command(cmd, env, timeout=60)
+    # #136: docker 바이너리 부재(FileNotFoundError)나 타임아웃(TimeoutExpired)은 예외로
+    # 나가 버려서 아래의 unavailable 판정에 **도달하지 못했다**. 게이트는 어차피 닫히지만
+    # "설정이 False" 인지 "probe 를 못 돌렸다" 인지가 구분되지 않아 운영자가 엉뚱한 것을
+    # 고치게 된다. 공유 run_command 를 전역으로 바꾸지 않고 이 probe 에서만 좁게 잡는다.
+    try:
+        result = run_command(cmd, env, timeout=60)
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
+        # 정상 경로와 같은 키 모양을 유지한다. 소비 측(보고 생성)이 command.stderr 로
+        # 원인을 읽어 운영자에게 보여 주므로, 예외 종류를 거기 실어 준다.
+        return {
+            "ok": False,
+            "probe": "unavailable",
+            "value": "",
+            "command": {"cmd": cmd, "returncode": None,
+                        "stderr": f"{type(e).__name__}: probe 를 실행하지 못했다", "stdout": ""},
+        }
     value = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else ""
     # #136: distinguish "the probe could not run" (docker socket unreachable, compose
     # missing, exec failure) from "the setting is actually False". Both keep the gate
