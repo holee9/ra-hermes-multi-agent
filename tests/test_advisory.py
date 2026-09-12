@@ -367,6 +367,45 @@ def test_log_adv_request_omits_cited_identifier_status_when_absent(monkeypatch):
     assert "cited_identifier_status" not in payload
 
 
+# ── #141 유입 경로 기록 (source / input_id) ────────────────────────────────
+# 로그에 유입 경로가 없으면 "메일이 안 들어온 것" 과 "메일은 왔는데 파이프라인이 죽은 것" 을
+# 구분할 수 없다 — 팬텀 트래픽 조사에서 실제로 막혔던 지점이다.
+def test_log_adv_request_records_source_and_input_id(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(m._adv_request_logger, "info", lambda msg: captured.setdefault("line", msg))
+    m._log_adv_request("adv-3", "query", None, {"actor": "ra_us"},
+                       source="mail-triage", input_id="gmail-msg-42")
+    payload = json.loads(captured["line"])
+    assert payload["source"] == "mail-triage"
+    assert payload["input_id"] == "gmail-msg-42"
+
+
+def test_log_adv_request_omits_source_fields_when_caller_gives_none(monkeypatch):
+    """호출자가 밝히지 않은 유입 경로를 추측해 적지 않는다."""
+    captured = {}
+    monkeypatch.setattr(m._adv_request_logger, "info", lambda msg: captured.setdefault("line", msg))
+    m._log_adv_request("adv-4", "query", None, {"actor": "ra_us"})
+    payload = json.loads(captured["line"])
+    assert "source" not in payload and "input_id" not in payload
+
+
+def test_advisory_passes_caller_source_into_log(monkeypatch):
+    """엔드포인트가 받은 source/input_id 가 실제 기록까지 도달해야 한다 (경로 전체)."""
+    captured = {}
+    monkeypatch.setattr(m._adv_request_logger, "info", lambda msg: captured.setdefault("line", msg))
+    monkeypatch.setattr(m, "check_auth", lambda: True)
+    monkeypatch.setattr(m, "_honcho_record", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_log_kb_gap", lambda *a, **k: None)
+    client = m.app.test_client()
+    # 다지역 질의 → Yellow 경로. 외부 LLM 호출 없이 기록까지 도달한다.
+    resp = client.post("/v1/ra/advisory", json={
+        "query": "FDA 510(k) 와 EU MDR 을 동시에 묻는 질의입니다",
+        "source": "mail-triage", "input_id": "gmail-msg-99"})
+    assert resp.status_code == 200
+    payload = json.loads(captured["line"])
+    assert payload["source"] == "mail-triage" and payload["input_id"] == "gmail-msg-99"
+
+
 # ── peer-id invariant (#83 item 6: no wrong/hyphen peer id) ───────────────
 def test_yellow_advisory_actor_is_safe():
     ya = m._yellow_advisory("multi_region", None)
