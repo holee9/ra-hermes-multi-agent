@@ -23,6 +23,22 @@ START_MARKER = "<!-- kb_eval_issue_links:start -->"
 END_MARKER = "<!-- kb_eval_issue_links:end -->"
 
 
+def _notify_peer_best_effort(issue: int, url: str, title: str) -> str:
+    """SPEC-DEVCOMM-001 M3 발신 nudge. 알림 실패가 게시 작업을 깨뜨리면 안 된다.
+
+    모듈이 없거나(구버전 체크아웃) 전송이 실패해도 조용히 지나간다 — 5분 폴링이 백스톱이다.
+    """
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "peer_nudge", Path(__file__).resolve().parent / "peer_nudge.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.notify_peer(issue, url, author="t3610", body=title)
+    except Exception:                      # noqa: BLE001 — 알림은 부수 효과다
+        return "unavailable"
+
+
 @dataclass(frozen=True)
 class PublishedIssue:
     iteration: int
@@ -184,6 +200,9 @@ def publish(date_dir: Path, execute: bool, update_readme: bool) -> list[Publishe
             if execute:
                 issue = create_issue(title, body)
                 created = True
+                # SPEC-DEVCOMM-001 M3: 상대 기기에 즉시 알린다. 미설정이면 no-op 이고,
+                # 실패해도 5분 폴링이 복구하므로 여기서 예외를 올리지 않는다(REQ-DC-005).
+                _notify_peer_best_effort(int(issue["number"]), str(issue["url"]), title)
             else:
                 issue = {
                     "number": 0,

@@ -114,6 +114,8 @@ def _log_adv_request(
     region_hint: str | None,
     adv: dict,
     cited_identifier_status: dict[str, bool] | None = None,
+    source: str | None = None,
+    input_id: str | None = None,
 ) -> None:
     """Log advisory request input + outcome so unclear_region is immediately diagnosable.
 
@@ -140,6 +142,13 @@ def _log_adv_request(
             "yellow_reason": adv.get("yellow_reason"),
             "confidence": adv.get("confidence"),
         }
+        # #141: 유입 경로를 남긴다. 이것이 없으면 "메일이 안 들어온 것" 과 "메일은 왔는데
+        # 파이프라인이 죽은 것" 을 로그만으로 구분할 수 없다 — 팬텀 트래픽 조사에서 실제로
+        # 막혔던 지점이다. 호출자가 주지 않으면 기록하지 않는다(추측 금지, additive).
+        if source:
+            record["source"] = source
+        if input_id:
+            record["input_id"] = input_id
         if cited_identifier_status:
             record["cited_identifier_status"] = cited_identifier_status
         _adv_request_logger.info(json.dumps(record, ensure_ascii=False))
@@ -1406,6 +1415,10 @@ def ra_advisory():
     # here cannot open the auto-execution path.
     wp_context = data.get("wp_context") or {}
     region_hint = str(data.get("region_hint") or "").strip() or None
+    # #141: 호출자가 유입 경로를 밝히면 그대로 기록한다(선택 필드, 계약 확장 아님).
+    # source = 어디서 왔는가(mail-triage / manual / vo-chat), input_id = 그쪽의 원본 식별자.
+    adv_source = str(data.get("source") or "").strip()[:64] or None
+    adv_input_id = str(data.get("input_id") or "").strip()[:128] or None
     wp_id = wp_context.get("wp_id") if isinstance(wp_context, dict) else None
     # Context (hint / WP) is part of the key: a corrected re-ask is a NEW question (#138).
     if is_duplicate_rejection(query, region_hint, wp_id):
@@ -1423,7 +1436,8 @@ def ra_advisory():
         adv = _yellow_advisory(yellow, normalize_region_hint(region_hint))
         adv["request_ref"] = request_ref
         _honcho_record("ra_advisory", adv["actor"], adv["summary"], _adv_meta(adv, request_ref))
-        _log_adv_request(request_ref, query, region_hint, adv)
+        _log_adv_request(request_ref, query, region_hint, adv,
+                         source=adv_source, input_id=adv_input_id)
         _log_kb_gap(adv, query, request_ref)
         return jsonify(adv)
 
@@ -1456,7 +1470,8 @@ def ra_advisory():
 
     adv["request_ref"] = request_ref
     _honcho_record("ra_advisory", actor, adv.get("summary", ""), _adv_meta(adv, request_ref))
-    _log_adv_request(request_ref, query, region_hint, adv, cited_identifier_status)
+    _log_adv_request(request_ref, query, region_hint, adv, cited_identifier_status,
+                     source=adv_source, input_id=adv_input_id)
     _log_kb_gap(adv, query, request_ref)
     return jsonify(adv)
 
