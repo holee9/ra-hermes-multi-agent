@@ -23,6 +23,11 @@ export HONCHO_URL HONCHO_WORKSPACE
 "${PYTHON}" "${REPO_ROOT}/scripts/growth-metrics.py" \
   --days 1 \
   --output "${REPO_ROOT}/reports/growth-$(date +%Y-%m-%d).json"
+# #103: 사람 채점은 일괄로 들어오므로 1일 창은 대부분 null이 된다. 30일 롤링 창을 함께 산출해
+# "입력 부재"와 "수집 결함"을 구분할 수 있게 한다 (checksheets README의 30일 기준과 동일).
+"${PYTHON}" "${REPO_ROOT}/scripts/growth-metrics.py" \
+  --days 30 \
+  --output "${REPO_ROOT}/reports/growth-30d-$(date +%Y-%m-%d).json"
 
 echo "=== done ==="
 
