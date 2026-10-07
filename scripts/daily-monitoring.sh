@@ -69,6 +69,22 @@ else
     check_fail "Deriver not running"
 fi
 
+# Backup (#152): last-status는 backup-t3610.sh가 매 실행 끝에 기록한다 ("OK <ts> daily|weekly" / "FAIL <ts> <reason>")
+BACKUP_STATUS_FILE="/var/log/t3610-backup/last-status.txt"
+if [ -r "$BACKUP_STATUS_FILE" ]; then
+    BACKUP_STATUS="$(cat "$BACKUP_STATUS_FILE")"
+    BACKUP_AGE_H=$(( ( $(date +%s) - $(stat -c %Y "$BACKUP_STATUS_FILE") ) / 3600 ))
+    if [[ "$BACKUP_STATUS" == OK* ]] && [ "$BACKUP_AGE_H" -le 30 ]; then
+        check_pass "Backup last run OK (${BACKUP_STATUS}, ${BACKUP_AGE_H}h ago)"
+    elif [[ "$BACKUP_STATUS" == OK* ]]; then
+        check_warn "Backup last OK but ${BACKUP_AGE_H}h ago (${BACKUP_STATUS})"
+    else
+        check_fail "Backup last run FAILED (${BACKUP_STATUS})"
+    fi
+else
+    check_warn "Backup status file missing (${BACKUP_STATUS_FILE})"
+fi
+
 echo "" >> "$CHECKLIST_FILE"
 echo "## 2. Growth Metrics" >> "$CHECKLIST_FILE"
 echo "=================" >> "$CHECKLIST_FILE"
