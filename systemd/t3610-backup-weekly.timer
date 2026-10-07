@@ -1,0 +1,9 @@
+[Unit]
+Description=Weekly Sunday 05:00 T3610 backup (Qdrant snapshots)
+
+[Timer]
+OnCalendar=Sun *-*-* 05:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
