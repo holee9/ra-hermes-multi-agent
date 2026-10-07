@@ -1,0 +1,12 @@
+[Unit]
+Description=T3610 backup — Honcho pg_dump + /opt/hermes-ra config to NAS (encrypted)
+After=docker.service network-online.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=abyz-lab
+ExecStart=/usr/bin/bash /opt/hermes-ra/scripts/backup-t3610.sh daily
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
