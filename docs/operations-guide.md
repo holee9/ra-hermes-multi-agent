@@ -757,6 +757,31 @@ workflow 변경분은 레포에 반영된 것과 RPi n8n에 import된 것이 다
 
 ---
 
+## 8. 백업·복구 (#152)
+
+2026-10-07 적용. 대상은 T3610 디스크 장애. NAS 1대이므로 NAS·사이트 장애는 대비하지 않는다.
+
+| 대상 | 주기 | 보관 | 1세대 | 소요(실측) |
+|---|---|---|---|---|
+| Honcho PostgreSQL `pg_dump -Fc -Z 6` | 매일 04:30 | 7세대 | 1.7GB | 약 6분 + 암호화·전송 4분 |
+| Qdrant 스냅샷 `nas_ra_docs`, `ra_kb_markdown` | 일요일 05:00 | 1세대 | 50GB + 160MB | 스냅샷 19분 + 전송 88분 |
+| `/opt/hermes-ra` 설정·스크립트(`.env` 포함, `*.bak*` 제외) | 매일 04:30 | 7세대 | 161KB | 수 초 |
+
+- 저장: `/mnt/nas-ra/backup/t3610/{honcho,qdrant,opt}/`. CIFS는 파일 권한이 0755로 고정되므로 모든 산출물은 gpg AES-256 대칭 암호화.
+- 암호문구: `~/.keys/t3610-backup.passphrase`(600) + NAS `backup/t3610/.keys/` 사본. 분실 시 복구 불가. 같은 공유에 사본이 있어 공유 접근자에 대한 보호는 약하다(알려진 한계).
+- 구현: `scripts/backup-t3610.sh {daily|weekly|opt-only|verify-restore <dump.gpg>}`, 배포 위치 `/opt/hermes-ra/scripts/`. 유닛 `systemd/t3610-backup-{daily,weekly}.{service,timer}` → `/etc/systemd/system/`. 로그·상태 `/var/log/t3610-backup/{backup.log,last-status.txt}`.
+- 검증: 매 실행 시 `pg_restore --list`(임시 컨테이너 마운트), Qdrant `.checksum` 대조, 출력 크기 하한, NAS 사본 sha256. 일일 점검표 §1에 마지막 백업 상태를 표시한다.
+- 순환: 새 세대 기록 → 검증 → 가장 오래된 세대 삭제. 일요일 교체 시 Qdrant 2세대가 수 시간 공존(NAS 정점 약 120GB).
+- 시간대 근거: 02:00 nas_indexer(45~71분) · 03:17/03:18 KB 색인 · 03:30 auto-growth가 03:40 전 종료 → 04:30 덤프, 05:00 스냅샷.
+
+### 복구 절차
+1. Honcho: `backup-t3610.sh verify-restore <dump.gpg>`로 임시 컨테이너에 복원·행수 비교(리허설과 동일). 실제 복구는 복호 후 `pg_restore -U honcho -d honcho --clean --if-exists <dump>`를 `honcho-postgres-1`에 적용. 복구 전 deriver 3개 중지.
+2. Qdrant: 복호한 `.snapshot`을 컨테이너 `/qdrant/storage/snapshots/<collection>/`에 두고 `PUT /collections/<c>/snapshots/recover` (`{"location":"file:///qdrant/storage/snapshots/<c>/<file>"}`). 재색인(nas_indexer 전체) 대비 수 시간 단축.
+3. `/opt` 설정: 복호 후 tar 해제, `.env` 권한 600 확인, `hermes-api-server` 재시작.
+4. 분기 1회 verify-restore를 사람이 실행해 리허설을 유지한다.
+
+---
+
 ## 7. 운영 철학 (모든 판단의 나침반)
 
 - **정확성·신뢰성 우선 (최우선 원칙)**: 의료기기 인허가에서 오류는 환자 안전 문제다. 속도는 정확성이 보장된 뒤의 부산물이다. 자동화 비중을 늘리는 것은 학습·성숙도 누적에 따른 결과이지, 목표 자체가 아니다. 에이전트가 불확실하다면 반드시 사람에게 올린다 — 이것은 실패가 아니라 올바른 동작이다.

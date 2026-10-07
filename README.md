@@ -11,7 +11,7 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 
 ## 현재 상태
 
-**핵심 골격 구현 · 규제 판단 품질과 성장 측정 검증 진행 중** | 상태 문서 대조: 2026-09-09
+**핵심 골격 구현 · 규제 판단 품질과 성장 측정 검증 진행 중** | 상태 문서 대조: 2026-09-09 · 운영 실측 재검증: 2026-10-07 (#152 백업 적용, #103 지표 복구)
 
 이 프로젝트의 목표는 **공통 지식 기반과 지역별 경험을 축적해 사람 RA 전문가를 보조하는 것**이다. 메일은 입력 채널, 가상 오피스는 관측·자문 창구다. 기능 구현, 운영 반영, 학습 효과 입증은 별도로 판단한다.
 
@@ -20,12 +20,15 @@ GLM-5.2/Z.ai 전환은 [GLM-5.2 설정 메모](docs/glm-5.2-setup.md)를 따른�
 | 자문·학습 골격 | 자문 API, 근거·인용 검증, KB 사례 생성, 피드백·지표 수집 코드 존재 | 코드 존재만으로 현재 배포·실행을 보증하지 않음 |
 | 판단 품질 | [#134](https://github.com/holee9/ra-hermes-multi-agent/issues/134)의 2026-09-09 평가 기록: 190건 중 177건에 사람 정정 필요 표시 | 과거 사례 평가이며 현재 라이브 오류율은 아님. 수정 후 재질의·검증 필요 |
 | 오류 원인 분리 | [#144](https://github.com/holee9/ra-hermes-multi-agent/issues/144) KB 원본, [#145](https://github.com/holee9/ra-hermes-multi-agent/issues/145) KR 판단, [#146](https://github.com/holee9/ra-hermes-multi-agent/issues/146) US 약어 해석, [#147](https://github.com/holee9/ra-hermes-multi-agent/issues/147) 사례 생성 결함 추적 | 원본·검색·응답·평가 오류를 구분한 뒤 해당 경로 재검증 |
-| 성장 측정 | [2026-09-09 모니터링 기록](docs/monitoring/today-status.md)에 핵심 품질 지표 `null`, 자율 학습·insight 0 | 데이터 부재와 수집 결함을 구분해야 함. `NORMAL`은 전문가 성장의 증거가 아님 |
+| 성장 측정 | 2026-10-07 [#103](https://github.com/holee9/ra-hermes-multi-agent/issues/103): 수집 결함 없음 확인. 7/15~7/24 채점 250건 미ingest가 원인 → ingest 후 correction_rate 0.916 / first_pass_match_accuracy 0.860 (n=250). 30일 롤링 창 산출 추가 | confidence_calibration·warmstart_lift는 메일 파이프라인 결정 부재로 `null`. 새 채점이 없으면 1일 창은 다시 `null`. `NORMAL`은 전문가 성장의 증거가 아님 |
+| 운영 데이터 보전 | 2026-10-07 [#152](https://github.com/holee9/ra-hermes-multi-agent/issues/152): Honcho pg_dump 일일 7세대 + Qdrant 스냅샷 주간 1세대 → NAS(gpg). 복구 리허설 통과 | NAS 1대(사이트 장애 미대비). 운영 절차는 [운영 전략 §8](docs/operations-guide.md#8-백업복구-152) |
 | 자동화 확대 | 임계값 `null` 정책과 사람 판단 조건 유지 ([#65](https://github.com/holee9/ra-hermes-multi-agent/issues/65)) | 유효한 평가·운영 지표로 성숙도를 확인한 뒤 판단 |
 
 현재 상태의 해석과 과거 운영 증거는 [운영 전략 §0](docs/operations-guide.md#0-현재-운영-판정-2026-09-09)을 참조한다. 아래 이력의 완료·배포 표현은 각 기록 시점의 결과이며, 현재 전체 시스템의 무결함·자동화 성숙을 뜻하지 않는다.
 
-**주요 완료·검증 이력 (2026-07-24까지):**
+**주요 완료·검증 이력 (2026-10-07까지):**
+- ✅ **#152 T3610 운영 데이터 백업 체계 — Honcho pg_dump 일일 7세대 + Qdrant 스냅샷 주간 1세대 → NAS(gpg AES-256), CLOSE** (2026-10-07, commit `1e8fbd1`): 조사 시점 백업 0건. `scripts/backup-t3610.sh` + systemd timer 2개(04:30 / Sun 05:00). 1차 실행 완료(덤프 1.7GB 6분, Qdrant 50GB 스냅샷 19분+전송 88분), **복구 리허설 통과**(documents 59,011 / messages 18,523 / ra_knowledge 7,904 / sessions 357 = 원본). 부수: Qdrant 컨테이너를 `QDRANT__STORAGE__SNAPSHOTS_PATH` 바인드 내부로 재생성(중단 2분, 포인트 동일). 1차 실행 결함 3건(표준입력 검증 불가·압축 판단 오류·컨테이너 파일 권한) 수정.
+- 🔄 **#103 성장 지표 0건 — 원인 확정·부분 복구** (2026-10-07, commit `94d85e6`): 수집 결함 없음. 7/15~7/24 채점지 250건 미ingest + cron 1일 창이 원인. ingest 후 correction_rate 0.916 / first_pass 0.860 (n=250). 30일 창 산출 추가. confidence·warmstart는 메일 파이프라인 결정 필요. **주의**: ingest ts=기록 시각이라 10-07 일일 보고에 "당일 채점"으로 집계됨.
 - ✅ **#133 PSUR 템플릿 Art.86 KB 소스 오류(하위항 라벨 4/5 + IIb 주기) — 소스 교정 + pgvector 전파 + 검증, CLOSE** (2026-07-24, ra-project commit `3eb44ec`): 에이전트 날조 아닌 **KB 원본 데이터 오류**(#127/#128 클래스), #132 작업 중 발견. EUR-Lex CELEX:32017R0745 Art.86 원문으로 독립 재검증(2차 출처 eumdr.com이 "IIa도 매년"으로 오기 → 원문·다수 출처·문서 자체 L46 일치로 기각). `PSUR_템플릿_MDR_Article86.md`: (1) Art.86(1) 하위항 라벨 재매핑 — (a)=benefit-risk(Sec6)·(b)=PMCF(Sec7)·(c)=판매량(Sec2), 존재하지 않는 (d)/(e)와 오배치 (a)를 제거하고 Art.86(1) 본문 인용으로 교체(Sec3/4/5/8 + 체크리스트 3건); (2) Art.86(2) 주기 정정 — Class IIb·III=매년 / IIa=2년마다, L21-22 주기표 + L25/L36/L45 자기모순 정합화. GitHub push → pgvector `ra_knowledge` 재인덱싱(DELETE 19청크, 백업 `backups/ra_knowledge-PSUR_Article86-pre133-2026-07-24.jsonl` → 재삽입 19, new=1/skipped=135). **retrieval store 직접 검증**: 옛 (d)/(e)·`IIa/IIb 2년마다` 잔존 0, 정정 라벨·주기·v1.1 헤더 전부 존재. 라이브 Qdrant는 03:18 자동 동기화. #132가 "에이전트 발명"으로 오진했던 결함의 상당 부분이 실은 이 소스 오류 전파였음이 근본 해결됨.
 - ✅ **#131 Rule↔Class 불일치 + Class↔Annex route 매핑, #130 라벨링/위험관리 Annex 오배치 — Class→Annex 경로 표 신설 + 재-eval 검증, 둘 다 CLOSE** (2026-07-21): "#131/#130(같은 패턴 신규 착수)" 요청으로 두 이슈를 한 세션에서 처리. 재조사 결과 #130의 라벨링(Annex I Ch.III §23)/위험관리(Annex I GSPR+ISO 14971) 항목과 #131의 Rule→Class 고정값 표는 #123 라운드3 positive framing 재작성 때 이미 반영돼 있었음 — 남은 진짜 작업은 #131의 **Class→Annex 적합성평가 경로 표 신설**뿐이었음. EUR-Lex MDR Art.52 원문(2개 출처 교차검증)으로 Class I 자기선언 / Is·Im·Ir→Annex IX Ch.I&III 또는 Annex XI Part A / IIa→Annex IX(+§4) 또는 Annex II&III+Annex XI §10·18 / IIb→Annex IX(+§4) 또는 Annex X+XI / III→Annex IX 또는 Annex X+XI 표를 `ra-eu` SOUL.md에 신설(백업 `SOUL.md.bak-pre-130-131`). 표본 재현 테스트 5건(Class IIa 경로·DoC 근거·Rule 17·라벨링·위험관리) 전부 정상 확인 후, 신규 배치(2026-07-24 dated, 45케이스, 캡처 실패 0건) ra_eu 15건 팩트체크: **Rule→Class 불일치 0/15, Class IIa→Annex X 오배치 0/15(직전 배치 4/15로 단일 최다빈발이었음), DoC→Annex IX §3 오인용 0/15, 라벨링 Annex VI/VII 오인용 0/15, 위험관리 Annex XVII 오인용 0/15** — 5개 결함 패턴 전부 소거 확인.
   - **잔여 관찰(신규 이슈 미등록, 헤지된 경계선 사례)**: `it02-ra_eu-003`에서 GUI Software 분류 근거를 Rule 11 대신 "MDR §22"로 인용(최종 Class 값 IIa 자체는 정확)했고, X-ray Detector에 "Rule 17→IIa; 능동 소스와 연결 시 IIb로 상향될 수 있음"이라는 헤지 표현이 관찰됨 — Rule 17 자체엔 상향 경로가 없으나 "복합기기 구성요소" 논리로 프레이밍돼 원 #131 결함(근거 없는 단정적 발명)과는 결이 다름. 확정 결함으로 보기 어려워 별도 이슈는 등록하지 않고 참고로만 기록.
