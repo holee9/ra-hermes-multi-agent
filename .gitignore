@@ -281,6 +281,13 @@ dist-ssr/
 /reports/non-email-growth/
 /reports/ra-kr-growth/
 /reports/kb-gaps/
+# 일일 점검표는 매일 08:00 자동 생성되는 산출물. 최신 상태는 docs/monitoring/today-status.md(추적)로 본다.
+# 2026-10-07 이전에 추적된 체크리스트는 이력으로 남겨 두고, 이후 생성분만 무시한다.
+/reports/daily-monitoring/checklist-*.md
+/reports/growth-30d-*.json
+# kb-eval 재질의 실행 잠금·하네스 디렉터리
+/reports/kb-eval-requery-147/.lock
+/reports/kb-eval-requery-147/.claude/
 
 # ===========================================
 # Test execution output
