@@ -725,6 +725,11 @@ def parse_advisory(text: str) -> dict | None:
 # Layer 4 data), not invented. Prompt guards alone (part A) were observed live
 # to still fabricate identifiers ~1 in 2 calls when RAG results were weak — this
 # closes the gap with a code-level check instead of relying on model behavior.
+# #153: 모델 출력은 하이픈을 U+2010~U+2014(특히 비분리 하이픈 U+2011)로, 공백을 U+202F 등으로
+# 자주 쓴다. 패턴과 정규화가 ASCII '-' 만 보면 토큰이 통째로 빠져 검증을 우회한다(측정으로 확인).
+_HYPHENS = "\\-\u2010\u2011\u2012\u2013\u2014"   # 문자 클래스 안에서 쓰므로 ASCII '-' 는 이스케이프
+_HY = f"[{_HYPHENS}]"
+
 _IDENTIFIER_PATTERNS: tuple[re.Pattern, ...] = (
     # Boundary is "no adjacent Latin letter/digit", NOT \b — Python's \b treats
     # Hangul as \w (Unicode word chars), so \bK\d{6}\b fails to match natural
@@ -733,7 +738,37 @@ _IDENTIFIER_PATTERNS: tuple[re.Pattern, ...] = (
     # regex miss would have let an identifier bypass verification entirely.
     re.compile(r"(?<![A-Za-z0-9])K\d{6}(?![A-Za-z0-9])"),  # FDA 510(k)
     re.compile(r"(?<![A-Za-z0-9])P\d{6}(?![A-Za-z0-9])"),  # FDA PMA
+    # @MX:NOTE: [AUTO] #153 — 인스턴스 식별자 확장. 사람 채점 310건 오프라인 재생에서 패턴별
+    # 정밀도를 측정해 과잉 차단이 낮은 것만 채택했다(URL·법률 번호는 제외: 포착 0~1).
+    # 21 CFR 분류 조항(Part 862~892)은 기기 유형마다 달라 일반 지식으로 쓰면 오기가 잦다
+    # (X-ray를 862(임상화학)로 인용하는 오류가 반복 관측됨).
+    re.compile(r"(?<![A-Za-z0-9])(?:21\s?CFR\s?(?:§\s?)?|§\s?)8[6-9]\d\.\d{2,4}(?![A-Za-z0-9])"),
+    re.compile(r"(?:21\s?CFR\s?|Part\s)8[6-9]\d(?![A-Za-z0-9.])"),
+    re.compile(rf"MDCG[\s{_HYPHENS}]?\d{{4}}\s?{_HY}\s?\d{{1,2}}"),              # MDCG 2020-5
+    re.compile(rf"제\s?\d{{4}}\s?{_HY}\s?\d{{1,3}}\s?호"),                         # 고시 제2025-25호
+    re.compile(r"(?:시행규칙|시행령)\s?제\s?\d{1,3}조(?:의\s?\d)?"),                # 시행규칙 제38조의2
+    re.compile(r"\d{2}\s?FR\s?\d{3,6}|Fed\.?\s?Reg(?:ister)?\.?\s?Vol"),            # 89 FR 7496
+    re.compile(rf"(?<![A-Za-z0-9])(?:SOP|F|FORM|QM){_HY}[A-Z]{{2,6}}{_HY}\d{{2,4}}(?![A-Za-z0-9])"),
 )
+
+# #153/#145: 국내 등급-경로. 2등급은 원칙적으로 '인증'(1등급 신고, 3·4등급 허가)인데 모델이
+# '2등급(또는 Class II~III)=허가'로 매핑하는 오류가 사람 채점 ra_kr 71건 중 다수에서 관측됐다.
+# 신개발 2등급 등 허가가 맞는 예외가 있으므로 '거부'가 아니라 Yellow(사람 확인)로만 내린다.
+# 같은 줄에 '인증'이 함께 언급되면(예외를 구분해 서술한 경우) 막지 않는다.
+_KR_GRADE2 = re.compile(
+    rf"Class\s?II(?!I)|2\s?등급|II\s?[{_HYPHENS}~]\s?III|II\s?,\s?III|2\s?[·,~]\s?[34]\s?등급"
+)
+_KR_APPROVAL = re.compile(r"허가|[Aa]pproval|[Ll]icen[cs]e|Registration")
+_KR_CERT = re.compile(r"인증|[Cc]ertification")
+
+
+def _kr_grade_pathway_errors(adv: dict) -> list[str]:
+    """국내 2등급을 '허가'로 매핑하면서 같은 줄에 '인증'이 없는 줄을 반환한다(#145)."""
+    out: list[str] = []
+    for line in _advisory_output_text(adv).splitlines():
+        if _KR_GRADE2.search(line) and _KR_APPROVAL.search(line) and not _KR_CERT.search(line):
+            out.append(line.strip()[:200])
+    return out
 
 
 def _shown_source_text(rag_results: list[dict], wiki_results: dict | None) -> str:
@@ -789,12 +824,13 @@ def _cited_identifier_status(adv: dict, shown_source_text: str) -> dict[str, boo
     log record (_log_adv_request) — the full shown_source_text is NOT logged
     (size), but this per-token status dict is small and answers the exact
     dispute question ("was X actually shown at that call?") after the fact."""
-    haystack = re.sub(r"[\s-]", "", shown_source_text)
+    strip = rf"[\s{_HYPHENS}§]"
+    haystack = re.sub(strip, "", shown_source_text).lower()
     output_text = _advisory_output_text(adv)
     found: set[str] = set()
     for pattern in _IDENTIFIER_PATTERNS:
         found.update(pattern.findall(output_text))
-    return {tok: (re.sub(r"[\s-]", "", tok) in haystack) for tok in sorted(found)}
+    return {tok: (re.sub(strip, "", tok).lower() in haystack) for tok in sorted(found)}
 
 
 def _citation_errors(adv: dict) -> list[dict]:
@@ -853,6 +889,8 @@ def validate_advisory(
     # (see ra_citation_lint) and is intentionally NOT gated here.
     if _citation_errors(adv):
         return adv, "citation_error"
+    if routed_actor == "ra_kr" and _kr_grade_pathway_errors(adv):
+        return adv, "kr_grade_pathway"
     return adv, None
 
 

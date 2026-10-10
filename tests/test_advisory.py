@@ -281,6 +281,74 @@ def test_validate_identifier_check_hyphen_space_insensitive_match():
     assert yellow is None
 
 
+# ── #153: 인스턴스 식별자 확장 + 유니코드 하이픈 정규화 ─────────────────────
+def _adv153(text):
+    return {"confidence": 0.9, "evidence": ["ra-project/a.md"], "recommended_comment": text}
+
+
+@pytest.mark.parametrize("cited", [
+    "21 CFR 862.1045",          # X-ray에 임상화학 Part 를 인용 (관측된 오류)
+    "21 CFR 862",     # 좁은 공백(U+202F) 표기
+    "§892.2050",
+    "MDCG 2022‑5",         # 비분리 하이픈(U+2011) 표기
+    "고시 제2026‑02호",
+    "시행규칙 제38조의2",
+    "89 FR 7496",
+    "SOP-PMA-001",
+])
+def test_instance_identifier_not_in_source_is_yellow(cited):
+    shown = "github:holee9/ra-project/a.md 관련 없는 excerpt"
+    _, yellow = m.validate_advisory(_adv153(f"근거: {cited}"), "ra_us", shown)
+    assert yellow == "unverified_identifier", cited
+
+
+@pytest.mark.parametrize("cited,shown", [
+    ("21 CFR 892.2050", "excerpt: 21 CFR §892.2050 Class II"),
+    ("MDCG 2020‑5", "MDCG 2020-5 equivalence guidance"),   # 출력 U+2011 ↔ 원문 ASCII
+    ("고시 제2025‑25호", "의료기기 허가 고시 제2025-25호 (2025-04-15)"),
+    ("시행규칙 제38조의2", "시행규칙 제38조의 2 과징금"),
+])
+def test_instance_identifier_present_in_source_passes(cited, shown):
+    _, yellow = m.validate_advisory(_adv153(f"근거: {cited}"), "ra_us", shown)
+    assert yellow is None, cited
+
+
+def test_framework_identifiers_outside_patterns_are_not_gated():
+    # ISO 13485 / 21 CFR 820 / 21 CFR 807 같은 체계 식별자는 일반 지식으로 쓰일 수 있어 대상이 아니다.
+    shown = "unrelated excerpt"
+    _, yellow = m.validate_advisory(
+        _adv153("ISO 13485, ISO 14971, 21 CFR 820, 21 CFR 807, IEC 62304 를 준수"), "ra_us", shown)
+    assert yellow is None
+
+
+# ── #153/#145: 국내 등급-경로 규칙 ────────────────────────────────────────
+@pytest.mark.parametrize("line", [
+    "• Class II, III, IV → 허가 (Approval)",
+    "| Submission pathway | Class II‑III → 허가 (license) |",
+    "2등급은 신고가 아니라 허가 대상입니다.",
+    "| **Class II** | Registration (허가) – full technical file |",
+])
+def test_kr_grade2_mapped_to_approval_is_yellow(line):
+    _, yellow = m.validate_advisory(_adv153(line), "ra_kr")
+    assert yellow == "kr_grade_pathway", line
+
+
+@pytest.mark.parametrize("line", [
+    "1등급 신고 / 2등급 인증 / 3·4등급 허가",
+    "Class II → 인증 (Certification), 신개발 2등급은 허가",
+    "Class III, IV → 허가 (Approval)",
+])
+def test_kr_grade_pathway_correct_lines_pass(line):
+    _, yellow = m.validate_advisory(_adv153(line), "ra_kr")
+    assert yellow is None, line
+
+
+def test_kr_grade_rule_only_applies_to_ra_kr():
+    # 미국 Class II 는 510(k) 'clearance' 맥락이라 국내 규칙을 적용하지 않는다.
+    _, yellow = m.validate_advisory(_adv153("Class II → PMA approval not required"), "ra_us")
+    assert yellow is None
+
+
 # ── #134 C1: structural regulatory-citation gate ──────────────────────────
 
 def test_validate_nonexistent_article_subpoint_is_yellow():
