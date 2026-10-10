@@ -20,7 +20,7 @@
       "urls": {
         "honcho": "http://localhost:8000",
         "gx10": "http://192.168.100.1:11434",
-        "postgres": "postgresql://honcho:honcho@localhost:5433/honcho",
+        "postgres": "postgresql://honcho:CHANGE_ME@localhost:5433/honcho",
         "openproject": "http://192.168.100.50:8085",
         "n8n": "http://192.168.100.50:5678"
       }
@@ -34,7 +34,7 @@
       "urls": {
         "honcho": "http://192.168.100.200:8000",
         "gx10": "http://localhost:11434",
-        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "postgres": "postgresql://honcho:CHANGE_ME@192.168.100.200:5433/honcho",
         "openproject": "http://192.168.100.50:8085",
         "n8n": "http://192.168.100.50:5678"
       }
@@ -48,7 +48,7 @@
       "urls": {
         "honcho": "http://192.168.100.200:8000",
         "gx10": "http://192.168.100.1:11434",
-        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "postgres": "postgresql://honcho:CHANGE_ME@192.168.100.200:5433/honcho",
         "openproject": "http://localhost:8085",
         "n8n": "http://localhost:5678"
       }
@@ -62,7 +62,7 @@
       "urls": {
         "honcho": "http://192.168.100.200:8000",
         "gx10": "http://192.168.100.1:11434",
-        "postgres": "postgresql://honcho:honcho@192.168.100.200:5433/honcho",
+        "postgres": "postgresql://honcho:CHANGE_ME@192.168.100.200:5433/honcho",
         "openproject": "https://plm.abyz-lab.work",
         "n8n": "http://192.168.100.50:5678"
       }

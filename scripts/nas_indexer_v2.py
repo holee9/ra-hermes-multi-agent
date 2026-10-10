@@ -8,7 +8,7 @@
   4. 실행 로그 및 통계 기록
 
 MIGRATION: Qdrant → pgvector (2026-06, issue #17)
-  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  POSTGRES_URL → postgresql://honcho:CHANGE_ME@localhost:5433/honcho
   Table: nas_ra_docs / nas_ra_docs_test  (dim=4096, ivfflat cosine)
   State DB qdrant_ids column repurposed to store pgvector row IDs (no schema change needed)
 """
@@ -77,7 +77,7 @@ except Exception as _meta_err:  # noqa: BLE001 — import-time robustness intent
 # =========================================================================
 
 # @MX:NOTE: [AUTO] POSTGRES_URL replaces QDRANT_URL — pgvector on Honcho PostgreSQL port 5433
-POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:CHANGE_ME@localhost:5433/honcho")
 OLLAMA_EMBED_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434") + "/api/embeddings"
 TABLE = "nas_ra_docs"
 TEST_TABLE = "nas_ra_docs_test"   # --test-run isolation target (never touches prod)

@@ -6,7 +6,7 @@ Parse .eml files from NAS mail backup zips → extract Q&A threads
 → index to pgvector (ra_knowledge table).
 
 MIGRATION: Qdrant → pgvector (2026-06, issue #19)
-  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  POSTGRES_URL → postgresql://honcho:CHANGE_ME@localhost:5433/honcho
   Table: ra_knowledge  (dim=768, nomic-embed-text, ivfflat cosine)
 """
 
@@ -74,7 +74,7 @@ GITHUB_API_BASE = "https://api.github.com"
 GITHUB_REPO = "holee9/ra-project"
 GITHUB_BRANCH = "main"
 
-POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:CHANGE_ME@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 TABLE = "ra_knowledge"
 EMBED_MODEL = "nomic-embed-text"

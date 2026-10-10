@@ -4,7 +4,7 @@ index_ra_knowledge.py — Hermes RA Knowledge Indexer
 Indexes: 인수인계서 xlsx, 해외 등록 대장 xlsx, RA Weekly Report pptx (latest 4 weeks)
 
 MIGRATION: Qdrant → pgvector (2026-06, issue #17)
-  POSTGRES_URL → postgresql://honcho:honcho@localhost:5433/honcho
+  POSTGRES_URL → postgresql://honcho:CHANGE_ME@localhost:5433/honcho
   Table: ra_knowledge  (dim=4096, qwen3-embedding:latest, hnsw cosine)
   Qdrant COLLECTION "hermes-ra-knowledge" maps to table "ra_knowledge"
 """
@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 # === CONFIG ===
-POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:honcho@localhost:5433/honcho")
+POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgresql://honcho:CHANGE_ME@localhost:5433/honcho")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.100.1:11434")
 TABLE = "ra_knowledge"
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "qwen3-embedding:latest")
