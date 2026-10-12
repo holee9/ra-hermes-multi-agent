@@ -75,6 +75,14 @@ Total cases: 15
 
 *End of draft – human escalation points highlighted above.*
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 21 CFR 892.2050 Class II(원문 238행), Cybersecurity 가이던스 2023-09-27 Final(240행), IEC 62304:2006+A1:2015, Class B="일반 DICOM viewer + basic processing"(243행 표), eSTAR Section G 파일 목록(SRS/SDS/RTM/Validation/Anomaly Log) 모두 원문과 일치.
+- 원문과 불일치: 없음(직접 충돌 없음). 단 원문 250행은 "AEC 또는 임상 판독 지원 기능 포함 시 Class C 가능성, Pre-Sub 확인 권장"을 명시하는데 응답은 Class B로 단정하고 이 조건을 언급하지 않음.
+- 원문에 없음/근거 미확인: PCCP Dec 2024(일반지식상 맞음), UDI 21 CFR 830.10~830.60(일반지식), "판독에 영향 시 Class III 또는 De Novo"(근거 없음·과장 의심), "Special 510(k) 또는 FDA-approved amendment"로 PCCP 미포함 변경 처리(부정확 의심 — 같은 KB의 PCCP 가이드는 Special 510(k)를 PCCP 경로에서 배제).
+- 에스컬레이션 표시: 있음 — predicate 부재·사용목적 모호·잔여위험 미비 시 senior RA 검토.
+- 채점 시 볼 곳: 'Software lifecycle / risk class' 행(Class B 단정 vs 원문 Class C 조건), 'Human-escalation triggers'의 Class III/Special 510(k) 문구.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -267,6 +275,15 @@ Total cases: 15
 #### Peer‑Review Prompt
 > **Request:** A fellow regulatory affairs specialist, please review the assumptions above—especially the choice of 21 CFR §892.2050 for this SaMD, the completeness of the PCCP elements derived from source [2], and any jurisdiction‑specific gaps (e.g., European MDR interplay). Highlight missing evidence or alternative pathways you deem necessary.
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: Federal Register 2024-28361, 2024-12-04 Final(원문 2·13·161행), Modification Protocol 4개 필수 항목(Data Management/Retraining/Performance Evaluation/Updated Procedures, 55행 이하) 내용 일치.
+- 원문과 불일치: 없음(직접 충돌 없음). 참고로 원문 81행 "Special 510(k) — PCCP 불허"는 응답에 반영되지 않았으나 응답이 Special 510(k)를 주장하지도 않음.
+- 원문에 없음/근거 미확인: 21 CFR 892/§892.2050 분류(이 원문에 892 언급 없음), QMSR 2026년 2월 시행(일반지식상 맞음), MDR 21 CFR 803 30일(일반지식상 맞음), "Class II risk per IEC 82304-2"(의심 — 82304 계열에 이런 위험등급 없음), "편향 발견 시 FDA notification"(근거 없음).
+- 원문에 없음/근거 미확인: 기기 자체(사용목적·제품 유형)가 원문·질의에 없어 Class II/510(k) 단정은 전제 수준.
+- 에스컬레이션 표시: 있음 — PCCP 범위 초과·사용목적·predicate 확인 시 senior RA/counsel.
+- 채점 시 볼 곳: §1 분류(892.2050)가 원문 근거 없는 추정인지, §4 'IEC 82304-2' 행.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -430,6 +447,15 @@ Total cases: 15
 When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on three pillars: (1) **Clear intended use & risk classification**, (2) **A robust Predetermined Change Control Plan (PCCP)** that pre‑approves specific algorithmic modifications, and (3) **Comprehensive supporting evidence** covering data provenance, bias mitigation, human‑AI interaction, cybersecurity, and post‑market surveillance. Missing any of these elements—especially a defined predicate device or scoped PCCP change list—precludes a successful 510(k). Incorporate dedicated “human‑escalation triggers” into the risk management file to ensure timely FDA notification for out‑of‑scope changes or adverse performance signals.  
 
 ---
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 제출 권고 패키지(데이터 계보/분할·편향 분석·Human-AI 워크플로우·시판 후 모니터링·PCCP, 2-C절), PCCP 최종 2024-12 확정·시행 및 TPLC 수명주기 가이던스 2025-01-06 초안 유지(24행 표) 일치.
+- 원문과 불일치: 원문 41행은 PCCP 범위 밖 변경 시 "새 510(k)/De Novo/PMA Supplement"가 필요하다고 하며 PCCP가 3개 경로 모두 적용(14행)이라 함 — 응답은 510(k)만 전제로 'supplemental 510(k)' 표현 사용(용어 부정확).
+- 원문에 없음/근거 미확인: "대부분 AI CDSS는 Class II"(근거 없음), 21 CFR 803.11을 '중대 이상사례 보고' 근거로 인용(의심 — 803.11은 보고 양식 조항으로 알려짐, 확인 필요), '≥5% 성능 저하' 임계값(근거 없음), ISO 27001/IEC 62443을 FDA 사이버 근거로 제시(FDA 인정 기준 아님 의심), 'UDI cartridge'(오기).
+- 원문에 없음/근거 미확인: 원문 §8(신규 분류 21 CFR 892.2055 ML 정량영상 SW, 2026-06-17)·§9(방사선 CAD 510(k) 면제 청원 거부)가 있으나 응답에 미반영 — 분류 판단 누락 가능성.
+- 에스컬레이션 표시: 있음 — PCCP 범위 밖 변경·성능 저하·편향·사이버 사고 시 사람 검토.
+- 채점 시 볼 곳: §6 트리거의 803.11 인용과 5% 임계값, §1 분류(892.2055 검토 누락).
 
 **Reviewer Score**
 
@@ -611,6 +637,15 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 > **To a fellow RA:**  
 > Please review the assumptions made regarding (1) suitability of an existing imaging workstation predicate given the addition of AI/ML; (2) the classification of the software under IEC 62304 (Class B vs. C); and (3) potential gaps in cybersecurity evidence that could trigger FDA’s “significant change” criteria. Identify any jurisdiction‑specific considerations we may have missed (e.g., state‑level telehealth regulations, international UDI harmonization) and suggest additional data or analyses needed before finalizing the 510(k) amendment.
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: Predicate 체크리스트(5년 내 clearance 우선, 판매 지속·리콜 확인, IFU 동일 또는 더 좁음, Split Predicate 금지 — 원문 32·154~159행), Basic/Enhanced 문서수준·IEC 62304 Safety Class·AI 포함 시 PCCP·DICOM·SBOM(SPDX/CycloneDX)·HL7 FHIR/IHE(4.3절) 일치.
+- 원문과 불일치: 없음(원문 직접 충돌 없음).
+- 원문에 없음/근거 미확인: 21 CFR 892.2050(이 원문에 없음), "ISO 14971:2021"(의심 — 현행판은 ISO 14971:2019), FDA 사이버 가이던스를 "Content of Premarket Submissions for Management of Cybersecurity (2022)"로 인용(의심 — 2022년은 초안, 최종본은 2023-09-27 및 2025-06 개정; 같은 KB eSTAR_04 참조).
+- 원문에 없음/근거 미확인: "IEC 62304 Class C로 상향 시 새 510(k)"(논리 근거 없음), PCCP로 보안·상호운용성 변경까지 커버(원문은 AI/ML 모듈에 한해 PCCP 언급), AES-256/TLS 1.3/로그 1년(근거 없음, 설계 예시 수준).
+- 에스컬레이션 표시: 있음 — predicate 문제·위험등급 변경·AI 성능자료 부재 시 senior RA sign-off.
+- 채점 시 볼 곳: §4 Evidence 표의 ISO 14971:2021·2022 사이버 가이던스 인용, §7 '62304 Class C → 새 510(k)' 문구.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -765,6 +800,15 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 ---  
 
 *End of Draft.*
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 524B(b)(3) SBOM 법적 의무, NTIA 최소요소 필드, SPDX 2.3+/CycloneDX 1.5+, Threat Model 필수(STRIDE 권장), CMP/VMP 필수, Pen Test 권고, 포스트마켓 법적 의무(패치·CVD·모니터링), IEC 81001-5-1·NIST CSF 참조(원문 5절 표·3.4절) 일치.
+- 원문과 불일치: CVD를 'Corrective/Preventive Action'으로 풀이 — 원문은 Coordinated Vulnerability Disclosure(원문 58행 등). IEC 81001-5-1·NIST CSF를 'Class II special controls'로 표현 — 원문은 '표준 참조'로만 기재.
+- 원문에 없음/근거 미확인: "21 CFR 860.3"을 분류 확인 근거로 인용(의심 — 860.3은 정의 조항으로 알려짐), '연간 cybersecurity update 제출', 'SBOM 기한 미준수 30일 초과 시 FDA 통보', 'CVSS≥7.0 시 MDR 803 보고'(모두 원문 근거 없음).
+- 원문에 없음/근거 미확인: 원문은 2025-06-27 개정 가이던스가 2023 가이던스를 대체한다고 명시(12행) — 응답은 '2025 Guidance'만 언급, 일치하나 구체 미기재.
+- 에스컬레이션 표시: 있음 — 사용목적 변경·신규 컴포넌트·고위험 취약점·PCCP 미승인 AI 업데이트 시.
+- 채점 시 볼 곳: §2 'Post-Market' 행의 CVD 오풀이, §6 트리거의 '30일'·'annual update' 같은 근거 없는 수치.
 
 **Reviewer Score**
 
@@ -942,6 +986,16 @@ All controls must be documented, implemented and verified; residual risk must be
 
 *Prepared by Theo – EU MDR Regulatory Affairs Specialist*
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: DQE(0) ≥ 65%, TR-2024-015, IEC 62220-1-1, CER Rev.3 Annex A(원문 97~100행), 'MDR Annex VII + 2026/977', 답변기한 'NB와 합의(법정 상한 없음)', Structured Dialogue(2026/977 Art.7), 미응답 시 '평가 종료/불승인'(190~195행) 일치.
+- 원문과 불일치: Structured Dialogue를 'Art. 7 MDR'로 인용 — 원문은 Implementing Reg (EU) 2026/977 Article 7(55·261행). 'Clinical evaluation = Annex VII' 표기 — 원문은 Annex VII를 NB 절차 근거로 씀(임상평가는 Annex XIV, 일반지식).
+- 원문과 불일치: 'Clock-stop = NB가 활동 즉시 중단 요구'로 해석 — 원문은 심사 기한 정지(요청 당일 stop, 제출 익일 resume)를 의미.
+- 원문에 없음/근거 미확인: Rule 10→Class IIb, Art 52(4)+Annex IX(일반지식상 맞음). 그러나 'Annex XI post-production surveillance'(Annex IX 경로에 Annex XI 불요, 의심), GSPR §11을 SW 안전으로 인용(의심 — SW는 §17), §16 '방사성 부품 폐기'·§22 '일반인 사용'(X-ray에 부적절 의심), Art.87을 시장철수 근거로 인용(Art.87은 vigilance 보고).
+- 원문에 없음/근거 미확인: §4 'NB가 지적한 결함' 목록(PMCF 중간보고 요구, 원시데이터 요구 등)은 원문 excerpt에 없는 추정 — 사실처럼 서술됨.
+- 에스컬레이션 표시: 있음 — 기한 초과·반복 보완요청·NB 불승인 위협 시 senior RA/경영진.
+- 채점 시 볼 곳: §4 Gaps 표(원문에 없는 결함을 단정), §2·§7의 'Art. 7 MDR'·'Annex XI' 인용.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1111,6 +1165,16 @@ All controls must be documented, implemented and verified; residual risk must be
 
 *End of draft.*
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: Annex II §1~§6 섹션 구조(원문 섹션 표), 적용대상 전 Class, 관련 Annex I/XIV/XV/III, 발효 2021-05-26 일치.
+- 원문과 불일치: 없음(직접 충돌 없음).
+- 원문에 없음/근거 미확인: Art 52 경로별 조항(52(3)/(4)/(6)/(7))·PSUR 주기(IIb/III 연 1회, IIa 2년)·Annex XIV Part A/B·Art 83/84/86은 일반지식상 맞음. 'ISO 62304'(오기 — IEC 62304), §4 GSPR에 'predicate 비교'(FDA 용어 혼입), '23 GSPR'(Annex I 23개 절 의미라면 무방).
+- 원문에 없음/근거 미확인: '5 working days/3 working days/10 working days' 에스컬레이션 기한은 근거 없는 임의 설정.
+- 원문에 없음/근거 미확인: 원문 54~56행은 제품별 분류(Detector Rule 10 IIa, Handheld Rule 9 IIb, GUI SW Rule 11)를 제시하나 응답은 분류 미정으로 둠(질의에 기기 정보 없음 → 보수적 처리로 볼 여지).
+- 에스컬레이션 표시: 있음 — 분류 미확정·문서 결손 시 각 담당자, 최종 senior RA.
+- 채점 시 볼 곳: §1 Art 52 경로 표, §4 'ISO 62304' 및 임의 기한.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1265,6 +1329,15 @@ All controls must be documented, implemented and verified; residual risk must be
 > • Any jurisdiction‑specific nuances (e.g., national provisions, German BfArM requirements) that may impose extra obligations beyond the MDR framework.
 
 ---
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: '이온화 방사선 기기(X-ray)는 Class IIb 이상 → NB 인증 필수', 'NANDO에서 MDR 범위(코드 MDxxxx) 확인', 수록 대상(Technical Documentation Assessment 보고서·Non-conformity 대응 자료) 일치.
+- 원문과 불일치: 없음. 단 원문은 'Class IIb 이상'인데 응답은 'Class IIb'로 단정(크게 어긋나지는 않음).
+- 원문에 없음/근거 미확인: Rule 10→IIb, Art 52(4)+Annex IX, PSUR 연 1회(Art 86)는 일반지식상 맞음. 'ISO 13485-2023'(의심 — 현행 ISO 13485:2016), 'GSPR §16.4'를 방사선 방호로 인용(조번호 정확성 확인 필요), 'Annex IX + NB 발행 type-examination' 혼합 서술(부정확).
+- 원문에 없음/근거 미확인: 원문에 나온 X-ray 관련 NB 후보(TÜV SÜD, BSI 등)는 응답에 미반영. Peer 프롬프트의 'Rule 17(디텍터)'는 실제 MDR Rule 17(X-ray 영상 기록 기기 → IIa)로 타당한 질문.
+- 에스컬레이션 표시: 있음 — 사용목적 모호·NANDO 코드 미확인·임상근거 부족·NC 발생 시.
+- 채점 시 볼 곳: §2 QMS 행 'ISO 13485-2023', §1 Annex IX/type-examination 서술.
 
 **Reviewer Score**
 
@@ -1432,6 +1505,15 @@ Until items 1–4 are supplied, any further regulatory work must be paused and
 
 *@RA‑Peer:*  
 Please challenge the assumptions made above regarding (a) the need for a full Annex VIII rule analysis before any classification can begin; (b) the sufficiency of the listed evidence for each class, especially in borderline active or software‑driven devices; and (c) potential jurisdiction‑specific gaps that may arise from the Korean‑focused source excerpts (e.g., references to UDI portal “udiportal.mfds.go.kr”, MFDS fee structures). Highlight any additional documents or national liaison steps that you consider mandatory before a CE‑marking submission can be drafted.
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: Art 51 + Annex VIII 22개 규칙 순차 적용·최고 등급 적용, 의심 시 CA 또는 MDCG Borderline Manual 참조, CEP+CER(Art 61, Annex XIV), EUDAMED UDI/DEV, Vigilance Art.87, Authorized Rep Art.11, NB 수수료 €10,000~€100,000+ 일치.
+- 원문과 불일치: PSUR — 응답은 IIb 연 1회, 원문(Week04 225행)은 'Class IIa/IIb 최소 2년 주기'로 기재. 일반지식(MDR Art 86)으로는 응답 쪽이 맞고 원문 오류 의심.
+- 원문과 불일치: UDI 근거를 'MDR Annex I §23'으로 인용 — 원문은 EUDAMED UDI/DEV(Article 29 언급), 일반지식상 UDI는 Art 27 + Annex VI.
+- 원문에 없음/근거 미확인: Art 52 경로·MDCG 2021-24(분류 가이던스, 실존)는 일반지식상 맞음. 원문 'Manual v2.1.1(2023-09)'는 응답에 미기재.
+- 에스컬레이션 표시: 있음 — 사용목적 부재·분류 모호·NB 계약 부재 시 CA/MDCG·senior RA.
+- 채점 시 볼 곳: §5 표의 IIb PSUR 주기(원문과 반대 — 원문 오류 가능성 함께 판단), §3 UDI 근거 조항.
 
 **Reviewer Score**
 
@@ -1601,6 +1683,15 @@ All risk controls must be documented in the **Risk Management File** and reflect
 
 Your feedback will help ensure completeness before the final NB response is drafted.
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: Rule 10 '이온화 방사선 방출 진단기기(X-ray 발생장치 → Class IIb)', Rule 11 SaMD 분류, GSPR 체크리스트·PMS/PMCF/PSUR 필요, Regulation 2023/607(원문 README) 일치.
+- 원문과 불일치: 없음(직접 충돌 없음).
+- 원문에 없음/근거 미확인: Art 52(4) Annex IX 또는 Annex X+XI, PSUR IIb 연 1회(Art 86(1) 내용) — 일반지식상 맞음. 'Annex IX §4 대표기기 평가', 'GSPR §20을 전기안전으로 확장'(의심 — §20은 기계·열 위험), IEC 60601-2-28/2-54/62220-1-1/62304는 원문 excerpt에 없음(표기 자체는 정확).
+- 원문에 없음/근거 미확인: 원문 README의 전환기간(IIb 이온화 방사선 기기 2027-12-31까지) 정보는 응답에 미반영.
+- 에스컬레이션 표시: 있음 — 임상근거 부족·SaMD 분류 미해결·시험보고서 부재·NC 시.
+- 채점 시 볼 곳: §5 Risk Controls 표 GSPR §20 인용, §3 표준 목록이 원문 밖 일반지식임을 감안.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -1761,6 +1852,15 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 ### 8. Peer Review Prompt  
 
 > **@RA‑Peer:** Please challenge the assumptions made above regarding (1) the classification pathway without a declared device indication, (2) the completeness of the evidentiary checklist given recent MFDS updates on foreign clinical data acceptance, and (3) any jurisdiction‑specific gaps (e.g., post‑marketing surveillance plan details) that may affect the draft’s adequacy. Your feedback will help refine the submission strategy before finalization.
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 처리기간 허가(일반) 65일·허가(임상 포함) 80일·인증 30일(NIFDS 위탁)·신고 즉시, '보완 기간은 처리 기간에서 제외', 공문 문체 예시('귀처의 보완 요청 내용(제○호, ○○항)…') 일치.
+- 원문과 불일치: 보완 제출 기한을 '30일'로 가정(§3·§6) — 원문은 품목허가 보완 1차 60일·2차 60일, 미제출 시 취하 간주(원문 30·44행).
+- 원문과 불일치: 보완 근거 조문 — 원문은 의료기기법 제12조를 보완요청 근거로 기재, 응답은 '의료기기법 제23조(분류·인증·허가 기준)'(근거 없음, 의심).
+- 원문에 없음/근거 미확인: '인증 = 일부 1등급, NIFDS 위탁' — 일반지식상 인증은 주로 2등급, 수행기관은 한국의료기기안전정보원(원문의 'NIFDS 위탁' 표기도 확인 필요). 'MFDS 고시 제2023-45호'는 예시로 든 가공 번호. 'non-clinical MAD'·'시판후조사 정기 안전성 보고'는 근거 없음.
+- 에스컬레이션 표시: 있음 — 분류 근거 부재·고시번호 미확인·보완 기한 초과 시 senior RA/법무.
+- 채점 시 볼 곳: §3·§6의 '30일' 보완 기한(원문 60일), §1 'Submission pathway'의 인증=1등급 서술.
 
 **Reviewer Score**
 
@@ -1942,6 +2042,15 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 
 *End of draft.*
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: IEC 60601-2-28:2017을 X선관 조립품 성능시험 기준으로 MFDS 인정 기준과 일치, 자사 규격 OQP-XXXX, 'KS A ISO 9283 대응 자사 규격', 기술문서 구성(시행규칙 별표 3: 개요~기재사항, 6-1 시험규격 및 설정근거, 7-3 방사선) 일치.
+- 원문과 불일치: 근거 법령 — 원문은 의료기기법 제6조(허가·인증·신고) + 시행규칙 별표 3, 응답은 '의료기기법 제1조 제2항'을 분류 근거로 인용(의심).
+- 원문과 불일치: 국내 등급 체계 — 응답은 'Class IIb–III', 'Class I-IIa → 신고, IIb-III → 허가'로 EU식 등급 사용. 국내는 1~4등급이며 1등급=신고, 2등급=인증(한국의료기기안전정보원), 3·4등급=허가.
+- 원문에 없음/근거 미확인: 'KGMP 인증서는 KAIST 승인 필요'(사실과 다름 의심 — KGMP는 식약처 적합인정), KS A ISO 9283(산업용 로봇 성능 규격)을 튜브 파열·진동 시험 근거로 사용(오적용 의심), 방사선 방호 표준으로 원문은 IEC 60601-1-3도 열거하나 응답은 누락.
+- 에스컬레이션 표시: 있음 — 등급 모호·한글 IFU·임상자료·KGMP·고시번호 부재 시.
+- 채점 시 볼 곳: §2 등급·경로 표(국내 등급 체계 오류), §3 5번 'KAIST-approved'.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2113,6 +2222,15 @@ If any of the escalation triggers are met, pause submission and involve the rele
 
 > *@RA‑Partner: Please review the assumptions made about classification pathways, the completeness of the 35‑item cyber‑security evidence list, and any jurisdiction‑specific gaps (e.g., Korean language requirements, KGMP certification). Highlight any additional MFDS citations that may be required or suggest alternative strategies for leveraging foreign regulatory data.*
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 「의료기기의 사이버보안 허가·심사 가이드라인(민원인 안내서)」 개정일 2025-01-10, 법적 근거 디지털의료제품법(2025-01-24 시행)·의료기기법 시행규칙, 요구사항 15개→35개 확장, IMDRF N60/N73·IEC 81001-5-1 조화, 8개 카테고리(보안설계~업데이트·유지보수) 일치.
+- 원문과 불일치: CVD를 'Common Vulnerabilities Disclosure'로 풀이 — 원문은 Coordinated Vulnerability Disclosure(원문 52행).
+- 원문에 없음/근거 미확인: 국내 등급을 'Class I / Class II/III'로 표기하고 'Class II/III → 허가'로 서술(국내 1~4등급, 2등급=인증 체계와 불일치 의심), '디지털의료제품 전용 허가 경로'(구체 근거 없음), 'Table 2-1 of MFDS Classification Guide'(출처 불명).
+- 원문에 없음/근거 미확인: '고시번호가 없다'는 서술은 민원인 안내서 성격상 타당해 보이나 확인 필요. AES-256/TLS 1.3/로그 12개월/분기 패치는 원문에 없는 설계 예시.
+- 에스컬레이션 표시: 있음 — 분류 모호·KGMP 부재·35개 항목 갭·외국자료 인정 불확실 시.
+- 채점 시 볼 곳: §1 분류·경로 표(국내 등급 체계), §4 Vulnerability Management 행 CVD 풀이.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2265,6 +2383,15 @@ This judgment is stored for future RA projects involving Korean regulatory submi
 
 Your feedback will help ensure full coverage before finalizing the submission plan.
 
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: 「의료기기 제조 및 품질관리 기준」(고시), 「의료기기 GMP 심사·평가 등에 관한 규정」, KGMP 심사 신청서 양식·제출서류 체크리스트, 적합성 인정서(수입품목용) 일치.
+- 원문과 불일치: 없음(원문이 짧은 README라 직접 충돌 없음).
+- 원문에 없음/근거 미확인: 'Class II–IV → 허가, Class I → 신고'(국내 일반지식과 불일치 의심 — 2등급은 대부분 인증, 3·4등급 허가), 기술문서 근거를 'Annex III of the Medical Device Act'로 표기(국내는 시행규칙 별표 3), 표시기재 근거 '의료기기법 제23조'(조문 확인 필요, 의심), MFDS 'PSUR' 요구(근거 불명).
+- 원문에 없음/근거 미확인: 응답 대부분이 원문 밖 일반지식이며 원문(GMP 심사자료 목록)과의 연결이 약함 — 'MDR식' 용어(PSUR, Annex) 혼입.
+- 에스컬레이션 표시: 있음 — 분류 정보 부재·KGMP 미보유·외국 임상자료 인정 불확실·비한글 표시 시.
+- 채점 시 볼 곳: §1 Submission pathway 행(2등급 인증 누락), §2 'Annex III'·'Article 23' 인용.
+
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
@@ -2415,6 +2542,15 @@ Your feedback will help ensure full coverage before finalizing the submission pl
 --- 
 
 *End of draft.*
+
+**참고 대조 메모 (Claude 작성 · 점수 아님 · 채점 참고용)**
+
+- 원문 확인: DR-07 임상적 유효성 — 증빙 '임상평가계획서 승인, CER 완성', 후속 '임상평가계획/보고서 템플릿 작성', 갭 분석 양식 F-GAP-001(○→◐/◐→● 상태 변경) 일치.
+- 원문과 불일치: 응답은 '의료기기법 제15조'를 위험 기반 등급분류 근거로 인용 — excerpt의 '법 제15조'는 디지털의료제품법 DR-07 항목이며, 현행 원문(78행, audit #957)은 이 인용을 오귀속으로 삭제(제15조=실사용 평가)하고 '해석범위(제9조 또는 제10조)'로 정정함. excerpt 자체가 정정 전 구버전(입력측 stale chunk 가능성).
+- 원문과 불일치: 사용적합성 표준을 'IEC 82304-2'로 제시 — 원문 applicable 목록은 IEC 62366-1(일반지식상 82304-2는 헬스앱 품질 관련으로 사용적합성 표준 아님).
+- 원문에 없음/근거 미확인: Class II 단정(원문에 기기 정보 없음), 'MFDS에 24시간 내 보안사고 보고', 'confidence <80% 경고', 'CER <14일' 등 근거 없는 수치. 원문의 GMP 근거(디지털의료제품법 제8조 제조업 허가+품질관리기준)·SBOM(보안지침 제16조, 권고)은 응답에 미반영.
+- 에스컬레이션 표시: 있음 — CER 부재·갭 미해결·KGMP·한글 표시·고위험 취약점 시.
+- 채점 시 볼 곳: §1·§6의 '의료기기법 제15조' 인용(원문 정정 이력과 대조), §2 'IEC 82304-2'. Case Defect(Source excerpt stale) 해당 여부도 판단 필요.
 
 **Reviewer Score**
 
