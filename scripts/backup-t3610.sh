@@ -36,7 +36,7 @@ dec_to() { gpg --batch --yes --quiet --decrypt --passphrase-file "$PASS_FILE" -o
 rotate() { # rotate <dir> <glob> <keep>
   local dir="$1" glob="$2" keep="$3"
   ls -1t "$dir"/$glob 2>/dev/null | tail -n +"$((keep + 1))" | while read -r old; do
-    log "rotate: removing $old"; rm -f "$old" "$old.sha256"
+    log "rotate: removing $old"; rm -f "$old" "$old.sha256" "$old.plain.sha256"
   done
 }
 
