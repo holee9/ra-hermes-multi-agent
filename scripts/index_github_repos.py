@@ -362,6 +362,52 @@ def pgvector_source_exists(source_path: str) -> bool:
             return cur.fetchone() is not None
 
 
+def pgvector_source_state(source_path: str) -> Optional[dict]:
+    """Return {"blob_sha", "chunks"} for an indexed source, or None if absent (#154)."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT metadata->>'blob_sha', content FROM {TABLE} WHERE source_path = %s ORDER BY chunk_index",
+                (source_path,),
+            )
+            rows = cur.fetchall()
+    if not rows:
+        return None
+    return {"blob_sha": rows[0][0], "chunks": [r[1] for r in rows]}
+
+
+def pgvector_set_blob_sha(source_path: str, blob_sha: str) -> None:
+    """Record the upstream blob sha on existing rows without re-embedding (#154 backfill)."""
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"UPDATE {TABLE} SET metadata = metadata || jsonb_build_object('blob_sha', %s::text) WHERE source_path = %s",
+                (blob_sha, source_path),
+            )
+        conn.commit()
+
+
+def pgvector_sources_with_prefix(prefix: str) -> list[str]:
+    with psycopg2.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT DISTINCT source_path FROM {TABLE} WHERE source_path LIKE %s", (prefix + "%",))
+            return [r[0] for r in cur.fetchall()]
+
+
+def remove_orphan_sources(repo: str, listed_paths: list[str]) -> int:
+    """Delete rows for files no longer in the repo listing. Empty listing = fetch failure: no-op."""
+    if not listed_paths:
+        return 0
+    prefix = f"github:{repo}/"
+    keep = {prefix + p for p in listed_paths}
+    removed = 0
+    for source in pgvector_sources_with_prefix(prefix):
+        if source not in keep:
+            pgvector_delete_by_source(source)
+            removed += 1
+    return removed
+
+
 def pgvector_delete_by_source(source_path: str) -> None:
     """Delete all rows matching source_path field."""
     with psycopg2.connect(POSTGRES_URL) as conn:
@@ -421,14 +467,16 @@ def pgvector_count() -> int:
 # Per-file indexing
 # ---------------------------------------------------------------------------
 
-def index_file(repo: str, path: str, force: bool = False) -> int:
-    """Fetch, chunk, embed, and upsert one .md file. Returns chunks added."""
+def index_file(repo: str, path: str, force: bool = False, blob_sha: str = "") -> int:
+    """Fetch, chunk, embed, and upsert one .md file. Returns chunks added, -1 if unchanged."""
     source_path = f"github:{repo}/{path}"
     repo_short = repo.split("/")[-1]
 
-    # Skip files already in DB unless forced (supports interrupted runs)
-    if not force and pgvector_source_exists(source_path):
-        return -1  # sentinel: skipped
+    # #154: re-index when the upstream blob changed; previously any existing row
+    # meant "skip forever", so upstream corrections never reached the index.
+    existing = None if force else pgvector_source_state(source_path)
+    if existing and blob_sha and existing["blob_sha"] == blob_sha:
+        return -1  # sentinel: unchanged
 
     content = fetch_file_content(repo, path)
     if content is None:
@@ -437,6 +485,13 @@ def index_file(repo: str, path: str, force: bool = False) -> int:
     chunks = chunk_markdown(content)
     if not chunks:
         return 0
+
+    # Rows indexed before #154 carry no blob_sha: if the content is identical,
+    # record the sha instead of re-embedding.
+    if existing and not existing["blob_sha"] and existing["chunks"] == chunks:
+        if blob_sha:
+            pgvector_set_blob_sha(source_path, blob_sha)
+        return -1
 
     pgvector_delete_by_source(source_path)
 
@@ -461,6 +516,7 @@ def index_file(repo: str, path: str, force: bool = False) -> int:
                     "repo": repo,
                     "file_path": path,
                     "indexed_at": indexed_at,
+                    "blob_sha": blob_sha,
                 },
             }
         )
@@ -499,18 +555,19 @@ def sync_repos(repos: list[str] = REPOS) -> dict:
         repo_chunks = 0
         for item in md_files:
             path = item["path"]
-            added = index_file(repo, path)
+            added = index_file(repo, path, blob_sha=item.get("sha", ""))
             if added == -1:
-                repo_skipped += 1  # already in DB
+                repo_skipped += 1  # unchanged
             else:
                 print(f"  Indexing: {path}", flush=True)
                 print(f"    → {added} chunk(s) added.", flush=True)
                 repo_files += 1
                 repo_chunks += added
 
+        removed = remove_orphan_sources(repo, [i["path"] for i in md_files])
         elapsed = time.time() - t0
         print(
-            f"[{repo}] Done. new={repo_files}, skipped={repo_skipped}, chunks={repo_chunks}, time={elapsed:.1f}s",
+            f"[{repo}] Done. new={repo_files}, removed={removed}, skipped={repo_skipped}, chunks={repo_chunks}, time={elapsed:.1f}s",
             flush=True,
         )
 
