@@ -130,6 +130,29 @@ def upsert_batch(points):
     return True, r.get("result", {})
 
 
+def prune_stale_points(valid_ids):
+    """Delete Qdrant points whose id is no longer in ra_knowledge (#154).
+
+    Upsert alone never removed chunks that were re-indexed or whose source was
+    deleted. An empty valid set means the source read failed: never wipe.
+    """
+    if not valid_ids:
+        return 0
+    stale, offset = [], None
+    while True:
+        body = {"limit": 1000, "with_payload": False, "with_vector": False}
+        if offset is not None:
+            body["offset"] = offset
+        res = qdrant("POST", f"/collections/{COLLECTION}/points/scroll", body).get("result") or {}
+        stale += [p["id"] for p in res.get("points", []) if p["id"] not in valid_ids]
+        offset = res.get("next_page_offset")
+        if offset is None:
+            break
+    for i in range(0, len(stale), BATCH):
+        qdrant("POST", f"/collections/{COLLECTION}/points/delete?wait=true", {"points": stale[i:i + BATCH]})
+    return len(stale)
+
+
 def main():
     dry = "--dry-run" in sys.argv
     if not POSTGRES_URL:
@@ -157,7 +180,9 @@ def main():
         bnum = i // BATCH
         if bnum % 4 == 0 or bnum == nbatches - 1:
             print(f"  ... {done}/{total} upserted")
-    print(f"[done] upserted={done} failed={failed} -> {COLLECTION}")
+    # Prune only after a fully successful upsert, so a partial run cannot drop live points.
+    pruned = prune_stale_points({r[0] for r in rows}) if failed == 0 else 0
+    print(f"[done] upserted={done} failed={failed} pruned={pruned} -> {COLLECTION}")
 
 
 if __name__ == "__main__":
