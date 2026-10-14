@@ -333,7 +333,12 @@ function callHermesAdvisory(query, regionHint, requestId) {
   const payload = JSON.stringify({
     query,
     region_hint: regionHint || null,
-    wp_context: {} // TV-1: query-only advisory, no WP context
+    wp_context: {}, // TV-1: query-only advisory, no WP context
+    // #141: additive caller-identification fields — the advisory server logs these
+    // when present so traffic origin is diagnosable. Channel-level identity only
+    // (REQ-AC-003 invariant: no VO/virtual-office identifier leaks to Hermes).
+    source: 'chat-channel',
+    input_id: requestId
   });
   const parsedUrl = new URL(`${HERMES_API_URL}/v1/ra/advisory`);
   const transport = parsedUrl.protocol === 'https:' ? https : http;
