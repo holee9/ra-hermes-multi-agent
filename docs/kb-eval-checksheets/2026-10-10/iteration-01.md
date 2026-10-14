@@ -86,17 +86,17 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -105,7 +105,7 @@ Total cases: 15
 
 **Optional Correction Note**
 
->
+> Class B로 단정하며 원문의 'AEC·판독지원 포함 시 Class C 가능(Pre-Sub 확인)' 조건 누락. 'Class III 또는 De Novo', 'Special 510(k)/FDA-approved amendment'는 근거 없는 경로 서술(같은 KB PCCP 가이드 81행: Special 510(k) PCCP 불허).
 
 **Source Excerpts**
 
@@ -287,17 +287,17 @@ Total cases: 15
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -306,7 +306,7 @@ Total cases: 15
 
 **Optional Correction Note**
 
->
+> PCCP 4요소·FR 2024-28361 정확. 'IEC 82304-2 기준 Class II risk'(존재하지 않는 등급 개념)와 '편향 발견 시 FDA notification'(근거 없음) 수정 필요. 기기 정보 없이 892.2050/Class II 전제.
 
 **Source Excerpts**
 
@@ -460,17 +460,17 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -479,7 +479,7 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 
 **Optional Correction Note**
 
->
+> 원문의 범위 밖 변경 3경로(새 510(k)/De Novo/PMA Supplement) 중 PMA Supplement 누락. 21 CFR 803.11은 보고 양식 조항(보고 의무는 803.30/803.50). '≥5% 성능 저하' 임계값은 근거 없는 수치.
 
 **Source Excerpts**
 
@@ -649,17 +649,17 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -668,7 +668,7 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 
 **Optional Correction Note**
 
->
+> ISO 14971 현행판은 2019('ISO 14971:2021' 부존재 판본). FDA 사이버보안 가이던스는 2023-09-27 최종('2022' 인용 오류, 2025-06 개정 존재). '62304 Class C 상향 시 새 510(k)'는 논리 근거 없음.
 
 **Source Excerpts**
 
@@ -813,17 +813,17 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -832,7 +832,7 @@ When evaluating a change impact for AI/ML SaMD, the regulatory pathway hinges on
 
 **Optional Correction Note**
 
->
+> CVD = Coordinated Vulnerability Disclosure — 'Corrective/Preventive Action' 오풀이(2회) 수정. '연간 cybersecurity update 제출', 'SBOM 기한 미준수 30일 경과 시 FDA 통보', 'CVSS≥7.0 → MDR 803' 모두 원문 근거 없음.
 
 **Source Excerpts**
 
@@ -1000,16 +1000,16 @@ All controls must be documented, implemented and verified; residual risk must be
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1018,7 +1018,7 @@ All controls must be documented, implemented and verified; residual risk must be
 
 **Optional Correction Note**
 
->
+> Clock-stop은 심사기한 정지(요청 당일 stop·제출 익일 resume)이며 활동 즉시 중단 명령이 아님(Team-NB Annex VII 포지션페이퍼 확인). Structured Dialogue 근거는 IR (EU) 2026/977 Art.7이지 'MDR Art.7' 아님. 'Annex IX + Annex XI(PPS)'는 존재하지 않는 경로 조합(Art 52(4): Annex IX 단독 또는 Annex X+XI). §4 결함 목록은 원문에 없는 추정을 사실로 서술.
 
 **Source Excerpts**
 
@@ -1178,17 +1178,17 @@ All controls must be documented, implemented and verified; residual risk must be
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1197,7 +1197,7 @@ All controls must be documented, implemented and verified; residual risk must be
 
 **Optional Correction Note**
 
->
+> 'ISO 62304' → IEC 62304 오기. 3/5/10영업일 에스컬레이션 기한은 근거 없는 내부 SLA 수준임을 명시할 것. 원문 54~56행의 제품별 분류 예시(Detector Rule 10 등) 검토 누락.
 
 **Source Excerpts**
 
@@ -1342,17 +1342,17 @@ All controls must be documented, implemented and verified; residual risk must be
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1361,7 +1361,7 @@ All controls must be documented, implemented and verified; residual risk must be
 
 **Optional Correction Note**
 
->
+> 'ISO 13485-2023' 부존재 판본(현행 2016). Annex IX 경로에 Annex XI 불요·Annex XI는 제품적합성 검증 — 혼합 서술 수정. 원문의 X-ray NB 후보(TÜV SÜD·BSI 등) 미반영.
 
 **Source Excerpts**
 
@@ -1517,17 +1517,17 @@ Please challenge the assumptions made above regarding (a) the need for a full An
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
@@ -1695,17 +1695,17 @@ Your feedback will help ensure completeness before the final NB response is draf
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1714,7 +1714,7 @@ Your feedback will help ensure completeness before the final NB response is draf
 
 **Optional Correction Note**
 
->
+> GSPR §20은 기계·열 위험(전기·능동기기는 §18) — '§20 extended to electrical' 수정. 표준 목록(IEC 60601-2-28/2-54/62220-1-1)은 원문 밖 일반지식임을 명시할 것. 원문의 2027-12-31 전환기한 미반영.
 
 **Source Excerpts**
 
@@ -1866,16 +1866,16 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1884,7 +1884,7 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 
 **Optional Correction Note**
 
->
+> 보완기한: 원문 기준 1차 60일·2차 60일(미제출 시 취하 간주)이나 응답은 '기한 미기재'로 단정하고 30일을 에스컬레이션 기준으로 사용 — 원문 심사규정상 1차 60일 확인(참고: 2차는 현행 심사규정상 10일로 원문 자체 오류 가능). 분류 근거 조문도 제23조(표시기재)가 아닌 제6조②/제3조. '인증=일부 1등급' 서술도 오류(2등급=인증).
 
 **Source Excerpts**
 
@@ -2055,16 +2055,16 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2073,7 +2073,7 @@ These points should be embedded in any future MFDS supplement‑response SOPs.
 
 **Optional Correction Note**
 
->
+> 국내 등급체계는 1~4등급(1=신고·2=인증·3/4=허가)이나 응답은 EU식 'Class IIb–III'·'I~IIa→신고' 사용 — 핵심 분류 내용 오류. KGMP 적합인정은 식약처 발행('KAIST-approved' 허위). 분류 근거도 제1조제2항(목적 조문)이 아닌 제6조②. KS A ISO 9283는 산업용 로봇 규격(국내 채택 KS B)으로 X-ray 관련 시험 근거 부적절.
 
 **Source Excerpts**
 
@@ -2234,17 +2234,17 @@ If any of the escalation triggers are met, pause submission and involve the rele
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2253,7 +2253,7 @@ If any of the escalation triggers are met, pause submission and involve the rele
 
 **Optional Correction Note**
 
->
+> 35개 항목·8카테고리·IMDRF N70 조화 충실. CVD = Coordinated Vulnerability Disclosure('Common' 오풀이 수정). 국내 경로에서 2등급 인증 트랙 누락. 'Table 2-1 of MFDS Classification Guide' 출처 불명.
 
 **Source Excerpts**
 
@@ -2396,16 +2396,16 @@ Your feedback will help ensure full coverage before finalizing the submission pl
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2414,7 +2414,7 @@ Your feedback will help ensure full coverage before finalizing the submission pl
 
 **Optional Correction Note**
 
->
+> 국내법에 'Annex III of the Medical Device Act' 구조 없음(기술문서=시행규칙 별표 3). 제출 경로에서 2등급 인증 누락('Class II–IV→허가' 오류). 짧은 README 원문과 연결 약한 일반지식 나열로 source 근거 판단 미흡.
 
 **Source Excerpts**
 
@@ -2556,25 +2556,25 @@ Your feedback will help ensure full coverage before finalizing the submission pl
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
 - [ ] Capture failed
-- [ ] Source mismatch (focus vs source)
+- [x] Source mismatch (focus vs source)
 
 **Optional Correction Note**
 
->
+> Source excerpt가 #154로 해결된 정정 전 구버전('법 제15조' 행) — Case Defect로 기록. 응답도 이를 '의료기기법 제15조' 분류근거로 오확장(원문 맥락은 디지털의료제품법 DR-07). '24시간 내 보안사고 보고', 'confidence<80% 경고' 등 근거 없는 수치. 정정 후 원문은 '해석범위(제9조 또는 제10조)'.
 
 **Source Excerpts**
 
