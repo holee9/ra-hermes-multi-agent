@@ -156,9 +156,11 @@ test('#104 DoD: request_id 발급 → 배경 자문 호출 → 폴링으로 결�
     assert.equal(call.method, 'POST');
     assert.equal(call.url, '/v1/ra/advisory');
     // 금지 토큰 부재는 그 토큰만 증명한다 — 일반 증명이 아니다(codex 지적).
-    // 대신 **허용 필드 집합을 양성으로 고정**한다: 요청은 정확히 3필드다.
+    // 대신 **허용 필드 집합을 양성으로 고정**한다: #141 additive 식별 2필드까지 정확히 5필드.
     const sent = JSON.parse(call.body);
-    assert.deepEqual(Object.keys(sent).sort(), ['query', 'region_hint', 'wp_context']);
+    assert.deepEqual(Object.keys(sent).sort(), ['input_id', 'query', 'region_hint', 'source', 'wp_context']);
+    assert.equal(sent.source, 'chat-channel');   // 채널 식별만 — VO/virtual-office 토큰 아님
+    assert.match(sent.input_id, /^[0-9a-f-]{16,}$/i);
     assert.equal(sent.query, 'FDA 510(k) 제출 준비 확인');   // 사용자 질의 원문 그대로
     assert.equal(sent.region_hint, null);
     assert.deepEqual(sent.wp_context, {});
@@ -169,9 +171,10 @@ test('#104 DoD: request_id 발급 → 배경 자문 호출 → 폴링으로 결�
       assert.equal(['authorization', 'content-type', 'content-length', 'host', 'connection',
         'accept', 'accept-encoding', 'user-agent'].includes(h), true, `예상 밖 헤더: ${h}`);
     }
-    // 관측된 **모든** 요청에 같은 계약을 적용한다(첫 건만이 아니라).
+    // 관측된 **모든** 요청에 같은 계약을 적용한다(첫 건만이 아니라). #141 additive 2필드 포함.
     for (const c of stub.seen) {
-      assert.deepEqual(Object.keys(JSON.parse(c.body)).sort(), ['query', 'region_hint', 'wp_context']);
+      assert.deepEqual(Object.keys(JSON.parse(c.body)).sort(),
+        ['input_id', 'query', 'region_hint', 'source', 'wp_context']);
     }
   } finally { child.kill(); stub.server.close(); }
 });
