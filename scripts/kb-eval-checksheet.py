@@ -417,6 +417,7 @@ def render_case(
         "",
         checkbox("Capture failed"),
         checkbox("Source mismatch (focus vs source)"),
+        checkbox("KB source error propagated (원본 오류, #144)"),
         "",
         "**Optional Correction Note**",
         "",

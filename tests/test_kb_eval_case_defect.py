@@ -50,14 +50,14 @@ def _sheet(*checked: str, note: str | None = None) -> str:
 def test_parser_records_case_defect_fields():
     text = _sheet("Score 1 - correction required", "Capture failed")
     [rec] = ingest.parse_text("sheet", text)
-    assert rec["case_defect"] == {"capture_failed": True, "source_mismatch": False}
+    assert rec["case_defect"] == {"capture_failed": True, "source_mismatch": False, "kb_source_error": False}
     assert rec["score"] == 1 and rec["delta"]["self_correction"] is True   # both recorded
 
 
 def test_parser_source_mismatch_with_passing_score():
     text = _sheet("Score 2 - usable with minor correction", "Source mismatch (focus vs source)")
     [rec] = ingest.parse_text("sheet", text)
-    assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": True}
+    assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": True, "kb_source_error": False}
 
 
 def test_parser_backward_compatible_with_sheets_lacking_defect_boxes():
@@ -70,7 +70,7 @@ def test_parser_backward_compatible_with_sheets_lacking_defect_boxes():
 def test_parser_explicit_unchecked_boxes_are_evaluated_not_legacy():
     text = _sheet("Score 3 - pass / usable without correction")
     [rec] = ingest.parse_text("sheet", text)
-    assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": False}
+    assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": False, "kb_source_error": False}
 
 
 def test_end_to_end_legacy_sheet_counts_as_unevaluated_in_metrics():
@@ -120,7 +120,7 @@ def test_correction_rate_reports_system_and_conditional_split():
     r = gm.compute_correction_rate(msgs, since, until)
     assert r["denominator"] == 5 and r["numerator"] == 3 and r["value"] == 0.6   # system-level keeps all
     assert r["case_defects"] == {"count": 2, "corrected": 2, "capture_failed": 1, "source_mismatch": 1,
-                                 "unevaluated_legacy": 2}                      # 3번·4번: case_defect 키 없음
+                                 "kb_source_error": 0, "unevaluated_legacy": 2}                      # 3번·4번: case_defect 키 없음
     cond = r["excluding_case_defects"]
     assert (cond["value"], cond["numerator"], cond["denominator"]) == (1 / 3, 1, 3)
     assert "NOT agent attribution" in cond["meaning"] and "agent_attributable" not in r
@@ -279,3 +279,30 @@ def test_floor_is_honoured_when_operator_sets_it():
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=60)
     assert out.returncode == 0, out.stderr[-500:]
     assert out.stdout.strip() in ("3", "3.0"), out.stdout.strip()
+
+
+def test_parser_records_kb_source_error():
+    # #144/#147: 원문(KB 소스) 오류를 에이전트가 그대로 따른 사례 — 채점자 체크로 구조화.
+    text = _sheet("Score 2 - usable with minor correction",
+                  "KB source error propagated (원본 오류, #144)")
+    [rec] = ingest.parse_text("sheet", text)
+    assert rec["case_defect"] == {"capture_failed": False, "source_mismatch": False,
+                                  "kb_source_error": True}
+
+
+def test_correction_rate_excludes_kb_source_error_from_conditional():
+    # #144: 원본 오류 전파 감점은 시스템 수준 지표에는 남고, 조건부 지표에서는 분리된다.
+    since = datetime(2026, 10, 14, tzinfo=timezone.utc)
+    until = datetime(2026, 10, 15, tzinfo=timezone.utc)
+    msgs = {"feedback": [
+        _score_msg("2026-10-14T01:00:00+00:00", True, {"capture_failed": False, "source_mismatch": False,
+                                                       "kb_source_error": True}),
+        _score_msg("2026-10-14T02:00:00+00:00", True, {"capture_failed": False, "source_mismatch": False,
+                                                       "kb_source_error": False}),   # genuine agent error
+        _score_msg("2026-10-14T03:00:00+00:00", False, {"capture_failed": False, "source_mismatch": False,
+                                                         "kb_source_error": False}),
+    ]}
+    r = gm.compute_correction_rate(msgs, since, until)
+    assert r["value"] == 2 / 3 and r["case_defects"]["kb_source_error"] == 1
+    cond = r["excluding_case_defects"]
+    assert (cond["value"], cond["numerator"], cond["denominator"]) == (1 / 2, 1, 2)
