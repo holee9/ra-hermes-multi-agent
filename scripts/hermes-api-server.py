@@ -759,7 +759,9 @@ _KR_GRADE2 = re.compile(
     rf"Class\s?II(?!I)|2\s?등급|II\s?[{_HYPHENS}~]\s?III|II\s?,\s?III|2\s?[·,~]\s?[34]\s?등급"
 )
 _KR_APPROVAL = re.compile(r"허가|[Aa]pproval|[Ll]icen[cs]e|Registration")
-_KR_CERT = re.compile(r"인증|[Cc]ertification")
+# #145 (10-14): "KGMP 인증/certification"은 시설 적합성 인정이지 2등급 제출트랙
+# '인증'이 아니므로 같은 줄에 있어도 완화 사유가 되어선 안 된다 — negative lookbehind로 제외.
+_KR_CERT = re.compile(r"(?<!KGMP\s)인증|(?<!KGMP\s)[Cc]ertification")
 
 
 def _kr_grade_pathway_errors(adv: dict) -> list[str]:
