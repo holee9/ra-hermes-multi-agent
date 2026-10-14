@@ -349,6 +349,24 @@ def test_kr_grade_rule_only_applies_to_ra_kr():
     assert yellow is None
 
 
+def test_kgmp_certification_same_line_does_not_suppress_grade_error():
+    # #145 (10-14 채점 kr-003 회귀): 'KGMP certification'은 시설 인정이지
+    # 2등급 제출트랙 인증이 아니므로, 같은 줄에 있어도 규칙 위반을 덮지 못한다.
+    line = ("| **Submission route** | • Class II–III – 허가 (approval) with additional "
+            "security-risk evaluation, KGMP certification of the site |")
+    _, yellow = m.validate_advisory(_adv153(line), "ra_kr")
+    assert yellow == "kr_grade_pathway", line
+
+
+@pytest.mark.parametrize("line", [
+    "2등급 인증 절차에는 KGMP 인증서 사본이 필요하다",
+    "Class II → 인증 (certification under KGMP certification scheme)",
+])
+def test_kgmp_certification_correct_lines_still_pass(line):
+    _, yellow = m.validate_advisory(_adv153(line), "ra_kr")
+    assert yellow is None, line
+
+
 # ── #134 C1: structural regulatory-citation gate ──────────────────────────
 
 def test_validate_nonexistent_article_subpoint_is_yellow():
