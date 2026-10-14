@@ -474,7 +474,7 @@ def compute_correction_rate(messages_by_session: dict[str, list[dict]],
     defect_total = 0
     defect_corrected = 0
     legacy_unevaluated = 0
-    defect_kinds = {"capture_failed": 0, "source_mismatch": 0}
+    defect_kinds = {"capture_failed": 0, "source_mismatch": 0, "kb_source_error": 0}
     samples: list[dict] = []
 
     for session_id, msgs in messages_by_session.items():

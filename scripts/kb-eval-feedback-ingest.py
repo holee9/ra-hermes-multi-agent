@@ -46,6 +46,9 @@ DIMENSION_LABELS = {
 CASE_DEFECT_LABELS = {
     "Capture failed": "capture_failed",
     "Source mismatch (focus vs source)": "source_mismatch",
+    # #144/#147: 에이전트가 원문(KB 소스)의 오류를 충실히 따라 감점된 사례 — 에이전트
+    # 귀책이 아니므로 지표 산정에서 분리한다. 채점자가 '원문이 틀렸다'고 판정할 때 체크.
+    "KB source error propagated (원본 오류, #144)": "kb_source_error",
 }
 
 
