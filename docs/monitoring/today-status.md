@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-10-12
-Timestamp: 2026-10-12T08:00:00+09:00
+Date: 2026-10-14
+Timestamp: 2026-10-14T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -8,11 +8,11 @@ Timestamp: 2026-10-12T08:00:00+09:00
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261012-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261014-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-10-12.json
+Latest report: reports/growth-2026-10-14.json
 
 ### Current Metrics
 {
