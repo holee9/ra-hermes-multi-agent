@@ -129,17 +129,17 @@ Your feedback will be incorporated before finalizing the submission package.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -149,7 +149,7 @@ Your feedback will be incorporated before finalizing the submission package.
 
 **Optional Correction Note**
 
->
+> 'predicate의 Device History Files' → predicate 공개문서는 510(k) Summary(DHF는 자사 내부 문서)로 수정. §892.2050 검증 플래그 처리는 모범적.
 
 **Source Excerpts**
 
@@ -286,17 +286,17 @@ Your feedback will be incorporated before finalizing the submission package.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -306,7 +306,7 @@ Your feedback will be incorporated before finalizing the submission package.
 
 **Optional Correction Note**
 
->
+> '차이 ≤/> 30%' — FDA SE 기준에 존재하지 않는 수치. SE는 정성 판정(2014 'The 510(k) Program' 가이던스). 경로별 근거표(§510(k)·§513(f)(2)/§860·§515/§814)는 원문 충실.
 
 **Source Excerpts**
 
@@ -470,17 +470,17 @@ When any of these triggers occur, a formal **Risk Review Board** meeting should 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -490,7 +490,7 @@ When any of these triggers occur, a formal **Risk Review Board** meeting should 
 
 **Optional Correction Note**
 
->
+> FDA 사이버 가이던스 '2022' 인용 오류 — 2018 초안→2023-09-27 최종, 2022 판본 부재(10-10 us-004 이후 재발, #134). Predicate 체크리스트 7단계는 원문 완전 충실.
 
 **Source Excerpts**
 
@@ -556,17 +556,17 @@ When any of these triggers occur, a formal **Risk Review Board** meeting should 
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
@@ -725,16 +725,16 @@ When any of these triggers occur, a formal **Risk Review Board** meeting should 
 
 - [ ] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
-- [ ] Score 1 - correction required
+- [x] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
+- [x] Match correct
 - [ ] Evidence supported
-- [ ] Source cited
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -744,7 +744,7 @@ When any of these triggers occur, a formal **Risk Review Board** meeting should 
 
 **Optional Correction Note**
 
->
+> ① 'De Novo per 21 CFR §814.94' — De Novo는 Part 860 Subpart D(§860.200~260), §814.94는 PMA 조항. ② '§807.90 classification criteria' — §807.90은 510(k) 제출 양식 조항. ③ 'ISO 14971:2023' 부존재 판본(현행 2019; 10-10 '14971:2021'과 동일 계열의 판본 창작). ④ 'SW >30%'·'위험 1×10⁻³' 근거 없는 수치. ※ '10년 내 predicate'는 FDA 초안 가이던스(2023-09)의 실제 권고 기준이나 무출처. 원문이 4줄 뼈대(v0.1)라 대부분 일반지식으로 구성.
 
 **Source Excerpts**
 
@@ -871,17 +871,17 @@ Your feedback will help ensure completeness before the dossier is presented to t
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -891,7 +891,7 @@ Your feedback will help ensure completeness before the dossier is presented to t
 
 **Optional Correction Note**
 
->
+> ① '선택 루트: Annex IX + Annex XI' — 존재하지 않는 조합(Art 52(4): Annex IX 단독 또는 Annex X+XI; 10-14 eu-002 이후 재발, #134). ② 'EUDAMED Art 33-39' — UDI/등록은 Art 27·28·29-31, EUDAMED 33-34(35-39는 인증기관 조문). GSPR §16.4/§17/§18·PSUR 연1회는 정확.
 
 **Source Excerpts**
 
@@ -968,17 +968,17 @@ Your feedback will help ensure completeness before the dossier is presented to t
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
@@ -989,7 +989,7 @@ Your feedback will help ensure completeness before the dossier is presented to t
 
 **Optional Correction Note**
 
->
+> 참고: Art 85 Class I PMS 보고서의 주기는 '필요 시 갱신' — '연1회' 표현은 완화 필요(식별자 자체는 정확).
 
 **Source Excerpts**
 
@@ -1166,17 +1166,17 @@ Your feedback will help ensure completeness before the dossier is presented to t
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1186,7 +1186,7 @@ Your feedback will help ensure completeness before the dossier is presented to t
 
 **Optional Correction Note**
 
->
+> 'Annex II §7-9' 부존재 — Annex II는 1~6절뿐(설계·제조=§3). '§§20-22' 묶음도 부정확(§20=기계·열, §22=일반인 사용). 빈 DoC 템플릿에 '분류 확정 불가'로 보수 처리한 점은 모범적.
 
 **Source Excerpts**
 
@@ -1337,17 +1337,17 @@ Your feedback will help ensure completeness before the dossier is presented to t
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1357,7 +1357,7 @@ Your feedback will help ensure completeness before the dossier is presented to t
 
 **Optional Correction Note**
 
->
+> 표에는 경로 or-구조를 정확히 썼으나 요약문 'Annex IX (or Annex X) plus Annex XI'가 다시 혼합으로 뭉개짐. 'EUDAMED Art 33-39' 재발(#134).
 
 **Source Excerpts**
 
@@ -1537,17 +1537,17 @@ This document provides a structured outline of the regulatory pathway that must 
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
@@ -1691,17 +1691,17 @@ This document provides a structured outline of the regulatory pathway that must 
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -1711,7 +1711,7 @@ This document provides a structured outline of the regulatory pathway that must 
 
 **Optional Correction Note**
 
->
+> '2등급 → 인증(지정 심사기관)' 정확(#145 유지). '순수 SW는 자가선언으로 GMP 면제 가능' — 근거 없음: 디지털의료제품법 제8조④(신청 전 품질관리체계 의무)·제24조②(SW 품질관리기준 적합판정, 유효 3년). 사용적합성은 ISO 9241-210보다 IEC 62366-1이 MFDS 기준.
 
 **Source Excerpts**
 
@@ -1856,17 +1856,17 @@ This document provides a structured outline of the regulatory pathway that must 
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
+- [x] Score 3 - pass / usable without correction
 - [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
 - [ ] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
@@ -2008,17 +2008,17 @@ Your feedback will be incorporated before finalizing the submission dossier.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
 - [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2028,7 +2028,7 @@ Your feedback will be incorporated before finalizing the submission dossier.
 
 **Optional Correction Note**
 
->
+> 'IEC 14971' → ISO 14971(3회 반복 오타). 'MFDS 사이버 가이드라인이 IEC 62443 참조' — 원문 근거는 IEC 81001-5-1. 2등급 인증 경로·고시 명칭은 원문 충실.
 
 **Source Excerpts**
 
@@ -2165,17 +2165,17 @@ All 35 individual RA items (RA‑01 ~ RA‑35) are enumerated in the officia
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2185,7 +2185,7 @@ All 35 individual RA items (RA‑01 ~ RA‑35) are enumerated in the officia
 
 **Optional Correction Note**
 
->
+> 'KGMP certificate (if a 3등급·4등급 device)' 축소 — 의료기기법 제6조④는 등급 불문 신청 전 제조·품질관리체계를 의무화(2등급 인증에도 적용, 등급 간 차이는 심사기관뿐). '기본 트랙은 인증, 허가 아님' 명시는 정확.
 
 **Source Excerpts**
 
@@ -2343,17 +2343,17 @@ Your feedback will be incorporated before finalizing the submission package.
 **Reviewer Score**
 
 - [ ] Score 3 - pass / usable without correction
-- [ ] Score 2 - usable with minor correction
+- [x] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
 
-- [ ] Match correct
-- [ ] Evidence supported
-- [ ] Source cited
-- [ ] No hallucination
-- [ ] Escalation appropriate
-- [ ] Human correction needed
+- [x] Match correct
+- [x] Evidence supported
+- [x] Source cited
+- [x] No hallucination
+- [x] Escalation appropriate
+- [x] Human correction needed
 
 **Case Defect** — input-side defect, recorded separately from the score (#147)
 
@@ -2363,7 +2363,7 @@ Your feedback will be incorporated before finalizing the submission package.
 
 **Optional Correction Note**
 
->
+> '로그 12개월' 근거 없는 수치(내부 기준으로 표기할 것). 'MFMF'→MFDS 오타. 법률 제21949호·S-1~S-10·1~4등급 트랙는 원문 완전 충실.
 
 **Source Excerpts**
 
