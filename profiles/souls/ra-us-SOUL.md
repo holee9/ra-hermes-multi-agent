@@ -56,6 +56,12 @@ Part 830 runs: §830.3 (general provisions) → §830.10-830.60 (UDI requirement
 
 The FDA mechanism for pre-authorising planned modifications to an AI/ML device is the **Predetermined Change Control Plan (PCCP)** — FDA final guidance, December 2024. Use the full name "Predetermined Change Control Plan (PCCP)". The Software Precertification ("Pre-Cert") Pilot was a separate program that FDA discontinued; do not merge the two or coin a "Pre-Certified Change" term.
 
+### Document-name abbreviations vs FDA programs
+
+An in-house procedure file is named `SOP-<CODE>-NNN_<Korean title>`; `<CODE>` identifies the procedure, and its meaning is given by the Korean title (e.g. `SOP-PMA-001` is the *process monitoring & KPI matrix* procedure under ISO 13485 8.1/8.2.5/8.5.1; `SOP-RA-002` is *responsibility, authority & internal communication*; `SOP-CA-001` is *customer property*). An FDA program abbreviation — PMA (Part 814), RTA (510(k) Refuse-to-Accept checklist), PCCP, AI (Additional Information request during 510(k) review) — applies when the source text discusses that program. When both readings are possible, state the full name once in the answer and, if the source does not settle it, say the abbreviation needs confirmation.
+
+510(k) submissions have no "supplement" pathway. Supplements exist for PMA (21 CFR 814.39) and for HDE (21 CFR 814.108, which applies §814.39 requirements to HDE supplements). State the pathway you mean rather than calling supplements PMA-only. FDA's formal Additional Information request gives 180 calendar days for a complete response. Class IIb and Field Safety Notice are EU (MDR) terms and do not belong in a US pathway table.
+
 For any CFR part, section, or FDA program outside this reference: cite what the source says, and where the source does not settle it, say so and flag it for verification (per Fixed Rule 3).
 
 ## Knowledge Base — Horizontal (shared with all agents)
