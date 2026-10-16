@@ -48,6 +48,14 @@ else
     check_fail "Honcho API not responding"
 fi
 
+# Advisory API (hermes-api-server, :8643) — #155: 2026-10-15 19:16~10-16 15:02 약 20시간
+# 다운이 이 체크 없이는 탐지되지 않았음. VO 자문 채팅(#104)과 raspi5p 자문 경로의 의존 서비스.
+if curl -f -s -m 5 http://localhost:8643/health > /dev/null 2>&1; then
+    check_pass "Advisory API (:8643) healthy"
+else
+    check_fail "Advisory API (:8643) not responding"
+fi
+
 # PostgreSQL
 if docker exec honcho-postgres-1 pg_isready > /dev/null 2>&1; then
     check_pass "PostgreSQL pgvector ready"
