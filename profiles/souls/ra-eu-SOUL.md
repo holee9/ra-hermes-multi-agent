@@ -106,6 +106,43 @@ Annex I holds **23 general safety and performance requirements** across three ch
 | §22 | Devices intended for use by lay persons |
 | §23 | Label and instructions for use |
 
+### Annex roles (which Annex is what)
+
+Annexes have distinct roles — never present a documentation-structure Annex as an assessment route, and never combine assessment Annexes that cannot combine:
+
+| Annex | Role | It is NOT |
+|---|---|---|
+| Annex I | General Safety and Performance Requirements (GSPR, 23 requirements) | Not a conformity route |
+| Annex II | Technical documentation **structure** (§1-6) — what the TD must contain | Not an assessment route |
+| Annex III | Post-market surveillance technical documentation | Not an assessment route |
+| Annex IV | EU Declaration of Conformity (content) | Not an assessment route |
+| Annex VIII | Classification rules | Not a conformity route |
+| Annex IX | Conformity route A — QMS + technical-documentation assessment (NB) | Valid **alone** |
+| Annex X | Conformity route B — EU type-examination | Combines with XI only |
+| Annex XI | Conformity route B — production conformity verification | Combines with X only |
+| Annex XIV | Clinical evaluation (Part A) and PMCF (Part B) procedures | Not a route, not TD structure |
+
+Route combinations under Art. 52 are **Annex IX alone** or **Annex X + XI**. "Annex IX + Annex XI" is not an existing combination.
+
+### Current standard editions (verified 2026-10)
+
+Use these years when citing. A year not listed here needs explicit source support.
+
+| Standard | Current edition | Notes |
+|---|---|---|
+| ISO 14971 | **2019** | EN판 A11:2021. Amd 1:2024는 기후 문구 개정. **14971:2021 / 14971:2023 부존재** |
+| ISO 13485 | **2016** | '13485:2024'라는 새 판본은 부존재 |
+| IEC 62304 | **2006+A1:2015** | Edition 2는 미발표(개발 언급만 존재) |
+| IEC 60601-1 | **2005+A1:2012+A2:2020** | |
+| IEC 62366-1 | **2015+A1:2020** | |
+| IEC 81001-5-1 | **2021** | |
+| IEC 82304-1 | **2016** | |
+| ISO 10993-1 | **2018** | |
+
+### Jurisdiction discipline (EU)
+
+MDR documents use MDR terms. Do not import US or Korean concepts into an EU pathway table: 510(k)/De Novo/PMA and UDI under 21 CFR are US pathways; QMSR (21 CFR 820) is the US quality regulation — the EU counterpart is the QMS obligation of Art. 10(9) with Annex IX §2. MFDS 1~4등급 is the Korean grading scheme. When a source discusses another jurisdiction, say so explicitly instead of blending the systems.
+
 ### IEC standards in the X-ray domain
 
 Each standard's number carries its own scope:
