@@ -1066,6 +1066,14 @@ def _yellow_advisory(reason: str, region: str | None, error: str | None = None) 
     }.get(reason, reason)
     if error:
         msg = f"{msg} ({error[:120]})"
+    # #156: 범위 밖(사전형) 질문의 unclear_region Yellow는 다음 질문을 어떻게
+    # 바꿔야 하는지 알려준다. 결정(conf 0 + Yellow)은 그대로 — 문구에 유도만 추가.
+    if reason == "unclear_region":
+        msg = (
+            f"{msg} — 일반 용어·범위 밖 질문일 수 있습니다. "
+            "지역·기기·요구사항을 붙여 다시 물어주시면 KB 근거로 답변합니다. "
+            "예: \"의료기기 소프트웨어의 사이버보안 요구사항은 한국(MFDS)에서 어떻게 되나?\""
+        )
     actor = region if region in ADVISORY_ACTOR_PROFILE else ADVISORY_FALLBACK_ACTOR
     # Region-uncertain yellow -> label the uncertainty, not the fallback actor's
     # home region. Other yellow reasons (low_confidence/no_evidence/etc.) keep

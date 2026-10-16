@@ -514,6 +514,20 @@ def test_yellow_multi_region_label():
     assert ya["region"] == "multi_region"
 
 
+def test_yellow_unclear_region_has_requery_guidance():  # #156: 범위 밖 질문 Yellow는 재질의 유도를 싣는다
+    ya = m._yellow_advisory("unclear_region", None)
+    assert "지역·기기·요구사항" in ya["summary"]
+    assert "규제권을 특정할 수 없음" in ya["summary"]  # 판정 문구는 유지
+    assert ya["decision"] == "yellow_review"
+    assert ya["confidence"] == 0.0
+
+
+def test_yellow_other_reasons_no_requery_guidance():  # #156: 유도 문구는 unclear_region 전용
+    for reason in ("multi_region", "low_confidence", "no_evidence"):
+        ya = m._yellow_advisory(reason, None)
+        assert "지역·기기·요구사항" not in ya["summary"], reason
+
+
 def test_yellow_low_confidence_keeps_routed_region():  # confidence/evidence yellow keeps the routed actor's real region
     ya = m._yellow_advisory("low_confidence", "ra_eu")
     assert ya["region"] == "EU"
