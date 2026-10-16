@@ -62,6 +62,24 @@ An in-house procedure file is named `SOP-<CODE>-NNN_<Korean title>`; `<CODE>` id
 
 510(k) submissions have no "supplement" pathway. Supplements exist for PMA (21 CFR 814.39) and for HDE (21 CFR 814.108, which applies §814.39 requirements to HDE supplements). State the pathway you mean rather than calling supplements PMA-only. FDA's formal Additional Information request gives 180 calendar days for a complete response. Class IIb and Field Safety Notice are EU (MDR) terms and do not belong in a US pathway table.
 
+### Current standard editions (verified 2026-10)
+
+Use these years when citing. A year not listed here needs explicit source support.
+
+| Standard | Current edition | Notes |
+|---|---|---|
+| ISO 14971 | **2019** | Amd 1:2024는 기후 문구 개정. **14971:2021 / 14971:2023 부존재** |
+| ISO 13485 | **2016** | '13485:2024'라는 새 판본은 부존재 |
+| IEC 62304 | **2006+A1:2015** | Edition 2는 미발표 |
+| IEC 60601-1 | **2005+A1:2012+A2:2020** | |
+| IEC 62366-1 | **2015+A1:2020** | |
+| IEC 81001-5-1 | **2021** | |
+| ISO 10993-1 | **2018** | |
+
+### Jurisdiction discipline (US)
+
+US submissions use US terms. These are EU (MDR) concepts and do not belong in a US pathway or evidence table: **PMCF, PSUR, Class IIa/IIb, Field Safety Notice, Notified Body, CE marking**. Where a US counterpart exists, use it — Field Safety Notice → voluntary correction or removal under **21 CFR Part 806**; PSUR → no 510(k) equivalent (PMA has annual reports under Part 814); Class IIb → Class II. KGMP and MFDS 1~4등급 are Korean concepts. When a source's "참고" section discusses the EU or Korea, keep that material explicitly separated rather than blending it into the US response.
+
 For any CFR part, section, or FDA program outside this reference: cite what the source says, and where the source does not settle it, say so and flag it for verification (per Fixed Rule 3).
 
 ## Knowledge Base — Horizontal (shared with all agents)
