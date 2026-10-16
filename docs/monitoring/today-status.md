@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-10-15
-Timestamp: 2026-10-15T08:00:00+09:00
+Date: 2026-10-16
+Timestamp: 2026-10-16T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -8,75 +8,75 @@ Timestamp: 2026-10-15T08:00:00+09:00
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261015-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261016-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-10-15.json
+Latest report: reports/growth-2026-10-16.json
 
 ### Current Metrics
 {
   "correction_rate": {
-    "value": 0.9,
-    "numerator": 27,
-    "denominator": 30,
+    "value": 0.7333333333333333,
+    "numerator": 11,
+    "denominator": 15,
     "case_defects": {
-      "count": 1,
-      "corrected": 1,
+      "count": 0,
+      "corrected": 0,
       "capture_failed": 0,
-      "source_mismatch": 1,
+      "source_mismatch": 0,
       "kb_source_error": 0,
       "unevaluated_legacy": 0
     },
     "excluding_case_defects": {
-      "value": 0.896551724137931,
-      "numerator": 26,
-      "denominator": 29,
+      "value": 0.7333333333333333,
+      "numerator": 11,
+      "denominator": 15,
       "meaning": "conditional correction rate over cases with no input-defect flag; NOT agent attribution (output defects are not judged here, #147)"
     },
     "samples": [
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "actor": "ra_us",
         "score": 2,
         "changed": {
-          "note": "Class B로 단정하며 원문의 'AEC·판독지원 포함 시 Class C 가능(Pre-Sub 확인)' 조건 누락. 'Class III 또는 De Novo', 'Special 510(k)/FDA-approved amendment'는 근거 없는 경로 서술(같은 KB PCCP 가이드 81행: Special 510(k) PCCP 불허)."
+          "note": "'predicate의 Device History Files' → predicate 공개문서는 510(k) Summary(DHF는 자사 내부 문서)로 수정. §892.2050 검증 플래그 처리는 모범적."
         },
         "case_defect": null
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "actor": "ra_us",
         "score": 2,
         "changed": {
-          "note": "PCCP 4요소·FR 2024-28361 정확. 'IEC 82304-2 기준 Class II risk'(존재하지 않는 등급 개념)와 '편향 발견 시 FDA notification'(근거 없음) 수정 필요. 기기 정보 없이 892.2050/Class II 전제."
+          "note": "'차이 ≤/> 30%' — FDA SE 기준에 존재하지 않는 수치. SE는 정성 판정(2014 'The 510(k) Program' 가이던스). 경로별 근거표(§510(k)·§513(f)(2)/§860·§515/§814)는 원문 충실."
         },
         "case_defect": null
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "actor": "ra_us",
         "score": 2,
         "changed": {
-          "note": "원문의 범위 밖 변경 3경로(새 510(k)/De Novo/PMA Supplement) 중 PMA Supplement 누락. 21 CFR 803.11은 보고 양식 조항(보고 의무는 803.30/803.50). '≥5% 성능 저하' 임계값은 근거 없는 수치."
+          "note": "FDA 사이버 가이던스 '2022' 인용 오류 — 2018 초안→2023-09-27 최종, 2022 판본 부재(10-10 us-004 이후 재발, #134). Predicate 체크리스트 7단계는 원문 완전 충실."
         },
         "case_defect": null
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "actor": "ra_us",
-        "score": 2,
+        "score": 1,
         "changed": {
-          "note": "ISO 14971 현행판은 2019('ISO 14971:2021' 부존재 판본). FDA 사이버보안 가이던스는 2023-09-27 최종('2022' 인용 오류, 2025-06 개정 존재). '62304 Class C 상향 시 새 510(k)'는 논리 근거 없음."
+          "note": "① 'De Novo per 21 CFR §814.94' — De Novo는 Part 860 Subpart D(§860.200~260), §814.94는 PMA 조항. ② '§807.90 classification criteria' — §807.90은 510(k) 제출 양식 조항. ③ 'ISO 14971:2023' 부존재 판본(현행 2019; 10-10 '14971:2021'과 동일 계열의 판본 창작). ④ 'SW >30%'·'위험 1×10⁻³' 근거 없는 수치. ※ '10년 내 predicate'는 FDA 초안 가이던스(2023-09)의 실제 권고 기준이나 무출처. 원문이 4줄 뼈대(v0.1)라 대부분 일반지식으로 구성."
         },
         "case_defect": null
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
-        "actor": "ra_us",
+        "session": "kb-eval-feedback-2026-10-15",
+        "actor": "ra_eu",
         "score": 2,
         "changed": {
-          "note": "CVD = Coordinated Vulnerability Disclosure — 'Corrective/Preventive Action' 오풀이(2회) 수정. '연간 cybersecurity update 제출', 'SBOM 기한 미준수 30일 경과 시 FDA 통보', 'CVSS≥7.0 → MDR 803' 모두 원문 근거 없음."
+          "note": "① '선택 루트: Annex IX + Annex XI' — 존재하지 않는 조합(Art 52(4): Annex IX 단독 또는 Annex X+XI; 10-14 eu-002 이후 재발, #134). ② 'EUDAMED Art 33-39' — UDI/등록은 Art 27·28·29-31, EUDAMED 33-34(35-39는 인증기관 조문). GSPR §16.4/§17/§18·PSUR 연1회는 정확."
         },
         "case_defect": null
       }
@@ -86,8 +86,8 @@ Latest report: reports/growth-2026-10-15.json
   },
   "first_pass_match_accuracy": {
     "value": 1.0,
-    "numerator": 30,
-    "denominator": 30,
+    "numerator": 15,
+    "denominator": 15,
     "direction": "up",
     "note": "fraction of WP match decisions confirmed correct by human"
   },
@@ -132,15 +132,14 @@ Latest report: reports/growth-2026-10-15.json
     "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)"
   },
   "absence_pattern_signals": {
-    "value": 27,
+    "value": 11,
     "yellow_total": 0,
-    "correction_total": 27,
+    "correction_total": 11,
     "yellow_by_domain": {},
     "correction_by_domain": {
       "clinical_evaluation": 1,
       "cybersecurity": 1,
-      "quality_capa": 2,
-      "unclassified": 23
+      "unclassified": 9
     },
     "strongest_domain": "unclassified",
     "domains": [
@@ -152,35 +151,35 @@ Latest report: reports/growth-2026-10-15.json
     ],
     "samples": [
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "domain": "unclassified",
         "yellow_reason": null,
         "record_type": "score_given",
         "type": "score_given"
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "domain": "unclassified",
         "yellow_reason": null,
         "record_type": "score_given",
         "type": "score_given"
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
-        "domain": "unclassified",
-        "yellow_reason": null,
-        "record_type": "score_given",
-        "type": "score_given"
-      },
-      {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
         "domain": "cybersecurity",
         "yellow_reason": null,
         "record_type": "score_given",
         "type": "score_given"
       },
       {
-        "session": "kb-eval-feedback-2026-10-10",
+        "session": "kb-eval-feedback-2026-10-15",
+        "domain": "unclassified",
+        "yellow_reason": null,
+        "record_type": "score_given",
+        "type": "score_given"
+      },
+      {
+        "session": "kb-eval-feedback-2026-10-15",
         "domain": "unclassified",
         "yellow_reason": null,
         "record_type": "score_given",
