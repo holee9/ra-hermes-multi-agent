@@ -1,14 +1,15 @@
 === Daily Monitoring Report ===
 Date: 2026-10-16
-Timestamp: 2026-10-16T08:00:00+09:00
+Timestamp: 2026-10-16T15:12:56+09:00
 
 ## 1. System Status
 =================
 - [x] Honcho API healthy
+- [x] Advisory API (:8643) healthy
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261016-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261016-043000 daily, 10h ago)
 
 ## 2. Growth Metrics
 =================
@@ -201,7 +202,7 @@ Bootstrap progress: N/A
 
 ## 4. Summary
 =========
-- **PASS**: 8
+- **PASS**: 9
 - **WARN**: 1
 - **FAIL**: 0
 
