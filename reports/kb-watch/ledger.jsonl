@@ -1,0 +1,17 @@
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "01_규제지식베이스/유럽_CE_MDR/MDCG_가이던스/Clinical_Evaluation_MDR_동등성_충분성_기준.md", "pgvector_chunks_present": null, "reference_domains": ["guidance-dates"]}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_log.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_sweep_ledger.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "03_설계_개발관리/CHK-DR-001_설계검토_체크리스트.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "03_설계_개발관리/설계개발_프로세스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "05_검사_시험_밸리데이션/IEC60601-2-54_형식시험_체크리스트.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "05_검사_시험_밸리데이션/SOP-CAL-001_교정관리_절차.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "05_검사_시험_밸리데이션/SOP-IQ-001_설치검증_수용시험_절차.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "05_검사_시험_밸리데이션/X-ray_장비_안전성능_표준_매핑.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "05_검사_시험_밸리데이션/검사_시험_밸리데이션_개요.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/주간_갭분석_2026-10-16.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1096_build_readiness_draft골격_충족판정금지_재이월.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1097_goal_date_소급재설정_통합종결_재이월.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1098_FDA_510k_RTA_931_932_실데이터화_18주차.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/981_IEC60601-2-54_조항모순_원문확보_종결.md", "pgvector_chunks_present": null, "reference_domains": []}

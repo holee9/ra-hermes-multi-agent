@@ -56,6 +56,25 @@ else
     check_fail "Advisory API (:8643) not responding"
 fi
 
+# KB knowledge-layer watch (#158) — detects KB repo changes, unreflected
+# indexing, and reference-domain hits. Escalation to the human happens only
+# after ESCALATE_AFTER_DAYS (7) unresolved — not here.
+WATCH_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -f "$WATCH_ROOT/scripts/kb-watch.py" ]; then
+    KB_SUMMARY="$(python3 "$WATCH_ROOT/scripts/kb-watch.py" --hours 26 2>/dev/null || echo '{}')"
+    KB_CHANGED="$(echo "$KB_SUMMARY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("kb_files_changed","?"))' 2>/dev/null || echo '?')"
+    KB_UNREFLECTED="$(echo "$KB_SUMMARY" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("not_reflected_in_pgvector",[])))' 2>/dev/null || echo '?')"
+    if [ "$KB_CHANGED" = "0" ]; then
+        check_pass "KB watch: no repo changes in window"
+    elif [ "$KB_UNREFLECTED" = "0" ]; then
+        check_pass "KB watch: ${KB_CHANGED} files changed, all reflected in pgvector"
+    else
+        check_warn "KB watch: ${KB_UNREFLECTED} changed files not reflected in pgvector"
+    fi
+else
+    check_warn "kb-watch.py missing"
+fi
+
 # PostgreSQL
 if docker exec honcho-postgres-1 pg_isready > /dev/null 2>&1; then
     check_pass "PostgreSQL pgvector ready"
