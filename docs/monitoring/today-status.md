@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-10-17
-Timestamp: 2026-10-17T08:00:00+09:00
+Date: 2026-10-19
+Timestamp: 2026-10-19T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -9,68 +9,40 @@ Timestamp: 2026-10-17T08:00:00+09:00
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261017-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261019-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-10-17.json
+Latest report: reports/growth-2026-10-19.json
 
 ### Current Metrics
 {
   "correction_rate": {
-    "value": 0.2,
-    "numerator": 3,
-    "denominator": 15,
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
     "case_defects": {
-      "count": 1,
+      "count": 0,
       "corrected": 0,
       "capture_failed": 0,
       "source_mismatch": 0,
-      "kb_source_error": 1,
+      "kb_source_error": 0,
       "unevaluated_legacy": 0
     },
     "excluding_case_defects": {
-      "value": 0.21428571428571427,
-      "numerator": 3,
-      "denominator": 14,
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
       "meaning": "conditional correction rate over cases with no input-defect flag; NOT agent attribution (output defects are not judged here, #147)"
     },
-    "samples": [
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "actor": "ra_us",
-        "score": 2,
-        "changed": {
-          "note": "EU 용어 혼입 — 원문의 'EU MDR NB Deficiency (참고)' 절(PMCF·Class IIb·30~90일)을 미국 510(k) AI 대응 증거표에 병합. FDA 대응 표에는 PMCF/Class IIb가 없어야 함(#146 G4 계열). AI 응답 기한 180일은 정확(이전 30일 창작 해소)."
-        },
-        "case_defect": null
-      },
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "actor": "ra_eu",
-        "score": 2,
-        "changed": {
-          "note": "'full technical-documentation assessment (Annex II)' — Annex II는 기술문서 '구조'이고 심사 '경로'는 Annex IX(#134 인접). Rule 11 가정·AI Act Art 6(1)(IIa+ 고위험)은 정확."
-        },
-        "case_defect": null
-      },
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "actor": "ra_kr",
-        "score": 2,
-        "changed": {
-          "note": "① 'QMSR (MFDS 품질관리시스템 인증)' — QMSR은 FDA 21 CFR 820 규정명이며 MFDS 인증제도가 아님(원문 KGMP/QMSR 비교표를 관할 혼동). ② 'MFMF requires' → MFDS 오타(10-15 kr-005 재발). ③ 외국 CER 인정과 OECD-MAD(비임상 GLP)를 다시 병합(#129 전철). 등급 미확정 보류·1~4등급 표기는 정확(#145 유지)."
-        },
-        "case_defect": null
-      }
-    ],
+    "samples": [],
     "direction": "down",
     "note": "fraction of human-reviewed decisions where agent was overridden (system-level; excluding_case_defects is a conditional rate, not attribution, #147)"
   },
   "first_pass_match_accuracy": {
-    "value": 0.0,
+    "value": null,
     "numerator": 0,
-    "denominator": 15,
+    "denominator": 0,
     "direction": "up",
     "note": "fraction of WP match decisions confirmed correct by human"
   },
@@ -115,15 +87,12 @@ Latest report: reports/growth-2026-10-17.json
     "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)"
   },
   "absence_pattern_signals": {
-    "value": 3,
+    "value": 0,
     "yellow_total": 0,
-    "correction_total": 3,
+    "correction_total": 0,
     "yellow_by_domain": {},
-    "correction_by_domain": {
-      "quality_capa": 1,
-      "unclassified": 2
-    },
-    "strongest_domain": "unclassified",
+    "correction_by_domain": {},
+    "strongest_domain": null,
     "domains": [
       "clinical_evaluation",
       "coordination",
@@ -131,29 +100,7 @@ Latest report: reports/growth-2026-10-17.json
       "pms_vigilance",
       "quality_capa"
     ],
-    "samples": [
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "domain": "unclassified",
-        "yellow_reason": null,
-        "record_type": "score_given",
-        "type": "score_given"
-      },
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "domain": "unclassified",
-        "yellow_reason": null,
-        "record_type": "score_given",
-        "type": "score_given"
-      },
-      {
-        "session": "kb-eval-feedback-2026-10-16",
-        "domain": "quality_capa",
-        "yellow_reason": null,
-        "record_type": "score_given",
-        "type": "score_given"
-      }
-    ],
+    "samples": [],
     "direction": "diagnostic",
     "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger"
   }

@@ -2167,6 +2167,7 @@ All risk controls must be summarized in the **Risk Management Report**, which wi
 
 **Optional Correction Note**
 
+> KR PMS 계획에 'PMCF study'(EU 제도)를 if applicable로 포함 — 'Framework reference only' 라벨은 붙였으나 한국 시판후조사 체계에는 없는 제도라 제외하거나 'EU에서는 PMCF에 해당' 명시가 필요(#134 관할 규칙 잔여).
 KR PMS 계획에 'PMCF study'(EU 제도)를 if applicable로 포함 — 'Framework reference only' 라벨은 붙였으나 한국 시판후조사 체계에는 없는 제도라 제외하거나 'EU에서는 PMCF에 해당' 명시가 필요(#134 관할 규칙 잔여).
 >
 
