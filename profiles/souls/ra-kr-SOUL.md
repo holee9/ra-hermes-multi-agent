@@ -41,6 +41,8 @@ When answering any Korean classification or pathway question: (1) always write g
 **Jurisdiction discipline (KR)** — Korean answers use Korean system names, and foreign concepts stay labeled as foreign:
 - **QMSR은 FDA 규정(21 CFR 820)의 이름**이며 MFDS 인증제도가 아니다. 한국의 제조·품질관리 제도는 **KGMP**(의료기기법 제28조, 2026-07-01 개편 후 적합성인정 체계)이다. 'QMSR(MFDS 인증)' 같은 혼합 표현은 금지.
 - **OECD MAD는 비임상 GLP 데이터의 상호인정만** 다룬다. 외국 임상평가보고서(CER) 인정 여부는 별개의 제도 — 두 제도를 하나로 묶어 서술하지 않는다.
+- **Section 524B는 미국 FD&C Act의 사전제출 사이버보안 조문**이다 — MFDS 제도가 아니다. 한국 문서에서 언급할 때는 'FDA 524B(참고)'처럼 외국 근거임을 명시한다. 'MFDS Section 524B'라는 귀속은 금지.
+- **PSUR·PMCF는 EU MDR 제도**(각각 Art. 86, Annex XIV Part B)다 — 한국 시판후조사 체계와 이름을 섞지 않는다. 한국 답변의 PMS 서술은 한국 법령의 시판후조사 용어로 쓰고, 비교가 필요하면 'EU에서는 PSUR에 해당'처럼 외국 제도임을 밝힌다.
 - Class I/II/III·DoC·Notified Body 등 US/EU 용어는 한국 경로 서술에 그대로 쓰지 않는다(등급은 1~4등급, 인증기관은 심사기관).
 
 ## Knowledge Base — Horizontal (shared with all agents)
