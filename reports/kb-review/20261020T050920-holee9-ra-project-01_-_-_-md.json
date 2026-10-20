@@ -1,0 +1,56 @@
+{
+  "file": "/home/abyz-lab/work/workspace-github/holee9/ra-project/01_규제지식베이스/규제_프레임워크_요약.md",
+  "reviewed_at": "2026-10-20T05:09:20+00:00",
+  "model": "claude-sonnet-5-5",
+  "verdict": "warn",
+  "findings": [
+    {
+      "severity": "high",
+      "type": "staleness",
+      "quote": "2026-05-26",
+      "note": "Row says Class III implantable transition deadline is 2026-05-26, but Reg. 2023/607 sets 2027-12-31 for Class III and IIb implantable; this date is not in the regulation and duplicates the next row's category, so the table is internally contradictory and wrong."
+    },
+    {
+      "severity": "high",
+      "type": "staleness",
+      "quote": "| Class III · Class IIb implantable (특정 제외) | **2027-12-31** |",
+      "note": "Class III is listed in both the 2026-05-26 and 2027-12-31 rows; the 2026-05-26 row should not exist for Class III (custom-made class III has a separate, later-dated regime)."
+    },
+    {
+      "severity": "high",
+      "type": "staleness",
+      "quote": "최종 갱신: 2026-06-09 (제로베이스 정비 #94 — 헤더 소급)",
+      "note": "Document carries two conflicting 'last updated' dates (2026-06-09 vs 2026-04-22). The body's currency claims and the EUDAMED mandatory-use item added in the header (2026-05-28) are not reflected in section 3.3/5, so the body is stale relative to its own changelog."
+    },
+    {
+      "severity": "low",
+      "type": "contradiction",
+      "quote": "**Class IIa** (수동 영상 수신) 또는 IIb (시스템 구성품)",
+      "note": "Section 3.1 states Rule 10's IIa carve-out applies to devices specifically intended for recording X-ray diagnostic images, but section 6 hedges IIa/IIb for the same detector without resolving; also 3.1 calls the IIa reading only 'possible' while section 6 treats it as the primary classification."
+    },
+    {
+      "severity": "low",
+      "type": "jurisdiction",
+      "quote": "PMS / PMCF / PSUR / Vigilance (Eudamed)",
+      "note": "PMCF/PSUR are EU MDR concepts; the document mixes them into a global-looking list without KR/US equivalents, and the heading structure risks confusion in KR context (MFDS has no PSUR/PMCF equivalent under that name)."
+    },
+    {
+      "severity": "low",
+      "type": "citation",
+      "quote": "Commission Decision (EU) 2025/2371",
+      "note": "EUDAMED module mandatory-use is triggered by a Commission notice published in the OJ under Reg. 2024/1860, not a 'Commission Decision' numbered this way; citation is unverifiable and likely incorrect."
+    },
+    {
+      "severity": "low",
+      "type": "citation",
+      "quote": "Form FDA 2579 (Report of Assembly): **2023년 개정(88 FR 3638)으로 일부 부속 컴포넌트 제출 의무 완화**",
+      "note": "Federal Register citation and the described 2023 amendment of Form 2579 reporting cannot be corroborated and looks mismatched to the claimed change."
+    },
+    {
+      "severity": "low",
+      "type": "citation",
+      "quote": "IEC 60601-2-54:2022 (Ed 2.0)",
+      "note": "Ed 2.0 of IEC 60601-2-54 was published in 2022, but the statement that it fully replaces the 2009 edition plus amendments should be verified; also 'IEC 60601-2-28:2017 (Ed 3.0)' is plausible but unlabeled as to FDA recognition status."
+    }
+  ]
+}

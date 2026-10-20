@@ -82,8 +82,11 @@ def _estimate_usd(model: str, messages: list, max_tokens: int) -> float:
     return _cost_usd(model, in_tok, max_tokens)
 
 
-def call(model: str, messages: list, max_tokens: int = 1024, *, system: str | None = None) -> dict:
-    """Send one /v1/messages request, enforcing the monthly credit cap."""
+def call(model: str, messages: list, max_tokens: int = 1024, *, system: str | None = None,
+         thinking: dict | None = None) -> dict:
+    """Send one /v1/messages request, enforcing the monthly credit cap.
+    thinking: e.g. {"type": "between_tools"} disables inter-message thinking
+    (keeps output from being consumed by reasoning tokens)."""
     env = load_env()
     key = env.get("ANTHROPIC_API_KEY")
     if not key:
@@ -99,6 +102,8 @@ def call(model: str, messages: list, max_tokens: int = 1024, *, system: str | No
     body = {"model": model, "max_tokens": max_tokens, "messages": messages}
     if system:
         body["system"] = system
+    if thinking:
+        body["thinking"] = thinking
     headers = {
         "x-api-key": key,
         "anthropic-version": "2023-06-01",

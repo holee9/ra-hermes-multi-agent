@@ -1,0 +1,14 @@
+{
+  "file": "/home/abyz-lab/work/workspace-github/holee9/ra-project/01_규제지식베이스/규제_프레임워크_요약.md",
+  "reviewed_at": "2026-10-20T05:07:25+00:00",
+  "model": "claude-sonnet-5-5",
+  "verdict": "warn",
+  "findings": [
+    {
+      "severity": "low",
+      "type": "citation",
+      "quote": "",
+      "note": "unparseable reply: "
+    }
+  ]
+}
