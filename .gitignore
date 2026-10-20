@@ -375,3 +375,6 @@ GEMINI.md
 .windsurfrules
 .aider*
 .continue/
+
+# Anthropic API usage ledger (local only)
+scripts/.anthropic-usage.jsonl
