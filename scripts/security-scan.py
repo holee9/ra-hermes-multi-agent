@@ -44,8 +44,9 @@ def main() -> int:
             for m in pat.finditer(text):
                 line = text.count("\n", 0, m.start()) + 1
                 # code/spec references to infra paths are pointers, not internal data
-                severity = "infra-ref" if (path.endswith(".py") or "/specs/" in path
-                                           or path in ("README.md",)) else "CONTENT"
+                infra_label = label in ("NAS mount path", "internal Gitea repo reference (DR_RnD)")
+                severity = "infra-ref" if (infra_label or path.endswith(".py")
+                                           or "/specs/" in path or path in ("README.md",)) else "CONTENT"
                 if severity == "CONTENT":
                     findings += 1
                 print(f"[내부?/{severity}] {path}:{line} — {label}: {m.group(0)[:60]}")
