@@ -17,9 +17,9 @@ import sys
 
 # [내부] source markers — extend as new internal sources are identified
 PATTERNS = [
-    (re.compile(r"abyzr\.com"), "company email domain (abyzr.com)"),
+    (re.compile(r"[A-Za-z0-9._%+-]+@abyzr\.com"), "company email address (full)"),
     (re.compile(r"/mnt/nas"), "NAS mount path"),
-    (re.compile(r"actslab\.co\.kr|3ec\.sk"), "partner email domain (test lab / NB)"),
+    (re.compile(r"[A-Za-z0-9._%+-]+@(actslab\.co\.kr|3ec\.sk)"), "partner email address (full)"),
     (re.compile(r"DR_RnD/"), "internal Gitea repo reference (DR_RnD)"),
     (re.compile(r"(Invoice|인보이스)\s*(No\.?|번호)?\s*[:.]?\s*[0-9]{4,}"), "invoice number"),
     (re.compile(r"[0-9]{1,3}(?:[,.][0-9]{3})+\.?[0-9]{0,2}\s*(EUR|USD|원)"), "invoice-like amount"),
