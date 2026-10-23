@@ -187,6 +187,49 @@ def collect_snapshot() -> dict[str, Any]:
         return {"error": "snapshot_collection_failed", "generated_at": datetime.now().astimezone().isoformat()}
 
 
+def weekly_eval_chart() -> str:
+    """Weekly KB-eval trend section (#134): 3-point ratio + defect count per round."""
+    import datetime as _dt
+    import re as _re
+
+    base = ROOT / "docs" / "kb-eval-checksheets"
+    pat = _re.compile(r"\*\*3점\s*(\d+)\s*·\s*2점\s*(\d+)\s*·\s*1점\s*(\d+)")
+    rows: list[tuple[str, int, int]] = []  # (date, s3, defects)
+    if base.exists():
+        for d in sorted(p for p in base.iterdir() if p.is_dir() and p.name[0].isdigit()):
+            readme = d / "README.md"
+            if not readme.exists():
+                continue
+            m = pat.search(readme.read_text(encoding="utf-8"))
+            if m:
+                s3, s2, s1 = (int(x) for x in m.groups())
+                rows.append((d.name, s3, s2 + s1))
+    if len(rows) < 2:
+        return ""
+    w, h, pad = 640, 200, 36
+    n = len(rows)
+    x = lambda i: pad + i * (w - 2 * pad) / (n - 1)
+    total = lambda r: r[1] + r[2] or 1
+    y_pct = lambda r: h - pad - (r[1] / total(r)) * (h - 2 * pad)
+    y_def = lambda r: h - pad - (r[2] / 15) * (h - 2 * pad)  # defect axis capped at 15
+    pts_pct = " ".join(f"{x(i):.0f},{y_pct(r):.0f}" for i, r in enumerate(rows))
+    pts_def = " ".join(f"{x(i):.0f},{y_def(r):.0f}" for i, r in enumerate(rows))
+    labels = "".join(
+        f'<text x="{x(i):.0f}" y="{h - pad + 16}" text-anchor="middle" font-size="11" fill="#64748b">{r[0][5:]}</text>'
+        f'<text x="{x(i):.0f}" y="{y_pct(r) - 8:.0f}" text-anchor="middle" font-size="11" font-weight="600" fill="#1d4ed8">{r[1]}</text>'
+        for i, r in enumerate(rows)
+    )
+    return f"""
+    <section style="padding:0 32px 16px; max-width:1280px; margin:0 auto;">
+      <h2>KB 평가 주간 추이 <small style="color:#64748b;font-weight:400">(3점 케이스 수=파선 없는 선, 결함 수=주황 점선, 회차당 15케이스)</small></h2>
+      <svg viewBox="0 0 {w} {h}" style="width:100%;height:auto;background:#fbfdff;border:1px solid #e2e8f0;border-radius:8px;">
+        <polyline points="{pts_pct}" fill="none" stroke="#1d4ed8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="{pts_def}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>
+        {labels}
+      </svg>
+    </section>"""
+
+
 def render_metric_row(name: str, data: dict[str, Any]) -> str:
     value = data.get("value")
     cls = "warn" if value is None else "ok"
@@ -682,6 +725,7 @@ def render(snapshot: dict[str, Any]) -> str:
         "messages_spark": sparkline(snapshot["trend_rows"], "messages_scanned", "Messages scanned"),
         "insights_spark": sparkline(snapshot["trend_rows"], "study_insights_count", "Study insights"),
     }
+    weekly_eval = weekly_eval_chart()
 
     return f"""<!doctype html>
 <html lang="ko">
@@ -975,6 +1019,7 @@ def render(snapshot: dict[str, Any]) -> str:
         </section>
       </div>
     </details>
+    {weekly_eval}
   </main>
   <footer>
     Generated at {esc(snapshot.get('generated_at'))}. Regenerate with <code>python3 scripts/render-growth-dashboard.py</code>.
