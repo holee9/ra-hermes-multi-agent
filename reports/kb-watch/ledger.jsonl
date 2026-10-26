@@ -15,3 +15,4 @@
 {"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1097_goal_date_소급재설정_통합종결_재이월.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1098_FDA_510k_RTA_931_932_실데이터화_18주차.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-10-19T06:15:55.141070+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/981_IEC60601-2-54_조항모순_원문확보_종결.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-10-23T23:00:00.206762+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "01_규제지식베이스/규제_프레임워크_요약.md", "pgvector_chunks_present": null, "reference_domains": []}
