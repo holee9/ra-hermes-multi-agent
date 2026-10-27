@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-10-19
-Timestamp: 2026-10-19T15:17:21+09:00
+Date: 2026-10-27
+Timestamp: 2026-10-27T11:18:44+09:00
 
 ## 1. System Status
 =================
@@ -10,18 +10,18 @@ Timestamp: 2026-10-19T15:17:21+09:00
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261019-043000 daily, 10h ago)
+- [x] Backup last run OK (OK 20261027-043000 daily, 6h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-10-19.json
+Latest report: reports/growth-2026-10-27.json
 
 ### Current Metrics
 {
   "correction_rate": {
-    "value": null,
+    "value": 0.0,
     "numerator": 0,
-    "denominator": 0,
+    "denominator": 15,
     "case_defects": {
       "count": 0,
       "corrected": 0,
@@ -31,9 +31,9 @@ Latest report: reports/growth-2026-10-19.json
       "unevaluated_legacy": 0
     },
     "excluding_case_defects": {
-      "value": null,
+      "value": 0.0,
       "numerator": 0,
-      "denominator": 0,
+      "denominator": 15,
       "meaning": "conditional correction rate over cases with no input-defect flag; NOT agent attribution (output defects are not judged here, #147)"
     },
     "samples": [],
@@ -41,9 +41,9 @@ Latest report: reports/growth-2026-10-19.json
     "note": "fraction of human-reviewed decisions where agent was overridden (system-level; excluding_case_defects is a conditional rate, not attribution, #147)"
   },
   "first_pass_match_accuracy": {
-    "value": null,
+    "value": 0.0,
     "numerator": 0,
-    "denominator": 0,
+    "denominator": 15,
     "direction": "up",
     "note": "fraction of WP match decisions confirmed correct by human"
   },
@@ -127,3 +127,51 @@ Bootstrap progress: N/A
 > **이 점검이 확인하지 않은 것**: 메일 유입과 mail-triage 처리 경로는 검사 대상이 아니다.
 > 위 판정은 인프라 구성요소의 응답 여부이며, **메일이 실제로 처리되고 있다는 증거가 아니다**.
 > 처리 여부는 n8n 실행 이력과 OpenProject 반영으로 따로 확인해야 한다 (#141).
+
+## Security scan (covenant v1.0)
+```
+[내부?/infra-ref] README.md:237 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] README.md:299 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] README.md:568 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/RA-multi-agent-master-design.md:260 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/operations-guide.md:770 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/specs/advisory-chat-channel-spec.md:608 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/specs/kb-rag-sync-spec.md:23 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/specs/kb-rag-sync-spec.md:107 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/specs/llm-wiki-operating-model.md:23 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/specs/llm-wiki-operating-model.md:45 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] profiles/souls/op-manager-SOUL.md:81 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/extract_mail_qa.py:37 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/growth-targets.json:17 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] scripts/index_ra_knowledge.py:29 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/knowledge_fetch.py:24 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] scripts/knowledge_fetch.py:43 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] scripts/meta_extractor.py:348 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/meta_extractor.py:349 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/meta_extractor.py:350 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:92 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:93 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:94 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:95 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:96 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:97 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:98 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:99 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:100 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:101 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:102 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:103 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:104 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:105 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:106 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:107 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:108 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:109 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:111 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:112 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:113 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:114 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:115 — NAS mount path: /mnt/nas
+[내부?/infra-ref] scripts/nas_indexer_v2.py:116 — NAS mount path: /mnt/nas
+scan complete: 0 CONTENT finding(s) across 430 tracked files
+```

@@ -204,6 +204,16 @@ echo "> **이 점검이 확인하지 않은 것**: 메일 유입과 mail-triage 
 echo "> 위 판정은 인프라 구성요소의 응답 여부이며, **메일이 실제로 처리되고 있다는 증거가 아니다**." >> "$CHECKLIST_FILE"
 echo "> 처리 여부는 n8n 실행 이력과 OpenProject 반영으로 따로 확인해야 한다 (#141)." >> "$CHECKLIST_FILE"
 
+# Security classification scan (covenant v1.0 — 2026-10-27 wired, was claimed but unwired)
+SEC_OUT=$(python3 scripts/security-scan.py 2>&1)
+SEC_CODE=$?
+echo "" >> "$CHECKLIST_FILE"
+echo "## Security scan (covenant v1.0)" >> "$CHECKLIST_FILE"
+echo '```' >> "$CHECKLIST_FILE"
+echo "$SEC_OUT" >> "$CHECKLIST_FILE"
+echo '```' >> "$CHECKLIST_FILE"
+[ $SEC_CODE -ne 0 ] && echo "⚠️ SECURITY: CONTENT findings present — review before any push" >> "$CHECKLIST_FILE"
+
 # Copy checklist to dashboard location for easy viewing
 cp "$CHECKLIST_FILE" "docs/monitoring/today-status.md"
 
