@@ -386,7 +386,7 @@ def render_case(
         c1_flags = [f for f in _citation_lint.lint_citations(response or "")
                     if f.get("severity") == _citation_lint.SEV_ERROR]
         if c1_flags:
-            lines.append("**Citation Lint (C1 — 구조적 인용 오류 자동 감지)**")
+            lines.append("**Citation Lint (C1/C3 — 구조적 인용 오류 자동 감지)**")
             lines.append("")
             lines.extend(f"- ⚠️ {f['message']} (`{f['span']}`)" for f in c1_flags)
             lines.append("")

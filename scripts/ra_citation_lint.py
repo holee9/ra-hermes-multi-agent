@@ -90,21 +90,141 @@ def _c1(text: str) -> list[dict]:
 
 
 def lint_citations(text: str | None) -> list[dict]:
-    """Return citation flags for `text` (the shipped check == C1 only).
+    """Return citation flags for `text` (shipped checks: C1 + C3).
 
     Each flag: {"check", "severity", "message", "span"}. Empty list == no
     structural contradiction found. This is a registry-contradiction check, not
     proof of correctness: an article whose structure the registry does not know
     is left alone (silent), never asserted correct.
+
+    C3 (Art. 52 class<->paragraph) was wired in 2026-10-28 after offline
+    measurement on every captured batch 2026-07-15..2026-10-28: 2 flags, both
+    true positives (Class IIb cited with 52(1)), zero false positives, and a
+    unit-expectation suite of 11 representative lines.
     """
     if not text:
         return []
-    return _c1(text)
+    return _c1(text) + _art52_class(text)
 
 
 def has_error(flags: list[dict]) -> bool:
     """True if any flag is severity error (the tier the live path hard-gates on)."""
     return any(f.get("severity") == SEV_ERROR for f in flags)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# C3 — MDR Art. 52 class<->paragraph consistency (#134, 2026-10-28).
+#
+# Motivating measurement: 2026-10-28 batch — the check was designed and
+# measured BEFORE wiring (the #134 measured-deployment doctrine), and that
+# process caught a critical authoring error: the first draft registry was
+# built from a search-summary mapping (52(1)=I, 52(5)=IIa, 52(7)=III) that
+# was WRONG and produced 97 false positives across the 2026-10-19..28
+# captured batches. The registry below is the verified mapping (primary
+# text: medical-device-regulation.eu Article 52 page, corroborated by the
+# CMI notified-body procedure doc and consistent with every correct corpus
+# response):
+#   52(1)-(2) general obligations (placing on market / putting into service)
+#   52(3) Class III · 52(4) Class IIb (+ per-device assessment for IIb
+#   implantables) · 52(5) Class IIb implantable derogations (sutures etc.)
+#   52(6) Class IIa · 52(7) Class I incl. Is/Im/Ir NB-aspect involvement
+#   52(8) custom-made devices · 52(9)+ out of registry (silent).
+#
+# Design constraints inherited from C2's measured failure (#134): pairing by
+# character proximity produced 107→10 flags that were all false positives on
+# table/list-dense advisory prose. C3 therefore pairs ONLY inside a structural
+# unit (one markdown line — a table row is one line) and only fires when the
+# paragraph is disallowed for EVERY class token in the unit (union fail-open).
+# Paragraphs outside the registry (9+) stay silent, per C1 doctrine.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# class token -> allowed Art. 52 paragraph numbers (bare integers)
+_ART52_ALLOWED: dict[str, frozenset[int]] = {
+    "i": frozenset({7}),
+    "is": frozenset({7}),
+    "im": frozenset({7}),
+    "ir": frozenset({7}),
+    "ii": frozenset({4, 5, 6}),  # generic "Class II" — either subclass
+    "iia": frozenset({6}),
+    "iib": frozenset({4, 5}),
+    "iii": frozenset({3}),
+}
+_ART52_MAX_PARA = 8  # beyond: not in registry, silent
+
+# "Class IIa", "classes IIb", "Class I". Case-insensitive, covers all grades.
+_ART52_CLASS_ANCHORED_RE = re.compile(
+    r"\bclass(?:es)?\s+(iii|iia|iib|is|im|ir|ii|i)\b", re.IGNORECASE
+)
+# Bare grades only as a cell/line-start LIST ("| IIa | …", "| **IIb / III** |",
+# "<br>‑ IIa → …" compressed in-cell routes). Anchoring to these structural
+# starts keeps out the roman numerals of "Annex II & III" / "Chapters I & III",
+# which measured as the dominant false-positive source on the 2026-07..10
+# corpus. The trailing "(?![A-Za-z0-9.])" keeps out outline markers ("III.").
+_ART52_CLASS_BARE_LIST_RE = re.compile(
+    r"(?:^|\||\*\*|<br\s*/?>|[‑‒–—•·]\s*)[ \t]*"
+    r"((?:III|IIa|IIb|II|Is|Im|Ir|I)"
+    r"(?:\s*(?:[/·,–—-])\s*(?:III|IIa|IIb|II|Is|Im|Ir|I))*)"
+    r"(?![A-Za-z0-9.])"
+)
+_ART52_BARE_ITEM_RE = re.compile(r"III|IIa|IIb|II|Is|Im|Ir|I")
+
+
+def _art52_unit_classes(unit: str) -> set[str]:
+    """Class tokens present in one structural unit (line), anchored or bare."""
+    found = {m.group(1).lower() for m in _ART52_CLASS_ANCHORED_RE.finditer(unit)}
+    for m in _ART52_CLASS_BARE_LIST_RE.finditer(unit):
+        for item in _ART52_BARE_ITEM_RE.findall(m.group(1)):
+            found.add(item.lower())
+    return found
+
+_ART52_CITE_RE = re.compile(
+    r"\bart(?:icle|\.)?\s*52\s*\(\s*(\d{1,2})\s*\)", re.IGNORECASE
+)
+
+_ART52_PARA_LABELS = {
+    "i": "Class I (52(7))",
+    "is": "Class Is (52(7), NB aspects)",
+    "im": "Class Im (52(7), NB aspects)",
+    "ir": "Class Ir (52(7), NB aspects)",
+    "ii": "Class II generic (IIa 52(6) / IIb 52(4)-(5))",
+    "iia": "Class IIa (52(6))",
+    "iib": "Class IIb (52(4); 52(5) implantable derogations)",
+    "iii": "Class III (52(3))",
+}
+
+
+def _art52_class(text: str) -> list[dict]:
+    flags: list[dict] = []
+    for unit in text.splitlines():
+        classes = _art52_unit_classes(unit)
+        if not classes:
+            continue
+        allowed: set[int] = set()
+        for c in classes:
+            allowed |= set(_ART52_ALLOWED[c])
+        for m in _ART52_CITE_RE.finditer(unit):
+            n = int(m.group(1))
+            if n > _ART52_MAX_PARA or n in allowed:
+                continue
+            label = " / ".join(_ART52_PARA_LABELS[c] for c in sorted(classes))
+            flags.append({
+                "check": "C3",
+                "severity": SEV_ERROR,
+                "message": (
+                    f"Art. 52({n}) is inconsistent with the device class on this line "
+                    f"({label}) — verify the paragraph against MDR Art. 52."
+                ),
+                "span": m.group(0),
+                "unit": unit.strip()[:160],
+            })
+    return flags
+
+
+def lint_art52_class(text: str | None) -> list[dict]:
+    """Return C3 flags for `text` (also included in lint_citations())."""
+    if not text:
+        return []
+    return _art52_class(text)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

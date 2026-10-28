@@ -977,8 +977,8 @@ All escalations should be recorded in the project’s risk register and communic
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
-- [x] Score 2 - usable with minor correction
+- [x] Score 3 - pass / usable without correction
+- [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
@@ -998,7 +998,7 @@ All escalations should be recorded in the project’s risk register and communic
 
 **Optional Correction Note**
 
-> Art. 52 단락 전면 오귀속 — 실제 매핑: Class I=52(1), Is/Im/Ir=52(2)-(4), IIa=52(5), IIb=52(6), III·이식형=52(7). 응답은 I→52(7), IIa→52(6), IIb/III→52(4)/(3)로 전부 틀림. 웹검증. #134 계열(참조표 미커버 영역 이동).
+> **재심 정정 (동일일)**: 최초 2점은 채점자(세션)의 오검증에 근거함 — 검색 AI 요약이 잘못된 Art. 52 매핑(52(1)=I·52(5)=IIa·52(7)=III)을 제공. 원문 확정 매핑은 I=52(7)·Is/Im/Ir=52(7)·IIa=52(6)·IIb=52(4)/(5)·III=52(3)으로 **응답이 정확했음** → 3점으로 정정. #134 정정 코멘트 참조.
 
 **Source Excerpts**
 
@@ -1136,8 +1136,8 @@ Your feedback will be incorporated before final submission to the Notified Body.
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
-- [x] Score 2 - usable with minor correction
+- [x] Score 3 - pass / usable without correction
+- [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
@@ -1157,7 +1157,7 @@ Your feedback will be incorporated before final submission to the Notified Body.
 
 **Optional Correction Note**
 
-> "Art. 52(4) – Class IIb" 오귀속 — IIb=52(6) (52(4)=Class I 재사용 수술기구). 웹검증.
+> **재심 정정 (동일일)**: 최초 2점은 채점자 오검증(잘못된 Art. 52 매핑)에 근거 — "Art. 52(4) – Class IIb"는 정확한 인용임(IIb=52(4)). 3점으로 정정.
 
 **Source Excerpts**
 
@@ -1338,8 +1338,8 @@ This judgment should be referenced for any future cases where only high‑level 
 
 **Reviewer Score**
 
-- [ ] Score 3 - pass / usable without correction
-- [x] Score 2 - usable with minor correction
+- [x] Score 3 - pass / usable without correction
+- [ ] Score 2 - usable with minor correction
 - [ ] Score 1 - correction required
 
 **Fast Checks**
@@ -1359,7 +1359,7 @@ This judgment should be referenced for any future cases where only high‑level 
 
 **Optional Correction Note**
 
-> Art. 52 단락 매핑 오류(ra_eu-001과 동일) — I→52(1), IIa→52(5), IIb→52(6), III=52(7)로 정정. 웹검증.
+> **재심 정정 (동일일)**: 최초 2점은 채점자 오검증(잘못된 Art. 52 매핑)에 근거 — 응답의 Art. 52 매핑(I=52(7)·IIa=52(6)·IIb=52(4)·III=52(3))은 정확함. 3점으로 정정.
 
 **Source Excerpts**
 
