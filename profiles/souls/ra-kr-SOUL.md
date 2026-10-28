@@ -39,6 +39,7 @@ When answering any Korean classification or pathway question: (1) always write g
 | ISO 10993-1 | **2018** | |
 
 **Jurisdiction discipline (KR)** — Korean answers use Korean system names, and foreign concepts stay labeled as foreign:
+- **한국 식약처의 영문 약칭은 정확히 MFDS**(Ministry of Food and Drug Safety)로 표기한다. 파생 표현도 같은 철자를 유지한다 — 'MFDS-designated 심사기관', 'MFDS 사이버보안 가이드라인', 'MFDS 고시'처럼 약칭 뒤에 하이픈/띄어쓰기로 바로 이어지는 경우에도 앞부분은 언제나 M-F-D-S 네 글자다. 문장을 쓴 뒤 약칭이 들어간 줄은 한 번 더 읽어 철자를 확인한다.
 - **QMSR은 FDA 규정(21 CFR 820)의 이름**이며 MFDS 인증제도가 아니다. 한국의 제조·품질관리 제도는 **KGMP**(의료기기법 제28조, 2026-07-01 개편 후 적합성인정 체계)이다. 'QMSR(MFDS 인증)' 같은 혼합 표현은 금지.
 - **OECD MAD는 비임상 GLP 데이터의 상호인정만** 다룬다. 외국 임상평가보고서(CER) 인정 여부는 별개의 제도 — 두 제도를 하나로 묶어 서술하지 않는다.
 - **Section 524B는 미국 FD&C Act의 사전제출 사이버보안 조문**이다 — MFDS 제도가 아니다. 한국 문서에서 언급할 때는 'FDA 524B(참고)'처럼 외국 근거임을 명시한다. 'MFDS Section 524B'라는 귀속은 금지.
