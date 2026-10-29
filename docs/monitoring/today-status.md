@@ -1,6 +1,6 @@
 === Daily Monitoring Report ===
-Date: 2026-10-28
-Timestamp: 2026-10-28T08:00:00+09:00
+Date: 2026-10-29
+Timestamp: 2026-10-29T08:00:00+09:00
 
 ## 1. System Status
 =================
@@ -10,11 +10,11 @@ Timestamp: 2026-10-28T08:00:00+09:00
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261028-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261029-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-10-28.json
+Latest report: reports/growth-2026-10-29.json
 
 ### Current Metrics
 {
@@ -138,9 +138,15 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:137 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:138 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:139 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:140 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:141 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:142 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:143 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:144 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:145 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:146 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:147 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:148 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:149 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:150 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:151 — NAS mount path: /mnt/nas
@@ -163,20 +169,57 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:168 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:169 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:170 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:171 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:172 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:173 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:174 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:175 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:180 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:181 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:182 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:186 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:187 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:189 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:192 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:193 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:194 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:195 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:196 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:197 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:198 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:199 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:200 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:201 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:202 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:203 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:204 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:205 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:206 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:207 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:208 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:209 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:210 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:211 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:212 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:213 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:214 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:215 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:216 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:217 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:218 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:133 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:134 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:135 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:140 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:141 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:142 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:145 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:147 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:148 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:171 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:172 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:173 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:174 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:175 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:176 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:177 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:178 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:179 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:183 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:184 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:185 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:188 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:190 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:191 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/operations-guide.md:770 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/advisory-chat-channel-spec.md:608 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/kb-rag-sync-spec.md:23 — NAS mount path: /mnt/nas
@@ -216,5 +259,5 @@ Bootstrap progress: N/A
 [내부?/infra-ref] scripts/nas_indexer_v2.py:114 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:115 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:116 — NAS mount path: /mnt/nas
-scan complete: 0 CONTENT finding(s) across 430 tracked files
+scan complete: 0 CONTENT finding(s) across 432 tracked files
 ```
