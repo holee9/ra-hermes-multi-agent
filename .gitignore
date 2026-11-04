@@ -378,3 +378,4 @@ GEMINI.md
 
 # Anthropic API usage ledger (local only)
 scripts/.anthropic-usage.jsonl
+backups/
