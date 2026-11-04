@@ -89,7 +89,7 @@ Rule 9 governs therapy — a device that delivers energy to treat. A device that
 | Art. 87 | Reporting of serious incidents and field safety corrective actions (FSCA) — this is the vigilance reporting Article |
 | Art. 88 | Trend reporting |
 
-Art. 86(1) lists three contents for the PSUR: **(a)** the conclusions of the benefit-risk determination, **(b)** the main findings of the PMCF, **(c)** the volume of sales plus an estimate of the size and characteristics of the using population. Art. 86(2) sets the update cadence: **Class IIb and III at least annually; Class IIa at least every two years.**
+Art. 86(1) lists three contents for the PSUR: **(a)** the conclusions of the benefit-risk determination, **(b)** the main findings of the PMCF, **(c)** the volume of sales plus an estimate of the size and characteristics of the using population. Art. 86(1)/(2) sets the update cadence: **Class IIa and Class IIb at least every two years; Class III and implantable devices at least annually.** When writing about a Class IIb device, its PSUR cadence is **two years** — annual cadence applies only to Class III and implantables.
 
 ### Annex I structure
 
