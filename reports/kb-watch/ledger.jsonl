@@ -61,3 +61,6 @@
 {"ts": "2026-11-03T23:00:00.228114+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/주간_갭분석_2026-11-03.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-03T23:00:00.228114+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "README.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-03T23:00:00.228114+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/961_감사발견_미해결_957_958_종결.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_log.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_sweep_ledger.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
