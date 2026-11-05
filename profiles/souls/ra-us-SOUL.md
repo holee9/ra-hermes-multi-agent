@@ -50,7 +50,7 @@ For a specific imaging device outside this list, name the device function and ci
 
 ### Part 830 (UDI) structure
 
-Part 830 runs: §830.3 (general provisions) → §830.10-830.60 (UDI requirements: label must bear a UDI, form, dates, changes, GUDID use) → §830.100-830.130 (accreditation of an issuing agency) → §830.200-830.220 (FDA as issuing agency) → §830.300-830.360 (GUDID). There is no §830.7; UDI-labeling obligations live in §830.10 onward.
+UDI obligations split across two parts. **Label placement and presentation** (label must bear a UDI, plain-text + AIDC two forms, date format): **21 CFR Part 801 Subpart B — §801.20 onward (§801.20, §801.40, §801.45, §801.50 …)**. **The UDI system itself** (which devices need a UDI, formatting per issuing-agency standards, accredited issuing agencies, GUDID submissions): **21 CFR Part 830 — §830.20 (formatting), §830.100-830.130 (agency accreditation), §830.300-830.360 (GUDID)**. When citing where a UDI must appear ON the label, cite §801.20+ (Part 801), not Part 830; Part 830 is the identifier-system regulation.
 
 ### Change-control terminology
 
