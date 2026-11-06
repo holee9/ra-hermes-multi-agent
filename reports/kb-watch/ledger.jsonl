@@ -64,3 +64,9 @@
 {"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_log.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_sweep_ledger.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-04T23:00:00.218005+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "01_규제지식베이스/미국_FDA/510k_PMA_가이던스/eSTAR_05_Software_Section.md", "pgvector_chunks_present": null, "reference_domains": ["guidance-dates"]}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_log.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/_audit_sweep_ledger.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-05T23:00:00.211815+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1102_AUDIT_ISO10993-1_2018_판본_Withdrawn_TF-TD-001.md", "pgvector_chunks_present": null, "reference_domains": ["standard-editions"]}

@@ -1,26 +1,26 @@
 === Daily Monitoring Report ===
-Date: 2026-11-05
-Timestamp: 2026-11-05T08:00:00+09:00
+Date: 2026-11-06
+Timestamp: 2026-11-06T08:00:00+09:00
 
 ## 1. System Status
 =================
 - [x] Honcho API healthy
 - [x] Advisory API (:8643) healthy
-- [x] KB watch: 3 files changed, all reflected in pgvector
+- [x] KB watch: 6 files changed, all reflected in pgvector
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261105-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261106-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-11-05.json
+Latest report: reports/growth-2026-11-06.json
 
 ### Current Metrics
 {
   "correction_rate": {
-    "value": 0.0,
-    "numerator": 0,
+    "value": 0.06666666666666667,
+    "numerator": 1,
     "denominator": 15,
     "case_defects": {
       "count": 0,
@@ -31,12 +31,22 @@ Latest report: reports/growth-2026-11-05.json
       "unevaluated_legacy": 0
     },
     "excluding_case_defects": {
-      "value": 0.0,
-      "numerator": 0,
+      "value": 0.06666666666666667,
+      "numerator": 1,
       "denominator": 15,
       "meaning": "conditional correction rate over cases with no input-defect flag; NOT agent attribution (output defects are not judged here, #147)"
     },
-    "samples": [],
+    "samples": [
+      {
+        "session": "kb-eval-feedback-2026-11-05",
+        "actor": "ra_kr",
+        "score": 1,
+        "changed": {
+          "note": "① A11040(투시)를 \"3등급\"으로 기재 — 소스는 A11040.01/.02 [2]=2등급으로 표기(소스 불일치) ② \"고시 제2025-22호\"를 외국 CER 인정 근거로 인용 — 동 고시는 품목군·제조·품질관리 개정 고시로 CER 인정과 무관(11-02 kr-004와 동일 오류 계열). / **1점 확정**(shadow 수용·강화): ① A11040(투시) '3등급' — 소스 명시 [2]=2등급 ② 고시 제2025-22호를 외국 CER 인정 근거로 인용 — 동 고시는 품목군·GMP 개정 고시(11-02와 동일 오류 재발) ③ 잘못된 3등급 전제 위에 '한국 임상시험 필수' 요건 창작 — 소스 불일치+오귀속+창작의 복합. 예외 조항 발동."
+        },
+        "case_defect": null
+      }
+    ],
     "direction": "down",
     "note": "fraction of human-reviewed decisions where agent was overridden (system-level; excluding_case_defects is a conditional rate, not attribution, #147)"
   },
@@ -88,12 +98,14 @@ Latest report: reports/growth-2026-11-05.json
     "note": "knowledge insights extracted during autonomous study (higher = richer knowledge base)"
   },
   "absence_pattern_signals": {
-    "value": 0,
+    "value": 1,
     "yellow_total": 0,
-    "correction_total": 0,
+    "correction_total": 1,
     "yellow_by_domain": {},
-    "correction_by_domain": {},
-    "strongest_domain": null,
+    "correction_by_domain": {
+      "unclassified": 1
+    },
+    "strongest_domain": "unclassified",
     "domains": [
       "clinical_evaluation",
       "coordination",
@@ -101,7 +113,15 @@ Latest report: reports/growth-2026-11-05.json
       "pms_vigilance",
       "quality_capa"
     ],
-    "samples": [],
+    "samples": [
+      {
+        "session": "kb-eval-feedback-2026-11-05",
+        "domain": "unclassified",
+        "yellow_reason": null,
+        "record_type": "score_given",
+        "type": "score_given"
+      }
+    ],
     "direction": "diagnostic",
     "note": "early absence-pattern signal for specialist expansion; not an auto-create trigger"
   }
@@ -134,6 +154,26 @@ Bootstrap progress: N/A
 [내부?/infra-ref] README.md:299 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] README.md:568 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/RA-multi-agent-master-design.md:260 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:136 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:137 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:138 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:139 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:140 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:141 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:142 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:143 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:144 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:145 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:146 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:147 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:148 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:149 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:150 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:151 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:152 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:153 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:154 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:155 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:156 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:157 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:158 — NAS mount path: /mnt/nas
@@ -407,56 +447,56 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:426 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:427 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:428 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:501 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:502 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:503 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:507 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:508 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:510 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:513 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:514 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:515 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:516 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:517 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:518 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:519 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:520 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:521 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:522 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:523 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:429 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:430 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:431 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:432 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:433 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:434 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:435 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:436 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:437 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:438 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:439 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:440 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:441 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:442 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:524 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:525 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:526 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:527 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:528 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:529 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:530 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:531 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:532 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:533 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:534 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:535 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:536 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:537 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:538 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:539 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:153 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:154 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:155 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:429 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:430 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:431 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:432 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:433 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:434 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:435 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:436 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:437 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:438 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:439 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:440 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:441 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:442 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:540 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:541 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:542 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:543 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:544 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:545 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:546 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:547 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:548 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:549 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:550 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:551 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:552 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:553 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:554 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:555 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:556 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:557 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:558 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:559 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:560 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:561 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:562 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:133 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:134 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:135 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:443 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:444 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:445 — internal Gitea repo reference (DR_RnD): DR_RnD/
@@ -515,12 +555,35 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:498 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:499 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:500 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:501 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:502 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:503 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:504 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:505 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:506 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:507 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:508 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:509 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:510 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:511 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:512 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:513 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:514 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:515 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:516 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:517 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:518 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:519 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:520 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:521 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:522 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:523 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:527 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:528 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:529 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:532 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:534 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:535 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/operations-guide.md:770 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/advisory-chat-channel-spec.md:608 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/kb-rag-sync-spec.md:23 — NAS mount path: /mnt/nas
@@ -560,5 +623,5 @@ Bootstrap progress: N/A
 [내부?/infra-ref] scripts/nas_indexer_v2.py:114 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:115 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:116 — NAS mount path: /mnt/nas
-scan complete: 0 CONTENT finding(s) across 445 tracked files
+scan complete: 0 CONTENT finding(s) across 448 tracked files
 ```
