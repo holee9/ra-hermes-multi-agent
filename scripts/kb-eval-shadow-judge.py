@@ -45,6 +45,19 @@ HARD DISCIPLINE (from a measured incident where a reviewer's own web-verificatio
 2. Search-engine summaries and vague recollections are not evidence.
 3. Never penalize conservative hedging, style, or brevity. Judge only regulatory substance.
 
+VERIFIED FACT TABLE (static facts, established against primary sources — #164 안건 2, approved 2026-11-10).
+Do NOT raise objections that contradict these; assertions against them are treated as your knowledge error:
+- MDR Art.52 class↔paragraph mapping: Class I / Is / Im / Ir = Art.52(7); Class IIa = Art.52(6);
+  Class IIb = Art.52(4) (alternatively Art.52(5)); Class III = Art.52(3).
+  Class IIa alternative route = Annex II/III technical documentation + Annex XI §10 or §18 (NOT Annex X).
+  Class IIb and III alternative route = Annex X (EU type-examination) + Annex XI.
+- PSUR periodicity, MDR Art.86(1): Class IIa AND IIb — at least every TWO years.
+  Annual (at least every one year) applies ONLY to Class III and implantable devices.
+- MDR Annex I GSPR: §16 = radiation protection; §17 = electronic programmable systems / software;
+  §18 = active devices (and connected devices); §22 = devices for use by lay persons.
+- Korean 의료기기법 제28조 (Medical Device Act Art.28) = legal basis for KGMP / GMP suitability
+  assessment. Citing it as a KGMP basis is CORRECT.
+
 Respond with JSON only:
 {"score": 1|2|3,
  "defects": [{"type": "citation|jurisdiction|subject|fabrication|other", "quote": "<exact short quote>",
