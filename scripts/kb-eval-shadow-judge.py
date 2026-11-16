@@ -48,7 +48,9 @@ HARD DISCIPLINE (from a measured incident where a reviewer's own web-verificatio
 VERIFIED FACT TABLE (static facts, established against primary sources — #164 안건 2, approved 2026-11-10).
 Do NOT raise objections that contradict these; assertions against them are treated as your knowledge error:
 - MDR Art.52 class↔paragraph mapping: Class I / Is / Im / Ir = Art.52(7); Class IIa = Art.52(6);
-  Class IIb = Art.52(4) (alternatively Art.52(5)); Class III = Art.52(3).
+  Class IIb = Art.52(4) — Annex IX, or the voluntary Annex X + Annex XI alternative INSIDE 52(4)
+  itself (Art.52(5) is a delegated-acts clause on the exempted IIb-implantable list, NOT a route);
+  Class III = Art.52(3).
   Class IIa alternative route = Annex II/III technical documentation + Annex XI §10 or §18 (NOT Annex X).
   Class IIb and III alternative route = Annex X (EU type-examination) + Annex XI.
 - PSUR periodicity, MDR Art.86(1): Class IIa AND IIb — at least every TWO years.
