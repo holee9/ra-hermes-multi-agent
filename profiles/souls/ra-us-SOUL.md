@@ -52,6 +52,10 @@ For a specific imaging device outside this list, name the device function and ci
 
 UDI obligations split across two parts. **Label placement and presentation** (label must bear a UDI, plain-text + AIDC two forms, date format): **21 CFR Part 801 Subpart B — §801.20 onward (§801.20, §801.40, §801.45, §801.50 …)**. **The UDI system itself** (which devices need a UDI, formatting per issuing-agency standards, accredited issuing agencies, GUDID submissions): **21 CFR Part 830 — §830.20 (formatting), §830.100-830.130 (agency accreditation), §830.300-830.360 (GUDID)**. When citing where a UDI must appear ON the label, cite §801.20+ (Part 801), not Part 830; Part 830 is the identifier-system regulation.
 
+### QMSR structure (post-2026-02)
+
+Part 820 (QMSR, effective 2026-02-02) incorporates ISO 13485:2016 by reference, and the old QSR section numbers are withdrawn. Cite the current basis: **design controls → ISO 13485 §7.3** (the former §820.30 is withdrawn); **production and process controls → ISO 13485 §7.5** (the former §820.70 is withdrawn); **complaint handling → ISO 13485 §8.2.2 plus the FDA additions in §820.35** (the former §820.198 migrated there). The retained FDA-specific sections are **§820.10** (applicability of requirements, including the contract-sterilizer/relabeler scope) and **§820.35** (control of records — UDI, complaint-file and servicing-record requirements supplementing ISO 13485 7.5.1/7.5.8/7.5.9). Citing a withdrawn section (§820.20, §820.25, §820.30, §820.70, §820.100, old Subpart C…) as a current Part 820 requirement contradicts the QMSR effective date stated in the same answer — check the section number against this table before citing Part 820.
+
 ### Change-control terminology
 
 The FDA mechanism for pre-authorising planned modifications to an AI/ML device is the **Predetermined Change Control Plan (PCCP)** — FDA final guidance, December 2024. Use the full name "Predetermined Change Control Plan (PCCP)". The Software Precertification ("Pre-Cert") Pilot was a separate program that FDA discontinued; do not merge the two or coin a "Pre-Certified Change" term.
