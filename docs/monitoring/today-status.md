@@ -1,20 +1,20 @@
 === Daily Monitoring Report ===
-Date: 2026-11-16
-Timestamp: 2026-11-16T08:00:00+09:00
+Date: 2026-11-19
+Timestamp: 2026-11-19T08:00:00+09:00
 
 ## 1. System Status
 =================
 - [x] Honcho API healthy
 - [x] Advisory API (:8643) healthy
-- [x] KB watch: no repo changes in window
+- [x] KB watch: 20 files changed, all reflected in pgvector
 - [x] PostgreSQL pgvector ready
 - [x] Redis responsive
 - [x] Honcho deriver running
-- [x] Backup last run OK (OK 20261116-043000 daily, 3h ago)
+- [x] Backup last run OK (OK 20261119-043000 daily, 3h ago)
 
 ## 2. Growth Metrics
 =================
-Latest report: reports/growth-2026-11-16.json
+Latest report: reports/growth-2026-11-19.json
 
 ### Current Metrics
 {
@@ -781,144 +781,144 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:780 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:781 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:782 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:954 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:955 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:956 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:960 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:961 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:963 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:966 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:967 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:968 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:969 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:970 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:971 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:972 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:973 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:974 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:975 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:976 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:977 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:978 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:979 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:980 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:981 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:982 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:983 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:984 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:985 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:986 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:987 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:988 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:989 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:990 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:991 — NAS mount path: /mnt/nas
-[내부?/infra-ref] docs/monitoring/today-status.md:992 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:783 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:784 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:785 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:786 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:787 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:788 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:789 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:790 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:791 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:792 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:793 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:794 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:795 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:796 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:797 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:798 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:799 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:800 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:801 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:802 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:803 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:804 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:805 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:806 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:807 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:808 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:809 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:810 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:811 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:812 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:813 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:814 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:815 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:816 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:817 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:818 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:819 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:820 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:821 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:822 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:823 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:824 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:825 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:826 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:827 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:828 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:829 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:830 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:831 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:832 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:833 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:834 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:835 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:836 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:837 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:838 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:839 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:840 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:841 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:842 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:843 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:844 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:845 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:846 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:847 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:848 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:849 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:850 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:851 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:852 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:853 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:854 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:855 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:856 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:857 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:858 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:859 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:860 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:861 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:862 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:863 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:864 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:865 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:866 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:867 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:868 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:869 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:870 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:871 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:872 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:873 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:874 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:875 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:876 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:877 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:878 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:879 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:880 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:881 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:882 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:883 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:884 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1083 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1084 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1085 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1089 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1090 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1092 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1095 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1096 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1097 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1098 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1099 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1100 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1101 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1102 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1103 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1104 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1105 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1106 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1107 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1108 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1109 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1110 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1111 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1112 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1113 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1114 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1115 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1116 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1117 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1118 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1119 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1120 — NAS mount path: /mnt/nas
+[내부?/infra-ref] docs/monitoring/today-status.md:1121 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/monitoring/today-status.md:133 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:134 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:135 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:783 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:784 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:785 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:786 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:787 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:788 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:789 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:790 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:791 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:792 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:793 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:794 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:795 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:796 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:797 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:798 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:799 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:800 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:801 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:802 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:803 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:804 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:805 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:806 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:807 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:808 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:809 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:810 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:811 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:812 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:813 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:814 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:815 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:816 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:817 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:818 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:819 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:820 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:821 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:822 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:823 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:824 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:825 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:826 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:827 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:828 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:829 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:830 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:831 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:832 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:833 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:834 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:835 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:836 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:837 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:838 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:839 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:840 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:841 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:842 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:843 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:844 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:845 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:846 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:847 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:848 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:849 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:850 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:851 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:852 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:853 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:854 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:855 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:856 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:857 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:858 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:859 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:860 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:861 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:862 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:863 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:864 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:865 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:866 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:867 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:868 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:869 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:870 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:871 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:872 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:873 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:874 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:875 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:876 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:877 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:878 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:879 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:880 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:881 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:882 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:883 — internal Gitea repo reference (DR_RnD): DR_RnD/
-[내부?/infra-ref] docs/monitoring/today-status.md:884 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:885 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:886 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:887 — internal Gitea repo reference (DR_RnD): DR_RnD/
@@ -988,12 +988,141 @@ Bootstrap progress: N/A
 [내부?/infra-ref] docs/monitoring/today-status.md:951 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:952 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:953 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:954 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:955 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:956 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:957 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:958 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:959 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:960 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:961 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:962 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:963 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:964 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/monitoring/today-status.md:965 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:966 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:967 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:968 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:969 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:970 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:971 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:972 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:973 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:974 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:975 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:976 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:977 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:978 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:979 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:980 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:981 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:982 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:983 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:984 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:985 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:986 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:987 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:988 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:989 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:990 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:991 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:992 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:993 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:994 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:995 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:996 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:997 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:998 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:999 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1000 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1001 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1002 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1003 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1004 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1005 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1006 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1007 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1008 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1009 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1010 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1011 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1012 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1013 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1014 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1015 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1016 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1017 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1018 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1019 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1020 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1021 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1022 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1023 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1024 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1025 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1026 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1027 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1028 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1029 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1030 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1031 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1032 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1033 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1034 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1035 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1036 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1037 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1038 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1039 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1040 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1041 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1042 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1043 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1044 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1045 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1046 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1047 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1048 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1049 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1050 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1051 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1052 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1053 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1054 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1055 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1056 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1057 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1058 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1059 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1060 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1061 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1062 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1063 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1064 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1065 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1066 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1067 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1068 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1069 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1070 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1071 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1072 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1073 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1074 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1075 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1076 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1077 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1078 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1079 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1080 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1081 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1082 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1086 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1087 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1088 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1091 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1093 — internal Gitea repo reference (DR_RnD): DR_RnD/
+[내부?/infra-ref] docs/monitoring/today-status.md:1094 — internal Gitea repo reference (DR_RnD): DR_RnD/
 [내부?/infra-ref] docs/operations-guide.md:770 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/advisory-chat-channel-spec.md:608 — NAS mount path: /mnt/nas
 [내부?/infra-ref] docs/specs/kb-rag-sync-spec.md:23 — NAS mount path: /mnt/nas
@@ -1033,5 +1162,5 @@ Bootstrap progress: N/A
 [내부?/infra-ref] scripts/nas_indexer_v2.py:114 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:115 — NAS mount path: /mnt/nas
 [내부?/infra-ref] scripts/nas_indexer_v2.py:116 — NAS mount path: /mnt/nas
-scan complete: 0 CONTENT finding(s) across 454 tracked files
+scan complete: 0 CONTENT finding(s) across 457 tracked files
 ```
