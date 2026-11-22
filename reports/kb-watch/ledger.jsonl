@@ -173,3 +173,9 @@
 {"ts": "2026-11-19T23:00:00.275520+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-19T23:00:00.275520+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1109_AUDIT_MDR_AnnexI_15_측정장비교정_오귀속_AnnexIX_2.2e.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-19T23:00:00.275520+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "issue-drafts/1110_AUDIT_ALARA_21CFR1020.31_d_AEC_오귀속_a3.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-20T23:00:00.288150+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-20T23:00:00.288150+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-20T23:00:00.288150+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/주간_갭분석_2026-11-20.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-21T23:00:00.276469+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/주간_갭분석_2026-11-20.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-22T23:00:00.280820+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-22T23:00:00.280820+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
