@@ -53,8 +53,11 @@ Do NOT raise objections that contradict these; assertions against them are treat
   Class III = Art.52(3).
   Class IIa alternative route = Annex II/III technical documentation + Annex XI §10 or §18 (NOT Annex X).
   Class IIb and III alternative route = Annex X (EU type-examination) + Annex XI.
-- PSUR periodicity, MDR Art.86(1): Class IIa AND IIb — at least every TWO years.
-  Annual (at least every one year) applies ONLY to Class III and implantable devices.
+- PSUR periodicity, MDR Art.86(1): Class IIa — when necessary and at least every TWO years;
+  Class IIb AND Class III (incl. implantables) — at least ANNUALLY. (Verified 2026-11-20 against
+  MDCG 2022-21 Annex IV + primary text; the earlier 'IIa AND IIb = two years' reading was a
+  mis-verification from secondary blog sources.)
+  Annual applies to Class IIb (incl. non-implantable) and Class III.
 - MDR Annex I GSPR: §16 = radiation protection; §17 = electronic programmable systems / software;
   §18 = active devices (and connected devices); §22 = devices for use by lay persons.
 - Korean 의료기기법 제28조 (Medical Device Act Art.28) = legal basis for KGMP / GMP suitability
