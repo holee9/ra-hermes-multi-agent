@@ -179,3 +179,7 @@
 {"ts": "2026-11-21T23:00:00.276469+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/주간_갭분석_2026-11-20.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-22T23:00:00.280820+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-22T23:00:00.280820+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": ".ra-scheduler/STATE_maintenance.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "README.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
