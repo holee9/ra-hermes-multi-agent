@@ -183,3 +183,9 @@
 {"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "README.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
 {"ts": "2026-11-23T23:00:00.319306+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-24T23:00:00.531485+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "01_규제지식베이스/유럽_CE_MDR/MDR_2017_745/MDR_AnnexIII_PMS_TD_Template.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-24T23:00:00.531485+00:00", "kind": "kb-file-changed", "repo": "holee9/ra-project", "file": "04_기술문서_템플릿/PMS_Plan_MDR_Article84_템플릿.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-24T23:00:00.531485+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-24T23:00:00.531485+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-25T23:00:00.992195+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "00_프로젝트관리/문서_매트릭스.md", "pgvector_chunks_present": null, "reference_domains": []}
+{"ts": "2026-11-25T23:00:00.992195+00:00", "kind": "kb-file-changed", "repo": "holee9/MD-process", "file": "13_규제평가_체크리스트/_readiness_report.md", "pgvector_chunks_present": null, "reference_domains": []}
